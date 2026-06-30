@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { ReactFlow, Background, BackgroundVariant, useReactFlow, type NodeTypes, type EdgeTypes, type Node, type Edge } from '@xyflow/react';
-import { compoundLayout, type LayoutDirection } from '@/lib/compoundLayout';
+import { compoundLayout, type LayoutDirection, type GroupSpec } from '@/lib/compoundLayout';
 import { generateIacHandoff, generateCalculatorPayload } from '@/lib/codegen';
 import { highlightJson } from '@/lib/codeview';
 import { exportPng } from '@/lib/pngExport';
@@ -25,29 +25,42 @@ interface Props {
   };
 }
 
-/** Classify services into groups based on parentId, subnet, or heuristics */
-function buildMembership(services: any[]): Record<string, string> {
+/**
+ * Resolve groups + membership. Two modes:
+ *  1. Explicit: data.groups declares containers (any depth) and each service
+ *     points at one via `parentId` (or `group`). Used for arbitrary topologies
+ *     (multi-VPC, multi-account, AZs, on-prem…).
+ *  2. Implicit (back-compat): no groups declared — derive the classic
+ *     AWS Cloud → VPC → public/private subnet tree from the `subnet` field.
+ */
+function resolveGroupsAndMembership(services: any[], declaredGroups?: any[]): { groups: GroupSpec[]; membership: Record<string, string> } {
+  const isExternal = (s: any) => s.external || s.category === 'user' || s.category === 'external' || s.id === 'users' || (typeof s.id === 'string' && s.id.startsWith('ext-'));
   const membership: Record<string, string> = {};
-  for (const s of services) {
-    if (s.parentId) {
-      // Explicit parent wins (must be a known group id).
-      membership[s.id] = s.parentId;
-    } else if (
-      s.external ||
-      s.category === 'user' || s.category === 'external' ||
-      s.id === 'users' || s.id.startsWith('ext-')
-    ) {
-      // external nodes stay outside all groups
-    } else if (s.subnet === 'public') {
-      membership[s.id] = 'pub-sub';   // Public Subnet → nested under VPC
-    } else if (s.subnet === 'private') {
-      membership[s.id] = 'priv-sub';  // Private Subnet → nested under VPC
-    } else {
-      // Internal service with no subnet → directly under AWS Cloud (edge service)
-      membership[s.id] = 'aws-cloud';
+
+  if (declaredGroups && declaredGroups.length) {
+    const groups: GroupSpec[] = declaredGroups.map(g => ({ id: g.id, label: g.label || g.id, parent: g.parent, variant: g.variant }));
+    const ids = new Set(groups.map(g => g.id));
+    for (const s of services) {
+      const p = s.parentId || s.group;
+      if (p && ids.has(p)) membership[s.id] = p;
     }
+    return { groups, membership };
   }
-  return membership;
+
+  // Implicit derivation from subnet/heuristics.
+  let usesVpc = false, usesPub = false, usesPriv = false, usesCloud = false;
+  for (const s of services) {
+    if (isExternal(s)) continue;
+    if (s.subnet === 'public') { membership[s.id] = 'pub-sub'; usesPub = usesVpc = true; }
+    else if (s.subnet === 'private') { membership[s.id] = 'priv-sub'; usesPriv = usesVpc = true; }
+    else { membership[s.id] = 'aws-cloud'; usesCloud = true; }
+  }
+  const groups: GroupSpec[] = [];
+  if (usesCloud || usesVpc) groups.push({ id: 'aws-cloud', label: 'AWS Cloud', variant: 'aws-cloud' });
+  if (usesVpc) groups.push({ id: 'vpc', label: 'VPC', parent: 'aws-cloud', variant: 'vpc' });
+  if (usesPub) groups.push({ id: 'pub-sub', label: 'Public Subnet', parent: 'vpc', variant: 'public-subnet' });
+  if (usesPriv) groups.push({ id: 'priv-sub', label: 'Private Subnet', parent: 'vpc', variant: 'private-subnet' });
+  return { groups, membership };
 }
 
 /** Resolve multi-lang value: accepts string or {en, pt} object */
@@ -81,7 +94,7 @@ export function StandaloneApp({ data }: Props) {
       data: { label: i(s.service, lang), icon: s.icon, sub: s.category, role: s.role, config: s.config ? { ...s.config, label: i(s.config.label, lang) } : undefined },
     })), [data, lang]);
 
-  const membership = useMemo(() => buildMembership(data.services || []), [data]);
+  const { groups, membership } = useMemo(() => resolveGroupsAndMembership(data.services || [], (data as any).groups), [data]);
 
   // A flow step is "playing" whenever a step is selected (manual or auto-play).
   const anyActive = activeStep !== null;
@@ -106,14 +119,14 @@ export function StandaloneApp({ data }: Props) {
   }, [data, direction, activeStep, anyActive, speed]);
 
   const [allNodes, setAllNodes] = useState<Node[]>(() =>
-    compoundLayout(serviceNodes, edges, membership, direction)
+    compoundLayout(serviceNodes, edges, membership, direction, groups)
   );
 
   const relayout = useCallback((dir: LayoutDirection) => {
     setDirection(dir);
-    setAllNodes(compoundLayout(serviceNodes, edges, membership, dir));
+    setAllNodes(compoundLayout(serviceNodes, edges, membership, dir, groups));
     setTimeout(() => fitView({ padding: 0.02 }), 50);
-  }, [serviceNodes, edges, membership, fitView]);
+  }, [serviceNodes, edges, membership, groups, fitView]);
 
   const exportCode = useCallback((kind: 'iac' | 'calculator') => {
     const services = data.services || [];

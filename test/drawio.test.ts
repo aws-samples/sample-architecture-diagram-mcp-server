@@ -53,4 +53,14 @@ describe('generateDrawioXml', () => {
       [{ id: 'a', service: 'Amazon API Gateway', category: 'networking' }], [], 'T', '');
     expect(x).toContain('resIcon=mxgraph.aws4.api_gateway');
   });
+
+  it('renders any group variant with its official aws4 group icon', () => {
+    const nodes: any[] = [
+      { id: 'acct', type: 'group', position: { x: 0, y: 0 }, style: { width: 600, height: 400 }, data: { label: 'Prod', variant: 'account' } },
+      { id: 'asg', type: 'group', position: { x: 50, y: 50 }, style: { width: 300, height: 200 }, data: { label: 'ASG', variant: 'auto-scaling-group' } },
+    ];
+    const x = generateDrawioXml(nodes, [], [], 'T', '');
+    expect(x).toContain('grIcon=mxgraph.aws4.group_account');
+    expect(x).toContain('grIcon=mxgraph.aws4.group_auto_scaling_group');
+  });
 });

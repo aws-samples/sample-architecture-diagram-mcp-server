@@ -49,11 +49,25 @@ describe('generateHtml — arch data wiring', () => {
     expect(d.wellArchitected).toBeNull();
   });
 
-  it('always inlines the group icons (AWS Cloud / VPC / subnets / region)', () => {
+  it('always inlines all group/container icons (incl. account, ASG, data center)', () => {
     const m = generateHtml('T', '', services, connections, {}).match(/id="icon-data"[^>]*>([\s\S]*?)<\/script>/);
     const map = JSON.parse(m![1]);
-    for (const g of ['AWS-Cloud_32.png', 'Virtual-private-cloud-VPC_32.png', 'Public-subnet_32.png', 'Private-subnet_32.png', 'Region_32.png']) {
+    for (const g of ['AWS-Cloud_32.png', 'Virtual-private-cloud-VPC_32.png', 'Public-subnet_32.png', 'Private-subnet_32.png', 'Region_32.png', 'AWS-Account_32.png', 'Auto-Scaling-group_32.png', 'Corporate-data-center_32.png']) {
       expect(map[g], `group icon ${g} not inlined`).toMatch(/^data:image\//);
     }
+  });
+
+  it('passes explicit groups through to the data for arbitrary topologies', () => {
+    const groups = [
+      { id: 'vpcA', label: 'VPC A', variant: 'vpc' },
+      { id: 'vpcB', label: 'VPC B', variant: 'vpc' },
+    ];
+    const d = archDataOf(generateHtml('T', '', services, connections, { groups }));
+    expect(d.groups).toHaveLength(2);
+    expect(d.groups.map((g: any) => g.id)).toEqual(['vpcA', 'vpcB']);
+  });
+
+  it('defaults groups to [] when omitted (implicit subnet derivation happens client-side)', () => {
+    expect(archDataOf(generateHtml('T', '', services, connections, {})).groups).toEqual([]);
   });
 });

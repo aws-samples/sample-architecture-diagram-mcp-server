@@ -138,14 +138,33 @@ diagram data and base64-inlined icons into the built `dist/index.html`. Tests
 (`test/`) cover the pure generators — icon resolution, IaC/pricing handoff,
 draw.io XML, and service-config integrity.
 
-## Scope & limitations
+## Containers & nesting
 
-Best suited for **single-VPC, single-region** architectures (the common case).
-Current container model supports AWS Cloud → VPC → one public + one private
-subnet; layouts are top-bottom or left-right. Not yet modeled: multiple VPCs or
-accounts, multiple/named subnets, Availability Zones in the interactive HTML, or
-radial layouts. Services without a mapped icon render as a category-colored
-initial (175 services are mapped; run `resolve_icon` to check coverage).
+Declare arbitrary containers via the top-level `groups` array — any depth, any
+topology. Each group has an `id`, `label`, optional `parent` (for nesting), and
+a `variant` that maps to an official AWS group icon + color:
+
+`aws-cloud`, `region`, `vpc`, `public-subnet`, `private-subnet`,
+`availability-zone`, `account`, `organization`, `auto-scaling-group`, `group`
+(generic logical), `corporate-data-center`, `on-premises`.
+
+Services join a group via `parentId`. This models multi-VPC, multi-account,
+multi-AZ, and hybrid (on-prem ↔ AWS) architectures. If you omit `groups`, a
+single `AWS Cloud → VPC → public/private subnet` tree is derived automatically
+from each service's `subnet` field (the common single-VPC case).
+
+```jsonc
+"groups": [
+  { "id": "prod", "label": "Prod Account", "variant": "account" },
+  { "id": "vpcA", "label": "VPC A", "parent": "prod", "variant": "vpc" },
+  { "id": "subA", "label": "Private Subnet", "parent": "vpcA", "variant": "private-subnet" }
+],
+"services": [ { "id": "fn", "service": "AWS Lambda", "category": "compute", "parentId": "subA" } ]
+```
+
+Remaining limits: layouts are top-bottom or left-right (no radial); services
+without a mapped icon render as a category-colored initial (175 services mapped;
+run `resolve_icon` to check coverage).
 
 ## License
 

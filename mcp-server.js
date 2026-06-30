@@ -106,7 +106,8 @@ server.tool(
       category: z.enum(["compute", "storage", "database", "networking", "security", "integration", "analytics", "ai", "management", "general"]),
       label: z.string().optional(),
       role: z.string().optional().describe("What this component DOES in the architecture (the WHY), shown in the node detail panel. E.g. 'Authenticates API consumers via JWT', 'Stores order data with single-digit-ms reads'."),
-      subnet: z.enum(["public", "private"]).optional(),
+      parentId: z.string().optional().describe("ID of the group this service belongs to (from the top-level `groups`). Enables arbitrary nesting: multi-VPC, AZs, accounts, on-prem. Takes precedence over `subnet`."),
+      subnet: z.enum(["public", "private"]).optional().describe("Shortcut for single-VPC diagrams: auto-nests under AWS Cloud → VPC → public/private subnet when `groups` is not provided."),
       external: z.boolean().optional(),
       isApi: z.boolean().optional(),
       config: z.object({
@@ -123,6 +124,13 @@ server.tool(
       type: z.enum(["network", "iam", "event", "data"]).optional().describe("Connection semantics, styled distinctly: network (solid), iam (dashed, auth/permission), event (dotted, async/pub-sub), data (solid, read/write)."),
       dashed: z.boolean().optional(),
     })),
+    // Data-driven containers — declare any nesting (multi-VPC, AZ, account, on-prem).
+    groups: z.array(z.object({
+      id: z.string().describe("Group id referenced by services' parentId and by child groups' parent."),
+      label: z.string().describe("Display label, e.g. 'VPC A', 'us-east-1a', 'Prod Account'."),
+      parent: z.string().optional().describe("Parent group id for nesting (arbitrary depth)."),
+      variant: z.enum(["aws-cloud", "region", "vpc", "public-subnet", "private-subnet", "availability-zone", "account", "organization", "auto-scaling-group", "group", "corporate-data-center", "on-premises"]).optional().describe("Container type → official AWS group icon + color."),
+    })).optional().describe("Explicit containers for arbitrary topologies. When omitted, a single AWS Cloud → VPC → public/private subnet tree is derived from each service's `subnet`."),
     // Architecture rationale, anchored on AWS-adopted standards (not a proprietary format).
     adr: z.array(z.object({
       title: z.string().describe("Decision title, e.g. 'Use DynamoDB over RDS'"),
@@ -140,10 +148,10 @@ server.tool(
       sustainability: z.string().optional(),
     }).optional().describe("How the architecture addresses each AWS Well-Architected pillar (the HOW). Shown in the Well-Architected panel and passed to the IaC handoff."),
   },
-  async ({ title, subtitle, outputPath, services, connections, adr, wellArchitected }) => {
-    const html = generateHtml(title, subtitle || "", services, connections, { adr, wellArchitected });
+  async ({ title, subtitle, outputPath, services, connections, groups, adr, wellArchitected }) => {
+    const html = generateHtml(title, subtitle || "", services, connections, { adr, wellArchitected, groups });
     writeFileSync(outputPath, html, "utf-8");
-    const extras = [adr?.length ? `${adr.length} ADR(s)` : null, wellArchitected ? "Well-Architected notes" : null].filter(Boolean);
+    const extras = [groups?.length ? `${groups.length} group(s)` : null, adr?.length ? `${adr.length} ADR(s)` : null, wellArchitected ? "Well-Architected notes" : null].filter(Boolean);
     return { content: [{ type: "text", text: `Interactive diagram saved: ${outputPath}${extras.length ? "\nIncluded: " + extras.join(", ") : ""}\nOpen in browser for animated data flow visualization.` }] };
   }
 );

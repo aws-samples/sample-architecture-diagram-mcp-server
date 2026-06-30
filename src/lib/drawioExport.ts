@@ -3,18 +3,15 @@
 // category) from the arch data, so the exported file matches what's on screen
 // and opens as fully editable AWS shapes in draw.io. Works under file://.
 import type { Node } from "@xyflow/react";
+import { resolveVariant } from "./groupVariants";
 
-const GROUP_STYLES: Record<string, string> = {
-  "aws-cloud": "points=[[0,0],[0.25,0],[0.5,0],[0.75,0],[1,0],[1,0.25],[1,0.5],[1,0.75],[1,1],[0.75,1],[0.5,1],[0.25,1],[0,1],[0,0.75],[0,0.5],[0,0.25]];outlineConnect=0;gradientColor=none;html=1;whiteSpace=wrap;fontSize=12;fontStyle=0;shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_aws_cloud;strokeColor=#232F3E;fillColor=none;verticalAlign=top;align=left;spacingLeft=30;fontColor=#232F3E;dashed=0;container=1;collapsible=0;recursiveResize=0",
-  "vpc": "points=[[0,0],[0.25,0],[0.5,0],[0.75,0],[1,0],[1,0.25],[1,0.5],[1,0.75],[1,1],[0.75,1],[0.5,1],[0.25,1],[0,1],[0,0.75],[0,0.5],[0,0.25]];outlineConnect=0;gradientColor=none;html=1;whiteSpace=wrap;fontSize=12;fontStyle=0;shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_vpc2;strokeColor=#8C4FFF;fillColor=none;verticalAlign=top;align=left;spacingLeft=30;fontColor=#8C4FFF;dashed=0;container=1;collapsible=0;recursiveResize=0",
-  "public-subnet": "points=[[0,0],[0.25,0],[0.5,0],[0.75,0],[1,0],[1,0.25],[1,0.5],[1,0.75],[1,1],[0.75,1],[0.5,1],[0.25,1],[0,1],[0,0.75],[0,0.5],[0,0.25]];outlineConnect=0;gradientColor=none;html=1;whiteSpace=wrap;fontSize=12;fontStyle=0;shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_public_subnet;strokeColor=#248814;fillColor=none;verticalAlign=top;align=left;spacingLeft=30;fontColor=#248814;dashed=0;container=1;collapsible=0;recursiveResize=0",
-  "private-subnet": "points=[[0,0],[0.25,0],[0.5,0],[0.75,0],[1,0],[1,0.25],[1,0.5],[1,0.75],[1,1],[0.75,1],[0.5,1],[0.25,1],[0,1],[0,0.75],[0,0.5],[0,0.25]];outlineConnect=0;gradientColor=none;html=1;whiteSpace=wrap;fontSize=12;fontStyle=0;shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_private_subnet;strokeColor=#147EBA;fillColor=none;verticalAlign=top;align=left;spacingLeft=30;fontColor=#147EBA;dashed=0;container=1;collapsible=0;recursiveResize=0",
-};
+const GROUP_POINTS = "points=[[0,0],[0.25,0],[0.5,0],[0.75,0],[1,0],[1,0.25],[1,0.5],[1,0.75],[1,1],[0.75,1],[0.5,1],[0.25,1],[0,1],[0,0.75],[0,0.5],[0,0.25]]";
 
-// client group id -> drawio group style key
-const VARIANT_MAP: Record<string, string> = {
-  "aws-cloud": "aws-cloud", "vpc": "vpc", "pub-sub": "public-subnet", "priv-sub": "private-subnet",
-};
+// Build a drawio AWS4 group style for any variant from the shared registry.
+function groupStyle(variantKey?: string): string {
+  const v = resolveVariant(variantKey);
+  return `${GROUP_POINTS};outlineConnect=0;gradientColor=none;html=1;whiteSpace=wrap;fontSize=12;fontStyle=0;shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.${v.grIcon};strokeColor=${v.stroke};fillColor=none;verticalAlign=top;align=left;spacingLeft=30;fontColor=${v.stroke};dashed=${v.dashed ? 1 : 0};container=1;collapsible=0;recursiveResize=0`;
+}
 
 const CATEGORIES: Record<string, { fill: string; tint: string; stroke: string }> = {
   compute: { fill: "#ED7100", tint: "#FFF2E8", stroke: "#ED7100" },
@@ -50,13 +47,12 @@ export function generateDrawioXml(allNodes: Node[], services: any[], connections
   cells.push(`        <mxCell id="title-text" style="text;html=1;align=left;verticalAlign=top;fontSize=24;fontStyle=1;fontFamily=Helvetica;" value="${esc(title)}" vertex="1" parent="1"><mxGeometry x="40" y="20" width="900" height="34" as="geometry" /></mxCell>
         <mxCell id="subtitle-text" style="text;html=1;align=left;verticalAlign=top;fontSize=14;fontColor=#666;fontFamily=Helvetica;" value="${esc(subtitle)}" vertex="1" parent="1"><mxGeometry x="42" y="54" width="800" height="22" as="geometry" /></mxCell>`);
 
-  // Groups (behind). Use the on-screen position/size.
+  // Groups (behind). Use the on-screen position/size; any variant is supported.
   for (const n of allNodes) {
     if (n.type !== "group") continue;
-    const variant = VARIANT_MAP[String((n.data as any)?.variant || n.id)] || "aws-cloud";
     const w = Number((n.style as any)?.width) || 400;
     const h = Number((n.style as any)?.height) || 300;
-    cells.push(`        <mxCell id="g-${n.id}" value="${esc(String((n.data as any)?.label || ""))}" style="${GROUP_STYLES[variant]}" vertex="1" parent="1"><mxGeometry x="${Math.round(n.position.x)}" y="${Math.round(n.position.y)}" width="${Math.round(w)}" height="${Math.round(h)}" as="geometry" /></mxCell>`);
+    cells.push(`        <mxCell id="g-${n.id}" value="${esc(String((n.data as any)?.label || ""))}" style="${groupStyle(String((n.data as any)?.variant || n.id))}" vertex="1" parent="1"><mxGeometry x="${Math.round(n.position.x)}" y="${Math.round(n.position.y)}" width="${Math.round(w)}" height="${Math.round(h)}" as="geometry" /></mxCell>`);
   }
 
   // Service nodes (absolute positioning; groups are decoration).
