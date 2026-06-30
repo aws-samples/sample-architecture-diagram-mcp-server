@@ -27,6 +27,16 @@ It also generates `.drawio` files and produces handoff payloads for the official
 - **Pricing handoff** — exports a payload for the AWS Pricing Calculator MCP.
 - **draw.io output** — `auto_generate_diagram` writes a fully laid-out `.drawio`.
 
+## AWS diagram guidelines
+
+The output follows the official AWS architecture diagram guidance:
+official icon set only, every node labeled, left-to-right / top-to-bottom flow,
+2pt lines on shapes and arrows, an editable source (`.drawio`), and process
+steps kept out of the canvas (shown in the flow panel/legend). For best results,
+label nodes with the canonical service name from the
+[AWS Offering Names Wiki](https://aws.amazon.com/architecture/icons/) on first
+use, and re-download the icon set when AWS refreshes it (quarterly).
+
 ## Prerequisites
 
 - Node.js 18+

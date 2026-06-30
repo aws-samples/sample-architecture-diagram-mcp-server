@@ -20,8 +20,10 @@ if [[ $# -lt 1 ]]; then
   cat <<'EOF'
 AWS Architecture Icons are required but not bundled (license).
 
-1. Download the latest "Asset Package" zip from:
+1. Download the LATEST "Asset Package" zip from:
    https://aws.amazon.com/architecture/icons/
+   (AWS refreshes the icon set quarterly — always grab the newest one rather
+    than reusing an old download, per AWS diagram guidelines.)
 2. Re-run this script pointing at the downloaded zip:
    ./scripts/fetch-icons.sh ~/Downloads/Asset-Package_*.zip
 

@@ -67,7 +67,7 @@ export function generateDrawioXml(allNodes: Node[], services: any[], connections
     const cat = CATEGORIES[svc.category as string] || CATEGORIES.general;
     const shape = shapeFor(svc);
     const x = Math.round(n.position.x), y = Math.round(n.position.y);
-    cells.push(`        <mxCell id="grp-${n.id}" value="" style="fillColor=${cat.tint};strokeColor=${cat.stroke};rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;fontStyle=1;fontSize=10;fontColor=${cat.stroke};fontFamily=Helvetica;container=1;collapsible=0;shadow=1;strokeWidth=1.5;" vertex="1" parent="1"><mxGeometry x="${x}" y="${y}" width="120" height="120" as="geometry" /></mxCell>
+    cells.push(`        <mxCell id="grp-${n.id}" value="" style="fillColor=${cat.tint};strokeColor=${cat.stroke};rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;fontStyle=1;fontSize=10;fontColor=${cat.stroke};fontFamily=Helvetica;container=1;collapsible=0;shadow=1;strokeWidth=2;" vertex="1" parent="1"><mxGeometry x="${x}" y="${y}" width="120" height="120" as="geometry" /></mxCell>
         <mxCell id="svc-${n.id}" value="${esc(name)}" style="sketch=0;outlineConnect=0;fontColor=#232F3E;fillColor=${cat.fill};strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=10;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.${shape};fontFamily=Helvetica;shadow=1;" vertex="1" parent="grp-${n.id}"><mxGeometry x="36" y="30" width="48" height="48" as="geometry" /></mxCell>`);
   }
 

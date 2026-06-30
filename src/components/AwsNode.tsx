@@ -18,7 +18,7 @@ function AwsNode({ data }: NodeProps) {
   return (
     <div style={{
       width: 110, padding: "10px 8px 6px", borderRadius: 10,
-      border: `1.5px solid ${color}`, background: "var(--node-bg, #1e2230)",
+      border: `2px solid ${color}`, background: "var(--node-bg, #1e2230)",
       textAlign: "center", cursor: "grab",
     }}>
       <Handle type="target" position={Position.Top} id="top" style={{ width: 6, height: 6, background: color, border: "none" }} />

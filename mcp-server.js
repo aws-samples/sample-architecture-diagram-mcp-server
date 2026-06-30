@@ -100,7 +100,7 @@ server.tool(
     outputPath: z.string().describe("Output .html file path"),
     services: z.array(z.object({
       id: z.string(),
-      service: z.string(),
+      service: z.string().describe("Canonical AWS service name used as the node label. Use the official full name on first use (e.g. 'Amazon Simple Storage Service', 'Amazon Elastic Compute Cloud') per the AWS Offering Names Wiki; short forms ('Amazon S3', 'Amazon EC2') are fine when space is tight. Every node must be labeled."),
       shape: z.string(),
       icon: z.string().optional().describe("Icon reference inlined as base64 into the HTML: bare name resolves under icons/ (e.g. 'Arch_Amazon-RDS_48.png'), prefixed path used as-is (e.g. 'aws-icons/user.svg', 'tech-icons/whatsapp.svg')"),
       category: z.enum(["compute", "storage", "database", "networking", "security", "integration", "analytics", "ai", "management", "general"]),
