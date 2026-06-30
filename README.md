@@ -46,6 +46,10 @@ npm install
 ./scripts/fetch-icons.sh ~/Downloads/Asset-Package_*.zip
 ```
 
+This downloads ~750 official icons (services + group containers) into
+`assets/icons/`. A handful of niche services map to category SVGs under
+`assets/aws-icons/` instead — drop your own SVGs there if you want custom icons.
+
 Without icons the diagrams still render — nodes fall back to a category-colored
 initial. With icons, each node shows its official AWS service icon.
 

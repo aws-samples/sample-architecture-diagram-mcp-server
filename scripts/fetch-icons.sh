@@ -41,10 +41,17 @@ trap 'rm -rf "$TMP"' EXIT
 echo "Extracting $ZIP ..."
 unzip -q "$ZIP" -d "$TMP"
 
+# Drop macOS resource-fork metadata so the ._* files don't get copied as junk.
+rm -rf "$TMP/__MACOSX"
+find "$TMP" -name '._*' -delete 2>/dev/null || true
+
 echo "Collecting 48px architecture + resource icons into $ICONS ..."
 # Flatten: copy all 48px PNGs, stripping the nested category directories.
 find "$TMP" -type f \( -name 'Arch_*_48.png' -o -name 'Res_*_48.png' \) -exec cp -n {} "$ICONS/" \;
 
-COUNT=$(find "$ICONS" -name '*_48.png' | wc -l | tr -d ' ')
+echo "Collecting group icons (AWS Cloud, VPC, subnets, Region) ..."
+# The HTML/draw.io group containers reference these 32px icons by exact name.
+find "$TMP" -type f -path '*Architecture-Group-Icons*' -name '*_32.png' -exec cp -n {} "$ICONS/" \;
+
+COUNT=$(find "$ICONS" -name '*.png' | wc -l | tr -d ' ')
 echo "Done. $COUNT icons in $ICONS"
-echo "Tip: keep group icons (AWS-Cloud_32.png, *-subnet_32.png, Region_32.png) in $ICONS too."
