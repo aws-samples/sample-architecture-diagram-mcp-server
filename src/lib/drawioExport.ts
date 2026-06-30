@@ -18,7 +18,7 @@ const VARIANT_MAP: Record<string, string> = {
 
 const CATEGORIES: Record<string, { fill: string; tint: string; stroke: string }> = {
   compute: { fill: "#ED7100", tint: "#FFF2E8", stroke: "#ED7100" },
-  storage: { fill: "#3F8624", tint: "#E8F5E9", stroke: "#3F8624" },
+  storage: { fill: "#7AA116", tint: "#F2F7E9", stroke: "#7AA116" },
   database: { fill: "#C925D1", tint: "#F5E6F7", stroke: "#C925D1" },
   networking: { fill: "#8C4FFF", tint: "#EDE7F6", stroke: "#8C4FFF" },
   security: { fill: "#DD344C", tint: "#FDEAEC", stroke: "#DD344C" },

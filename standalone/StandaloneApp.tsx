@@ -60,7 +60,7 @@ function i(val: any, lang: string): string {
 export function StandaloneApp({ data }: Props) {
   const { fitView } = useReactFlow();
   const [direction, setDirection] = useState<LayoutDirection>(data.direction || 'TB');
-  const [dark, setDark] = useState(true);
+  const [dark, setDark] = useState(false); // white background by default (AWS diagram guideline); toggle for dark
   const [lang, setLang] = useState(() => typeof navigator !== 'undefined' && navigator.language?.startsWith('pt') ? 'pt' : 'en');
   const [dockVisible, setDockVisible] = useState(true);
   const [codePanel, setCodePanel] = useState<{ code: string; lang: string } | null>(null);

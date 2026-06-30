@@ -3,7 +3,7 @@ import { Handle, Position, type NodeProps } from "@xyflow/react";
 import { resolveIcon, iconFilter } from "@/lib/icons";
 
 const CATEGORY_COLORS: Record<string, string> = {
-  compute: "#ED7100", storage: "#3F8624", database: "#C925D1",
+  compute: "#ED7100", storage: "#7AA116", database: "#C925D1",
   networking: "#8C4FFF", security: "#DD344C", integration: "#E7157B",
   management: "#E7157B", general: "#545B64",
 };
