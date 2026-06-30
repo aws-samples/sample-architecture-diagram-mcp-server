@@ -25,11 +25,12 @@ interface Props {
   };
 }
 
-/** Classify services into groups based on parentId or heuristics */
+/** Classify services into groups based on parentId, subnet, or heuristics */
 function buildMembership(services: any[]): Record<string, string> {
   const membership: Record<string, string> = {};
   for (const s of services) {
     if (s.parentId) {
+      // Explicit parent wins (must be a known group id).
       membership[s.id] = s.parentId;
     } else if (
       s.external ||
@@ -37,8 +38,12 @@ function buildMembership(services: any[]): Record<string, string> {
       s.id === 'users' || s.id.startsWith('ext-')
     ) {
       // external nodes stay outside all groups
+    } else if (s.subnet === 'public') {
+      membership[s.id] = 'pub-sub';   // Public Subnet → nested under VPC
+    } else if (s.subnet === 'private') {
+      membership[s.id] = 'priv-sub';  // Private Subnet → nested under VPC
     } else {
-      // Default internal services to aws-cloud if no explicit parent
+      // Internal service with no subnet → directly under AWS Cloud (edge service)
       membership[s.id] = 'aws-cloud';
     }
   }

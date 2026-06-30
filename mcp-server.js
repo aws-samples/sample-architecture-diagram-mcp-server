@@ -1,7 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
-import { writeFileSync } from "fs";
+import { writeFileSync, existsSync } from "fs";
 import { execSync } from "child_process";
 import { computeLayout } from "./lib/layout.js";
 import { generateDrawio } from "./lib/drawio-xml.js";
@@ -129,17 +129,54 @@ server.tool(
   }
 );
 
+// Locate the draw.io desktop CLI. It ships under different names/paths per OS;
+// returns an invocable command string, or null if not installed.
+function findDrawioCli() {
+  const candidates = [
+    "drawio",
+    "/Applications/draw.io.app/Contents/MacOS/draw.io", // macOS app bundle
+    "/usr/bin/drawio",
+    "/snap/bin/drawio",
+  ];
+  for (const cmd of candidates) {
+    try {
+      const probe = cmd.includes("/") ? `test -x "${cmd}"` : `command -v ${cmd}`;
+      execSync(probe, { stdio: "ignore" });
+      return cmd;
+    } catch { /* try next */ }
+  }
+  return null;
+}
+
 // Export tool
 server.tool(
   "export_diagram",
-  "Export .drawio to PNG/SVG/PDF",
+  "Export a .drawio file to PNG/SVG/PDF. Requires the draw.io desktop CLI (optional dependency). Note: the generate_html_diagram diagram already exports PNG and .drawio from the browser without any CLI.",
   { inputPath: z.string(), outputPath: z.string(), format: z.enum(["png", "svg", "pdf"]).optional().default("png"), scale: z.number().optional().default(2) },
   async ({ inputPath, outputPath, format, scale }) => {
+    if (!existsSync(inputPath)) {
+      return { content: [{ type: "text", text: `Input not found: ${inputPath}` }], isError: true };
+    }
+    const cli = findDrawioCli();
+    if (!cli) {
+      return { content: [{ type: "text", text:
+        "draw.io CLI not found, so this tool can't rasterize the file.\n" +
+        "Options:\n" +
+        "  - Install it: https://github.com/jgraph/drawio-desktop/releases (or `brew install --cask drawio`), then retry.\n" +
+        "  - Or open the .drawio in https://app.diagrams.net and File > Export.\n" +
+        "  - For PNG, prefer generate_html_diagram and use the in-browser PNG button (no CLI needed)." }], isError: true };
+    }
     try {
-      execSync(`drawio --export --format ${format} --scale ${scale} --output "${outputPath}" "${inputPath}"`, { timeout: 30000 });
+      // Headless export needs a display; Linux servers require xvfb-run.
+      const needsXvfb = process.platform === "linux" && !process.env.DISPLAY;
+      const base = `"${cli}" --export --format ${format} --scale ${scale} --output "${outputPath}" "${inputPath}"`;
+      execSync(needsXvfb ? `xvfb-run -a ${base}` : base, { timeout: 60000, stdio: "ignore" });
+      if (!existsSync(outputPath)) {
+        return { content: [{ type: "text", text: `Export ran but no output was produced at ${outputPath}. On headless Linux, ensure xvfb is installed (apt-get install xvfb).` }], isError: true };
+      }
       return { content: [{ type: "text", text: `Exported: ${outputPath}` }] };
     } catch (e) {
-      return { content: [{ type: "text", text: `Export failed: ${e.message}` }] };
+      return { content: [{ type: "text", text: `Export failed: ${e.message}\nIf on a headless Linux host, install xvfb (apt-get install xvfb).` }], isError: true };
     }
   }
 );
