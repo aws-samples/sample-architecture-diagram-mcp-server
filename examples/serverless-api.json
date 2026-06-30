@@ -1,0 +1,20 @@
+{
+  "title": "Serverless API",
+  "subtitle": "API Gateway + Lambda + DynamoDB",
+  "outputPath": "./examples/serverless-api.html",
+  "services": [
+    { "id": "users", "service": "Users", "shape": "users", "category": "general", "external": true, "icon": "aws-icons/user.svg" },
+    { "id": "cf", "service": "Amazon CloudFront", "shape": "cloudfront", "category": "networking" },
+    { "id": "api", "service": "Amazon API Gateway", "shape": "api_gateway", "category": "networking" },
+    { "id": "fn", "service": "AWS Lambda", "shape": "lambda", "category": "compute", "subnet": "private" },
+    { "id": "db", "service": "Amazon DynamoDB", "shape": "dynamodb", "category": "database", "subnet": "private" },
+    { "id": "bucket", "service": "Amazon S3", "shape": "simple_storage_service", "category": "storage" }
+  ],
+  "connections": [
+    { "id": "e1", "source": "users", "target": "cf", "label": "HTTPS" },
+    { "id": "e2", "source": "cf", "target": "api", "label": "Forward /api/*" },
+    { "id": "e3", "source": "cf", "target": "bucket", "label": "Static assets" },
+    { "id": "e4", "source": "api", "target": "fn", "label": "Invoke" },
+    { "id": "e5", "source": "fn", "target": "db", "label": "Query / Put" }
+  ]
+}

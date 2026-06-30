@@ -1,0 +1,36 @@
+{
+  "name": "aws-live-diagram-mcp",
+  "version": "2.0.0",
+  "description": "MCP server that generates self-contained interactive AWS architecture diagrams (HTML + draw.io), with IaC and pricing handoff.",
+  "type": "module",
+  "license": "MIT-0",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build:standalone": "vite build --config vite.config.ts",
+    "fetch-icons": "./scripts/fetch-icons.sh",
+    "start": "node mcp-server.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "zod": "^3.25.67"
+  },
+  "devDependencies": {
+    "@types/dagre": "^0.7.52",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "@vitejs/plugin-react": "^4.5.2",
+    "@xyflow/react": "^12.10.2",
+    "dagre": "^0.8.5",
+    "highlight.js": "^11.11.1",
+    "html-to-image": "^1.11.13",
+    "lucide-react": "^1.7.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5",
+    "vite-plugin-singlefile": "^2.0.3",
+    "zustand": "^5.0.0"
+  }
+}

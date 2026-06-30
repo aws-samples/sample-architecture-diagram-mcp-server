@@ -1,0 +1,8414 @@
+[
+  {
+    "service": "Amazon Bedrock",
+    "fields": [
+      {
+        "key": "modelId",
+        "label": "Model ID",
+        "type": "select",
+        "options": [
+          "anthropic.claude-opus-4-6-v1",
+          "anthropic.claude-opus-4-5-20251101-v1:0",
+          "anthropic.claude-opus-4-1-20250805-v1:0",
+          "anthropic.claude-sonnet-4-5-20250929-v1:0",
+          "anthropic.claude-sonnet-4-20250514-v1:0",
+          "anthropic.claude-haiku-4-5-20251001-v1:0",
+          "anthropic.claude-3-5-haiku-20241022-v1:0",
+          "amazon.nova-premier-v1:0",
+          "amazon.nova-pro-v1:0",
+          "amazon.nova-lite-v1:0",
+          "amazon.nova-micro-v1:0",
+          "amazon.nova-2-lite-v1:0",
+          "amazon.nova-2-sonic-v1:0",
+          "meta.llama4-maverick-17b-instruct-v1:0",
+          "meta.llama4-scout-17b-instruct-v1:0",
+          "meta.llama3-3-70b-instruct-v1:0",
+          "meta.llama3-1-405b-instruct-v1:0",
+          "mistral.pixtral-large-2502-v1:0",
+          "mistral.mistral-large-2407-v1:0"
+        ]
+      },
+      {
+        "key": "maxTokens",
+        "label": "Max Tokens",
+        "type": "number"
+      },
+      {
+        "key": "temperature",
+        "label": "Temperature",
+        "type": "number"
+      },
+      {
+        "key": "guardrailId",
+        "label": "Guardrail ID",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "service": "Amazon SageMaker AI",
+    "fields": [
+      {
+        "key": "instanceType",
+        "label": "Instance Type",
+        "type": "select",
+        "options": [
+          "ml.t3.medium",
+          "ml.t3.large",
+          "ml.m5.large",
+          "ml.m5.xlarge",
+          "ml.m6i.large",
+          "ml.m7i.large",
+          "ml.c5.xlarge",
+          "ml.c6i.xlarge",
+          "ml.r5.large",
+          "ml.r6i.large",
+          "ml.p3.2xlarge",
+          "ml.p4d.24xlarge",
+          "ml.p5.48xlarge",
+          "ml.g4dn.xlarge",
+          "ml.g5.xlarge",
+          "ml.g5.2xlarge",
+          "ml.g6.xlarge",
+          "ml.g6.2xlarge",
+          "ml.inf2.xlarge",
+          "ml.trn1.2xlarge"
+        ]
+      },
+      {
+        "key": "volumeSize",
+        "label": "Volume Size (GB)",
+        "type": "number"
+      },
+      {
+        "key": "directInternetAccess",
+        "label": "Internet Access",
+        "type": "boolean"
+      }
+    ]
+  },
+  {
+    "service": "Amazon Kendra",
+    "fields": [
+      {
+        "key": "edition",
+        "label": "Edition",
+        "type": "select",
+        "options": [
+          "DEVELOPER_EDITION",
+          "ENTERPRISE_EDITION"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "Amazon Lex",
+    "fields": [
+      {
+        "key": "idleSessionTTLInSeconds",
+        "label": "Session TTL (sec)",
+        "type": "number"
+      },
+      {
+        "key": "nluIntentConfidenceThreshold",
+        "label": "NLU Confidence",
+        "type": "number"
+      },
+      {
+        "key": "childDirected",
+        "label": "COPPA Compliant",
+        "type": "boolean"
+      }
+    ]
+  },
+  {
+    "service": "Amazon Polly",
+    "fields": [
+      {
+        "key": "engine",
+        "label": "Engine",
+        "type": "select",
+        "options": [
+          "standard",
+          "neural",
+          "long-form",
+          "generative"
+        ]
+      },
+      {
+        "key": "outputFormat",
+        "label": "Output Format",
+        "type": "select",
+        "options": [
+          "mp3",
+          "ogg_vorbis",
+          "pcm",
+          "json"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "Amazon Rekognition",
+    "fields": [
+      {
+        "key": "featureType",
+        "label": "Feature",
+        "type": "select",
+        "options": [
+          "CONTENT_MODERATION",
+          "FACE_DETECTION",
+          "FACE_SEARCH",
+          "LABEL_DETECTION",
+          "TEXT_DETECTION",
+          "CELEBRITY_RECOGNITION"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "Amazon Textract",
+    "fields": [
+      {
+        "key": "featureType",
+        "label": "Feature",
+        "type": "select",
+        "options": [
+          "TABLES",
+          "FORMS",
+          "QUERIES",
+          "SIGNATURES",
+          "LAYOUT"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "Amazon Transcribe",
+    "fields": [
+      {
+        "key": "languageCode",
+        "label": "Language",
+        "type": "select",
+        "options": [
+          "en-US",
+          "en-GB",
+          "es-US",
+          "fr-FR",
+          "de-DE",
+          "ja-JP",
+          "ko-KR",
+          "pt-BR",
+          "zh-CN"
+        ]
+      },
+      {
+        "key": "mediaFormat",
+        "label": "Media Format",
+        "type": "select",
+        "options": [
+          "mp3",
+          "mp4",
+          "wav",
+          "flac",
+          "ogg",
+          "amr",
+          "webm"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "Amazon Translate",
+    "fields": [
+      {
+        "key": "sourceLanguageCode",
+        "label": "Source Language",
+        "type": "text"
+      },
+      {
+        "key": "targetLanguageCode",
+        "label": "Target Language",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "service": "Amazon Comprehend",
+    "fields": [
+      {
+        "key": "languageCode",
+        "label": "Language",
+        "type": "select",
+        "options": [
+          "en",
+          "es",
+          "fr",
+          "de",
+          "it",
+          "pt",
+          "ar",
+          "hi",
+          "ja",
+          "ko",
+          "zh",
+          "zh-TW"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "Amazon Personalize",
+    "fields": [
+      {
+        "key": "recipeArn",
+        "label": "Recipe",
+        "type": "select",
+        "options": [
+          "arn:aws:personalize:::recipe/aws-user-personalization",
+          "arn:aws:personalize:::recipe/aws-similar-items",
+          "arn:aws:personalize:::recipe/aws-popularity-count"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "Amazon Q",
+    "fields": [
+      {
+        "key": "edition",
+        "label": "Edition",
+        "type": "select",
+        "options": [
+          "STARTER",
+          "PRO"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "Amazon Athena",
+    "fields": [
+      {
+        "key": "workgroupEngine",
+        "label": "Engine",
+        "type": "select",
+        "options": [
+          "Athena",
+          "Apache Spark"
+        ]
+      },
+      {
+        "key": "outputLocation",
+        "label": "Output S3 Path",
+        "type": "text"
+      },
+      {
+        "key": "bytesScannedCutoff",
+        "label": "Bytes Scanned Cutoff",
+        "type": "number"
+      },
+      {
+        "key": "enforceWorkgroupConfiguration",
+        "label": "Enforce Config",
+        "type": "boolean"
+      }
+    ]
+  },
+  {
+    "service": "AWS Glue",
+    "fields": [
+      {
+        "key": "workerType",
+        "label": "Worker Type",
+        "type": "select",
+        "options": [
+          "G.1X",
+          "G.2X",
+          "G.4X",
+          "G.8X",
+          "Z.2X"
+        ]
+      },
+      {
+        "key": "numberOfWorkers",
+        "label": "Workers",
+        "type": "number"
+      },
+      {
+        "key": "glueVersion",
+        "label": "Glue Version",
+        "type": "select",
+        "options": [
+          "5.0",
+          "4.0",
+          "3.0"
+        ]
+      },
+      {
+        "key": "timeout",
+        "label": "Timeout (min)",
+        "type": "number"
+      },
+      {
+        "key": "maxRetries",
+        "label": "Max Retries",
+        "type": "number"
+      }
+    ]
+  },
+  {
+    "service": "Amazon EMR",
+    "fields": [
+      {
+        "key": "releaseLabel",
+        "label": "Release",
+        "type": "select",
+        "options": [
+          "emr-7.12.0",
+          "emr-7.10.0",
+          "emr-7.8.0",
+          "emr-7.5.0",
+          "emr-6.15.0"
+        ]
+      },
+      {
+        "key": "masterInstanceType",
+        "label": "Master Instance",
+        "type": "select",
+        "options": [
+          "m5.xlarge",
+          "m5.2xlarge",
+          "r5.xlarge",
+          "c5.xlarge"
+        ]
+      },
+      {
+        "key": "coreInstanceType",
+        "label": "Core Instance",
+        "type": "select",
+        "options": [
+          "m5.xlarge",
+          "m5.2xlarge",
+          "r5.xlarge",
+          "c5.xlarge"
+        ]
+      },
+      {
+        "key": "coreInstanceCount",
+        "label": "Core Count",
+        "type": "number"
+      },
+      {
+        "key": "terminationProtection",
+        "label": "Termination Protection",
+        "type": "boolean"
+      }
+    ]
+  },
+  {
+    "service": "Amazon Managed Streaming for Apache Kafka",
+    "fields": [
+      {
+        "key": "instanceType",
+        "label": "Broker Type",
+        "type": "select",
+        "options": [
+          "kafka.m5.large",
+          "kafka.m5.xlarge",
+          "kafka.m5.2xlarge",
+          "kafka.m5.4xlarge",
+          "kafka.m7g.large",
+          "kafka.m7g.xlarge",
+          "kafka.m7g.2xlarge",
+          "kafka.t3.small"
+        ]
+      },
+      {
+        "key": "numberOfBrokerNodes",
+        "label": "Broker Count",
+        "type": "number"
+      },
+      {
+        "key": "kafkaVersion",
+        "label": "Kafka Version",
+        "type": "select",
+        "options": [
+          "4.1.0",
+          "4.0.0",
+          "3.9.0",
+          "3.8.0",
+          "3.7.1",
+          "3.6.0"
+        ]
+      },
+      {
+        "key": "volumeSize",
+        "label": "Volume Size (GB)",
+        "type": "number"
+      },
+      {
+        "key": "encryptionInTransit",
+        "label": "Encryption in Transit",
+        "type": "select",
+        "options": [
+          "TLS",
+          "TLS_PLAINTEXT",
+          "PLAINTEXT"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "Amazon MSK",
+    "fields": [
+      {
+        "key": "instanceType",
+        "label": "Broker Type",
+        "type": "select",
+        "options": [
+          "kafka.m7g.large",
+          "kafka.m7g.xlarge",
+          "kafka.m5.large",
+          "kafka.m5.xlarge",
+          "kafka.t3.small"
+        ]
+      },
+      {
+        "key": "numberOfBrokerNodes",
+        "label": "Broker Count",
+        "type": "number"
+      },
+      {
+        "key": "kafkaVersion",
+        "label": "Kafka Version",
+        "type": "select",
+        "options": [
+          "4.1.0",
+          "4.0.0",
+          "3.9.0",
+          "3.8.0"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "Amazon OpenSearch Service",
+    "fields": [
+      {
+        "key": "instanceType",
+        "label": "Instance Type",
+        "type": "select",
+        "options": [
+          "r6g.large.search",
+          "r6g.xlarge.search",
+          "r6g.2xlarge.search",
+          "r7g.large.search",
+          "m6g.large.search",
+          "m6g.xlarge.search",
+          "c6g.large.search",
+          "t3.small.search",
+          "t3.medium.search",
+          "or1.medium.search",
+          "or1.large.search"
+        ]
+      },
+      {
+        "key": "instanceCount",
+        "label": "Instance Count",
+        "type": "number"
+      },
+      {
+        "key": "volumeSize",
+        "label": "EBS Volume (GB)",
+        "type": "number"
+      },
+      {
+        "key": "volumeType",
+        "label": "Volume Type",
+        "type": "select",
+        "options": [
+          "gp3",
+          "gp2",
+          "io1"
+        ]
+      },
+      {
+        "key": "volumeIops",
+        "label": "Volume IOPS",
+        "type": "number"
+      },
+      {
+        "key": "volumeThroughput",
+        "label": "Volume Throughput (MB/s)",
+        "type": "number"
+      },
+      {
+        "key": "engineVersion",
+        "label": "Engine Version",
+        "type": "select",
+        "options": [
+          "OpenSearch_2.19",
+          "OpenSearch_2.17",
+          "OpenSearch_2.15",
+          "OpenSearch_2.13",
+          "OpenSearch_2.11",
+          "OpenSearch_1.3"
+        ]
+      },
+      {
+        "key": "zoneAwarenessEnabled",
+        "label": "Multi-AZ",
+        "type": "boolean"
+      },
+      {
+        "key": "availabilityZoneCount",
+        "label": "AZ Count",
+        "type": "select",
+        "options": [
+          "2",
+          "3"
+        ]
+      },
+      {
+        "key": "dedicatedMasterEnabled",
+        "label": "Dedicated Master",
+        "type": "boolean"
+      },
+      {
+        "key": "dedicatedMasterType",
+        "label": "Master Instance Type",
+        "type": "select",
+        "options": [
+          "r6g.large.search",
+          "r6g.xlarge.search",
+          "m6g.large.search",
+          "c6g.large.search"
+        ]
+      },
+      {
+        "key": "dedicatedMasterCount",
+        "label": "Master Count",
+        "type": "select",
+        "options": [
+          "3",
+          "5"
+        ]
+      },
+      {
+        "key": "warmEnabled",
+        "label": "UltraWarm",
+        "type": "boolean"
+      },
+      {
+        "key": "warmType",
+        "label": "UltraWarm Type",
+        "type": "select",
+        "options": [
+          "ultrawarm1.medium.search",
+          "ultrawarm1.large.search",
+          "ultrawarm1.xlarge.search"
+        ]
+      },
+      {
+        "key": "warmCount",
+        "label": "UltraWarm Count",
+        "type": "number"
+      },
+      {
+        "key": "coldStorageEnabled",
+        "label": "Cold Storage",
+        "type": "boolean"
+      },
+      {
+        "key": "encryptionAtRest",
+        "label": "Encryption at Rest",
+        "type": "boolean"
+      },
+      {
+        "key": "kmsKeyId",
+        "label": "KMS Key ID",
+        "type": "text"
+      },
+      {
+        "key": "nodeToNodeEncryption",
+        "label": "Node-to-Node Encryption",
+        "type": "boolean"
+      },
+      {
+        "key": "enforceHttps",
+        "label": "Enforce HTTPS",
+        "type": "boolean"
+      },
+      {
+        "key": "tlsSecurityPolicy",
+        "label": "TLS Policy",
+        "type": "select",
+        "options": [
+          "Policy-Min-TLS-1-2-2019-07",
+          "Policy-Min-TLS-1-2-PFS-2023-10",
+          "Policy-Min-TLS-1-0-2019-07"
+        ]
+      },
+      {
+        "key": "fineGrainedAccessEnabled",
+        "label": "Fine-Grained Access",
+        "type": "boolean"
+      },
+      {
+        "key": "internalUserDatabaseEnabled",
+        "label": "Internal User DB",
+        "type": "boolean"
+      },
+      {
+        "key": "masterUserName",
+        "label": "Master User",
+        "type": "text"
+      },
+      {
+        "key": "autoTuneEnabled",
+        "label": "Auto-Tune",
+        "type": "boolean"
+      },
+      {
+        "key": "autoTuneDesiredState",
+        "label": "Auto-Tune State",
+        "type": "select",
+        "options": [
+          "ENABLED",
+          "DISABLED"
+        ]
+      },
+      {
+        "key": "logPublishingIndexSlowLogs",
+        "label": "Index Slow Logs",
+        "type": "boolean"
+      },
+      {
+        "key": "logPublishingSearchSlowLogs",
+        "label": "Search Slow Logs",
+        "type": "boolean"
+      },
+      {
+        "key": "logPublishingErrorLogs",
+        "label": "Error Logs",
+        "type": "boolean"
+      },
+      {
+        "key": "logPublishingAuditLogs",
+        "label": "Audit Logs",
+        "type": "boolean"
+      },
+      {
+        "key": "offPeakWindowEnabled",
+        "label": "Off-Peak Window",
+        "type": "boolean"
+      },
+      {
+        "key": "softwareUpdateEnabled",
+        "label": "Auto Software Updates",
+        "type": "boolean"
+      }
+    ]
+  },
+  {
+    "service": "Amazon QuickSight",
+    "fields": [
+      {
+        "key": "edition",
+        "label": "Edition",
+        "type": "select",
+        "options": [
+          "STANDARD",
+          "ENTERPRISE",
+          "ENTERPRISE_AND_Q"
+        ]
+      },
+      {
+        "key": "authenticationMethod",
+        "label": "Auth Method",
+        "type": "select",
+        "options": [
+          "IAM_AND_QUICKSIGHT",
+          "IAM_ONLY",
+          "ACTIVE_DIRECTORY"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "AWS Lake Formation",
+    "fields": [
+      {
+        "key": "admins",
+        "label": "Data Lake Admin",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "service": "Amazon Data Firehose",
+    "fields": [
+      {
+        "key": "deliveryStreamType",
+        "label": "Source",
+        "type": "select",
+        "options": [
+          "DirectPut",
+          "KinesisStreamAsSource",
+          "MSKAsSource"
+        ]
+      },
+      {
+        "key": "destination",
+        "label": "Destination",
+        "type": "select",
+        "options": [
+          "S3",
+          "Redshift",
+          "OpenSearch",
+          "Splunk",
+          "HTTP"
+        ]
+      },
+      {
+        "key": "bufferSizeMB",
+        "label": "Buffer Size (MB)",
+        "type": "number"
+      },
+      {
+        "key": "bufferIntervalSec",
+        "label": "Buffer Interval (sec)",
+        "type": "number"
+      },
+      {
+        "key": "compressionFormat",
+        "label": "Compression",
+        "type": "select",
+        "options": [
+          "UNCOMPRESSED",
+          "GZIP",
+          "ZIP",
+          "Snappy",
+          "HADOOP_SNAPPY"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "Amazon EC2",
+    "fields": [
+      {
+        "key": "instanceType",
+        "label": "Instance Type",
+        "type": "select",
+        "options": [
+          "t3.micro",
+          "t3.small",
+          "t3.medium",
+          "t3.large",
+          "t3.xlarge",
+          "t3.2xlarge",
+          "m5.large",
+          "m5.xlarge",
+          "m5.2xlarge",
+          "m5.4xlarge",
+          "m6i.large",
+          "m6i.xlarge",
+          "m6i.2xlarge",
+          "m7i.large",
+          "m7i.xlarge",
+          "c5.large",
+          "c5.xlarge",
+          "c5.2xlarge",
+          "c6i.large",
+          "c6i.xlarge",
+          "c7i.large",
+          "r5.large",
+          "r5.xlarge",
+          "r5.2xlarge",
+          "r6i.large",
+          "r6i.xlarge",
+          "r7i.large",
+          "p3.2xlarge",
+          "g4dn.xlarge",
+          "g5.xlarge",
+          "inf2.xlarge"
+        ]
+      },
+      {
+        "key": "ami",
+        "label": "AMI ID",
+        "type": "text"
+      },
+      {
+        "key": "keyName",
+        "label": "Key Pair",
+        "type": "text"
+      },
+      {
+        "key": "subnetId",
+        "label": "Subnet ID",
+        "type": "text"
+      },
+      {
+        "key": "availabilityZone",
+        "label": "Availability Zone",
+        "type": "text"
+      },
+      {
+        "key": "associatePublicIpAddress",
+        "label": "Public IP",
+        "type": "boolean"
+      },
+      {
+        "key": "privateIp",
+        "label": "Private IP",
+        "type": "text"
+      },
+      {
+        "key": "iamInstanceProfile",
+        "label": "IAM Instance Profile",
+        "type": "text"
+      },
+      {
+        "key": "securityGroups",
+        "label": "Security Group IDs",
+        "type": "text"
+      },
+      {
+        "key": "userData",
+        "label": "User Data (base64)",
+        "type": "text"
+      },
+      {
+        "key": "monitoring",
+        "label": "Detailed Monitoring",
+        "type": "boolean"
+      },
+      {
+        "key": "ebsOptimized",
+        "label": "EBS Optimized",
+        "type": "boolean"
+      },
+      {
+        "key": "volumeSize",
+        "label": "Root Volume (GB)",
+        "type": "number"
+      },
+      {
+        "key": "volumeType",
+        "label": "Volume Type",
+        "type": "select",
+        "options": [
+          "gp3",
+          "gp2",
+          "io1",
+          "io2",
+          "st1",
+          "sc1"
+        ]
+      },
+      {
+        "key": "volumeIops",
+        "label": "Volume IOPS",
+        "type": "number"
+      },
+      {
+        "key": "volumeThroughput",
+        "label": "Volume Throughput (MB/s)",
+        "type": "number"
+      },
+      {
+        "key": "deleteOnTermination",
+        "label": "Delete Volume on Termination",
+        "type": "boolean"
+      },
+      {
+        "key": "disableApiTermination",
+        "label": "Termination Protection",
+        "type": "boolean"
+      },
+      {
+        "key": "instanceShutdownBehavior",
+        "label": "Shutdown Behavior",
+        "type": "select",
+        "options": [
+          "stop",
+          "terminate"
+        ]
+      },
+      {
+        "key": "tenancy",
+        "label": "Tenancy",
+        "type": "select",
+        "options": [
+          "default",
+          "dedicated",
+          "host"
+        ]
+      },
+      {
+        "key": "creditSpecification",
+        "label": "CPU Credits",
+        "type": "select",
+        "options": [
+          "standard",
+          "unlimited"
+        ]
+      },
+      {
+        "key": "httpTokens",
+        "label": "IMDSv2",
+        "type": "select",
+        "options": [
+          "optional",
+          "required"
+        ]
+      },
+      {
+        "key": "httpEndpoint",
+        "label": "Metadata Endpoint",
+        "type": "select",
+        "options": [
+          "enabled",
+          "disabled"
+        ]
+      },
+      {
+        "key": "hibernation",
+        "label": "Hibernation",
+        "type": "boolean"
+      },
+      {
+        "key": "sourceDestCheck",
+        "label": "Source/Dest Check",
+        "type": "boolean"
+      },
+      {
+        "key": "placementGroup",
+        "label": "Placement Group",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "service": "Amazon S3",
+    "fields": [
+      {
+        "key": "bucketName",
+        "label": "Bucket Name",
+        "type": "text"
+      },
+      {
+        "key": "versioning",
+        "label": "Versioning",
+        "type": "boolean"
+      },
+      {
+        "key": "encryption",
+        "label": "Encryption",
+        "type": "select",
+        "options": [
+          "AES256",
+          "aws:kms",
+          "aws:kms:dsse",
+          "none"
+        ]
+      },
+      {
+        "key": "kmsKeyId",
+        "label": "KMS Key ID",
+        "type": "text"
+      },
+      {
+        "key": "bucketKeyEnabled",
+        "label": "Bucket Key",
+        "type": "boolean"
+      },
+      {
+        "key": "publicAccess",
+        "label": "Block Public Access",
+        "type": "boolean"
+      },
+      {
+        "key": "blockPublicAcls",
+        "label": "Block Public ACLs",
+        "type": "boolean"
+      },
+      {
+        "key": "blockPublicPolicy",
+        "label": "Block Public Policy",
+        "type": "boolean"
+      },
+      {
+        "key": "ignorePublicAcls",
+        "label": "Ignore Public ACLs",
+        "type": "boolean"
+      },
+      {
+        "key": "restrictPublicBuckets",
+        "label": "Restrict Public Buckets",
+        "type": "boolean"
+      },
+      {
+        "key": "objectLockEnabled",
+        "label": "Object Lock",
+        "type": "boolean"
+      },
+      {
+        "key": "objectOwnership",
+        "label": "Object Ownership",
+        "type": "select",
+        "options": [
+          "BucketOwnerEnforced",
+          "BucketOwnerPreferred",
+          "ObjectWriter"
+        ]
+      },
+      {
+        "key": "lifecycleDays",
+        "label": "Lifecycle (days to IA)",
+        "type": "number"
+      },
+      {
+        "key": "lifecycleGlacierDays",
+        "label": "Lifecycle (days to Glacier)",
+        "type": "number"
+      },
+      {
+        "key": "lifecycleExpirationDays",
+        "label": "Expiration (days)",
+        "type": "number"
+      },
+      {
+        "key": "corsEnabled",
+        "label": "CORS Enabled",
+        "type": "boolean"
+      },
+      {
+        "key": "corsAllowedOrigins",
+        "label": "CORS Origins",
+        "type": "text"
+      },
+      {
+        "key": "corsAllowedMethods",
+        "label": "CORS Methods",
+        "type": "text"
+      },
+      {
+        "key": "loggingEnabled",
+        "label": "Access Logging",
+        "type": "boolean"
+      },
+      {
+        "key": "loggingTargetBucket",
+        "label": "Log Target Bucket",
+        "type": "text"
+      },
+      {
+        "key": "replicationEnabled",
+        "label": "Replication",
+        "type": "boolean"
+      },
+      {
+        "key": "intelligentTiering",
+        "label": "Intelligent Tiering",
+        "type": "boolean"
+      },
+      {
+        "key": "accelerateStatus",
+        "label": "Transfer Acceleration",
+        "type": "select",
+        "options": [
+          "Enabled",
+          "Suspended"
+        ]
+      },
+      {
+        "key": "requestPayer",
+        "label": "Request Payer",
+        "type": "select",
+        "options": [
+          "BucketOwner",
+          "Requester"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "AWS Lambda",
+    "fields": [
+      {
+        "key": "runtime",
+        "label": "Runtime",
+        "type": "select",
+        "options": [
+          "nodejs24.x",
+          "nodejs22.x",
+          "nodejs20.x",
+          "python3.14",
+          "python3.13",
+          "python3.12",
+          "python3.11",
+          "java25",
+          "java21",
+          "java17",
+          "dotnet10",
+          "dotnet9",
+          "dotnet8",
+          "ruby3.4",
+          "ruby3.3",
+          "provided.al2023"
+        ]
+      },
+      {
+        "key": "handler",
+        "label": "Handler",
+        "type": "text"
+      },
+      {
+        "key": "memorySize",
+        "label": "Memory (MB)",
+        "type": "number"
+      },
+      {
+        "key": "timeout",
+        "label": "Timeout (sec)",
+        "type": "number"
+      },
+      {
+        "key": "architecture",
+        "label": "Architecture",
+        "type": "select",
+        "options": [
+          "x86_64",
+          "arm64"
+        ]
+      },
+      {
+        "key": "ephemeralStorage",
+        "label": "Ephemeral Storage (MB)",
+        "type": "number"
+      },
+      {
+        "key": "tracingMode",
+        "label": "X-Ray Tracing",
+        "type": "select",
+        "options": [
+          "PassThrough",
+          "Active"
+        ]
+      },
+      {
+        "key": "packageType",
+        "label": "Package Type",
+        "type": "select",
+        "options": [
+          "Zip",
+          "Image"
+        ]
+      },
+      {
+        "key": "codeS3Bucket",
+        "label": "Code S3 Bucket",
+        "type": "text"
+      },
+      {
+        "key": "codeS3Key",
+        "label": "Code S3 Key",
+        "type": "text"
+      },
+      {
+        "key": "imageUri",
+        "label": "Image URI",
+        "type": "text"
+      },
+      {
+        "key": "description",
+        "label": "Description",
+        "type": "text"
+      },
+      {
+        "key": "reservedConcurrency",
+        "label": "Reserved Concurrency",
+        "type": "number"
+      },
+      {
+        "key": "provisionedConcurrency",
+        "label": "Provisioned Concurrency",
+        "type": "number"
+      },
+      {
+        "key": "subnetIds",
+        "label": "VPC Subnet IDs",
+        "type": "text"
+      },
+      {
+        "key": "securityGroupIds",
+        "label": "VPC Security Groups",
+        "type": "text"
+      },
+      {
+        "key": "deadLetterTargetArn",
+        "label": "DLQ ARN",
+        "type": "text"
+      },
+      {
+        "key": "retryAttempts",
+        "label": "Retry Attempts",
+        "type": "number"
+      },
+      {
+        "key": "maximumEventAge",
+        "label": "Max Event Age (sec)",
+        "type": "number"
+      },
+      {
+        "key": "snapStart",
+        "label": "SnapStart",
+        "type": "select",
+        "options": [
+          "None",
+          "PublishedVersions"
+        ]
+      },
+      {
+        "key": "loggingFormat",
+        "label": "Log Format",
+        "type": "select",
+        "options": [
+          "Text",
+          "JSON"
+        ]
+      },
+      {
+        "key": "logGroup",
+        "label": "Log Group",
+        "type": "text"
+      },
+      {
+        "key": "recursiveLoop",
+        "label": "Recursive Loop Detection",
+        "type": "select",
+        "options": [
+          "Terminate",
+          "Allow"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "Amazon SNS",
+    "fields": [
+      {
+        "key": "topicType",
+        "label": "Topic Type",
+        "type": "select",
+        "options": [
+          "standard",
+          "fifo"
+        ]
+      },
+      {
+        "key": "encrypted",
+        "label": "SSE Enabled",
+        "type": "boolean"
+      },
+      {
+        "key": "contentBasedDedup",
+        "label": "Content-Based Dedup",
+        "type": "boolean"
+      }
+    ]
+  },
+  {
+    "service": "Amazon ECS",
+    "fields": [
+      {
+        "key": "launchType",
+        "label": "Launch Type",
+        "type": "select",
+        "options": [
+          "FARGATE",
+          "EC2",
+          "EXTERNAL"
+        ]
+      },
+      {
+        "key": "desiredCount",
+        "label": "Desired Count",
+        "type": "number"
+      },
+      {
+        "key": "cpu",
+        "label": "CPU (units)",
+        "type": "select",
+        "options": [
+          "256",
+          "512",
+          "1024",
+          "2048",
+          "4096",
+          "8192",
+          "16384"
+        ]
+      },
+      {
+        "key": "memory",
+        "label": "Memory (MB)",
+        "type": "select",
+        "options": [
+          "512",
+          "1024",
+          "2048",
+          "3072",
+          "4096",
+          "5120",
+          "6144",
+          "7168",
+          "8192",
+          "16384",
+          "30720",
+          "61440",
+          "122880"
+        ]
+      },
+      {
+        "key": "networkMode",
+        "label": "Network Mode",
+        "type": "select",
+        "options": [
+          "awsvpc",
+          "bridge",
+          "host",
+          "none"
+        ]
+      },
+      {
+        "key": "assignPublicIp",
+        "label": "Public IP",
+        "type": "boolean"
+      },
+      {
+        "key": "subnetIds",
+        "label": "Subnet IDs",
+        "type": "text"
+      },
+      {
+        "key": "securityGroupIds",
+        "label": "Security Groups",
+        "type": "text"
+      },
+      {
+        "key": "enableExecuteCommand",
+        "label": "ECS Exec",
+        "type": "boolean"
+      },
+      {
+        "key": "enableServiceConnect",
+        "label": "Service Connect",
+        "type": "boolean"
+      },
+      {
+        "key": "deploymentController",
+        "label": "Deployment Controller",
+        "type": "select",
+        "options": [
+          "ECS",
+          "CODE_DEPLOY",
+          "EXTERNAL"
+        ]
+      },
+      {
+        "key": "deploymentMinPercent",
+        "label": "Min Healthy %",
+        "type": "number"
+      },
+      {
+        "key": "deploymentMaxPercent",
+        "label": "Max %",
+        "type": "number"
+      },
+      {
+        "key": "circuitBreakerEnabled",
+        "label": "Circuit Breaker",
+        "type": "boolean"
+      },
+      {
+        "key": "circuitBreakerRollback",
+        "label": "Auto Rollback",
+        "type": "boolean"
+      },
+      {
+        "key": "healthCheckGracePeriod",
+        "label": "Health Check Grace (sec)",
+        "type": "number"
+      },
+      {
+        "key": "platformVersion",
+        "label": "Platform Version",
+        "type": "select",
+        "options": [
+          "LATEST",
+          "1.4.0",
+          "1.3.0"
+        ]
+      },
+      {
+        "key": "capacityProviderStrategy",
+        "label": "Capacity Provider",
+        "type": "select",
+        "options": [
+          "FARGATE",
+          "FARGATE_SPOT",
+          "custom"
+        ]
+      },
+      {
+        "key": "enableECSManagedTags",
+        "label": "ECS Managed Tags",
+        "type": "boolean"
+      },
+      {
+        "key": "propagateTags",
+        "label": "Propagate Tags",
+        "type": "select",
+        "options": [
+          "TASK_DEFINITION",
+          "SERVICE",
+          "NONE"
+        ]
+      },
+      {
+        "key": "containerPort",
+        "label": "Container Port",
+        "type": "number"
+      },
+      {
+        "key": "containerProtocol",
+        "label": "Container Protocol",
+        "type": "select",
+        "options": [
+          "tcp",
+          "udp"
+        ]
+      },
+      {
+        "key": "logDriver",
+        "label": "Log Driver",
+        "type": "select",
+        "options": [
+          "awslogs",
+          "fluentd",
+          "splunk",
+          "awsfirelens",
+          "json-file",
+          "none"
+        ]
+      },
+      {
+        "key": "logRetentionDays",
+        "label": "Log Retention (days)",
+        "type": "select",
+        "options": [
+          "1",
+          "3",
+          "5",
+          "7",
+          "14",
+          "30",
+          "60",
+          "90",
+          "120",
+          "150",
+          "180",
+          "365",
+          "400",
+          "545",
+          "731",
+          "1096",
+          "1827",
+          "2192",
+          "2557",
+          "2922",
+          "3288",
+          "3653"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "Amazon EKS",
+    "fields": [
+      {
+        "key": "version",
+        "label": "K8s Version",
+        "type": "select",
+        "options": [
+          "1.35",
+          "1.34",
+          "1.33",
+          "1.32",
+          "1.31",
+          "1.30"
+        ]
+      },
+      {
+        "key": "roleArn",
+        "label": "Cluster Role ARN",
+        "type": "text"
+      },
+      {
+        "key": "subnetIds",
+        "label": "Subnet IDs",
+        "type": "text"
+      },
+      {
+        "key": "securityGroupIds",
+        "label": "Security Group IDs",
+        "type": "text"
+      },
+      {
+        "key": "endpointPublicAccess",
+        "label": "Public Endpoint",
+        "type": "boolean"
+      },
+      {
+        "key": "endpointPrivateAccess",
+        "label": "Private Endpoint",
+        "type": "boolean"
+      },
+      {
+        "key": "publicAccessCidrs",
+        "label": "Public Access CIDRs",
+        "type": "text"
+      },
+      {
+        "key": "serviceIpv4Cidr",
+        "label": "Service IPv4 CIDR",
+        "type": "text"
+      },
+      {
+        "key": "ipFamily",
+        "label": "IP Family",
+        "type": "select",
+        "options": [
+          "ipv4",
+          "ipv6"
+        ]
+      },
+      {
+        "key": "encryptionConfig",
+        "label": "Secrets Encryption",
+        "type": "boolean"
+      },
+      {
+        "key": "kmsKeyArn",
+        "label": "KMS Key ARN",
+        "type": "text"
+      },
+      {
+        "key": "loggingApi",
+        "label": "API Server Logging",
+        "type": "boolean"
+      },
+      {
+        "key": "loggingAudit",
+        "label": "Audit Logging",
+        "type": "boolean"
+      },
+      {
+        "key": "loggingAuthenticator",
+        "label": "Authenticator Logging",
+        "type": "boolean"
+      },
+      {
+        "key": "loggingControllerManager",
+        "label": "Controller Manager Logging",
+        "type": "boolean"
+      },
+      {
+        "key": "loggingScheduler",
+        "label": "Scheduler Logging",
+        "type": "boolean"
+      },
+      {
+        "key": "nodeInstanceType",
+        "label": "Node Instance Type",
+        "type": "select",
+        "options": [
+          "t3.medium",
+          "t3.large",
+          "t3.xlarge",
+          "m5.large",
+          "m5.xlarge",
+          "m5.2xlarge",
+          "m6i.large",
+          "m6i.xlarge",
+          "c5.large",
+          "c5.xlarge",
+          "r5.large",
+          "r5.xlarge",
+          "g4dn.xlarge",
+          "p3.2xlarge"
+        ]
+      },
+      {
+        "key": "nodeAmiType",
+        "label": "Node AMI Type",
+        "type": "select",
+        "options": [
+          "AL2_x86_64",
+          "AL2_x86_64_GPU",
+          "AL2_ARM_64",
+          "AL2023_x86_64_STANDARD",
+          "AL2023_ARM_64_STANDARD",
+          "BOTTLEROCKET_x86_64",
+          "BOTTLEROCKET_ARM_64",
+          "WINDOWS_CORE_2022_x86_64",
+          "CUSTOM"
+        ]
+      },
+      {
+        "key": "nodeCapacityType",
+        "label": "Node Capacity Type",
+        "type": "select",
+        "options": [
+          "ON_DEMAND",
+          "SPOT"
+        ]
+      },
+      {
+        "key": "nodeDiskSize",
+        "label": "Node Disk Size (GB)",
+        "type": "number"
+      },
+      {
+        "key": "desiredSize",
+        "label": "Desired Nodes",
+        "type": "number"
+      },
+      {
+        "key": "minSize",
+        "label": "Min Nodes",
+        "type": "number"
+      },
+      {
+        "key": "maxSize",
+        "label": "Max Nodes",
+        "type": "number"
+      },
+      {
+        "key": "maxUnavailable",
+        "label": "Max Unavailable (update)",
+        "type": "number"
+      },
+      {
+        "key": "addonCoreDns",
+        "label": "CoreDNS Addon",
+        "type": "boolean"
+      },
+      {
+        "key": "addonKubeProxy",
+        "label": "kube-proxy Addon",
+        "type": "boolean"
+      },
+      {
+        "key": "addonVpcCni",
+        "label": "VPC CNI Addon",
+        "type": "boolean"
+      },
+      {
+        "key": "addonEbsCsi",
+        "label": "EBS CSI Addon",
+        "type": "boolean"
+      }
+    ]
+  },
+  {
+    "service": "Amazon API Gateway",
+    "fields": [
+      {
+        "key": "apiType",
+        "label": "API Type",
+        "type": "select",
+        "options": [
+          "REST",
+          "HTTP",
+          "WebSocket"
+        ]
+      },
+      {
+        "key": "endpointType",
+        "label": "Endpoint Type",
+        "type": "select",
+        "options": [
+          "REGIONAL",
+          "EDGE",
+          "PRIVATE"
+        ]
+      },
+      {
+        "key": "stageName",
+        "label": "Stage Name",
+        "type": "text"
+      },
+      {
+        "key": "description",
+        "label": "Description",
+        "type": "text"
+      },
+      {
+        "key": "disableExecuteApiEndpoint",
+        "label": "Disable Default Endpoint",
+        "type": "boolean"
+      },
+      {
+        "key": "minimumCompressionSize",
+        "label": "Min Compression (bytes)",
+        "type": "number"
+      },
+      {
+        "key": "throttlingBurstLimit",
+        "label": "Burst Limit",
+        "type": "number"
+      },
+      {
+        "key": "throttlingRateLimit",
+        "label": "Rate Limit",
+        "type": "number"
+      },
+      {
+        "key": "tracingEnabled",
+        "label": "X-Ray Tracing",
+        "type": "boolean"
+      },
+      {
+        "key": "metricsEnabled",
+        "label": "CloudWatch Metrics",
+        "type": "boolean"
+      },
+      {
+        "key": "loggingLevel",
+        "label": "Logging Level",
+        "type": "select",
+        "options": [
+          "OFF",
+          "ERROR",
+          "INFO"
+        ]
+      },
+      {
+        "key": "dataTraceEnabled",
+        "label": "Data Trace",
+        "type": "boolean"
+      },
+      {
+        "key": "cachingEnabled",
+        "label": "API Caching",
+        "type": "boolean"
+      },
+      {
+        "key": "cacheClusterSize",
+        "label": "Cache Size (GB)",
+        "type": "select",
+        "options": [
+          "0.5",
+          "1.6",
+          "6.1",
+          "13.5",
+          "28.4",
+          "58.2",
+          "118",
+          "237"
+        ]
+      },
+      {
+        "key": "cacheTtl",
+        "label": "Cache TTL (sec)",
+        "type": "number"
+      },
+      {
+        "key": "authorizationType",
+        "label": "Default Auth",
+        "type": "select",
+        "options": [
+          "NONE",
+          "AWS_IAM",
+          "CUSTOM",
+          "COGNITO_USER_POOLS",
+          "JWT"
+        ]
+      },
+      {
+        "key": "corsEnabled",
+        "label": "CORS",
+        "type": "boolean"
+      },
+      {
+        "key": "corsAllowOrigins",
+        "label": "CORS Origins",
+        "type": "text"
+      },
+      {
+        "key": "corsAllowMethods",
+        "label": "CORS Methods",
+        "type": "text"
+      },
+      {
+        "key": "corsAllowHeaders",
+        "label": "CORS Headers",
+        "type": "text"
+      },
+      {
+        "key": "mutualTlsEnabled",
+        "label": "Mutual TLS",
+        "type": "boolean"
+      },
+      {
+        "key": "wafAclArn",
+        "label": "WAF ACL ARN",
+        "type": "text"
+      },
+      {
+        "key": "accessLogEnabled",
+        "label": "Access Logging",
+        "type": "boolean"
+      },
+      {
+        "key": "accessLogDestination",
+        "label": "Access Log ARN",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "service": "API Gateway",
+    "fields": [
+      {
+        "key": "apiType",
+        "label": "API Type",
+        "type": "select",
+        "options": [
+          "REST",
+          "HTTP",
+          "WebSocket"
+        ]
+      },
+      {
+        "key": "endpointType",
+        "label": "Endpoint Type",
+        "type": "select",
+        "options": [
+          "REGIONAL",
+          "EDGE",
+          "PRIVATE"
+        ]
+      },
+      {
+        "key": "stageName",
+        "label": "Stage Name",
+        "type": "text"
+      },
+      {
+        "key": "throttlingBurstLimit",
+        "label": "Burst Limit",
+        "type": "number"
+      },
+      {
+        "key": "throttlingRateLimit",
+        "label": "Rate Limit",
+        "type": "number"
+      },
+      {
+        "key": "tracingEnabled",
+        "label": "X-Ray Tracing",
+        "type": "boolean"
+      },
+      {
+        "key": "authorizationType",
+        "label": "Default Auth",
+        "type": "select",
+        "options": [
+          "NONE",
+          "AWS_IAM",
+          "CUSTOM",
+          "COGNITO_USER_POOLS",
+          "JWT"
+        ]
+      },
+      {
+        "key": "corsEnabled",
+        "label": "CORS",
+        "type": "boolean"
+      },
+      {
+        "key": "cachingEnabled",
+        "label": "API Caching",
+        "type": "boolean"
+      },
+      {
+        "key": "accessLogEnabled",
+        "label": "Access Logging",
+        "type": "boolean"
+      }
+    ]
+  },
+  {
+    "service": "AWS Batch",
+    "fields": [
+      {
+        "key": "computeType",
+        "label": "Compute Type",
+        "type": "select",
+        "options": [
+          "MANAGED",
+          "UNMANAGED"
+        ]
+      },
+      {
+        "key": "instanceTypes",
+        "label": "Instance Types",
+        "type": "text"
+      },
+      {
+        "key": "maxvCpus",
+        "label": "Max vCPUs",
+        "type": "number"
+      },
+      {
+        "key": "minvCpus",
+        "label": "Min vCPUs",
+        "type": "number"
+      }
+    ]
+  },
+  {
+    "service": "AWS Fargate",
+    "fields": [
+      {
+        "key": "cpu",
+        "label": "CPU (units)",
+        "type": "select",
+        "options": [
+          "256",
+          "512",
+          "1024",
+          "2048",
+          "4096"
+        ]
+      },
+      {
+        "key": "memory",
+        "label": "Memory (MB)",
+        "type": "select",
+        "options": [
+          "512",
+          "1024",
+          "2048",
+          "4096",
+          "8192",
+          "16384",
+          "30720"
+        ]
+      },
+      {
+        "key": "platformVersion",
+        "label": "Platform Version",
+        "type": "select",
+        "options": [
+          "LATEST",
+          "1.4.0",
+          "1.3.0"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "Amazon Lightsail",
+    "fields": [
+      {
+        "key": "bundleId",
+        "label": "Bundle",
+        "type": "select",
+        "options": [
+          "nano_3_0",
+          "micro_3_0",
+          "small_3_0",
+          "medium_3_0",
+          "large_3_0",
+          "xlarge_3_0"
+        ]
+      },
+      {
+        "key": "blueprintId",
+        "label": "Blueprint",
+        "type": "select",
+        "options": [
+          "amazon_linux_2023",
+          "ubuntu_22_04",
+          "debian_12",
+          "wordpress",
+          "lamp_8",
+          "node"
+        ]
+      },
+      {
+        "key": "availabilityZone",
+        "label": "AZ",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "service": "AWS App Runner",
+    "fields": [
+      {
+        "key": "cpu",
+        "label": "CPU",
+        "type": "select",
+        "options": [
+          "0.25 vCPU",
+          "0.5 vCPU",
+          "1 vCPU",
+          "2 vCPU",
+          "4 vCPU"
+        ]
+      },
+      {
+        "key": "memory",
+        "label": "Memory",
+        "type": "select",
+        "options": [
+          "0.5 GB",
+          "1 GB",
+          "2 GB",
+          "3 GB",
+          "4 GB",
+          "6 GB",
+          "8 GB",
+          "12 GB"
+        ]
+      },
+      {
+        "key": "port",
+        "label": "Port",
+        "type": "number"
+      },
+      {
+        "key": "healthCheckPath",
+        "label": "Health Check Path",
+        "type": "text"
+      },
+      {
+        "key": "autoScalingMaxConcurrency",
+        "label": "Max Concurrency",
+        "type": "number"
+      },
+      {
+        "key": "autoScalingMaxSize",
+        "label": "Max Instances",
+        "type": "number"
+      }
+    ]
+  },
+  {
+    "service": "Amazon ECR",
+    "fields": [
+      {
+        "key": "imageTagMutability",
+        "label": "Tag Mutability",
+        "type": "select",
+        "options": [
+          "MUTABLE",
+          "IMMUTABLE"
+        ]
+      },
+      {
+        "key": "scanOnPush",
+        "label": "Scan on Push",
+        "type": "boolean"
+      },
+      {
+        "key": "encryptionType",
+        "label": "Encryption",
+        "type": "select",
+        "options": [
+          "AES256",
+          "KMS"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "Amazon Elastic Container Registry",
+    "fields": [
+      {
+        "key": "imageTagMutability",
+        "label": "Tag Mutability",
+        "type": "select",
+        "options": [
+          "MUTABLE",
+          "IMMUTABLE"
+        ]
+      },
+      {
+        "key": "scanOnPush",
+        "label": "Scan on Push",
+        "type": "boolean"
+      }
+    ]
+  },
+  {
+    "service": "AWS Auto Scaling",
+    "fields": [
+      {
+        "key": "minSize",
+        "label": "Min Size",
+        "type": "number"
+      },
+      {
+        "key": "maxSize",
+        "label": "Max Size",
+        "type": "number"
+      },
+      {
+        "key": "desiredCapacity",
+        "label": "Desired Capacity",
+        "type": "number"
+      },
+      {
+        "key": "healthCheckType",
+        "label": "Health Check",
+        "type": "select",
+        "options": [
+          "EC2",
+          "ELB"
+        ]
+      },
+      {
+        "key": "healthCheckGracePeriod",
+        "label": "Grace Period (sec)",
+        "type": "number"
+      }
+    ]
+  },
+  {
+    "service": "Amazon EC2 Auto Scaling",
+    "fields": [
+      {
+        "key": "minSize",
+        "label": "Min Size",
+        "type": "number"
+      },
+      {
+        "key": "maxSize",
+        "label": "Max Size",
+        "type": "number"
+      },
+      {
+        "key": "desiredCapacity",
+        "label": "Desired Capacity",
+        "type": "number"
+      }
+    ]
+  },
+  {
+    "service": "Amazon RDS",
+    "fields": [
+      {
+        "key": "engine",
+        "label": "Engine",
+        "type": "select",
+        "options": [
+          "mysql",
+          "postgres",
+          "mariadb",
+          "oracle-ee",
+          "oracle-se2",
+          "sqlserver-ee",
+          "sqlserver-se",
+          "sqlserver-ex",
+          "sqlserver-web"
+        ]
+      },
+      {
+        "key": "engineVersion",
+        "label": "Engine Version",
+        "type": "text"
+      },
+      {
+        "key": "instanceClass",
+        "label": "Instance Class",
+        "type": "select",
+        "options": [
+          "db.t3.micro",
+          "db.t3.small",
+          "db.t3.medium",
+          "db.t3.large",
+          "db.t4g.micro",
+          "db.t4g.small",
+          "db.t4g.medium",
+          "db.r5.large",
+          "db.r5.xlarge",
+          "db.r5.2xlarge",
+          "db.r6g.large",
+          "db.r6g.xlarge",
+          "db.r6i.large",
+          "db.r7g.large",
+          "db.m5.large",
+          "db.m5.xlarge",
+          "db.m6g.large",
+          "db.m6i.large",
+          "db.m7g.large"
+        ]
+      },
+      {
+        "key": "allocatedStorage",
+        "label": "Storage (GB)",
+        "type": "number"
+      },
+      {
+        "key": "maxAllocatedStorage",
+        "label": "Max Storage (GB)",
+        "type": "number"
+      },
+      {
+        "key": "storageType",
+        "label": "Storage Type",
+        "type": "select",
+        "options": [
+          "gp3",
+          "gp2",
+          "io1",
+          "io2"
+        ]
+      },
+      {
+        "key": "iops",
+        "label": "Provisioned IOPS",
+        "type": "number"
+      },
+      {
+        "key": "storageThroughput",
+        "label": "Storage Throughput (MB/s)",
+        "type": "number"
+      },
+      {
+        "key": "multiAz",
+        "label": "Multi-AZ",
+        "type": "boolean"
+      },
+      {
+        "key": "multiAzCluster",
+        "label": "Multi-AZ DB Cluster",
+        "type": "boolean"
+      },
+      {
+        "key": "dbName",
+        "label": "Database Name",
+        "type": "text"
+      },
+      {
+        "key": "masterUsername",
+        "label": "Master Username",
+        "type": "text"
+      },
+      {
+        "key": "port",
+        "label": "Port",
+        "type": "number"
+      },
+      {
+        "key": "publiclyAccessible",
+        "label": "Publicly Accessible",
+        "type": "boolean"
+      },
+      {
+        "key": "subnetGroupName",
+        "label": "Subnet Group",
+        "type": "text"
+      },
+      {
+        "key": "vpcSecurityGroupIds",
+        "label": "Security Group IDs",
+        "type": "text"
+      },
+      {
+        "key": "parameterGroupName",
+        "label": "Parameter Group",
+        "type": "text"
+      },
+      {
+        "key": "optionGroupName",
+        "label": "Option Group",
+        "type": "text"
+      },
+      {
+        "key": "deletionProtection",
+        "label": "Deletion Protection",
+        "type": "boolean"
+      },
+      {
+        "key": "backupRetention",
+        "label": "Backup Retention (days)",
+        "type": "number"
+      },
+      {
+        "key": "preferredBackupWindow",
+        "label": "Backup Window",
+        "type": "text"
+      },
+      {
+        "key": "preferredMaintenanceWindow",
+        "label": "Maintenance Window",
+        "type": "text"
+      },
+      {
+        "key": "encrypted",
+        "label": "Encryption at Rest",
+        "type": "boolean"
+      },
+      {
+        "key": "kmsKeyId",
+        "label": "KMS Key ID",
+        "type": "text"
+      },
+      {
+        "key": "performanceInsightsEnabled",
+        "label": "Performance Insights",
+        "type": "boolean"
+      },
+      {
+        "key": "performanceInsightsRetention",
+        "label": "PI Retention (days)",
+        "type": "select",
+        "options": [
+          "7",
+          "31",
+          "62",
+          "93",
+          "124",
+          "155",
+          "186",
+          "217",
+          "248",
+          "279",
+          "310",
+          "341",
+          "372",
+          "731"
+        ]
+      },
+      {
+        "key": "monitoringInterval",
+        "label": "Enhanced Monitoring (sec)",
+        "type": "select",
+        "options": [
+          "0",
+          "1",
+          "5",
+          "10",
+          "15",
+          "30",
+          "60"
+        ]
+      },
+      {
+        "key": "enableCloudwatchLogsExports",
+        "label": "CW Log Exports",
+        "type": "text"
+      },
+      {
+        "key": "autoMinorVersionUpgrade",
+        "label": "Auto Minor Upgrade",
+        "type": "boolean"
+      },
+      {
+        "key": "copyTagsToSnapshot",
+        "label": "Copy Tags to Snapshot",
+        "type": "boolean"
+      },
+      {
+        "key": "storageEncrypted",
+        "label": "Storage Encrypted",
+        "type": "boolean"
+      },
+      {
+        "key": "caCertificateIdentifier",
+        "label": "CA Certificate",
+        "type": "select",
+        "options": [
+          "rds-ca-rsa2048-g1",
+          "rds-ca-ecc384-g1",
+          "rds-ca-rsa4096-g1"
+        ]
+      },
+      {
+        "key": "networkType",
+        "label": "Network Type",
+        "type": "select",
+        "options": [
+          "IPV4",
+          "DUAL"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "Amazon DynamoDB",
+    "fields": [
+      {
+        "key": "tableName",
+        "label": "Table Name",
+        "type": "text"
+      },
+      {
+        "key": "billingMode",
+        "label": "Billing Mode",
+        "type": "select",
+        "options": [
+          "PAY_PER_REQUEST",
+          "PROVISIONED"
+        ]
+      },
+      {
+        "key": "tableClass",
+        "label": "Table Class",
+        "type": "select",
+        "options": [
+          "STANDARD",
+          "STANDARD_INFREQUENT_ACCESS"
+        ]
+      },
+      {
+        "key": "partitionKey",
+        "label": "Partition Key",
+        "type": "text"
+      },
+      {
+        "key": "partitionKeyType",
+        "label": "Partition Key Type",
+        "type": "select",
+        "options": [
+          "S",
+          "N",
+          "B"
+        ]
+      },
+      {
+        "key": "sortKey",
+        "label": "Sort Key",
+        "type": "text"
+      },
+      {
+        "key": "sortKeyType",
+        "label": "Sort Key Type",
+        "type": "select",
+        "options": [
+          "S",
+          "N",
+          "B",
+          "none"
+        ]
+      },
+      {
+        "key": "readCapacity",
+        "label": "Read Capacity",
+        "type": "number"
+      },
+      {
+        "key": "writeCapacity",
+        "label": "Write Capacity",
+        "type": "number"
+      },
+      {
+        "key": "encryption",
+        "label": "Encryption",
+        "type": "select",
+        "options": [
+          "DEFAULT",
+          "KMS",
+          "none"
+        ]
+      },
+      {
+        "key": "kmsKeyArn",
+        "label": "KMS Key ARN",
+        "type": "text"
+      },
+      {
+        "key": "pointInTimeRecovery",
+        "label": "Point-in-Time Recovery",
+        "type": "boolean"
+      },
+      {
+        "key": "ttlAttribute",
+        "label": "TTL Attribute",
+        "type": "text"
+      },
+      {
+        "key": "streamEnabled",
+        "label": "DynamoDB Streams",
+        "type": "boolean"
+      },
+      {
+        "key": "streamViewType",
+        "label": "Stream View Type",
+        "type": "select",
+        "options": [
+          "KEYS_ONLY",
+          "NEW_IMAGE",
+          "OLD_IMAGE",
+          "NEW_AND_OLD_IMAGES",
+          "none"
+        ]
+      },
+      {
+        "key": "globalTableRegions",
+        "label": "Global Table Regions",
+        "type": "text"
+      },
+      {
+        "key": "deletionProtection",
+        "label": "Deletion Protection",
+        "type": "boolean"
+      },
+      {
+        "key": "contributorInsights",
+        "label": "Contributor Insights",
+        "type": "boolean"
+      }
+    ]
+  },
+  {
+    "service": "Amazon SQS",
+    "fields": [
+      {
+        "key": "queueName",
+        "label": "Queue Name",
+        "type": "text"
+      },
+      {
+        "key": "queueType",
+        "label": "Queue Type",
+        "type": "select",
+        "options": [
+          "standard",
+          "fifo"
+        ]
+      },
+      {
+        "key": "visibilityTimeout",
+        "label": "Visibility Timeout (sec)",
+        "type": "number"
+      },
+      {
+        "key": "messageRetention",
+        "label": "Retention (sec)",
+        "type": "number"
+      },
+      {
+        "key": "maxMessageSize",
+        "label": "Max Message Size (bytes)",
+        "type": "number"
+      },
+      {
+        "key": "delaySeconds",
+        "label": "Delay (sec)",
+        "type": "number"
+      },
+      {
+        "key": "receiveWaitTimeSeconds",
+        "label": "Receive Wait Time (sec)",
+        "type": "number"
+      },
+      {
+        "key": "encrypted",
+        "label": "SSE Enabled",
+        "type": "boolean"
+      },
+      {
+        "key": "kmsMasterKeyId",
+        "label": "KMS Key ID",
+        "type": "text"
+      },
+      {
+        "key": "kmsDataKeyReusePeriod",
+        "label": "KMS Reuse Period (sec)",
+        "type": "number"
+      },
+      {
+        "key": "sqsManagedSseEnabled",
+        "label": "SQS Managed SSE",
+        "type": "boolean"
+      },
+      {
+        "key": "contentBasedDedup",
+        "label": "Content-Based Dedup",
+        "type": "boolean"
+      },
+      {
+        "key": "deduplicationScope",
+        "label": "Dedup Scope",
+        "type": "select",
+        "options": [
+          "queue",
+          "messageGroup"
+        ]
+      },
+      {
+        "key": "fifoThroughputLimit",
+        "label": "FIFO Throughput",
+        "type": "select",
+        "options": [
+          "perQueue",
+          "perMessageGroupId"
+        ]
+      },
+      {
+        "key": "deadLetterQueue",
+        "label": "Dead Letter Queue",
+        "type": "boolean"
+      },
+      {
+        "key": "deadLetterTargetArn",
+        "label": "DLQ ARN",
+        "type": "text"
+      },
+      {
+        "key": "maxReceiveCount",
+        "label": "Max Receive Count",
+        "type": "number"
+      },
+      {
+        "key": "redriveAllowPolicy",
+        "label": "Redrive Allow",
+        "type": "select",
+        "options": [
+          "allowAll",
+          "denyAll",
+          "byQueue"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "Amazon Redshift",
+    "fields": [
+      {
+        "key": "nodeType",
+        "label": "Node Type",
+        "type": "select",
+        "options": [
+          "ra3.xlplus",
+          "ra3.4xlarge",
+          "ra3.16xlarge",
+          "dc2.large",
+          "dc2.8xlarge",
+          "ds2.xlarge",
+          "ds2.8xlarge"
+        ]
+      },
+      {
+        "key": "numberOfNodes",
+        "label": "Node Count",
+        "type": "number"
+      },
+      {
+        "key": "clusterIdentifier",
+        "label": "Cluster Identifier",
+        "type": "text"
+      },
+      {
+        "key": "databaseName",
+        "label": "Database Name",
+        "type": "text"
+      },
+      {
+        "key": "masterUsername",
+        "label": "Master Username",
+        "type": "text"
+      },
+      {
+        "key": "port",
+        "label": "Port",
+        "type": "number"
+      },
+      {
+        "key": "encrypted",
+        "label": "Encryption",
+        "type": "boolean"
+      },
+      {
+        "key": "kmsKeyId",
+        "label": "KMS Key ID",
+        "type": "text"
+      },
+      {
+        "key": "publiclyAccessible",
+        "label": "Publicly Accessible",
+        "type": "boolean"
+      },
+      {
+        "key": "enhancedVpcRouting",
+        "label": "Enhanced VPC Routing",
+        "type": "boolean"
+      },
+      {
+        "key": "subnetGroupName",
+        "label": "Subnet Group",
+        "type": "text"
+      },
+      {
+        "key": "vpcSecurityGroupIds",
+        "label": "Security Groups",
+        "type": "text"
+      },
+      {
+        "key": "availabilityZone",
+        "label": "AZ",
+        "type": "text"
+      },
+      {
+        "key": "multiAz",
+        "label": "Multi-AZ",
+        "type": "boolean"
+      },
+      {
+        "key": "automatedSnapshotRetention",
+        "label": "Snapshot Retention (days)",
+        "type": "number"
+      },
+      {
+        "key": "manualSnapshotRetention",
+        "label": "Manual Snapshot Retention (days)",
+        "type": "number"
+      },
+      {
+        "key": "preferredMaintenanceWindow",
+        "label": "Maintenance Window",
+        "type": "text"
+      },
+      {
+        "key": "allowVersionUpgrade",
+        "label": "Auto Version Upgrade",
+        "type": "boolean"
+      },
+      {
+        "key": "loggingEnabled",
+        "label": "Audit Logging",
+        "type": "boolean"
+      },
+      {
+        "key": "loggingBucketName",
+        "label": "Log Bucket",
+        "type": "text"
+      },
+      {
+        "key": "aquaConfigurationStatus",
+        "label": "AQUA",
+        "type": "select",
+        "options": [
+          "auto",
+          "enabled",
+          "disabled"
+        ]
+      },
+      {
+        "key": "snapshotCopyEnabled",
+        "label": "Cross-Region Snapshots",
+        "type": "boolean"
+      },
+      {
+        "key": "snapshotCopyRegion",
+        "label": "Snapshot Copy Region",
+        "type": "text"
+      },
+      {
+        "key": "elasticIp",
+        "label": "Elastic IP",
+        "type": "text"
+      },
+      {
+        "key": "iamRoles",
+        "label": "IAM Roles",
+        "type": "text"
+      },
+      {
+        "key": "defaultIamRoleArn",
+        "label": "Default IAM Role",
+        "type": "text"
+      },
+      {
+        "key": "maintenanceTrackName",
+        "label": "Maintenance Track",
+        "type": "select",
+        "options": [
+          "current",
+          "trailing"
+        ]
+      },
+      {
+        "key": "availabilityZoneRelocation",
+        "label": "AZ Relocation",
+        "type": "boolean"
+      }
+    ]
+  },
+  {
+    "service": "Amazon Neptune",
+    "fields": [
+      {
+        "key": "instanceClass",
+        "label": "Instance Class",
+        "type": "select",
+        "options": [
+          "db.r5.large",
+          "db.r5.xlarge",
+          "db.r5.2xlarge",
+          "db.r5.4xlarge",
+          "db.r6g.large",
+          "db.r6g.xlarge",
+          "db.r6g.2xlarge",
+          "db.r6i.large",
+          "db.t3.medium",
+          "db.t4g.medium",
+          "db.serverless"
+        ]
+      },
+      {
+        "key": "engineVersion",
+        "label": "Engine Version",
+        "type": "text"
+      },
+      {
+        "key": "engine",
+        "label": "Engine",
+        "type": "select",
+        "options": [
+          "neptune"
+        ]
+      },
+      {
+        "key": "dbClusterIdentifier",
+        "label": "Cluster Identifier",
+        "type": "text"
+      },
+      {
+        "key": "port",
+        "label": "Port",
+        "type": "number"
+      },
+      {
+        "key": "instanceCount",
+        "label": "Instance Count",
+        "type": "number"
+      },
+      {
+        "key": "deletionProtection",
+        "label": "Deletion Protection",
+        "type": "boolean"
+      },
+      {
+        "key": "storageEncrypted",
+        "label": "Encryption",
+        "type": "boolean"
+      },
+      {
+        "key": "kmsKeyId",
+        "label": "KMS Key ID",
+        "type": "text"
+      },
+      {
+        "key": "subnetGroupName",
+        "label": "Subnet Group",
+        "type": "text"
+      },
+      {
+        "key": "vpcSecurityGroupIds",
+        "label": "Security Groups",
+        "type": "text"
+      },
+      {
+        "key": "iamDatabaseAuthenticationEnabled",
+        "label": "IAM Auth",
+        "type": "boolean"
+      },
+      {
+        "key": "backupRetentionPeriod",
+        "label": "Backup Retention (days)",
+        "type": "number"
+      },
+      {
+        "key": "preferredBackupWindow",
+        "label": "Backup Window",
+        "type": "text"
+      },
+      {
+        "key": "preferredMaintenanceWindow",
+        "label": "Maintenance Window",
+        "type": "text"
+      },
+      {
+        "key": "enableCloudwatchLogsExports",
+        "label": "CW Log Exports",
+        "type": "text"
+      },
+      {
+        "key": "autoMinorVersionUpgrade",
+        "label": "Auto Minor Upgrade",
+        "type": "boolean"
+      },
+      {
+        "key": "copyTagsToSnapshot",
+        "label": "Copy Tags to Snapshot",
+        "type": "boolean"
+      },
+      {
+        "key": "serverlessMinCapacity",
+        "label": "Serverless Min NCU",
+        "type": "number"
+      },
+      {
+        "key": "serverlessMaxCapacity",
+        "label": "Serverless Max NCU",
+        "type": "number"
+      },
+      {
+        "key": "enableNeptuneAnalytics",
+        "label": "Neptune Analytics",
+        "type": "boolean"
+      }
+    ]
+  },
+  {
+    "service": "Amazon DocumentDB",
+    "fields": [
+      {
+        "key": "instanceClass",
+        "label": "Instance Class",
+        "type": "select",
+        "options": [
+          "db.r5.large",
+          "db.r5.xlarge",
+          "db.r5.2xlarge",
+          "db.r6g.large",
+          "db.r6g.xlarge",
+          "db.r6g.2xlarge",
+          "db.t3.medium",
+          "db.t4g.medium"
+        ]
+      },
+      {
+        "key": "engineVersion",
+        "label": "Engine Version",
+        "type": "select",
+        "options": [
+          "5.0.0",
+          "4.0.0",
+          "3.6.0"
+        ]
+      },
+      {
+        "key": "instanceCount",
+        "label": "Instance Count",
+        "type": "number"
+      },
+      {
+        "key": "dbClusterIdentifier",
+        "label": "Cluster Identifier",
+        "type": "text"
+      },
+      {
+        "key": "masterUsername",
+        "label": "Master Username",
+        "type": "text"
+      },
+      {
+        "key": "port",
+        "label": "Port",
+        "type": "number"
+      },
+      {
+        "key": "deletionProtection",
+        "label": "Deletion Protection",
+        "type": "boolean"
+      },
+      {
+        "key": "storageEncrypted",
+        "label": "Encryption",
+        "type": "boolean"
+      },
+      {
+        "key": "kmsKeyId",
+        "label": "KMS Key ID",
+        "type": "text"
+      },
+      {
+        "key": "subnetGroupName",
+        "label": "Subnet Group",
+        "type": "text"
+      },
+      {
+        "key": "vpcSecurityGroupIds",
+        "label": "Security Groups",
+        "type": "text"
+      },
+      {
+        "key": "backupRetentionPeriod",
+        "label": "Backup Retention (days)",
+        "type": "number"
+      },
+      {
+        "key": "preferredBackupWindow",
+        "label": "Backup Window",
+        "type": "text"
+      },
+      {
+        "key": "preferredMaintenanceWindow",
+        "label": "Maintenance Window",
+        "type": "text"
+      },
+      {
+        "key": "enableCloudwatchLogsExports",
+        "label": "CW Log Exports",
+        "type": "text"
+      },
+      {
+        "key": "autoMinorVersionUpgrade",
+        "label": "Auto Minor Upgrade",
+        "type": "boolean"
+      },
+      {
+        "key": "copyTagsToSnapshot",
+        "label": "Copy Tags to Snapshot",
+        "type": "boolean"
+      },
+      {
+        "key": "storageType",
+        "label": "Storage Type",
+        "type": "select",
+        "options": [
+          "standard",
+          "iopt1"
+        ]
+      },
+      {
+        "key": "elasticCluster",
+        "label": "Elastic Cluster",
+        "type": "boolean"
+      },
+      {
+        "key": "shardCount",
+        "label": "Shard Count (elastic)",
+        "type": "number"
+      },
+      {
+        "key": "shardCapacity",
+        "label": "Shard Capacity (elastic)",
+        "type": "number"
+      }
+    ]
+  },
+  {
+    "service": "Amazon Keyspaces",
+    "fields": [
+      {
+        "key": "keyspaceName",
+        "label": "Keyspace Name",
+        "type": "text"
+      },
+      {
+        "key": "throughputMode",
+        "label": "Throughput Mode",
+        "type": "select",
+        "options": [
+          "PAY_PER_REQUEST",
+          "PROVISIONED"
+        ]
+      },
+      {
+        "key": "readCapacityUnits",
+        "label": "Read Capacity",
+        "type": "number"
+      },
+      {
+        "key": "writeCapacityUnits",
+        "label": "Write Capacity",
+        "type": "number"
+      },
+      {
+        "key": "pointInTimeRecovery",
+        "label": "Point-in-Time Recovery",
+        "type": "boolean"
+      },
+      {
+        "key": "encrypted",
+        "label": "Encryption",
+        "type": "boolean"
+      },
+      {
+        "key": "kmsKeyId",
+        "label": "KMS Key ID",
+        "type": "text"
+      },
+      {
+        "key": "ttlEnabled",
+        "label": "TTL Enabled",
+        "type": "boolean"
+      },
+      {
+        "key": "clientSideTimestamps",
+        "label": "Client-Side Timestamps",
+        "type": "boolean"
+      },
+      {
+        "key": "replicationRegions",
+        "label": "Multi-Region Replication",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "service": "Amazon Timestream",
+    "fields": [
+      {
+        "key": "databaseName",
+        "label": "Database Name",
+        "type": "text"
+      },
+      {
+        "key": "tableName",
+        "label": "Table Name",
+        "type": "text"
+      },
+      {
+        "key": "memoryRetentionHours",
+        "label": "Memory Retention (hours)",
+        "type": "number"
+      },
+      {
+        "key": "magneticRetentionDays",
+        "label": "Magnetic Retention (days)",
+        "type": "number"
+      },
+      {
+        "key": "kmsKeyId",
+        "label": "KMS Key ID",
+        "type": "text"
+      },
+      {
+        "key": "magneticStoreWritesEnabled",
+        "label": "Magnetic Store Writes",
+        "type": "boolean"
+      },
+      {
+        "key": "s3ErrorReportBucket",
+        "label": "Error Report Bucket",
+        "type": "text"
+      },
+      {
+        "key": "s3ErrorReportEncryption",
+        "label": "Error Report Encryption",
+        "type": "select",
+        "options": [
+          "SSE_S3",
+          "SSE_KMS"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "Amazon MemoryDB",
+    "fields": [
+      {
+        "key": "nodeType",
+        "label": "Node Type",
+        "type": "select",
+        "options": [
+          "db.r6g.large",
+          "db.r6g.xlarge",
+          "db.r6g.2xlarge",
+          "db.r7g.large",
+          "db.r7g.xlarge",
+          "db.t4g.small",
+          "db.t4g.medium"
+        ]
+      },
+      {
+        "key": "numShards",
+        "label": "Shard Count",
+        "type": "number"
+      },
+      {
+        "key": "numReplicasPerShard",
+        "label": "Replicas per Shard",
+        "type": "number"
+      },
+      {
+        "key": "engineVersion",
+        "label": "Engine Version",
+        "type": "text"
+      },
+      {
+        "key": "port",
+        "label": "Port",
+        "type": "number"
+      },
+      {
+        "key": "parameterGroupName",
+        "label": "Parameter Group",
+        "type": "text"
+      },
+      {
+        "key": "subnetGroupName",
+        "label": "Subnet Group",
+        "type": "text"
+      },
+      {
+        "key": "securityGroupIds",
+        "label": "Security Groups",
+        "type": "text"
+      },
+      {
+        "key": "tlsEnabled",
+        "label": "TLS Enabled",
+        "type": "boolean"
+      },
+      {
+        "key": "kmsKeyId",
+        "label": "KMS Key ID",
+        "type": "text"
+      },
+      {
+        "key": "snapshotRetentionLimit",
+        "label": "Snapshot Retention (days)",
+        "type": "number"
+      },
+      {
+        "key": "snapshotWindow",
+        "label": "Snapshot Window",
+        "type": "text"
+      },
+      {
+        "key": "maintenanceWindow",
+        "label": "Maintenance Window",
+        "type": "text"
+      },
+      {
+        "key": "autoMinorVersionUpgrade",
+        "label": "Auto Minor Upgrade",
+        "type": "boolean"
+      },
+      {
+        "key": "aclName",
+        "label": "ACL Name",
+        "type": "text"
+      },
+      {
+        "key": "dataTieringEnabled",
+        "label": "Data Tiering",
+        "type": "boolean"
+      }
+    ]
+  },
+  {
+    "service": "Amazon QLDB",
+    "fields": [
+      {
+        "key": "ledgerName",
+        "label": "Ledger Name",
+        "type": "text"
+      },
+      {
+        "key": "permissionsMode",
+        "label": "Permissions Mode",
+        "type": "select",
+        "options": [
+          "ALLOW_ALL",
+          "STANDARD"
+        ]
+      },
+      {
+        "key": "deletionProtection",
+        "label": "Deletion Protection",
+        "type": "boolean"
+      },
+      {
+        "key": "kmsKeyId",
+        "label": "KMS Key ID",
+        "type": "text"
+      },
+      {
+        "key": "exportEnabled",
+        "label": "Journal Export",
+        "type": "boolean"
+      },
+      {
+        "key": "streamEnabled",
+        "label": "QLDB Stream",
+        "type": "boolean"
+      },
+      {
+        "key": "streamKinesisArn",
+        "label": "Stream Kinesis ARN",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "service": "Amazon Quantum Ledger Database",
+    "fields": [
+      {
+        "key": "permissionsMode",
+        "label": "Permissions Mode",
+        "type": "select",
+        "options": [
+          "ALLOW_ALL",
+          "STANDARD"
+        ]
+      },
+      {
+        "key": "deletionProtection",
+        "label": "Deletion Protection",
+        "type": "boolean"
+      }
+    ]
+  },
+  {
+    "service": "Amazon Kinesis",
+    "fields": [
+      {
+        "key": "shardCount",
+        "label": "Shard Count",
+        "type": "number"
+      },
+      {
+        "key": "retentionPeriod",
+        "label": "Retention (hours)",
+        "type": "number"
+      },
+      {
+        "key": "streamMode",
+        "label": "Stream Mode",
+        "type": "select",
+        "options": [
+          "PROVISIONED",
+          "ON_DEMAND"
+        ]
+      },
+      {
+        "key": "encrypted",
+        "label": "Encryption",
+        "type": "boolean"
+      }
+    ]
+  },
+  {
+    "service": "Amazon ElastiCache",
+    "fields": [
+      {
+        "key": "engine",
+        "label": "Engine",
+        "type": "select",
+        "options": [
+          "redis",
+          "memcached",
+          "valkey"
+        ]
+      },
+      {
+        "key": "nodeType",
+        "label": "Node Type",
+        "type": "select",
+        "options": [
+          "cache.t3.micro",
+          "cache.t3.small",
+          "cache.t3.medium",
+          "cache.t4g.micro",
+          "cache.t4g.small",
+          "cache.t4g.medium",
+          "cache.r6g.large",
+          "cache.r6g.xlarge",
+          "cache.r7g.large",
+          "cache.m5.large",
+          "cache.m6g.large",
+          "cache.m7g.large"
+        ]
+      },
+      {
+        "key": "numCacheNodes",
+        "label": "Node Count",
+        "type": "number"
+      },
+      {
+        "key": "engineVersion",
+        "label": "Engine Version",
+        "type": "text"
+      },
+      {
+        "key": "port",
+        "label": "Port",
+        "type": "number"
+      },
+      {
+        "key": "parameterGroupName",
+        "label": "Parameter Group",
+        "type": "text"
+      },
+      {
+        "key": "subnetGroupName",
+        "label": "Subnet Group",
+        "type": "text"
+      },
+      {
+        "key": "securityGroupIds",
+        "label": "Security Groups",
+        "type": "text"
+      },
+      {
+        "key": "transitEncryption",
+        "label": "Transit Encryption",
+        "type": "boolean"
+      },
+      {
+        "key": "atRestEncryption",
+        "label": "At-Rest Encryption",
+        "type": "boolean"
+      },
+      {
+        "key": "authToken",
+        "label": "Auth Token (Redis)",
+        "type": "boolean"
+      },
+      {
+        "key": "automaticFailover",
+        "label": "Auto Failover",
+        "type": "boolean"
+      },
+      {
+        "key": "multiAzEnabled",
+        "label": "Multi-AZ",
+        "type": "boolean"
+      },
+      {
+        "key": "numNodeGroups",
+        "label": "Shard Count (cluster)",
+        "type": "number"
+      },
+      {
+        "key": "replicasPerNodeGroup",
+        "label": "Replicas per Shard",
+        "type": "number"
+      },
+      {
+        "key": "snapshotRetentionLimit",
+        "label": "Snapshot Retention (days)",
+        "type": "number"
+      },
+      {
+        "key": "snapshotWindow",
+        "label": "Snapshot Window",
+        "type": "text"
+      },
+      {
+        "key": "maintenanceWindow",
+        "label": "Maintenance Window",
+        "type": "text"
+      },
+      {
+        "key": "autoMinorVersionUpgrade",
+        "label": "Auto Minor Upgrade",
+        "type": "boolean"
+      },
+      {
+        "key": "notificationTopicArn",
+        "label": "SNS Topic ARN",
+        "type": "text"
+      },
+      {
+        "key": "logDeliverySlowLog",
+        "label": "Slow Log Delivery",
+        "type": "select",
+        "options": [
+          "none",
+          "cloudwatch-logs",
+          "kinesis-firehose"
+        ]
+      },
+      {
+        "key": "logDeliveryEngineLog",
+        "label": "Engine Log Delivery",
+        "type": "select",
+        "options": [
+          "none",
+          "cloudwatch-logs",
+          "kinesis-firehose"
+        ]
+      },
+      {
+        "key": "dataTieringEnabled",
+        "label": "Data Tiering (r6gd)",
+        "type": "boolean"
+      }
+    ]
+  },
+  {
+    "service": "Amazon CloudWatch",
+    "fields": [
+      {
+        "key": "alarmName",
+        "label": "Alarm Name",
+        "type": "text"
+      },
+      {
+        "key": "metricName",
+        "label": "Metric Name",
+        "type": "text"
+      },
+      {
+        "key": "threshold",
+        "label": "Threshold",
+        "type": "number"
+      },
+      {
+        "key": "comparisonOperator",
+        "label": "Operator",
+        "type": "select",
+        "options": [
+          "GreaterThanThreshold",
+          "LessThanThreshold",
+          "GreaterThanOrEqualToThreshold",
+          "LessThanOrEqualToThreshold"
+        ]
+      },
+      {
+        "key": "evaluationPeriods",
+        "label": "Evaluation Periods",
+        "type": "number"
+      },
+      {
+        "key": "period",
+        "label": "Period (sec)",
+        "type": "number"
+      }
+    ]
+  },
+  {
+    "service": "CloudWatch",
+    "fields": [
+      {
+        "key": "metricName",
+        "label": "Metric Name",
+        "type": "text"
+      },
+      {
+        "key": "threshold",
+        "label": "Threshold",
+        "type": "number"
+      }
+    ]
+  },
+  {
+    "service": "AWS WAF",
+    "fields": [
+      {
+        "key": "scope",
+        "label": "Scope",
+        "type": "select",
+        "options": [
+          "REGIONAL",
+          "CLOUDFRONT"
+        ]
+      },
+      {
+        "key": "defaultAction",
+        "label": "Default Action",
+        "type": "select",
+        "options": [
+          "ALLOW",
+          "BLOCK"
+        ]
+      },
+      {
+        "key": "managedRules",
+        "label": "AWS Managed Rules",
+        "type": "boolean"
+      },
+      {
+        "key": "managedRuleGroups",
+        "label": "Rule Groups",
+        "type": "text"
+      },
+      {
+        "key": "rateLimitValue",
+        "label": "Rate Limit (req/5min)",
+        "type": "number"
+      },
+      {
+        "key": "ipRateBasedRule",
+        "label": "IP Rate-Based Rule",
+        "type": "boolean"
+      },
+      {
+        "key": "geoMatchEnabled",
+        "label": "Geo Match Rule",
+        "type": "boolean"
+      },
+      {
+        "key": "geoMatchCountryCodes",
+        "label": "Blocked Countries",
+        "type": "text"
+      },
+      {
+        "key": "ipSetEnabled",
+        "label": "IP Set Rule",
+        "type": "boolean"
+      },
+      {
+        "key": "sqlInjectionProtection",
+        "label": "SQL Injection Protection",
+        "type": "boolean"
+      },
+      {
+        "key": "xssProtection",
+        "label": "XSS Protection",
+        "type": "boolean"
+      },
+      {
+        "key": "sizeConstraintEnabled",
+        "label": "Size Constraint",
+        "type": "boolean"
+      },
+      {
+        "key": "maxBodySize",
+        "label": "Max Body Size (bytes)",
+        "type": "number"
+      },
+      {
+        "key": "loggingEnabled",
+        "label": "Logging",
+        "type": "boolean"
+      },
+      {
+        "key": "loggingDestination",
+        "label": "Log Destination ARN",
+        "type": "text"
+      },
+      {
+        "key": "loggingRedactedFields",
+        "label": "Redacted Fields",
+        "type": "text"
+      },
+      {
+        "key": "customResponseEnabled",
+        "label": "Custom Response",
+        "type": "boolean"
+      },
+      {
+        "key": "customResponseCode",
+        "label": "Custom Response Code",
+        "type": "number"
+      },
+      {
+        "key": "labelMatchEnabled",
+        "label": "Label Match Rules",
+        "type": "boolean"
+      },
+      {
+        "key": "challengeEnabled",
+        "label": "CAPTCHA/Challenge",
+        "type": "boolean"
+      },
+      {
+        "key": "challengeImmunityTime",
+        "label": "Challenge Immunity (sec)",
+        "type": "number"
+      },
+      {
+        "key": "tokenDomains",
+        "label": "Token Domains",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "service": "Amazon VPC",
+    "fields": [
+      {
+        "key": "cidrBlock",
+        "label": "CIDR Block",
+        "type": "text"
+      },
+      {
+        "key": "secondaryCidrBlocks",
+        "label": "Secondary CIDRs",
+        "type": "text"
+      },
+      {
+        "key": "enableDnsHostnames",
+        "label": "DNS Hostnames",
+        "type": "boolean"
+      },
+      {
+        "key": "enableDnsSupport",
+        "label": "DNS Support",
+        "type": "boolean"
+      },
+      {
+        "key": "instanceTenancy",
+        "label": "Tenancy",
+        "type": "select",
+        "options": [
+          "default",
+          "dedicated"
+        ]
+      },
+      {
+        "key": "enableNetworkAddressUsageMetrics",
+        "label": "Network Usage Metrics",
+        "type": "boolean"
+      },
+      {
+        "key": "ipv6Enabled",
+        "label": "IPv6",
+        "type": "boolean"
+      },
+      {
+        "key": "publicSubnetCidrs",
+        "label": "Public Subnet CIDRs",
+        "type": "text"
+      },
+      {
+        "key": "privateSubnetCidrs",
+        "label": "Private Subnet CIDRs",
+        "type": "text"
+      },
+      {
+        "key": "availabilityZones",
+        "label": "Availability Zones",
+        "type": "text"
+      },
+      {
+        "key": "natGateway",
+        "label": "NAT Gateway",
+        "type": "select",
+        "options": [
+          "none",
+          "single",
+          "per-az"
+        ]
+      },
+      {
+        "key": "vpcEndpointS3",
+        "label": "S3 Gateway Endpoint",
+        "type": "boolean"
+      },
+      {
+        "key": "vpcEndpointDynamodb",
+        "label": "DynamoDB Gateway Endpoint",
+        "type": "boolean"
+      },
+      {
+        "key": "flowLogEnabled",
+        "label": "VPC Flow Logs",
+        "type": "boolean"
+      },
+      {
+        "key": "flowLogDestination",
+        "label": "Flow Log Destination",
+        "type": "select",
+        "options": [
+          "cloud-watch-logs",
+          "s3",
+          "kinesis-data-firehose"
+        ]
+      },
+      {
+        "key": "flowLogTrafficType",
+        "label": "Flow Log Traffic",
+        "type": "select",
+        "options": [
+          "ALL",
+          "ACCEPT",
+          "REJECT"
+        ]
+      },
+      {
+        "key": "flowLogMaxAggregation",
+        "label": "Flow Log Aggregation (sec)",
+        "type": "select",
+        "options": [
+          "60",
+          "600"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "NAT Gateway",
+    "fields": [
+      {
+        "key": "connectivityType",
+        "label": "Connectivity",
+        "type": "select",
+        "options": [
+          "public",
+          "private"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "Amazon Bedrock",
+    "fields": [
+      {
+        "key": "modelId",
+        "label": "Model ID",
+        "type": "select",
+        "options": [
+          "anthropic.claude-3-haiku-20240307-v1:0",
+          "anthropic.claude-3-sonnet-20240229-v1:0",
+          "anthropic.claude-3-5-sonnet-20241022-v2:0",
+          "amazon.titan-text-express-v1",
+          "meta.llama3-70b-instruct-v1:0"
+        ]
+      },
+      {
+        "key": "maxTokens",
+        "label": "Max Tokens",
+        "type": "number"
+      },
+      {
+        "key": "temperature",
+        "label": "Temperature",
+        "type": "number"
+      }
+    ]
+  },
+  {
+    "service": "Amazon SageMaker",
+    "fields": [
+      {
+        "key": "instanceType",
+        "label": "Instance Type",
+        "type": "select",
+        "options": [
+          "ml.t3.medium",
+          "ml.t3.large",
+          "ml.m5.large",
+          "ml.m5.xlarge",
+          "ml.p3.2xlarge",
+          "ml.g4dn.xlarge"
+        ]
+      },
+      {
+        "key": "volumeSize",
+        "label": "Volume Size (GB)",
+        "type": "number"
+      },
+      {
+        "key": "directInternetAccess",
+        "label": "Internet Access",
+        "type": "boolean"
+      }
+    ]
+  },
+  {
+    "service": "Amazon Aurora",
+    "fields": [
+      {
+        "key": "engine",
+        "label": "Engine",
+        "type": "select",
+        "options": [
+          "aurora-mysql",
+          "aurora-postgresql"
+        ]
+      },
+      {
+        "key": "engineVersion",
+        "label": "Engine Version",
+        "type": "text"
+      },
+      {
+        "key": "engineMode",
+        "label": "Engine Mode",
+        "type": "select",
+        "options": [
+          "provisioned",
+          "serverless"
+        ]
+      },
+      {
+        "key": "instanceClass",
+        "label": "Instance Class",
+        "type": "select",
+        "options": [
+          "db.r6g.large",
+          "db.r6g.xlarge",
+          "db.r6g.2xlarge",
+          "db.r6i.large",
+          "db.r6i.xlarge",
+          "db.r7g.large",
+          "db.r7g.xlarge",
+          "db.r5.large",
+          "db.r5.xlarge",
+          "db.t3.medium",
+          "db.t3.large",
+          "db.t4g.medium",
+          "db.t4g.large",
+          "db.serverless"
+        ]
+      },
+      {
+        "key": "instanceCount",
+        "label": "Reader Instances",
+        "type": "number"
+      },
+      {
+        "key": "serverlessMinCapacity",
+        "label": "Serverless Min ACU",
+        "type": "number"
+      },
+      {
+        "key": "serverlessMaxCapacity",
+        "label": "Serverless Max ACU",
+        "type": "number"
+      },
+      {
+        "key": "dbClusterIdentifier",
+        "label": "Cluster Identifier",
+        "type": "text"
+      },
+      {
+        "key": "databaseName",
+        "label": "Database Name",
+        "type": "text"
+      },
+      {
+        "key": "masterUsername",
+        "label": "Master Username",
+        "type": "text"
+      },
+      {
+        "key": "port",
+        "label": "Port",
+        "type": "number"
+      },
+      {
+        "key": "subnetGroupName",
+        "label": "Subnet Group",
+        "type": "text"
+      },
+      {
+        "key": "vpcSecurityGroupIds",
+        "label": "Security Groups",
+        "type": "text"
+      },
+      {
+        "key": "deletionProtection",
+        "label": "Deletion Protection",
+        "type": "boolean"
+      },
+      {
+        "key": "encrypted",
+        "label": "Encryption",
+        "type": "boolean"
+      },
+      {
+        "key": "kmsKeyId",
+        "label": "KMS Key ID",
+        "type": "text"
+      },
+      {
+        "key": "backupRetentionPeriod",
+        "label": "Backup Retention (days)",
+        "type": "number"
+      },
+      {
+        "key": "preferredBackupWindow",
+        "label": "Backup Window",
+        "type": "text"
+      },
+      {
+        "key": "preferredMaintenanceWindow",
+        "label": "Maintenance Window",
+        "type": "text"
+      },
+      {
+        "key": "performanceInsightsEnabled",
+        "label": "Performance Insights",
+        "type": "boolean"
+      },
+      {
+        "key": "performanceInsightsRetention",
+        "label": "PI Retention (days)",
+        "type": "select",
+        "options": [
+          "7",
+          "31",
+          "62",
+          "93",
+          "124",
+          "155",
+          "186",
+          "217",
+          "248",
+          "279",
+          "310",
+          "341",
+          "372",
+          "731"
+        ]
+      },
+      {
+        "key": "monitoringInterval",
+        "label": "Enhanced Monitoring (sec)",
+        "type": "select",
+        "options": [
+          "0",
+          "1",
+          "5",
+          "10",
+          "15",
+          "30",
+          "60"
+        ]
+      },
+      {
+        "key": "enableCloudwatchLogsExports",
+        "label": "CW Log Exports",
+        "type": "text"
+      },
+      {
+        "key": "autoMinorVersionUpgrade",
+        "label": "Auto Minor Upgrade",
+        "type": "boolean"
+      },
+      {
+        "key": "copyTagsToSnapshot",
+        "label": "Copy Tags to Snapshot",
+        "type": "boolean"
+      },
+      {
+        "key": "globalClusterIdentifier",
+        "label": "Global Cluster ID",
+        "type": "text"
+      },
+      {
+        "key": "enableGlobalWriteForwarding",
+        "label": "Global Write Forwarding",
+        "type": "boolean"
+      },
+      {
+        "key": "enableHttpEndpoint",
+        "label": "Data API",
+        "type": "boolean"
+      },
+      {
+        "key": "enableLocalWriteForwarding",
+        "label": "Local Write Forwarding",
+        "type": "boolean"
+      },
+      {
+        "key": "networkType",
+        "label": "Network Type",
+        "type": "select",
+        "options": [
+          "IPV4",
+          "DUAL"
+        ]
+      },
+      {
+        "key": "iops",
+        "label": "Provisioned IOPS",
+        "type": "number"
+      },
+      {
+        "key": "storageType",
+        "label": "Storage Type",
+        "type": "select",
+        "options": [
+          "aurora",
+          "aurora-iopt1"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "AWS CloudFormation",
+    "fields": [
+      {
+        "key": "terminationProtection",
+        "label": "Termination Protection",
+        "type": "boolean"
+      },
+      {
+        "key": "timeoutInMinutes",
+        "label": "Timeout (min)",
+        "type": "number"
+      }
+    ]
+  },
+  {
+    "service": "AWS Systems Manager",
+    "fields": [
+      {
+        "key": "tier",
+        "label": "Parameter Tier",
+        "type": "select",
+        "options": [
+          "Standard",
+          "Advanced",
+          "Intelligent-Tiering"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "AWS Organizations",
+    "fields": [
+      {
+        "key": "featureSet",
+        "label": "Feature Set",
+        "type": "select",
+        "options": [
+          "ALL",
+          "CONSOLIDATED_BILLING"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "AWS Control Tower",
+    "fields": [
+      {
+        "key": "governedRegions",
+        "label": "Governed Regions",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "service": "AWS Service Catalog",
+    "fields": [
+      {
+        "key": "providerName",
+        "label": "Provider Name",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "service": "AWS X-Ray",
+    "fields": [
+      {
+        "key": "samplingRate",
+        "label": "Sampling Rate",
+        "type": "number"
+      }
+    ]
+  },
+  {
+    "service": "Amazon Managed Grafana",
+    "fields": [
+      {
+        "key": "accountAccessType",
+        "label": "Account Access",
+        "type": "select",
+        "options": [
+          "CURRENT_ACCOUNT",
+          "ORGANIZATION"
+        ]
+      },
+      {
+        "key": "authenticationProviders",
+        "label": "Auth Provider",
+        "type": "select",
+        "options": [
+          "AWS_SSO",
+          "SAML"
+        ]
+      },
+      {
+        "key": "permissionType",
+        "label": "Permission Type",
+        "type": "select",
+        "options": [
+          "SERVICE_MANAGED",
+          "CUSTOMER_MANAGED"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "Amazon Managed Service for Prometheus",
+    "fields": [
+      {
+        "key": "alias",
+        "label": "Workspace Alias",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "service": "AWS Amplify",
+    "fields": [
+      {
+        "key": "platform",
+        "label": "Platform",
+        "type": "select",
+        "options": [
+          "WEB",
+          "WEB_COMPUTE",
+          "WEB_DYNAMIC"
+        ]
+      },
+      {
+        "key": "framework",
+        "label": "Framework",
+        "type": "select",
+        "options": [
+          "Next.js",
+          "React",
+          "Vue",
+          "Angular",
+          "Nuxt",
+          "Astro"
+        ]
+      },
+      {
+        "key": "enableBranchAutoBuild",
+        "label": "Auto Build",
+        "type": "boolean"
+      }
+    ]
+  },
+  {
+    "service": "AWS AppSync",
+    "fields": [
+      {
+        "key": "authenticationType",
+        "label": "Auth Type",
+        "type": "select",
+        "options": [
+          "API_KEY",
+          "AWS_IAM",
+          "AMAZON_COGNITO_USER_POOLS",
+          "OPENID_CONNECT",
+          "AWS_LAMBDA"
+        ]
+      },
+      {
+        "key": "xrayEnabled",
+        "label": "X-Ray",
+        "type": "boolean"
+      }
+    ]
+  },
+  {
+    "service": "Amazon Simple Email Service",
+    "fields": [
+      {
+        "key": "configurationSetName",
+        "label": "Config Set",
+        "type": "text"
+      },
+      {
+        "key": "tlsPolicy",
+        "label": "TLS Policy",
+        "type": "select",
+        "options": [
+          "REQUIRE",
+          "OPTIONAL"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "Amazon Simple Notification Service",
+    "fields": [
+      {
+        "key": "topicType",
+        "label": "Topic Type",
+        "type": "select",
+        "options": [
+          "standard",
+          "fifo"
+        ]
+      },
+      {
+        "key": "encrypted",
+        "label": "SSE Enabled",
+        "type": "boolean"
+      }
+    ]
+  },
+  {
+    "service": "Amazon Simple Queue Service",
+    "fields": [
+      {
+        "key": "queueType",
+        "label": "Queue Type",
+        "type": "select",
+        "options": [
+          "standard",
+          "fifo"
+        ]
+      },
+      {
+        "key": "visibilityTimeout",
+        "label": "Visibility Timeout (sec)",
+        "type": "number"
+      },
+      {
+        "key": "encrypted",
+        "label": "SSE Enabled",
+        "type": "boolean"
+      }
+    ]
+  },
+  {
+    "service": "Amazon MQ",
+    "fields": [
+      {
+        "key": "engineType",
+        "label": "Engine",
+        "type": "select",
+        "options": [
+          "ACTIVEMQ",
+          "RABBITMQ"
+        ]
+      },
+      {
+        "key": "hostInstanceType",
+        "label": "Instance Type",
+        "type": "select",
+        "options": [
+          "mq.m5.large",
+          "mq.m5.xlarge",
+          "mq.m5.2xlarge",
+          "mq.t3.micro"
+        ]
+      },
+      {
+        "key": "deploymentMode",
+        "label": "Deployment",
+        "type": "select",
+        "options": [
+          "SINGLE_INSTANCE",
+          "ACTIVE_STANDBY_MULTI_AZ",
+          "CLUSTER_MULTI_AZ"
+        ]
+      },
+      {
+        "key": "publiclyAccessible",
+        "label": "Public Access",
+        "type": "boolean"
+      }
+    ]
+  },
+  {
+    "service": "AWS DataSync",
+    "fields": [
+      {
+        "key": "scheduleExpression",
+        "label": "Schedule",
+        "type": "text"
+      },
+      {
+        "key": "verifyMode",
+        "label": "Verify Mode",
+        "type": "select",
+        "options": [
+          "POINT_IN_TIME_CONSISTENT",
+          "ONLY_FILES_TRANSFERRED",
+          "NONE"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "AWS Transfer Family",
+    "fields": [
+      {
+        "key": "protocols",
+        "label": "Protocols",
+        "type": "select",
+        "options": [
+          "SFTP",
+          "FTPS",
+          "FTP",
+          "AS2"
+        ]
+      },
+      {
+        "key": "endpointType",
+        "label": "Endpoint Type",
+        "type": "select",
+        "options": [
+          "PUBLIC",
+          "VPC",
+          "VPC_ENDPOINT"
+        ]
+      },
+      {
+        "key": "identityProviderType",
+        "label": "Identity Provider",
+        "type": "select",
+        "options": [
+          "SERVICE_MANAGED",
+          "API_GATEWAY",
+          "AWS_DIRECTORY_SERVICE",
+          "AWS_LAMBDA"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "AWS Database Migration Service",
+    "fields": [
+      {
+        "key": "instanceClass",
+        "label": "Instance Class",
+        "type": "select",
+        "options": [
+          "dms.t3.micro",
+          "dms.t3.small",
+          "dms.t3.medium",
+          "dms.r5.large",
+          "dms.r5.xlarge"
+        ]
+      },
+      {
+        "key": "engineVersion",
+        "label": "Engine Version",
+        "type": "select",
+        "options": [
+          "3.5.4",
+          "3.5.3",
+          "3.5.2",
+          "3.4.7"
+        ]
+      },
+      {
+        "key": "multiAz",
+        "label": "Multi-AZ",
+        "type": "boolean"
+      },
+      {
+        "key": "publiclyAccessible",
+        "label": "Public Access",
+        "type": "boolean"
+      }
+    ]
+  },
+  {
+    "service": "AWS CodePipeline",
+    "fields": [
+      {
+        "key": "pipelineType",
+        "label": "Pipeline Type",
+        "type": "select",
+        "options": [
+          "V2",
+          "V1"
+        ]
+      },
+      {
+        "key": "executionMode",
+        "label": "Execution Mode",
+        "type": "select",
+        "options": [
+          "QUEUED",
+          "SUPERSEDED",
+          "PARALLEL"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "AWS CodeBuild",
+    "fields": [
+      {
+        "key": "computeType",
+        "label": "Compute Type",
+        "type": "select",
+        "options": [
+          "BUILD_GENERAL1_SMALL",
+          "BUILD_GENERAL1_MEDIUM",
+          "BUILD_GENERAL1_LARGE",
+          "BUILD_GENERAL1_2XLARGE",
+          "BUILD_LAMBDA_1GB",
+          "BUILD_LAMBDA_2GB",
+          "BUILD_LAMBDA_4GB",
+          "BUILD_LAMBDA_8GB",
+          "BUILD_LAMBDA_10GB"
+        ]
+      },
+      {
+        "key": "image",
+        "label": "Image",
+        "type": "select",
+        "options": [
+          "aws/codebuild/amazonlinux2-x86_64-standard:5.0",
+          "aws/codebuild/amazonlinux2-aarch64-standard:3.0",
+          "aws/codebuild/standard:7.0",
+          "aws/codebuild/amazonlinux-x86_64-lambda-standard:go1.21",
+          "aws/codebuild/amazonlinux-x86_64-lambda-standard:nodejs20",
+          "aws/codebuild/amazonlinux-x86_64-lambda-standard:python3.12",
+          "aws/codebuild/amazonlinux-x86_64-lambda-standard:corretto21"
+        ]
+      },
+      {
+        "key": "privilegedMode",
+        "label": "Privileged Mode",
+        "type": "boolean"
+      },
+      {
+        "key": "timeoutInMinutes",
+        "label": "Timeout (min)",
+        "type": "number"
+      }
+    ]
+  },
+  {
+    "service": "AWS CodeDeploy",
+    "fields": [
+      {
+        "key": "computePlatform",
+        "label": "Compute Platform",
+        "type": "select",
+        "options": [
+          "Server",
+          "Lambda",
+          "ECS"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "Amazon CloudFront",
+    "fields": [
+      {
+        "key": "priceClass",
+        "label": "Price Class",
+        "type": "select",
+        "options": [
+          "PriceClass_All",
+          "PriceClass_200",
+          "PriceClass_100"
+        ]
+      },
+      {
+        "key": "defaultTTL",
+        "label": "Default TTL (sec)",
+        "type": "number"
+      },
+      {
+        "key": "maxTTL",
+        "label": "Max TTL (sec)",
+        "type": "number"
+      },
+      {
+        "key": "minTTL",
+        "label": "Min TTL (sec)",
+        "type": "number"
+      },
+      {
+        "key": "httpVersion",
+        "label": "HTTP Version",
+        "type": "select",
+        "options": [
+          "http2",
+          "http2and3",
+          "http1.1"
+        ]
+      },
+      {
+        "key": "ipv6Enabled",
+        "label": "IPv6",
+        "type": "boolean"
+      },
+      {
+        "key": "wafEnabled",
+        "label": "WAF Enabled",
+        "type": "boolean"
+      },
+      {
+        "key": "wafAclId",
+        "label": "WAF ACL ID",
+        "type": "text"
+      },
+      {
+        "key": "loggingEnabled",
+        "label": "Access Logging",
+        "type": "boolean"
+      },
+      {
+        "key": "loggingBucket",
+        "label": "Log Bucket",
+        "type": "text"
+      },
+      {
+        "key": "loggingPrefix",
+        "label": "Log Prefix",
+        "type": "text"
+      },
+      {
+        "key": "compress",
+        "label": "Compress Objects",
+        "type": "boolean"
+      },
+      {
+        "key": "viewerProtocolPolicy",
+        "label": "Viewer Protocol",
+        "type": "select",
+        "options": [
+          "redirect-to-https",
+          "https-only",
+          "allow-all"
+        ]
+      },
+      {
+        "key": "allowedMethods",
+        "label": "Allowed Methods",
+        "type": "select",
+        "options": [
+          "GET",
+          "HEAD",
+          "GET",
+          "HEAD",
+          "OPTIONS",
+          "GET",
+          "HEAD",
+          "OPTIONS",
+          "PUT",
+          "POST",
+          "PATCH",
+          "DELETE"
+        ]
+      },
+      {
+        "key": "cachedMethods",
+        "label": "Cached Methods",
+        "type": "select",
+        "options": [
+          "GET",
+          "HEAD",
+          "GET",
+          "HEAD",
+          "OPTIONS"
+        ]
+      },
+      {
+        "key": "cachePolicyId",
+        "label": "Cache Policy ID",
+        "type": "text"
+      },
+      {
+        "key": "originRequestPolicyId",
+        "label": "Origin Request Policy ID",
+        "type": "text"
+      },
+      {
+        "key": "responseHeadersPolicyId",
+        "label": "Response Headers Policy ID",
+        "type": "text"
+      },
+      {
+        "key": "originProtocolPolicy",
+        "label": "Origin Protocol",
+        "type": "select",
+        "options": [
+          "https-only",
+          "match-viewer",
+          "http-only"
+        ]
+      },
+      {
+        "key": "originSslProtocols",
+        "label": "Origin SSL Protocols",
+        "type": "text"
+      },
+      {
+        "key": "originKeepaliveTimeout",
+        "label": "Origin Keepalive (sec)",
+        "type": "number"
+      },
+      {
+        "key": "originReadTimeout",
+        "label": "Origin Read Timeout (sec)",
+        "type": "number"
+      },
+      {
+        "key": "geoRestrictionType",
+        "label": "Geo Restriction",
+        "type": "select",
+        "options": [
+          "none",
+          "whitelist",
+          "blacklist"
+        ]
+      },
+      {
+        "key": "geoRestrictionLocations",
+        "label": "Geo Locations",
+        "type": "text"
+      },
+      {
+        "key": "sslCertificate",
+        "label": "SSL Certificate",
+        "type": "select",
+        "options": [
+          "default",
+          "acm",
+          "iam"
+        ]
+      },
+      {
+        "key": "acmCertificateArn",
+        "label": "ACM Certificate ARN",
+        "type": "text"
+      },
+      {
+        "key": "minimumProtocolVersion",
+        "label": "Min TLS Version",
+        "type": "select",
+        "options": [
+          "TLSv1.2_2021",
+          "TLSv1.2_2019",
+          "TLSv1.2_2018"
+        ]
+      },
+      {
+        "key": "sslSupportMethod",
+        "label": "SSL Support Method",
+        "type": "select",
+        "options": [
+          "sni-only",
+          "vip",
+          "static-ip"
+        ]
+      },
+      {
+        "key": "continuousDeployment",
+        "label": "Continuous Deployment",
+        "type": "boolean"
+      }
+    ]
+  },
+  {
+    "service": "CloudFront",
+    "fields": [
+      {
+        "key": "priceClass",
+        "label": "Price Class",
+        "type": "select",
+        "options": [
+          "PriceClass_All",
+          "PriceClass_200",
+          "PriceClass_100"
+        ]
+      },
+      {
+        "key": "defaultTTL",
+        "label": "Default TTL (sec)",
+        "type": "number"
+      },
+      {
+        "key": "compress",
+        "label": "Compress Objects",
+        "type": "boolean"
+      }
+    ]
+  },
+  {
+    "service": "Amazon Route 53",
+    "fields": [
+      {
+        "key": "zoneType",
+        "label": "Zone Type",
+        "type": "select",
+        "options": [
+          "public",
+          "private"
+        ]
+      },
+      {
+        "key": "domainName",
+        "label": "Domain Name",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "service": "Route 53",
+    "fields": [
+      {
+        "key": "zoneType",
+        "label": "Zone Type",
+        "type": "select",
+        "options": [
+          "public",
+          "private"
+        ]
+      },
+      {
+        "key": "domainName",
+        "label": "Domain Name",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "service": "Elastic Load Balancing",
+    "fields": [
+      {
+        "key": "type",
+        "label": "LB Type",
+        "type": "select",
+        "options": [
+          "application",
+          "network",
+          "gateway"
+        ]
+      },
+      {
+        "key": "scheme",
+        "label": "Scheme",
+        "type": "select",
+        "options": [
+          "internet-facing",
+          "internal"
+        ]
+      },
+      {
+        "key": "ipAddressType",
+        "label": "IP Address Type",
+        "type": "select",
+        "options": [
+          "ipv4",
+          "dualstack",
+          "dualstack-without-public-ipv4"
+        ]
+      },
+      {
+        "key": "subnetIds",
+        "label": "Subnet IDs",
+        "type": "text"
+      },
+      {
+        "key": "securityGroupIds",
+        "label": "Security Groups",
+        "type": "text"
+      },
+      {
+        "key": "deletionProtection",
+        "label": "Deletion Protection",
+        "type": "boolean"
+      },
+      {
+        "key": "accessLogs",
+        "label": "Access Logs",
+        "type": "boolean"
+      },
+      {
+        "key": "accessLogsBucket",
+        "label": "Access Logs Bucket",
+        "type": "text"
+      },
+      {
+        "key": "idleTimeout",
+        "label": "Idle Timeout (sec)",
+        "type": "number"
+      },
+      {
+        "key": "dropInvalidHeaders",
+        "label": "Drop Invalid Headers",
+        "type": "boolean"
+      },
+      {
+        "key": "http2Enabled",
+        "label": "HTTP/2",
+        "type": "boolean"
+      },
+      {
+        "key": "desyncMitigationMode",
+        "label": "Desync Mitigation",
+        "type": "select",
+        "options": [
+          "defensive",
+          "strictest",
+          "monitor"
+        ]
+      },
+      {
+        "key": "wafFailOpen",
+        "label": "WAF Fail Open",
+        "type": "boolean"
+      },
+      {
+        "key": "crossZoneEnabled",
+        "label": "Cross-Zone LB",
+        "type": "boolean"
+      },
+      {
+        "key": "listenerPort",
+        "label": "Listener Port",
+        "type": "number"
+      },
+      {
+        "key": "listenerProtocol",
+        "label": "Listener Protocol",
+        "type": "select",
+        "options": [
+          "HTTPS",
+          "HTTP",
+          "TLS",
+          "TCP",
+          "UDP",
+          "TCP_UDP",
+          "GENEVE"
+        ]
+      },
+      {
+        "key": "sslPolicy",
+        "label": "SSL Policy",
+        "type": "select",
+        "options": [
+          "ELBSecurityPolicy-TLS13-1-2-2021-06",
+          "ELBSecurityPolicy-2016-08",
+          "ELBSecurityPolicy-TLS-1-2-2017-01",
+          "ELBSecurityPolicy-FS-1-2-Res-2020-10"
+        ]
+      },
+      {
+        "key": "certificateArn",
+        "label": "Certificate ARN",
+        "type": "text"
+      },
+      {
+        "key": "targetGroupPort",
+        "label": "Target Port",
+        "type": "number"
+      },
+      {
+        "key": "targetGroupProtocol",
+        "label": "Target Protocol",
+        "type": "select",
+        "options": [
+          "HTTP",
+          "HTTPS",
+          "TCP",
+          "TLS",
+          "UDP",
+          "TCP_UDP",
+          "GENEVE"
+        ]
+      },
+      {
+        "key": "targetType",
+        "label": "Target Type",
+        "type": "select",
+        "options": [
+          "instance",
+          "ip",
+          "lambda",
+          "alb"
+        ]
+      },
+      {
+        "key": "healthCheckPath",
+        "label": "Health Check Path",
+        "type": "text"
+      },
+      {
+        "key": "healthCheckInterval",
+        "label": "Health Check Interval (sec)",
+        "type": "number"
+      },
+      {
+        "key": "healthyThreshold",
+        "label": "Healthy Threshold",
+        "type": "number"
+      },
+      {
+        "key": "unhealthyThreshold",
+        "label": "Unhealthy Threshold",
+        "type": "number"
+      },
+      {
+        "key": "deregistrationDelay",
+        "label": "Deregistration Delay (sec)",
+        "type": "number"
+      },
+      {
+        "key": "stickiness",
+        "label": "Stickiness",
+        "type": "boolean"
+      },
+      {
+        "key": "stickinessType",
+        "label": "Stickiness Type",
+        "type": "select",
+        "options": [
+          "lb_cookie",
+          "app_cookie",
+          "source_ip",
+          "source_ip_dest_ip",
+          "source_ip_dest_ip_proto"
+        ]
+      },
+      {
+        "key": "stickinessDuration",
+        "label": "Stickiness Duration (sec)",
+        "type": "number"
+      }
+    ]
+  },
+  {
+    "service": "ELB",
+    "fields": [
+      {
+        "key": "type",
+        "label": "LB Type",
+        "type": "select",
+        "options": [
+          "application",
+          "network",
+          "gateway"
+        ]
+      },
+      {
+        "key": "scheme",
+        "label": "Scheme",
+        "type": "select",
+        "options": [
+          "internet-facing",
+          "internal"
+        ]
+      },
+      {
+        "key": "ipAddressType",
+        "label": "IP Address Type",
+        "type": "select",
+        "options": [
+          "ipv4",
+          "dualstack"
+        ]
+      },
+      {
+        "key": "deletionProtection",
+        "label": "Deletion Protection",
+        "type": "boolean"
+      },
+      {
+        "key": "crossZoneEnabled",
+        "label": "Cross-Zone LB",
+        "type": "boolean"
+      },
+      {
+        "key": "listenerPort",
+        "label": "Listener Port",
+        "type": "number"
+      },
+      {
+        "key": "listenerProtocol",
+        "label": "Listener Protocol",
+        "type": "select",
+        "options": [
+          "HTTPS",
+          "HTTP",
+          "TLS",
+          "TCP"
+        ]
+      },
+      {
+        "key": "targetType",
+        "label": "Target Type",
+        "type": "select",
+        "options": [
+          "instance",
+          "ip",
+          "lambda",
+          "alb"
+        ]
+      },
+      {
+        "key": "healthCheckPath",
+        "label": "Health Check Path",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "service": "Amazon Cognito",
+    "fields": [
+      {
+        "key": "mfa",
+        "label": "MFA",
+        "type": "select",
+        "options": [
+          "OFF",
+          "OPTIONAL",
+          "ON"
+        ]
+      },
+      {
+        "key": "mfaTypes",
+        "label": "MFA Types",
+        "type": "text"
+      },
+      {
+        "key": "selfSignUp",
+        "label": "Self Sign-Up",
+        "type": "boolean"
+      },
+      {
+        "key": "passwordMinLength",
+        "label": "Password Min Length",
+        "type": "number"
+      },
+      {
+        "key": "passwordRequireLowercase",
+        "label": "Require Lowercase",
+        "type": "boolean"
+      },
+      {
+        "key": "passwordRequireUppercase",
+        "label": "Require Uppercase",
+        "type": "boolean"
+      },
+      {
+        "key": "passwordRequireNumbers",
+        "label": "Require Numbers",
+        "type": "boolean"
+      },
+      {
+        "key": "passwordRequireSymbols",
+        "label": "Require Symbols",
+        "type": "boolean"
+      },
+      {
+        "key": "tempPasswordValidityDays",
+        "label": "Temp Password Validity (days)",
+        "type": "number"
+      },
+      {
+        "key": "emailVerification",
+        "label": "Email Verification",
+        "type": "boolean"
+      },
+      {
+        "key": "emailVerificationSubject",
+        "label": "Email Subject",
+        "type": "text"
+      },
+      {
+        "key": "usernameAttributes",
+        "label": "Username Attributes",
+        "type": "select",
+        "options": [
+          "email",
+          "phone_number",
+          "email",
+          "phone_number",
+          "none"
+        ]
+      },
+      {
+        "key": "autoVerifiedAttributes",
+        "label": "Auto Verify",
+        "type": "text"
+      },
+      {
+        "key": "accountRecovery",
+        "label": "Account Recovery",
+        "type": "select",
+        "options": [
+          "verified_email",
+          "verified_phone_number",
+          "admin_only"
+        ]
+      },
+      {
+        "key": "advancedSecurity",
+        "label": "Advanced Security",
+        "type": "select",
+        "options": [
+          "OFF",
+          "AUDIT",
+          "ENFORCED"
+        ]
+      },
+      {
+        "key": "deletionProtection",
+        "label": "Deletion Protection",
+        "type": "select",
+        "options": [
+          "ACTIVE",
+          "INACTIVE"
+        ]
+      },
+      {
+        "key": "deviceTracking",
+        "label": "Device Tracking",
+        "type": "select",
+        "options": [
+          "OFF",
+          "USER_OPT_IN",
+          "ALWAYS"
+        ]
+      },
+      {
+        "key": "domainPrefix",
+        "label": "Domain Prefix",
+        "type": "text"
+      },
+      {
+        "key": "callbackUrls",
+        "label": "Callback URLs",
+        "type": "text"
+      },
+      {
+        "key": "logoutUrls",
+        "label": "Logout URLs",
+        "type": "text"
+      },
+      {
+        "key": "oauthFlows",
+        "label": "OAuth Flows",
+        "type": "text"
+      },
+      {
+        "key": "oauthScopes",
+        "label": "OAuth Scopes",
+        "type": "text"
+      },
+      {
+        "key": "tokenValidityAccessMinutes",
+        "label": "Access Token (min)",
+        "type": "number"
+      },
+      {
+        "key": "tokenValidityIdMinutes",
+        "label": "ID Token (min)",
+        "type": "number"
+      },
+      {
+        "key": "tokenValidityRefreshDays",
+        "label": "Refresh Token (days)",
+        "type": "number"
+      }
+    ]
+  },
+  {
+    "service": "Cognito",
+    "fields": [
+      {
+        "key": "mfa",
+        "label": "MFA",
+        "type": "select",
+        "options": [
+          "OFF",
+          "OPTIONAL",
+          "ON"
+        ]
+      },
+      {
+        "key": "selfSignUp",
+        "label": "Self Sign-Up",
+        "type": "boolean"
+      },
+      {
+        "key": "passwordMinLength",
+        "label": "Password Min Length",
+        "type": "number"
+      },
+      {
+        "key": "emailVerification",
+        "label": "Email Verification",
+        "type": "boolean"
+      },
+      {
+        "key": "usernameAttributes",
+        "label": "Username Attributes",
+        "type": "select",
+        "options": [
+          "email",
+          "phone_number",
+          "email",
+          "phone_number",
+          "none"
+        ]
+      },
+      {
+        "key": "advancedSecurity",
+        "label": "Advanced Security",
+        "type": "select",
+        "options": [
+          "OFF",
+          "AUDIT",
+          "ENFORCED"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "Amazon EventBridge",
+    "fields": [
+      {
+        "key": "busName",
+        "label": "Event Bus Name",
+        "type": "text"
+      },
+      {
+        "key": "archiveEnabled",
+        "label": "Archive Events",
+        "type": "boolean"
+      },
+      {
+        "key": "retentionDays",
+        "label": "Archive Retention (days)",
+        "type": "number"
+      }
+    ]
+  },
+  {
+    "service": "EventBridge",
+    "fields": [
+      {
+        "key": "busName",
+        "label": "Event Bus Name",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "service": "AWS Step Functions",
+    "fields": [
+      {
+        "key": "type",
+        "label": "Type",
+        "type": "select",
+        "options": [
+          "STANDARD",
+          "EXPRESS"
+        ]
+      },
+      {
+        "key": "loggingLevel",
+        "label": "Logging Level",
+        "type": "select",
+        "options": [
+          "OFF",
+          "ALL",
+          "ERROR",
+          "FATAL"
+        ]
+      },
+      {
+        "key": "tracingEnabled",
+        "label": "X-Ray Tracing",
+        "type": "boolean"
+      }
+    ]
+  },
+  {
+    "service": "Step Functions",
+    "fields": [
+      {
+        "key": "type",
+        "label": "Type",
+        "type": "select",
+        "options": [
+          "STANDARD",
+          "EXPRESS"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "AWS Direct Connect",
+    "fields": [
+      {
+        "key": "bandwidth",
+        "label": "Bandwidth",
+        "type": "select",
+        "options": [
+          "1Gbps",
+          "10Gbps",
+          "100Gbps",
+          "50Mbps",
+          "100Mbps",
+          "200Mbps",
+          "300Mbps",
+          "400Mbps",
+          "500Mbps"
+        ]
+      },
+      {
+        "key": "connectionType",
+        "label": "Type",
+        "type": "select",
+        "options": [
+          "dedicated",
+          "hosted"
+        ]
+      },
+      {
+        "key": "location",
+        "label": "Location",
+        "type": "text"
+      },
+      {
+        "key": "providerName",
+        "label": "Provider",
+        "type": "text"
+      },
+      {
+        "key": "encryptionMode",
+        "label": "Encryption",
+        "type": "select",
+        "options": [
+          "no_encrypt",
+          "should_encrypt",
+          "must_encrypt"
+        ]
+      },
+      {
+        "key": "requestMacSec",
+        "label": "MACsec",
+        "type": "boolean"
+      },
+      {
+        "key": "vlanId",
+        "label": "VLAN ID",
+        "type": "number"
+      },
+      {
+        "key": "bgpAsn",
+        "label": "BGP ASN",
+        "type": "number"
+      },
+      {
+        "key": "addressFamily",
+        "label": "Address Family",
+        "type": "select",
+        "options": [
+          "ipv4",
+          "ipv6"
+        ]
+      },
+      {
+        "key": "jumboFrameCapable",
+        "label": "Jumbo Frames",
+        "type": "boolean"
+      }
+    ]
+  },
+  {
+    "service": "AWS Transit Gateway",
+    "fields": [
+      {
+        "key": "amazonSideAsn",
+        "label": "Amazon Side ASN",
+        "type": "number"
+      },
+      {
+        "key": "autoAcceptSharedAttachments",
+        "label": "Auto Accept Attachments",
+        "type": "boolean"
+      },
+      {
+        "key": "defaultRouteTableAssociation",
+        "label": "Default Route Table Assoc",
+        "type": "boolean"
+      },
+      {
+        "key": "defaultRouteTablePropagation",
+        "label": "Default Route Table Prop",
+        "type": "boolean"
+      },
+      {
+        "key": "dnsSupport",
+        "label": "DNS Support",
+        "type": "boolean"
+      },
+      {
+        "key": "vpnEcmpSupport",
+        "label": "VPN ECMP",
+        "type": "boolean"
+      },
+      {
+        "key": "multicastSupport",
+        "label": "Multicast",
+        "type": "boolean"
+      },
+      {
+        "key": "transitGatewayCidrBlocks",
+        "label": "CIDR Blocks",
+        "type": "text"
+      },
+      {
+        "key": "description",
+        "label": "Description",
+        "type": "text"
+      },
+      {
+        "key": "peerRegion",
+        "label": "Peering Region",
+        "type": "text"
+      },
+      {
+        "key": "peerTransitGatewayId",
+        "label": "Peer TGW ID",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "service": "AWS PrivateLink",
+    "fields": [
+      {
+        "key": "serviceName",
+        "label": "Service Name",
+        "type": "text"
+      },
+      {
+        "key": "vpcEndpointType",
+        "label": "Endpoint Type",
+        "type": "select",
+        "options": [
+          "Interface",
+          "Gateway",
+          "GatewayLoadBalancer"
+        ]
+      },
+      {
+        "key": "acceptanceRequired",
+        "label": "Acceptance Required",
+        "type": "boolean"
+      },
+      {
+        "key": "privateDnsEnabled",
+        "label": "Private DNS",
+        "type": "boolean"
+      },
+      {
+        "key": "subnetIds",
+        "label": "Subnet IDs",
+        "type": "text"
+      },
+      {
+        "key": "securityGroupIds",
+        "label": "Security Groups",
+        "type": "text"
+      },
+      {
+        "key": "ipAddressType",
+        "label": "IP Address Type",
+        "type": "select",
+        "options": [
+          "ipv4",
+          "dualstack",
+          "ipv6"
+        ]
+      },
+      {
+        "key": "dnsRecordIpType",
+        "label": "DNS Record IP Type",
+        "type": "select",
+        "options": [
+          "ipv4",
+          "dualstack",
+          "ipv6",
+          "service-defined"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "AWS Global Accelerator",
+    "fields": [
+      {
+        "key": "ipAddressType",
+        "label": "IP Address Type",
+        "type": "select",
+        "options": [
+          "IPV4",
+          "DUAL_STACK"
+        ]
+      },
+      {
+        "key": "enabled",
+        "label": "Enabled",
+        "type": "boolean"
+      },
+      {
+        "key": "flowLogsEnabled",
+        "label": "Flow Logs",
+        "type": "boolean"
+      },
+      {
+        "key": "flowLogsS3Bucket",
+        "label": "Flow Logs Bucket",
+        "type": "text"
+      },
+      {
+        "key": "flowLogsS3Prefix",
+        "label": "Flow Logs Prefix",
+        "type": "text"
+      },
+      {
+        "key": "listenerProtocol",
+        "label": "Listener Protocol",
+        "type": "select",
+        "options": [
+          "TCP",
+          "UDP"
+        ]
+      },
+      {
+        "key": "listenerFromPort",
+        "label": "From Port",
+        "type": "number"
+      },
+      {
+        "key": "listenerToPort",
+        "label": "To Port",
+        "type": "number"
+      },
+      {
+        "key": "endpointGroupRegion",
+        "label": "Endpoint Region",
+        "type": "text"
+      },
+      {
+        "key": "healthCheckPort",
+        "label": "Health Check Port",
+        "type": "number"
+      },
+      {
+        "key": "healthCheckProtocol",
+        "label": "Health Check Protocol",
+        "type": "select",
+        "options": [
+          "TCP",
+          "HTTP",
+          "HTTPS"
+        ]
+      },
+      {
+        "key": "healthCheckPath",
+        "label": "Health Check Path",
+        "type": "text"
+      },
+      {
+        "key": "healthCheckIntervalSeconds",
+        "label": "Health Check Interval",
+        "type": "select",
+        "options": [
+          "10",
+          "30"
+        ]
+      },
+      {
+        "key": "thresholdCount",
+        "label": "Threshold Count",
+        "type": "number"
+      },
+      {
+        "key": "trafficDialPercentage",
+        "label": "Traffic Dial %",
+        "type": "number"
+      }
+    ]
+  },
+  {
+    "service": "AWS Site-to-Site VPN",
+    "fields": [
+      {
+        "key": "type",
+        "label": "VPN Type",
+        "type": "select",
+        "options": [
+          "ipsec.1"
+        ]
+      },
+      {
+        "key": "staticRoutesOnly",
+        "label": "Static Routes Only",
+        "type": "boolean"
+      },
+      {
+        "key": "tunnelInsideCidr1",
+        "label": "Tunnel 1 CIDR",
+        "type": "text"
+      },
+      {
+        "key": "tunnelInsideCidr2",
+        "label": "Tunnel 2 CIDR",
+        "type": "text"
+      },
+      {
+        "key": "tunnelInsideIpVersion",
+        "label": "Tunnel IP Version",
+        "type": "select",
+        "options": [
+          "ipv4",
+          "ipv6"
+        ]
+      },
+      {
+        "key": "localIpv4NetworkCidr",
+        "label": "Local IPv4 CIDR",
+        "type": "text"
+      },
+      {
+        "key": "remoteIpv4NetworkCidr",
+        "label": "Remote IPv4 CIDR",
+        "type": "text"
+      },
+      {
+        "key": "enableAcceleration",
+        "label": "Acceleration",
+        "type": "boolean"
+      },
+      {
+        "key": "outsideIpAddressType",
+        "label": "Outside IP Type",
+        "type": "select",
+        "options": [
+          "PublicIpv4",
+          "PrivateIpv4"
+        ]
+      },
+      {
+        "key": "dpdTimeoutAction",
+        "label": "DPD Timeout Action",
+        "type": "select",
+        "options": [
+          "clear",
+          "none",
+          "restart"
+        ]
+      },
+      {
+        "key": "dpdTimeoutSeconds",
+        "label": "DPD Timeout (sec)",
+        "type": "number"
+      },
+      {
+        "key": "phase1EncryptionAlgorithms",
+        "label": "Phase 1 Encryption",
+        "type": "text"
+      },
+      {
+        "key": "phase2EncryptionAlgorithms",
+        "label": "Phase 2 Encryption",
+        "type": "text"
+      },
+      {
+        "key": "phase1IntegrityAlgorithms",
+        "label": "Phase 1 Integrity",
+        "type": "text"
+      },
+      {
+        "key": "phase2IntegrityAlgorithms",
+        "label": "Phase 2 Integrity",
+        "type": "text"
+      },
+      {
+        "key": "ikeVersions",
+        "label": "IKE Versions",
+        "type": "text"
+      },
+      {
+        "key": "startupAction",
+        "label": "Startup Action",
+        "type": "select",
+        "options": [
+          "add",
+          "start"
+        ]
+      },
+      {
+        "key": "loggingEnabled",
+        "label": "Tunnel Logging",
+        "type": "boolean"
+      }
+    ]
+  },
+  {
+    "service": "AWS Client VPN",
+    "fields": [
+      {
+        "key": "transportProtocol",
+        "label": "Protocol",
+        "type": "select",
+        "options": [
+          "udp",
+          "tcp"
+        ]
+      },
+      {
+        "key": "vpnPort",
+        "label": "VPN Port",
+        "type": "number"
+      },
+      {
+        "key": "splitTunnel",
+        "label": "Split Tunnel",
+        "type": "boolean"
+      },
+      {
+        "key": "sessionTimeoutHours",
+        "label": "Session Timeout (hours)",
+        "type": "number"
+      },
+      {
+        "key": "clientCidrBlock",
+        "label": "Client CIDR",
+        "type": "text"
+      },
+      {
+        "key": "serverCertificateArn",
+        "label": "Server Certificate ARN",
+        "type": "text"
+      },
+      {
+        "key": "authenticationTypes",
+        "label": "Auth Type",
+        "type": "select",
+        "options": [
+          "certificate-authentication",
+          "directory-service-authentication",
+          "federated-authentication"
+        ]
+      },
+      {
+        "key": "connectionLogEnabled",
+        "label": "Connection Logging",
+        "type": "boolean"
+      },
+      {
+        "key": "connectionLogCloudwatchLogGroup",
+        "label": "CW Log Group",
+        "type": "text"
+      },
+      {
+        "key": "dnsServers",
+        "label": "DNS Servers",
+        "type": "text"
+      },
+      {
+        "key": "selfServicePortalEnabled",
+        "label": "Self-Service Portal",
+        "type": "boolean"
+      },
+      {
+        "key": "vpcId",
+        "label": "VPC ID",
+        "type": "text"
+      },
+      {
+        "key": "securityGroupIds",
+        "label": "Security Groups",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "service": "Amazon VPC Lattice",
+    "fields": [
+      {
+        "key": "authType",
+        "label": "Auth Type",
+        "type": "select",
+        "options": [
+          "NONE",
+          "AWS_IAM"
+        ]
+      },
+      {
+        "key": "listenerProtocol",
+        "label": "Listener Protocol",
+        "type": "select",
+        "options": [
+          "HTTP",
+          "HTTPS",
+          "TLS_PASSTHROUGH"
+        ]
+      },
+      {
+        "key": "listenerPort",
+        "label": "Listener Port",
+        "type": "number"
+      },
+      {
+        "key": "targetGroupType",
+        "label": "Target Type",
+        "type": "select",
+        "options": [
+          "INSTANCE",
+          "IP",
+          "LAMBDA",
+          "ALB"
+        ]
+      },
+      {
+        "key": "targetGroupProtocol",
+        "label": "Target Protocol",
+        "type": "select",
+        "options": [
+          "HTTP",
+          "HTTPS",
+          "TCP"
+        ]
+      },
+      {
+        "key": "targetGroupPort",
+        "label": "Target Port",
+        "type": "number"
+      },
+      {
+        "key": "healthCheckEnabled",
+        "label": "Health Check",
+        "type": "boolean"
+      },
+      {
+        "key": "healthCheckPath",
+        "label": "Health Check Path",
+        "type": "text"
+      },
+      {
+        "key": "healthCheckProtocol",
+        "label": "Health Check Protocol",
+        "type": "select",
+        "options": [
+          "HTTP",
+          "HTTPS"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "AWS Cloud Map",
+    "fields": [
+      {
+        "key": "namespaceType",
+        "label": "Namespace Type",
+        "type": "select",
+        "options": [
+          "DNS_PUBLIC",
+          "DNS_PRIVATE",
+          "HTTP"
+        ]
+      },
+      {
+        "key": "namespaceName",
+        "label": "Namespace Name",
+        "type": "text"
+      },
+      {
+        "key": "vpcId",
+        "label": "VPC ID (private DNS)",
+        "type": "text"
+      },
+      {
+        "key": "dnsRecordType",
+        "label": "DNS Record Type",
+        "type": "select",
+        "options": [
+          "A",
+          "AAAA",
+          "CNAME",
+          "SRV"
+        ]
+      },
+      {
+        "key": "dnsRecordTtl",
+        "label": "DNS TTL (sec)",
+        "type": "number"
+      },
+      {
+        "key": "routingPolicy",
+        "label": "Routing Policy",
+        "type": "select",
+        "options": [
+          "MULTIVALUE",
+          "WEIGHTED"
+        ]
+      },
+      {
+        "key": "healthCheckEnabled",
+        "label": "Health Check",
+        "type": "boolean"
+      }
+    ]
+  },
+  {
+    "service": "AWS App Mesh",
+    "fields": [
+      {
+        "key": "_deprecated",
+        "label": "⚠ Deprecated — use VPC Lattice",
+        "type": "text"
+      },
+      {
+        "key": "meshName",
+        "label": "Mesh Name",
+        "type": "text"
+      },
+      {
+        "key": "egressFilter",
+        "label": "Egress Filter",
+        "type": "select",
+        "options": [
+          "ALLOW_ALL",
+          "DROP_ALL"
+        ]
+      },
+      {
+        "key": "ipPreference",
+        "label": "IP Preference",
+        "type": "select",
+        "options": [
+          "IPv4_PREFERRED",
+          "IPv6_PREFERRED",
+          "IPv4_ONLY",
+          "IPv6_ONLY"
+        ]
+      },
+      {
+        "key": "listenerProtocol",
+        "label": "Listener Protocol",
+        "type": "select",
+        "options": [
+          "http",
+          "http2",
+          "grpc",
+          "tcp"
+        ]
+      },
+      {
+        "key": "listenerPort",
+        "label": "Listener Port",
+        "type": "number"
+      },
+      {
+        "key": "healthCheckProtocol",
+        "label": "Health Check Protocol",
+        "type": "select",
+        "options": [
+          "http",
+          "http2",
+          "grpc",
+          "tcp"
+        ]
+      },
+      {
+        "key": "healthCheckPath",
+        "label": "Health Check Path",
+        "type": "text"
+      },
+      {
+        "key": "accessLogEnabled",
+        "label": "Access Logging",
+        "type": "boolean"
+      },
+      {
+        "key": "accessLogPath",
+        "label": "Access Log Path",
+        "type": "text"
+      },
+      {
+        "key": "tlsEnabled",
+        "label": "TLS",
+        "type": "boolean"
+      },
+      {
+        "key": "tlsMode",
+        "label": "TLS Mode",
+        "type": "select",
+        "options": [
+          "STRICT",
+          "PERMISSIVE",
+          "DISABLED"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "AWS IAM",
+    "fields": [
+      {
+        "key": "maxSessionDuration",
+        "label": "Max Session (sec)",
+        "type": "number"
+      },
+      {
+        "key": "path",
+        "label": "Path",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "service": "AWS Identity and Access Management",
+    "fields": [
+      {
+        "key": "maxSessionDuration",
+        "label": "Max Session (sec)",
+        "type": "number"
+      }
+    ]
+  },
+  {
+    "service": "AWS IAM Identity Center",
+    "fields": [
+      {
+        "key": "instanceArn",
+        "label": "Instance ARN",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "service": "AWS Secrets Manager",
+    "fields": [
+      {
+        "key": "name",
+        "label": "Secret Name",
+        "type": "text"
+      },
+      {
+        "key": "description",
+        "label": "Description",
+        "type": "text"
+      },
+      {
+        "key": "rotationDays",
+        "label": "Rotation (days)",
+        "type": "number"
+      },
+      {
+        "key": "rotationLambdaArn",
+        "label": "Rotation Lambda ARN",
+        "type": "text"
+      },
+      {
+        "key": "rotateImmediately",
+        "label": "Rotate Immediately",
+        "type": "boolean"
+      },
+      {
+        "key": "kmsKeyId",
+        "label": "KMS Key ID",
+        "type": "text"
+      },
+      {
+        "key": "recoveryWindowInDays",
+        "label": "Recovery Window (days)",
+        "type": "number"
+      },
+      {
+        "key": "forceDeleteWithoutRecovery",
+        "label": "Force Delete",
+        "type": "boolean"
+      },
+      {
+        "key": "replicaRegions",
+        "label": "Replica Regions",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "service": "AWS KMS",
+    "fields": [
+      {
+        "key": "keySpec",
+        "label": "Key Spec",
+        "type": "select",
+        "options": [
+          "SYMMETRIC_DEFAULT",
+          "RSA_2048",
+          "RSA_3072",
+          "RSA_4096",
+          "ECC_NIST_P256",
+          "ECC_NIST_P384",
+          "ECC_NIST_P521",
+          "ECC_SECG_P256K1",
+          "HMAC_224",
+          "HMAC_256",
+          "HMAC_384",
+          "HMAC_512",
+          "SM2"
+        ]
+      },
+      {
+        "key": "keyUsage",
+        "label": "Key Usage",
+        "type": "select",
+        "options": [
+          "ENCRYPT_DECRYPT",
+          "SIGN_VERIFY",
+          "GENERATE_VERIFY_MAC",
+          "KEY_AGREEMENT"
+        ]
+      },
+      {
+        "key": "origin",
+        "label": "Key Material Origin",
+        "type": "select",
+        "options": [
+          "AWS_KMS",
+          "EXTERNAL",
+          "AWS_CLOUDHSM",
+          "EXTERNAL_KEY_STORE"
+        ]
+      },
+      {
+        "key": "enableKeyRotation",
+        "label": "Auto Rotation",
+        "type": "boolean"
+      },
+      {
+        "key": "rotationPeriodInDays",
+        "label": "Rotation Period (days)",
+        "type": "number"
+      },
+      {
+        "key": "multiRegion",
+        "label": "Multi-Region",
+        "type": "boolean"
+      },
+      {
+        "key": "pendingWindowInDays",
+        "label": "Deletion Window (days)",
+        "type": "number"
+      },
+      {
+        "key": "bypassPolicyLockoutSafetyCheck",
+        "label": "Bypass Policy Lockout",
+        "type": "boolean"
+      },
+      {
+        "key": "description",
+        "label": "Description",
+        "type": "text"
+      },
+      {
+        "key": "alias",
+        "label": "Alias",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "service": "AWS Key Management Service",
+    "fields": [
+      {
+        "key": "keySpec",
+        "label": "Key Spec",
+        "type": "select",
+        "options": [
+          "SYMMETRIC_DEFAULT",
+          "RSA_2048",
+          "RSA_4096",
+          "ECC_NIST_P256",
+          "ECC_NIST_P384"
+        ]
+      },
+      {
+        "key": "keyUsage",
+        "label": "Key Usage",
+        "type": "select",
+        "options": [
+          "ENCRYPT_DECRYPT",
+          "SIGN_VERIFY",
+          "GENERATE_VERIFY_MAC"
+        ]
+      },
+      {
+        "key": "enableKeyRotation",
+        "label": "Auto Rotation",
+        "type": "boolean"
+      },
+      {
+        "key": "multiRegion",
+        "label": "Multi-Region",
+        "type": "boolean"
+      },
+      {
+        "key": "alias",
+        "label": "Alias",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "service": "AWS Certificate Manager",
+    "fields": [
+      {
+        "key": "validationMethod",
+        "label": "Validation",
+        "type": "select",
+        "options": [
+          "DNS",
+          "EMAIL"
+        ]
+      },
+      {
+        "key": "domainName",
+        "label": "Domain Name",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "service": "Amazon GuardDuty",
+    "fields": [
+      {
+        "key": "findingPublishingFrequency",
+        "label": "Publishing Frequency",
+        "type": "select",
+        "options": [
+          "FIFTEEN_MINUTES",
+          "ONE_HOUR",
+          "SIX_HOURS"
+        ]
+      },
+      {
+        "key": "s3Logs",
+        "label": "S3 Data Events",
+        "type": "boolean"
+      },
+      {
+        "key": "kubernetesAuditLogs",
+        "label": "EKS Audit Logs",
+        "type": "boolean"
+      }
+    ]
+  },
+  {
+    "service": "Amazon Inspector",
+    "fields": [
+      {
+        "key": "ec2Scanning",
+        "label": "EC2 Scanning",
+        "type": "boolean"
+      },
+      {
+        "key": "ecrScanning",
+        "label": "ECR Scanning",
+        "type": "boolean"
+      },
+      {
+        "key": "lambdaScanning",
+        "label": "Lambda Scanning",
+        "type": "boolean"
+      }
+    ]
+  },
+  {
+    "service": "AWS Security Hub",
+    "fields": [
+      {
+        "key": "enableDefaultStandards",
+        "label": "Default Standards",
+        "type": "boolean"
+      },
+      {
+        "key": "autoEnableControls",
+        "label": "Auto Enable Controls",
+        "type": "boolean"
+      }
+    ]
+  },
+  {
+    "service": "Amazon Macie",
+    "fields": [
+      {
+        "key": "findingPublishingFrequency",
+        "label": "Publishing Frequency",
+        "type": "select",
+        "options": [
+          "FIFTEEN_MINUTES",
+          "ONE_HOUR",
+          "SIX_HOURS"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "AWS Shield",
+    "fields": [
+      {
+        "key": "tier",
+        "label": "Tier",
+        "type": "select",
+        "options": [
+          "Standard",
+          "Advanced"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "AWS CloudTrail",
+    "fields": [
+      {
+        "key": "isMultiRegionTrail",
+        "label": "Multi-Region",
+        "type": "boolean"
+      },
+      {
+        "key": "enableLogFileValidation",
+        "label": "Log Validation",
+        "type": "boolean"
+      },
+      {
+        "key": "includeGlobalServiceEvents",
+        "label": "Global Events",
+        "type": "boolean"
+      },
+      {
+        "key": "isOrganizationTrail",
+        "label": "Organization Trail",
+        "type": "boolean"
+      },
+      {
+        "key": "s3BucketName",
+        "label": "S3 Bucket",
+        "type": "text"
+      },
+      {
+        "key": "s3KeyPrefix",
+        "label": "S3 Key Prefix",
+        "type": "text"
+      },
+      {
+        "key": "cloudWatchLogsLogGroupArn",
+        "label": "CW Log Group ARN",
+        "type": "text"
+      },
+      {
+        "key": "kmsKeyId",
+        "label": "KMS Key ID",
+        "type": "text"
+      },
+      {
+        "key": "enableInsights",
+        "label": "CloudTrail Insights",
+        "type": "boolean"
+      },
+      {
+        "key": "insightTypes",
+        "label": "Insight Types",
+        "type": "text"
+      },
+      {
+        "key": "readWriteType",
+        "label": "Event Type",
+        "type": "select",
+        "options": [
+          "All",
+          "ReadOnly",
+          "WriteOnly"
+        ]
+      },
+      {
+        "key": "includeManagementEvents",
+        "label": "Management Events",
+        "type": "boolean"
+      },
+      {
+        "key": "dataEventS3",
+        "label": "S3 Data Events",
+        "type": "boolean"
+      },
+      {
+        "key": "dataEventLambda",
+        "label": "Lambda Data Events",
+        "type": "boolean"
+      },
+      {
+        "key": "snsTopicName",
+        "label": "SNS Topic",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "service": "AWS Config",
+    "fields": [
+      {
+        "key": "allSupported",
+        "label": "Record All Resources",
+        "type": "boolean"
+      },
+      {
+        "key": "includeGlobalResourceTypes",
+        "label": "Include Global Resources",
+        "type": "boolean"
+      }
+    ]
+  },
+  {
+    "service": "Amazon EFS",
+    "fields": [
+      {
+        "key": "performanceMode",
+        "label": "Performance Mode",
+        "type": "select",
+        "options": [
+          "generalPurpose",
+          "maxIO"
+        ]
+      },
+      {
+        "key": "throughputMode",
+        "label": "Throughput Mode",
+        "type": "select",
+        "options": [
+          "bursting",
+          "provisioned",
+          "elastic"
+        ]
+      },
+      {
+        "key": "provisionedThroughputInMibps",
+        "label": "Provisioned Throughput (MiB/s)",
+        "type": "number"
+      },
+      {
+        "key": "encrypted",
+        "label": "Encryption",
+        "type": "boolean"
+      },
+      {
+        "key": "kmsKeyId",
+        "label": "KMS Key ID",
+        "type": "text"
+      },
+      {
+        "key": "lifecyclePolicy",
+        "label": "Lifecycle (days to IA)",
+        "type": "select",
+        "options": [
+          "AFTER_1_DAY",
+          "AFTER_7_DAYS",
+          "AFTER_14_DAYS",
+          "AFTER_30_DAYS",
+          "AFTER_60_DAYS",
+          "AFTER_90_DAYS",
+          "NONE"
+        ]
+      },
+      {
+        "key": "transitionToPrimaryStorageClass",
+        "label": "Transition Back to Primary",
+        "type": "select",
+        "options": [
+          "AFTER_1_ACCESS",
+          "NONE"
+        ]
+      },
+      {
+        "key": "availabilityZoneName",
+        "label": "AZ (One Zone)",
+        "type": "text"
+      },
+      {
+        "key": "backupPolicy",
+        "label": "Automatic Backups",
+        "type": "boolean"
+      },
+      {
+        "key": "replicationEnabled",
+        "label": "Replication",
+        "type": "boolean"
+      },
+      {
+        "key": "replicationRegion",
+        "label": "Replication Region",
+        "type": "text"
+      },
+      {
+        "key": "fileSystemProtection",
+        "label": "Replication Overwrite Protection",
+        "type": "select",
+        "options": [
+          "ENABLED",
+          "DISABLED"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "Amazon Elastic File System",
+    "fields": [
+      {
+        "key": "performanceMode",
+        "label": "Performance Mode",
+        "type": "select",
+        "options": [
+          "generalPurpose",
+          "maxIO"
+        ]
+      },
+      {
+        "key": "throughputMode",
+        "label": "Throughput Mode",
+        "type": "select",
+        "options": [
+          "bursting",
+          "provisioned",
+          "elastic"
+        ]
+      },
+      {
+        "key": "encrypted",
+        "label": "Encryption",
+        "type": "boolean"
+      },
+      {
+        "key": "lifecyclePolicy",
+        "label": "Lifecycle (days to IA)",
+        "type": "select",
+        "options": [
+          "AFTER_7_DAYS",
+          "AFTER_14_DAYS",
+          "AFTER_30_DAYS",
+          "AFTER_60_DAYS",
+          "AFTER_90_DAYS",
+          "NONE"
+        ]
+      },
+      {
+        "key": "backupPolicy",
+        "label": "Automatic Backups",
+        "type": "boolean"
+      }
+    ]
+  },
+  {
+    "service": "Amazon EBS",
+    "fields": [
+      {
+        "key": "volumeType",
+        "label": "Volume Type",
+        "type": "select",
+        "options": [
+          "gp3",
+          "gp2",
+          "io1",
+          "io2",
+          "st1",
+          "sc1"
+        ]
+      },
+      {
+        "key": "size",
+        "label": "Size (GB)",
+        "type": "number"
+      },
+      {
+        "key": "iops",
+        "label": "IOPS",
+        "type": "number"
+      },
+      {
+        "key": "throughput",
+        "label": "Throughput (MB/s)",
+        "type": "number"
+      },
+      {
+        "key": "encrypted",
+        "label": "Encryption",
+        "type": "boolean"
+      }
+    ]
+  },
+  {
+    "service": "Amazon Elastic Block Store",
+    "fields": [
+      {
+        "key": "volumeType",
+        "label": "Volume Type",
+        "type": "select",
+        "options": [
+          "gp3",
+          "gp2",
+          "io1",
+          "io2",
+          "st1",
+          "sc1"
+        ]
+      },
+      {
+        "key": "size",
+        "label": "Size (GB)",
+        "type": "number"
+      },
+      {
+        "key": "encrypted",
+        "label": "Encryption",
+        "type": "boolean"
+      }
+    ]
+  },
+  {
+    "service": "Amazon FSx",
+    "fields": [
+      {
+        "key": "fileSystemType",
+        "label": "File System Type",
+        "type": "select",
+        "options": [
+          "LUSTRE",
+          "WINDOWS",
+          "ONTAP",
+          "OPENZFS"
+        ]
+      },
+      {
+        "key": "storageCapacity",
+        "label": "Storage (GB)",
+        "type": "number"
+      },
+      {
+        "key": "storageType",
+        "label": "Storage Type",
+        "type": "select",
+        "options": [
+          "SSD",
+          "HDD"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "AWS Backup",
+    "fields": [
+      {
+        "key": "scheduleExpression",
+        "label": "Schedule",
+        "type": "text"
+      },
+      {
+        "key": "deleteAfterDays",
+        "label": "Delete After (days)",
+        "type": "number"
+      },
+      {
+        "key": "moveToColdStorageAfterDays",
+        "label": "Cold Storage After (days)",
+        "type": "number"
+      }
+    ]
+  },
+  {
+    "service": "AWS Storage Gateway",
+    "fields": [
+      {
+        "key": "gatewayType",
+        "label": "Gateway Type",
+        "type": "select",
+        "options": [
+          "FILE_S3",
+          "FILE_FSX_SMB",
+          "VOLUME_GATEWAY",
+          "TAPE_GATEWAY"
+        ]
+      },
+      {
+        "key": "hostEnvironment",
+        "label": "Host Environment",
+        "type": "select",
+        "options": [
+          "VMWARE",
+          "HYPER_V",
+          "EC2",
+          "KVM",
+          "OTHER"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "Amazon S3 Glacier",
+    "fields": [
+      {
+        "key": "retrievalTier",
+        "label": "Retrieval Tier",
+        "type": "select",
+        "options": [
+          "Expedited",
+          "Standard",
+          "Bulk"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "Amazon Simple Storage Service Glacier",
+    "fields": [
+      {
+        "key": "retrievalTier",
+        "label": "Retrieval Tier",
+        "type": "select",
+        "options": [
+          "Expedited",
+          "Standard",
+          "Bulk"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "AWS Network Firewall",
+    "fields": [
+      {
+        "key": "firewallPolicyArn",
+        "label": "Firewall Policy ARN",
+        "type": "text"
+      },
+      {
+        "key": "vpcId",
+        "label": "VPC ID",
+        "type": "text"
+      },
+      {
+        "key": "subnetMappings",
+        "label": "Subnet Mappings",
+        "type": "text",
+        "placeholder": "subnet-xxx,subnet-yyy"
+      },
+      {
+        "key": "deleteProtection",
+        "label": "Delete Protection",
+        "type": "boolean",
+        "default": false
+      },
+      {
+        "key": "statefulRuleOrder",
+        "label": "Stateful Rule Order",
+        "type": "select",
+        "options": [
+          "DEFAULT_ACTION_ORDER",
+          "STRICT_ORDER"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "Amazon Detective",
+    "fields": [
+      {
+        "key": "graphArn",
+        "label": "Graph ARN",
+        "type": "text"
+      },
+      {
+        "key": "autoEnableMembers",
+        "label": "Auto Enable Members",
+        "type": "boolean",
+        "default": true
+      }
+    ]
+  },
+  {
+    "service": "Amazon Security Lake",
+    "fields": [
+      {
+        "key": "dataLakeArn",
+        "label": "Data Lake ARN",
+        "type": "text"
+      },
+      {
+        "key": "regions",
+        "label": "Regions",
+        "type": "text",
+        "placeholder": "us-east-1,sa-east-1"
+      },
+      {
+        "key": "lifecycleExpiration",
+        "label": "Lifecycle Expiration (days)",
+        "type": "number",
+        "default": 365
+      },
+      {
+        "key": "replicationRegions",
+        "label": "Replication Regions",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "service": "Amazon Verified Permissions",
+    "fields": [
+      {
+        "key": "policyStoreId",
+        "label": "Policy Store ID",
+        "type": "text"
+      },
+      {
+        "key": "validationMode",
+        "label": "Validation Mode",
+        "type": "select",
+        "options": [
+          "OFF",
+          "STRICT"
+        ]
+      },
+      {
+        "key": "identitySourceType",
+        "label": "Identity Source",
+        "type": "select",
+        "options": [
+          "COGNITO",
+          "OIDC"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "AWS Verified Access",
+    "fields": [
+      {
+        "key": "verifiedAccessGroupId",
+        "label": "Access Group ID",
+        "type": "text"
+      },
+      {
+        "key": "endpointType",
+        "label": "Endpoint Type",
+        "type": "select",
+        "options": [
+          "load-balancer",
+          "network-interface"
+        ]
+      },
+      {
+        "key": "attachmentType",
+        "label": "Attachment Type",
+        "type": "select",
+        "options": [
+          "vpc"
+        ]
+      },
+      {
+        "key": "protocol",
+        "label": "Protocol",
+        "type": "select",
+        "options": [
+          "http",
+          "https"
+        ]
+      },
+      {
+        "key": "port",
+        "label": "Port",
+        "type": "number",
+        "default": 443
+      }
+    ]
+  },
+  {
+    "service": "AWS Application Migration Service",
+    "fields": [
+      {
+        "key": "replicationType",
+        "label": "Replication Type",
+        "type": "select",
+        "options": [
+          "AGENT_BASED",
+          "SNAPSHOT_SHIPPING"
+        ]
+      },
+      {
+        "key": "targetInstanceType",
+        "label": "Target Instance Type",
+        "type": "text",
+        "placeholder": "m5.large"
+      },
+      {
+        "key": "useDedicatedReplicationServer",
+        "label": "Dedicated Replication Server",
+        "type": "boolean",
+        "default": false
+      },
+      {
+        "key": "bandwidthThrottling",
+        "label": "Bandwidth Throttling (Mbps)",
+        "type": "number",
+        "default": 0
+      }
+    ]
+  },
+  {
+    "service": "AWS IoT Core",
+    "fields": [
+      {
+        "key": "thingName",
+        "label": "Thing Name",
+        "type": "text"
+      },
+      {
+        "key": "thingTypeName",
+        "label": "Thing Type",
+        "type": "text"
+      },
+      {
+        "key": "policyName",
+        "label": "Policy Name",
+        "type": "text"
+      },
+      {
+        "key": "protocol",
+        "label": "Protocol",
+        "type": "select",
+        "options": [
+          "MQTT",
+          "HTTPS",
+          "MQTT_WSS"
+        ]
+      },
+      {
+        "key": "sqlVersion",
+        "label": "Rule SQL Version",
+        "type": "select",
+        "options": [
+          "2016-03-23",
+          "2015-10-08"
+        ]
+      },
+      {
+        "key": "ruleActions",
+        "label": "Rule Actions",
+        "type": "text",
+        "placeholder": "lambda,s3,dynamodb"
+      }
+    ]
+  },
+  {
+    "service": "Amazon WorkSpaces",
+    "fields": [
+      {
+        "key": "bundleId",
+        "label": "Bundle ID",
+        "type": "text"
+      },
+      {
+        "key": "directoryId",
+        "label": "Directory ID",
+        "type": "text"
+      },
+      {
+        "key": "userName",
+        "label": "User Name",
+        "type": "text"
+      },
+      {
+        "key": "runningMode",
+        "label": "Running Mode",
+        "type": "select",
+        "options": [
+          "AUTO_STOP",
+          "ALWAYS_ON",
+          "MANUAL"
+        ]
+      },
+      {
+        "key": "computeType",
+        "label": "Compute Type",
+        "type": "select",
+        "options": [
+          "VALUE",
+          "STANDARD",
+          "PERFORMANCE",
+          "POWER",
+          "GRAPHICS",
+          "POWERPRO",
+          "GRAPHICSPRO"
+        ]
+      },
+      {
+        "key": "rootVolumeSizeGib",
+        "label": "Root Volume (GiB)",
+        "type": "number",
+        "default": 80
+      },
+      {
+        "key": "userVolumeSizeGib",
+        "label": "User Volume (GiB)",
+        "type": "number",
+        "default": 50
+      },
+      {
+        "key": "encryptionEnabled",
+        "label": "Encryption",
+        "type": "boolean",
+        "default": true
+      }
+    ]
+  },
+  {
+    "service": "AWS Elemental MediaConvert",
+    "fields": [
+      {
+        "key": "queue",
+        "label": "Queue",
+        "type": "select",
+        "options": [
+          "DEFAULT",
+          "RESERVED"
+        ]
+      },
+      {
+        "key": "accelerationMode",
+        "label": "Acceleration",
+        "type": "select",
+        "options": [
+          "DISABLED",
+          "ENABLED",
+          "PREFERRED"
+        ]
+      },
+      {
+        "key": "outputFormat",
+        "label": "Output Format",
+        "type": "select",
+        "options": [
+          "HLS",
+          "DASH",
+          "MP4",
+          "CMAF"
+        ]
+      },
+      {
+        "key": "codec",
+        "label": "Video Codec",
+        "type": "select",
+        "options": [
+          "H_264",
+          "H_265",
+          "AV1",
+          "VP8",
+          "VP9"
+        ]
+      },
+      {
+        "key": "resolution",
+        "label": "Resolution",
+        "type": "select",
+        "options": [
+          "SD",
+          "HD",
+          "FHD",
+          "UHD"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "Amazon DataZone",
+    "fields": [
+      {
+        "key": "domainId",
+        "label": "Domain ID",
+        "type": "text"
+      },
+      {
+        "key": "projectId",
+        "label": "Project ID",
+        "type": "text"
+      },
+      {
+        "key": "environmentBlueprintId",
+        "label": "Blueprint ID",
+        "type": "text"
+      },
+      {
+        "key": "singleSignOn",
+        "label": "SSO Enabled",
+        "type": "boolean",
+        "default": true
+      }
+    ]
+  },
+  {
+    "service": "Amazon Location Service",
+    "fields": [
+      {
+        "key": "mapName",
+        "label": "Map Name",
+        "type": "text"
+      },
+      {
+        "key": "mapStyle",
+        "label": "Map Style",
+        "type": "select",
+        "options": [
+          "VectorEsriStreets",
+          "VectorEsriNavigation",
+          "VectorHereExplore",
+          "RasterEsriImagery"
+        ]
+      },
+      {
+        "key": "placeIndexName",
+        "label": "Place Index Name",
+        "type": "text"
+      },
+      {
+        "key": "dataSource",
+        "label": "Data Source",
+        "type": "select",
+        "options": [
+          "Esri",
+          "Here",
+          "Grab"
+        ]
+      },
+      {
+        "key": "trackerName",
+        "label": "Tracker Name",
+        "type": "text"
+      },
+      {
+        "key": "pricingPlan",
+        "label": "Pricing Plan",
+        "type": "select",
+        "options": [
+          "RequestBasedUsage"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "Amazon Braket",
+    "fields": [
+      {
+        "key": "deviceArn",
+        "label": "Device ARN",
+        "type": "text"
+      },
+      {
+        "key": "deviceType",
+        "label": "Device Type",
+        "type": "select",
+        "options": [
+          "SIMULATOR",
+          "QPU"
+        ]
+      },
+      {
+        "key": "provider",
+        "label": "Provider",
+        "type": "select",
+        "options": [
+          "Amazon",
+          "IonQ",
+          "Rigetti",
+          "OQC",
+          "QuEra"
+        ]
+      },
+      {
+        "key": "shots",
+        "label": "Shots",
+        "type": "number",
+        "default": 1000
+      }
+    ]
+  },
+  {
+    "service": "AWS CodeArtifact",
+    "fields": [
+      {
+        "key": "domainName",
+        "label": "Domain Name",
+        "type": "text"
+      },
+      {
+        "key": "repositoryName",
+        "label": "Repository Name",
+        "type": "text"
+      },
+      {
+        "key": "format",
+        "label": "Package Format",
+        "type": "select",
+        "options": [
+          "npm",
+          "pypi",
+          "maven",
+          "nuget",
+          "generic",
+          "swift",
+          "cargo"
+        ]
+      },
+      {
+        "key": "upstreams",
+        "label": "Upstream Repos",
+        "type": "text",
+        "placeholder": "npm-store,pypi-store"
+      },
+      {
+        "key": "externalConnections",
+        "label": "External Connections",
+        "type": "text",
+        "placeholder": "public:npmjs"
+      }
+    ]
+  },
+  {
+    "service": "AWS Firewall Manager",
+    "fields": [
+      {
+        "key": "policyName",
+        "label": "Policy Name",
+        "type": "text"
+      },
+      {
+        "key": "securityServiceType",
+        "label": "Service Type",
+        "type": "select",
+        "options": [
+          "WAF",
+          "WAFV2",
+          "SHIELD_ADVANCED",
+          "SECURITY_GROUPS_COMMON",
+          "NETWORK_FIREWALL",
+          "DNS_FIREWALL"
+        ]
+      },
+      {
+        "key": "remediationEnabled",
+        "label": "Auto Remediation",
+        "type": "boolean",
+        "default": false
+      },
+      {
+        "key": "resourceType",
+        "label": "Resource Type",
+        "type": "select",
+        "options": [
+          "AWS::ElasticLoadBalancingV2::LoadBalancer",
+          "AWS::CloudFront::Distribution",
+          "AWS::EC2::Instance"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "Amazon Connect",
+    "fields": [
+      {
+        "key": "instanceAlias",
+        "label": "Instance Alias",
+        "type": "text"
+      },
+      {
+        "key": "identityManagementType",
+        "label": "Identity Mgmt",
+        "type": "select",
+        "options": [
+          "SAML",
+          "CONNECT_MANAGED",
+          "EXISTING_DIRECTORY"
+        ]
+      },
+      {
+        "key": "inboundCallsEnabled",
+        "label": "Inbound Calls",
+        "type": "boolean",
+        "default": true
+      },
+      {
+        "key": "outboundCallsEnabled",
+        "label": "Outbound Calls",
+        "type": "boolean",
+        "default": true
+      }
+    ]
+  },
+  {
+    "service": "Amazon Pinpoint",
+    "fields": [
+      {
+        "key": "appName",
+        "label": "Application Name",
+        "type": "text"
+      },
+      {
+        "key": "channelType",
+        "label": "Channel",
+        "type": "select",
+        "options": [
+          "EMAIL",
+          "SMS",
+          "PUSH",
+          "VOICE",
+          "IN_APP"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "AWS IoT Greengrass",
+    "fields": [
+      {
+        "key": "coreDeviceName",
+        "label": "Core Device Name",
+        "type": "text"
+      },
+      {
+        "key": "thingGroupArn",
+        "label": "Thing Group ARN",
+        "type": "text"
+      },
+      {
+        "key": "componentName",
+        "label": "Component Name",
+        "type": "text"
+      },
+      {
+        "key": "componentVersion",
+        "label": "Component Version",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "service": "Amazon IVS",
+    "fields": [
+      {
+        "key": "channelName",
+        "label": "Channel Name",
+        "type": "text"
+      },
+      {
+        "key": "latencyMode",
+        "label": "Latency Mode",
+        "type": "select",
+        "options": [
+          "NORMAL",
+          "LOW"
+        ]
+      },
+      {
+        "key": "type",
+        "label": "Channel Type",
+        "type": "select",
+        "options": [
+          "STANDARD",
+          "BASIC",
+          "ADVANCED_SD",
+          "ADVANCED_HD"
+        ]
+      },
+      {
+        "key": "recordingEnabled",
+        "label": "Recording",
+        "type": "boolean",
+        "default": false
+      }
+    ]
+  },
+  {
+    "service": "AWS Outposts",
+    "fields": [
+      {
+        "key": "outpostId",
+        "label": "Outpost ID",
+        "type": "text"
+      },
+      {
+        "key": "instanceType",
+        "label": "Instance Type",
+        "type": "text"
+      },
+      {
+        "key": "availabilityZone",
+        "label": "Availability Zone",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "service": "Amazon GameLift",
+    "fields": [
+      {
+        "key": "fleetType",
+        "label": "Fleet Type",
+        "type": "select",
+        "options": [
+          "ON_DEMAND",
+          "SPOT"
+        ]
+      },
+      {
+        "key": "ec2InstanceType",
+        "label": "Instance Type",
+        "type": "text",
+        "default": "c5.large"
+      },
+      {
+        "key": "buildId",
+        "label": "Build ID",
+        "type": "text"
+      },
+      {
+        "key": "runtimeConfiguration",
+        "label": "Server Process Count",
+        "type": "number",
+        "default": 1
+      }
+    ]
+  },
+  {
+    "service": "Amazon FinSpace",
+    "fields": [
+      {
+        "key": "environmentName",
+        "label": "Environment Name",
+        "type": "text"
+      },
+      {
+        "key": "kmsKeyId",
+        "label": "KMS Key ID",
+        "type": "text"
+      },
+      {
+        "key": "federationMode",
+        "label": "Federation Mode",
+        "type": "select",
+        "options": [
+          "FEDERATED",
+          "LOCAL"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "AWS Clean Rooms",
+    "fields": [
+      {
+        "key": "collaborationName",
+        "label": "Collaboration Name",
+        "type": "text"
+      },
+      {
+        "key": "queryLogStatus",
+        "label": "Query Log",
+        "type": "select",
+        "options": [
+          "ENABLED",
+          "DISABLED"
+        ]
+      },
+      {
+        "key": "memberAbility",
+        "label": "Member Ability",
+        "type": "select",
+        "options": [
+          "CAN_QUERY",
+          "CAN_RECEIVE_RESULTS"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "AWS Glue DataBrew",
+    "fields": [
+      {
+        "key": "datasetName",
+        "label": "Dataset Name",
+        "type": "text"
+      },
+      {
+        "key": "recipeName",
+        "label": "Recipe Name",
+        "type": "text"
+      },
+      {
+        "key": "maxCapacity",
+        "label": "Max Capacity",
+        "type": "number",
+        "default": 5
+      },
+      {
+        "key": "timeout",
+        "label": "Timeout (min)",
+        "type": "number",
+        "default": 2880
+      }
+    ]
+  },
+  {
+    "service": "Amazon CloudSearch",
+    "fields": [
+      {
+        "key": "domainName",
+        "label": "Domain Name",
+        "type": "text"
+      },
+      {
+        "key": "instanceType",
+        "label": "Instance Type",
+        "type": "select",
+        "options": [
+          "search.m1.small",
+          "search.m3.medium",
+          "search.m3.large",
+          "search.m3.xlarge"
+        ]
+      },
+      {
+        "key": "partitionCount",
+        "label": "Partition Count",
+        "type": "number",
+        "default": 1
+      },
+      {
+        "key": "replicationCount",
+        "label": "Replication Count",
+        "type": "number",
+        "default": 1
+      }
+    ]
+  },
+  {
+    "service": "AWS AppConfig",
+    "fields": [
+      {
+        "key": "applicationName",
+        "label": "Application Name",
+        "type": "text"
+      },
+      {
+        "key": "environmentName",
+        "label": "Environment",
+        "type": "text"
+      },
+      {
+        "key": "deploymentStrategyType",
+        "label": "Strategy",
+        "type": "select",
+        "options": [
+          "LINEAR",
+          "EXPONENTIAL"
+        ]
+      },
+      {
+        "key": "growthFactor",
+        "label": "Growth Factor (%)",
+        "type": "number",
+        "default": 10
+      },
+      {
+        "key": "deploymentDuration",
+        "label": "Duration (min)",
+        "type": "number",
+        "default": 10
+      }
+    ]
+  },
+  {
+    "service": "Amazon SWF",
+    "fields": [
+      {
+        "key": "domainName",
+        "label": "Domain Name",
+        "type": "text"
+      },
+      {
+        "key": "workflowRetention",
+        "label": "Retention (days)",
+        "type": "number",
+        "default": 30
+      }
+    ]
+  },
+  {
+    "service": "AWS RoboMaker",
+    "fields": [
+      {
+        "key": "simulationJobName",
+        "label": "Simulation Job Name",
+        "type": "text"
+      },
+      {
+        "key": "robotSoftwareSuite",
+        "label": "Robot Suite",
+        "type": "select",
+        "options": [
+          "ROS",
+          "ROS2",
+          "General"
+        ]
+      },
+      {
+        "key": "simulationSoftwareSuite",
+        "label": "Sim Suite",
+        "type": "select",
+        "options": [
+          "Gazebo",
+          "WorldForge",
+          "SimulationRuntime"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "AWS Ground Station",
+    "fields": [
+      {
+        "key": "missionProfileName",
+        "label": "Mission Profile",
+        "type": "text"
+      },
+      {
+        "key": "satelliteId",
+        "label": "Satellite ID",
+        "type": "text"
+      },
+      {
+        "key": "contactPrePassDuration",
+        "label": "Pre-pass (sec)",
+        "type": "number",
+        "default": 120
+      },
+      {
+        "key": "contactPostPassDuration",
+        "label": "Post-pass (sec)",
+        "type": "number",
+        "default": 120
+      }
+    ]
+  },
+  {
+    "service": "AWS Mainframe Modernization",
+    "fields": [
+      {
+        "key": "engineType",
+        "label": "Engine Type",
+        "type": "select",
+        "options": [
+          "microfocus",
+          "bluage"
+        ]
+      },
+      {
+        "key": "instanceType",
+        "label": "Instance Type",
+        "type": "text",
+        "default": "M2.m5.large"
+      },
+      {
+        "key": "environmentName",
+        "label": "Environment Name",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "service": "AWS Migration Hub",
+    "fields": [
+      {
+        "key": "homeRegion",
+        "label": "Home Region",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "service": "Amazon Managed Blockchain",
+    "fields": [
+      {
+        "key": "networkFramework",
+        "label": "Framework",
+        "type": "select",
+        "options": [
+          "HYPERLEDGER_FABRIC",
+          "ETHEREUM"
+        ]
+      },
+      {
+        "key": "frameworkVersion",
+        "label": "Framework Version",
+        "type": "text"
+      },
+      {
+        "key": "instanceType",
+        "label": "Node Instance Type",
+        "type": "select",
+        "options": [
+          "bc.t3.small",
+          "bc.t3.medium",
+          "bc.t3.large",
+          "bc.m5.large",
+          "bc.m5.xlarge"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "Amazon Entity Resolution",
+    "fields": [
+      {
+        "key": "workflowName",
+        "label": "Workflow Name",
+        "type": "text"
+      },
+      {
+        "key": "resolutionType",
+        "label": "Resolution Type",
+        "type": "select",
+        "options": [
+          "RULE_MATCHING",
+          "ML_MATCHING",
+          "PROVIDER"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "AWS Resilience Hub",
+    "fields": [
+      {
+        "key": "appName",
+        "label": "Application Name",
+        "type": "text"
+      },
+      {
+        "key": "rtoInSecs",
+        "label": "RTO (seconds)",
+        "type": "number",
+        "default": 3600
+      },
+      {
+        "key": "rpoInSecs",
+        "label": "RPO (seconds)",
+        "type": "number",
+        "default": 3600
+      },
+      {
+        "key": "tier",
+        "label": "Tier",
+        "type": "select",
+        "options": [
+          "MissionCritical",
+          "Critical",
+          "Important",
+          "CoreServices",
+          "NonCritical"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "Amazon MWAA",
+    "fields": [
+      {
+        "key": "environmentName",
+        "label": "Environment Name",
+        "type": "text"
+      },
+      {
+        "key": "airflowVersion",
+        "label": "Airflow Version",
+        "type": "select",
+        "options": [
+          "2.10.3",
+          "2.9.2",
+          "2.8.1",
+          "2.7.2"
+        ]
+      },
+      {
+        "key": "environmentClass",
+        "label": "Environment Class",
+        "type": "select",
+        "options": [
+          "mw1.small",
+          "mw1.medium",
+          "mw1.large",
+          "mw1.xlarge",
+          "mw1.2xlarge"
+        ]
+      },
+      {
+        "key": "maxWorkers",
+        "label": "Max Workers",
+        "type": "number",
+        "default": 10
+      },
+      {
+        "key": "minWorkers",
+        "label": "Min Workers",
+        "type": "number",
+        "default": 1
+      }
+    ]
+  },
+  {
+    "service": "AWS CloudHSM",
+    "fields": [
+      {
+        "key": "hsmType",
+        "label": "HSM Type",
+        "type": "select",
+        "options": [
+          "hsm1.medium",
+          "hsm2m.medium"
+        ]
+      },
+      {
+        "key": "availabilityZone",
+        "label": "Availability Zone",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "service": "AWS Elemental MediaLive",
+    "fields": [
+      {
+        "key": "channelClass",
+        "label": "Channel Class",
+        "type": "select",
+        "options": [
+          "STANDARD",
+          "SINGLE_PIPELINE"
+        ]
+      },
+      {
+        "key": "inputType",
+        "label": "Input Type",
+        "type": "select",
+        "options": [
+          "UDP_PUSH",
+          "RTP_PUSH",
+          "RTMP_PUSH",
+          "RTMP_PULL",
+          "URL_PULL",
+          "MP4_FILE",
+          "MEDIACONNECT",
+          "INPUT_DEVICE",
+          "AWS_CDI",
+          "TS_FILE"
+        ]
+      },
+      {
+        "key": "codec",
+        "label": "Codec",
+        "type": "select",
+        "options": [
+          "H_264",
+          "H_265",
+          "MPEG2"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "AWS Elemental MediaPackage",
+    "fields": [
+      {
+        "key": "channelId",
+        "label": "Channel ID",
+        "type": "text"
+      },
+      {
+        "key": "originEndpointType",
+        "label": "Endpoint Type",
+        "type": "select",
+        "options": [
+          "HLS",
+          "DASH",
+          "CMAF",
+          "MSS"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "AWS Elemental MediaTailor",
+    "fields": [
+      {
+        "key": "configurationName",
+        "label": "Configuration Name",
+        "type": "text"
+      },
+      {
+        "key": "adDecisionServerUrl",
+        "label": "Ad Server URL",
+        "type": "text"
+      },
+      {
+        "key": "videoContentSourceUrl",
+        "label": "Content Source URL",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "service": "Amazon Bedrock AgentCore",
+    "fields": [
+      {
+        "key": "agentName",
+        "label": "Agent Name",
+        "type": "text"
+      },
+      {
+        "key": "foundationModel",
+        "label": "Foundation Model",
+        "type": "text"
+      },
+      {
+        "key": "instruction",
+        "label": "Instruction",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "service": "AWS B2B Data Interchange",
+    "fields": [
+      {
+        "key": "profileName",
+        "label": "Profile Name",
+        "type": "text"
+      },
+      {
+        "key": "transformerId",
+        "label": "Transformer ID",
+        "type": "text"
+      },
+      {
+        "key": "ediType",
+        "label": "EDI Type",
+        "type": "select",
+        "options": [
+          "X12",
+          "EDIFACT"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "AWS Payment Cryptography",
+    "fields": [
+      {
+        "key": "keyAlgorithm",
+        "label": "Key Algorithm",
+        "type": "select",
+        "options": [
+          "TDES_2KEY",
+          "TDES_3KEY",
+          "AES_128",
+          "AES_192",
+          "AES_256",
+          "RSA_2048",
+          "RSA_3072",
+          "RSA_4096"
+        ]
+      },
+      {
+        "key": "keyUsage",
+        "label": "Key Usage",
+        "type": "select",
+        "options": [
+          "TR31_B0_BASE_DERIVATION_KEY",
+          "TR31_C0_CARD_VERIFICATION_KEY",
+          "TR31_E0_EMV_MKEY_APP_CRYPTOGRAMS",
+          "TR31_K0_KEY_ENCRYPTION_KEY",
+          "TR31_P0_PIN_ENCRYPTION_KEY"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "Amazon Chime SDK",
+    "fields": [
+      {
+        "key": "mediaRegion",
+        "label": "Media Region",
+        "type": "text"
+      },
+      {
+        "key": "meetingFeatures",
+        "label": "Features",
+        "type": "select",
+        "options": [
+          "Audio",
+          "Video",
+          "Content",
+          "Messaging"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "Amazon Route 53 Resolver",
+    "fields": [
+      {
+        "key": "endpointDirection",
+        "label": "Direction",
+        "type": "select",
+        "options": [
+          "INBOUND",
+          "OUTBOUND"
+        ]
+      },
+      {
+        "key": "ipAddressCount",
+        "label": "IP Address Count",
+        "type": "number",
+        "default": 2
+      },
+      {
+        "key": "ruleType",
+        "label": "Rule Type",
+        "type": "select",
+        "options": [
+          "FORWARD",
+          "SYSTEM",
+          "RECURSIVE"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "AWS Network Manager",
+    "fields": [
+      {
+        "key": "globalNetworkId",
+        "label": "Global Network ID",
+        "type": "text"
+      },
+      {
+        "key": "description",
+        "label": "Description",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "service": "Amazon Data Lifecycle Manager",
+    "fields": [
+      {
+        "key": "policyType",
+        "label": "Policy Type",
+        "type": "select",
+        "options": [
+          "EBS_SNAPSHOT_MANAGEMENT",
+          "IMAGE_MANAGEMENT",
+          "EVENT_BASED_POLICY"
+        ]
+      },
+      {
+        "key": "interval",
+        "label": "Interval (hours)",
+        "type": "number",
+        "default": 24
+      },
+      {
+        "key": "retainRule",
+        "label": "Retain Count",
+        "type": "number",
+        "default": 7
+      }
+    ]
+  },
+  {
+    "service": "AWS Service Quotas",
+    "fields": [
+      {
+        "key": "serviceCode",
+        "label": "Service Code",
+        "type": "text"
+      },
+      {
+        "key": "quotaCode",
+        "label": "Quota Code",
+        "type": "text"
+      },
+      {
+        "key": "desiredValue",
+        "label": "Desired Value",
+        "type": "number"
+      }
+    ]
+  },
+  {
+    "service": "AWS RAM",
+    "fields": [
+      {
+        "key": "resourceShareName",
+        "label": "Share Name",
+        "type": "text"
+      },
+      {
+        "key": "allowExternalPrincipals",
+        "label": "Allow External",
+        "type": "boolean",
+        "default": false
+      }
+    ]
+  },
+  {
+    "service": "AWS Audit Manager",
+    "fields": [
+      {
+        "key": "assessmentName",
+        "label": "Assessment Name",
+        "type": "text"
+      },
+      {
+        "key": "frameworkId",
+        "label": "Framework ID",
+        "type": "text"
+      },
+      {
+        "key": "scope",
+        "label": "Scope",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "service": "AWS Compute Optimizer",
+    "fields": [
+      {
+        "key": "enrollmentStatus",
+        "label": "Enrollment",
+        "type": "select",
+        "options": [
+          "Active",
+          "Inactive"
+        ]
+      },
+      {
+        "key": "includeMemberAccounts",
+        "label": "Include Members",
+        "type": "boolean",
+        "default": true
+      }
+    ]
+  },
+  {
+    "service": "Amazon AppStream 2.0",
+    "fields": [
+      {
+        "key": "instanceType",
+        "label": "Instance Type",
+        "type": "text",
+        "default": "stream.standard.medium"
+      },
+      {
+        "key": "fleetType",
+        "label": "Fleet Type",
+        "type": "select",
+        "options": [
+          "ALWAYS_ON",
+          "ON_DEMAND",
+          "ELASTIC"
+        ]
+      },
+      {
+        "key": "maxUserDuration",
+        "label": "Max Duration (sec)",
+        "type": "number",
+        "default": 57600
+      },
+      {
+        "key": "disconnectTimeout",
+        "label": "Disconnect Timeout (sec)",
+        "type": "number",
+        "default": 300
+      }
+    ]
+  },
+  {
+    "service": "AWS Parallel Computing Service",
+    "fields": [
+      {
+        "key": "clusterName",
+        "label": "Cluster Name",
+        "type": "text"
+      },
+      {
+        "key": "instanceType",
+        "label": "Instance Type",
+        "type": "text"
+      },
+      {
+        "key": "maxNodes",
+        "label": "Max Nodes",
+        "type": "number",
+        "default": 10
+      },
+      {
+        "key": "scheduler",
+        "label": "Scheduler",
+        "type": "select",
+        "options": [
+          "SLURM"
+        ]
+      }
+    ]
+  },
+  {
+    "service": "AWS Wickr",
+    "fields": [
+      {
+        "key": "networkName",
+        "label": "Network Name",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "service": "AWS Trusted Advisor",
+    "fields": [
+      {
+        "key": "checkId",
+        "label": "Check ID",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "service": "AWS Cloud WAN",
+    "fields": [
+      {
+        "key": "globalNetworkId",
+        "label": "Global Network ID",
+        "type": "text"
+      },
+      {
+        "key": "coreNetworkId",
+        "label": "Core Network ID",
+        "type": "text"
+      },
+      {
+        "key": "policyDocument",
+        "label": "Policy Document",
+        "type": "text"
+      }
+    ]
+  }
+]
