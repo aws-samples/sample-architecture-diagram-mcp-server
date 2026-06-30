@@ -3,7 +3,7 @@
   "subtitle": "API Gateway + Lambda + DynamoDB",
   "outputPath": "./examples/serverless-api.html",
   "services": [
-    { "id": "users", "service": "Users", "shape": "users", "category": "general", "external": true, "icon": "aws-icons/user.svg" },
+    { "id": "users", "service": "Users", "shape": "users", "category": "general", "external": true, "icon": "Res_Users_48_Light.png" },
     { "id": "cf", "service": "Amazon CloudFront", "shape": "cloudfront", "category": "networking" },
     { "id": "api", "service": "Amazon API Gateway", "shape": "api_gateway", "category": "networking" },
     { "id": "fn", "service": "AWS Lambda", "shape": "lambda", "category": "compute", "subnet": "private" },
