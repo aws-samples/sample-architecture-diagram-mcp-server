@@ -17,6 +17,13 @@ It also generates `.drawio` files and produces handoff payloads for the official
   base64), so it works from `file://` and as an email attachment.
 - **Flow execution** — define ordered steps; play/pause, step through, and
   control speed (0.5x / 1x / 2x), with the active hop highlighted.
+- **Architecture rationale** — attach **ADRs** (Architectural Decision Records,
+  the AWS-adopted `context → decision → consequences` format) and **AWS
+  Well-Architected** pillar notes. Shown in a Decisions panel and woven into the
+  IaC handoff so the agent generates infra that honors the intent.
+- **Typed connections** — mark edges as `network` / `iam` / `event` / `data`;
+  each renders with a distinct color and dash style. Nodes carry a `role`
+  describing what they do (shown on click).
 - **Auto icon resolution** — 175+ AWS services mapped to official icons; the
   agent just passes a service name (`"Amazon RDS"`), no icon path needed.
 - **PNG export** — one click, framed to fit, 2x resolution.

@@ -105,6 +105,7 @@ server.tool(
       icon: z.string().optional().describe("Icon reference inlined as base64 into the HTML: bare name resolves under icons/ (e.g. 'Arch_Amazon-RDS_48.png'), prefixed path used as-is (e.g. 'aws-icons/user.svg', 'tech-icons/whatsapp.svg')"),
       category: z.enum(["compute", "storage", "database", "networking", "security", "integration", "analytics", "ai", "management", "general"]),
       label: z.string().optional(),
+      role: z.string().optional().describe("What this component DOES in the architecture (the WHY), shown in the node detail panel. E.g. 'Authenticates API consumers via JWT', 'Stores order data with single-digit-ms reads'."),
       subnet: z.enum(["public", "private"]).optional(),
       external: z.boolean().optional(),
       isApi: z.boolean().optional(),
@@ -119,13 +120,31 @@ server.tool(
       source: z.string(),
       target: z.string(),
       label: z.string().optional().describe("Step description shown in step modal"),
+      type: z.enum(["network", "iam", "event", "data"]).optional().describe("Connection semantics, styled distinctly: network (solid), iam (dashed, auth/permission), event (dotted, async/pub-sub), data (solid, read/write)."),
       dashed: z.boolean().optional(),
     })),
+    // Architecture rationale, anchored on AWS-adopted standards (not a proprietary format).
+    adr: z.array(z.object({
+      title: z.string().describe("Decision title, e.g. 'Use DynamoDB over RDS'"),
+      status: z.enum(["proposed", "accepted", "superseded", "rejected"]).optional().default("accepted"),
+      context: z.string().optional().describe("Forces at play — the situation that requires a decision."),
+      decision: z.string().optional().describe("The change/choice that was made."),
+      consequences: z.string().optional().describe("Resulting trade-offs, positive and negative."),
+    })).optional().describe("Architectural Decision Records (AWS Well-Architected / adr.github.io format: context → decision → consequences). Shown in the diagram's Decisions panel and passed to the IaC handoff."),
+    wellArchitected: z.object({
+      "operational-excellence": z.string().optional(),
+      security: z.string().optional(),
+      reliability: z.string().optional(),
+      "performance-efficiency": z.string().optional(),
+      "cost-optimization": z.string().optional(),
+      sustainability: z.string().optional(),
+    }).optional().describe("How the architecture addresses each AWS Well-Architected pillar (the HOW). Shown in the Well-Architected panel and passed to the IaC handoff."),
   },
-  async ({ title, subtitle, outputPath, services, connections }) => {
-    const html = generateHtml(title, subtitle || "", services, connections, []);
+  async ({ title, subtitle, outputPath, services, connections, adr, wellArchitected }) => {
+    const html = generateHtml(title, subtitle || "", services, connections, { adr, wellArchitected });
     writeFileSync(outputPath, html, "utf-8");
-    return { content: [{ type: "text", text: `Interactive diagram saved: ${outputPath}\nOpen in browser for animated data flow visualization.` }] };
+    const extras = [adr?.length ? `${adr.length} ADR(s)` : null, wellArchitected ? "Well-Architected notes" : null].filter(Boolean);
+    return { content: [{ type: "text", text: `Interactive diagram saved: ${outputPath}${extras.length ? "\nIncluded: " + extras.join(", ") : ""}\nOpen in browser for animated data flow visualization.` }] };
   }
 );
 

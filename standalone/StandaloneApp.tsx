@@ -68,6 +68,7 @@ export function StandaloneApp({ data }: Props) {
   const [activeNode, setActiveNode] = useState<any | null>(null);
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState(1);
+  const [infoPanel, setInfoPanel] = useState(false); // ADR + Well-Architected panel
   const t = lang === 'pt'
     ? { iacConfig: 'Configuração IaC', pricing: 'Estimativa', config: 'Configuração', noConfig: 'Sem configuração', details: 'Detalhes' }
     : { iacConfig: 'IaC Configuration', pricing: 'Pricing', config: 'Configuration', noConfig: 'No configuration set', details: 'Details' };
@@ -77,7 +78,7 @@ export function StandaloneApp({ data }: Props) {
       id: s.id,
       type: 'aws',
       position: { x: 0, y: 0 },
-      data: { label: i(s.service, lang), icon: s.icon, sub: s.category, config: s.config ? { ...s.config, label: i(s.config.label, lang) } : undefined },
+      data: { label: i(s.service, lang), icon: s.icon, sub: s.category, role: s.role, config: s.config ? { ...s.config, label: i(s.config.label, lang) } : undefined },
     })), [data, lang]);
 
   const membership = useMemo(() => buildMembership(data.services || []), [data]);
@@ -97,7 +98,7 @@ export function StandaloneApp({ data }: Props) {
         type: 'custom',
         sourceHandle: direction === 'TB' ? 'bottom' : 'right',
         targetHandle: direction === 'TB' ? 'top' : 'left',
-        data: { label: c.label, stepNumber: i + 1, edgeIndex: idx, bidirectional: c.bidirectional,
+        data: { label: c.label, stepNumber: i + 1, edgeIndex: idx, bidirectional: c.bidirectional, connType: c.type,
           active: activeStep === i, anyActive, speed },
         animated: true,
       };
@@ -120,7 +121,7 @@ export function StandaloneApp({ data }: Props) {
     const title = i(data.title, lang) || 'Architecture';
     // Both are MCP handoff payloads (JSON): IaC -> awslabs-iac-mcp, calculator -> aws-calculator-mcp.
     const code = kind === 'iac'
-      ? generateIacHandoff(services, data.connections || [], title, region)
+      ? generateIacHandoff(services, data.connections || [], title, region, { adr: (data as any).adr, wellArchitected: (data as any).wellArchitected })
       : generateCalculatorPayload(services, title, region);
     setCodePanel({ code, lang: kind });
   }, [data, lang]);
@@ -222,8 +223,60 @@ export function StandaloneApp({ data }: Props) {
           </svg>
         </ReactFlow>
 
-        <ZoomBar title={i(data.title, lang) || 'Architecture'} subtitle={i(data.subtitle, lang)} direction={direction} dark={dark} lang={lang} visible={dockVisible} onToggle={() => setDockVisible(!dockVisible)} onDirection={relayout} onTheme={() => setDark(!dark)} onLang={() => setLang(lang === 'pt' ? 'en' : 'pt')} onExport={exportCode} onExportImage={exportImage} onExportDrawio={exportDrawio} hasFlow={steps.length > 0} playing={playing} speed={speed} onPlay={playFlow} onSpeed={() => setSpeed(s => s === 1 ? 2 : s === 2 ? 0.5 : 1)} />
+        <ZoomBar title={i(data.title, lang) || 'Architecture'} subtitle={i(data.subtitle, lang)} direction={direction} dark={dark} lang={lang} visible={dockVisible} onToggle={() => setDockVisible(!dockVisible)} onDirection={relayout} onTheme={() => setDark(!dark)} onLang={() => setLang(lang === 'pt' ? 'en' : 'pt')} onExport={exportCode} onExportImage={exportImage} onExportDrawio={exportDrawio} hasFlow={steps.length > 0} playing={playing} speed={speed} onPlay={playFlow} onSpeed={() => setSpeed(s => s === 1 ? 2 : s === 2 ? 0.5 : 1)} hasInfo={(((data as any).adr || []).length > 0) || (!!(data as any).wellArchitected && Object.values((data as any).wellArchitected).some(Boolean))} onInfo={() => setInfoPanel(v => !v)} />
         <StepModal steps={steps} activeStep={activeStep} setActiveStep={setActiveStep} serviceNames={serviceNames} lang={lang} />
+
+        {infoPanel && (() => {
+          const adrs: any[] = (data as any).adr || [];
+          const wa: Record<string, string> | null = (data as any).wellArchitected || null;
+          const PILLARS: [string, string][] = [
+            ["operational-excellence", lang === 'pt' ? 'Excelência Operacional' : 'Operational Excellence'],
+            ["security", lang === 'pt' ? 'Segurança' : 'Security'],
+            ["reliability", lang === 'pt' ? 'Confiabilidade' : 'Reliability'],
+            ["performance-efficiency", lang === 'pt' ? 'Eficiência de Performance' : 'Performance Efficiency'],
+            ["cost-optimization", lang === 'pt' ? 'Otimização de Custos' : 'Cost Optimization'],
+            ["sustainability", lang === 'pt' ? 'Sustentabilidade' : 'Sustainability'],
+          ];
+          const statusColor: Record<string, string> = { accepted: "#3F8624", proposed: "#FF9900", superseded: "#888", rejected: "#DD344C" };
+          return (
+          <div className="awsdiagram-code-panel" style={{ left: 'auto' }}>
+            <div className="awsdiagram-code-header" style={{ flexDirection: 'column', gap: 6 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                <span style={{ fontSize: 11, fontWeight: 600 }}>{lang === 'pt' ? 'Decisões & Well-Architected' : 'Decisions & Well-Architected'}</span>
+                <button className="awsdiagram-btn" onClick={() => setInfoPanel(false)}>✕</button>
+              </div>
+            </div>
+            <div style={{ flex: 1, overflow: 'auto', padding: '14px 16px' }}>
+              {adrs.length > 0 && (
+                <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', color: '#007CBD', letterSpacing: 0.5, marginBottom: 10 }}>{lang === 'pt' ? 'Decisões de Arquitetura (ADR)' : 'Architectural Decisions (ADR)'}</div>
+              )}
+              {adrs.map((a, k) => (
+                <div key={k} style={{ marginBottom: 14, paddingBottom: 12, borderBottom: '1px solid var(--border)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                    <span style={{ fontSize: 8, fontWeight: 700, textTransform: 'uppercase', color: '#fff', background: statusColor[a.status || 'accepted'] || '#888', padding: '2px 6px', borderRadius: 4 }}>{a.status || 'accepted'}</span>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--txt)' }}>{i(a.title, lang)}</span>
+                  </div>
+                  {a.context && <div style={{ fontSize: 11, color: 'var(--txt-muted)', marginTop: 4 }}><b style={{ color: 'var(--txt)' }}>{lang === 'pt' ? 'Contexto: ' : 'Context: '}</b>{i(a.context, lang)}</div>}
+                  {a.decision && <div style={{ fontSize: 11, color: 'var(--txt-muted)', marginTop: 4 }}><b style={{ color: 'var(--txt)' }}>{lang === 'pt' ? 'Decisão: ' : 'Decision: '}</b>{i(a.decision, lang)}</div>}
+                  {a.consequences && <div style={{ fontSize: 11, color: 'var(--txt-muted)', marginTop: 4 }}><b style={{ color: 'var(--txt)' }}>{lang === 'pt' ? 'Consequências: ' : 'Consequences: '}</b>{i(a.consequences, lang)}</div>}
+                </div>
+              ))}
+              {wa && Object.values(wa).some(Boolean) && (
+                <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', color: '#FF9900', letterSpacing: 0.5, margin: '4px 0 10px' }}>AWS Well-Architected</div>
+              )}
+              {wa && PILLARS.filter(([key]) => wa[key]).map(([key, name]) => (
+                <div key={key} style={{ marginBottom: 10 }}>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--txt)' }}>{name}</div>
+                  <div style={{ fontSize: 11, color: 'var(--txt-muted)', marginTop: 2, lineHeight: 1.5 }}>{i(wa[key], lang)}</div>
+                </div>
+              ))}
+              {adrs.length === 0 && (!wa || !Object.values(wa).some(Boolean)) && (
+                <div style={{ fontSize: 11, color: 'var(--txt-muted)', textAlign: 'center', padding: 20 }}>{lang === 'pt' ? 'Sem decisões ou notas Well-Architected.' : 'No decisions or Well-Architected notes.'}</div>
+              )}
+            </div>
+          </div>
+          );
+        })()}
 
         {activeNode && (
           <div onClick={() => setActiveNode(null)} style={{
@@ -248,6 +301,10 @@ export function StandaloneApp({ data }: Props) {
 
               {/* Config */}
               <div style={{ flex: 1, overflow: "auto", padding: "16px 20px" }}>
+                {/* Role — what this component DOES (the WHY) */}
+                {activeNode.role && (
+                  <div style={{ fontSize: 12, color: "var(--txt)", marginBottom: 14, lineHeight: 1.5 }}>{i(activeNode.role, lang)}</div>
+                )}
                 {activeNode.config && (activeNode.config.iac || activeNode.config.pricing || activeNode.config.label) ? (
                   <>
                     {activeNode.config.label && (

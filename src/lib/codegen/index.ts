@@ -12,13 +12,15 @@ function svcName(s: any): string {
  * (resources + dependencies + per-service config), with an explicit instruction
  * to use the AWS IaC MCP rather than re-implementing generation.
  */
-export function generateIacHandoff(services: any[], connections: any[], title: string, region: string): string {
+export function generateIacHandoff(services: any[], connections: any[], title: string, region: string, opts: { adr?: any[]; wellArchitected?: Record<string, string> | null } = {}): string {
+  const txt = (v: any) => typeof v === "string" ? v : (v?.en || v?.pt || undefined);
   const resources = (services || [])
     .filter(s => !s.external && s.id !== "users")
     .map(s => ({
       id: s.id,
       service: svcName(s),
       category: s.category || "general",
+      ...(txt(s.role) ? { role: txt(s.role) } : {}),
       config: s.config?.iac || {},
     }));
 
@@ -27,18 +29,23 @@ export function generateIacHandoff(services: any[], connections: any[], title: s
       const ext = new Set((services || []).filter(s => s.external || s.id === "users").map(s => s.id));
       return !ext.has(c.source) && !ext.has(c.target);
     })
-    .map(c => ({ from: c.source, to: c.target, ...(c.label ? { via: typeof c.label === "string" ? c.label : (c.label.en || c.label.pt) } : {}) }));
+    .map(c => ({ from: c.source, to: c.target, ...(c.type ? { type: c.type } : {}), ...(txt(c.label) ? { via: txt(c.label) } : {}) }));
+
+  const rationale: any = {};
+  if (opts.adr?.length) rationale.decisions = opts.adr;
+  if (opts.wellArchitected && Object.values(opts.wellArchitected).some(Boolean)) rationale.wellArchitected = opts.wellArchitected;
 
   return JSON.stringify({
     instruction:
       "Generate production-ready IaC for this architecture using the AWS IaC MCP server " +
       "(awslabs.aws-iac-mcp-server). Do NOT hand-write resources from scratch. Recommended flow: " +
       "1) call cdk_best_practices (or search_cdk_samples_and_constructs) to get correct constructs and patterns for each resource; " +
-      "2) wire resources using the 'dependencies' list (VPC, security groups, IAM, and connections between services); " +
-      "3) fill required properties not present in 'config' (e.g. credentials, networking) following best practices; " +
-      "4) validate the result with validate_cloudformation_template / check_cloudformation_template_compliance before deploy.",
+      "2) wire resources using the 'dependencies' list (connection 'type' tells you the relationship: network/iam/event/data); " +
+      "3) honor the 'rationale' (ADR decisions + Well-Architected intent) — e.g. if cost-optimization calls for pay-per-request, reflect it; " +
+      "4) fill required properties not present in 'config' (e.g. credentials, networking) following best practices; " +
+      "5) validate with validate_cloudformation_template / check_cloudformation_template_compliance before deploy.",
     target: { iac_mcp: "awslabs.aws-iac-mcp-server", region },
-    architecture: { name: title, region, resources, dependencies },
+    architecture: { name: title, region, resources, dependencies, ...(Object.keys(rationale).length ? { rationale } : {}) },
   }, null, 2);
 }
 

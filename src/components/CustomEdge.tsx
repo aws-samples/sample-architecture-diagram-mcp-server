@@ -14,12 +14,24 @@ function CustomEdge({ id, sourceX, sourceY, targetX, targetY, sourcePosition, ta
   const opacity = dimmed ? 0.12 : 1;
   const idx = (data?.edgeIndex as number) || 0;
 
+  // Connection semantics (ADR/Well-Architected vocabulary): each type gets a
+  // distinct stroke color + dash pattern so the diagram conveys *how* services
+  // relate (network / iam / event / data), not just that they connect.
+  const connType = data?.connType as string | undefined;
+  const TYPE_STYLE: Record<string, { stroke: string; dash?: string }> = {
+    network: { stroke: "#4a90d9" },
+    iam: { stroke: "#DD344C", dash: "6 4" },
+    event: { stroke: "#E7157B", dash: "2 4" },
+    data: { stroke: "#3F8624" },
+  };
+  const ts = (connType && TYPE_STYLE[connType]) || { stroke: "#4a90d9", dash: data?.dashed ? "6 4" : undefined };
+
   return (
     <>
       <BaseEdge
         id={id}
         path={edgePath}
-        style={{ ...style, strokeWidth: active ? 3.5 : 2, stroke: active ? "#FF9900" : "#4a90d9", opacity, transition: "opacity .2s, stroke .2s, stroke-width .2s" }}
+        style={{ ...style, strokeWidth: active ? 3.5 : 2, stroke: active ? "#FF9900" : ts.stroke, strokeDasharray: active ? undefined : ts.dash, opacity, transition: "opacity .2s, stroke .2s, stroke-width .2s" }}
         markerEnd="url(#arrow)"
         markerStart={data?.bidirectional ? "url(#arrow)" : undefined}
       />

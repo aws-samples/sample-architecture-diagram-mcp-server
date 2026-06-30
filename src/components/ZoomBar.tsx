@@ -19,9 +19,11 @@ interface Props {
   speed: number;
   onPlay: () => void;
   onSpeed: () => void;
+  hasInfo: boolean;
+  onInfo: () => void;
 }
 
-export default function ZoomBar({ title, subtitle, direction, dark, lang, visible, onToggle, onDirection, onTheme, onLang, onExport, onExportImage, onExportDrawio, hasFlow, playing, speed, onPlay, onSpeed }: Props) {
+export default function ZoomBar({ title, subtitle, direction, dark, lang, visible, onToggle, onDirection, onTheme, onLang, onExport, onExportImage, onExportDrawio, hasFlow, playing, speed, onPlay, onSpeed, hasInfo, onInfo }: Props) {
   const { zoomIn, zoomOut, fitView } = useReactFlow();
 
   if (!visible) {
@@ -121,6 +123,12 @@ export default function ZoomBar({ title, subtitle, direction, dark, lang, visibl
       <button style={btn} onClick={onLang}>{lang === 'pt' ? 'EN' : 'PT'}</button>
 
       {sep}
+
+      {/* Architecture decisions & Well-Architected */}
+      {hasInfo && <>
+        <button style={btn} onClick={onInfo} title={lang === 'pt' ? 'Decisões & Well-Architected' : 'Decisions & Well-Architected'}>ADR</button>
+        {sep}
+      </>}
 
       {/* Export: PNG image + MCP handoff payloads */}
       <button style={btn} onClick={onExportImage} title={lang === 'pt' ? 'Exportar PNG' : 'Export PNG'}>PNG</button>

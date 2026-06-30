@@ -3,18 +3,32 @@
   "subtitle": "API Gateway + Lambda + DynamoDB",
   "outputPath": "./examples/serverless-api.html",
   "services": [
-    { "id": "users", "service": "Users", "shape": "users", "category": "general", "external": true, "icon": "Res_Users_48_Light.png" },
-    { "id": "cf", "service": "Amazon CloudFront", "shape": "cloudfront", "category": "networking" },
-    { "id": "api", "service": "Amazon API Gateway", "shape": "api_gateway", "category": "networking" },
-    { "id": "fn", "service": "AWS Lambda", "shape": "lambda", "category": "compute", "subnet": "private" },
-    { "id": "db", "service": "Amazon DynamoDB", "shape": "dynamodb", "category": "database", "subnet": "private" },
-    { "id": "bucket", "service": "Amazon S3", "shape": "simple_storage_service", "category": "storage" }
+    { "id": "users", "service": "Users", "shape": "users", "category": "general", "external": true, "icon": "Res_Users_48_Light.png", "role": "End users of the web/mobile app" },
+    { "id": "cf", "service": "Amazon CloudFront", "shape": "cloudfront", "category": "networking", "role": "CDN — serves the SPA and routes /api/* to the backend" },
+    { "id": "api", "service": "Amazon API Gateway", "shape": "api_gateway", "category": "networking", "role": "REST front door — routing, throttling, request validation" },
+    { "id": "fn", "service": "AWS Lambda", "shape": "lambda", "category": "compute", "subnet": "private", "role": "Handles CRUD operations with optimistic locking" },
+    { "id": "db", "service": "Amazon DynamoDB", "shape": "dynamodb", "category": "database", "subnet": "private", "role": "Primary data store — single-digit-ms reads, scales to zero" },
+    { "id": "bucket", "service": "Amazon S3", "shape": "simple_storage_service", "category": "storage", "role": "Hosts the static React SPA bundle" }
   ],
   "connections": [
-    { "id": "e1", "source": "users", "target": "cf", "label": "HTTPS" },
-    { "id": "e2", "source": "cf", "target": "api", "label": "Forward /api/*" },
-    { "id": "e3", "source": "cf", "target": "bucket", "label": "Static assets" },
-    { "id": "e4", "source": "api", "target": "fn", "label": "Invoke" },
-    { "id": "e5", "source": "fn", "target": "db", "label": "Query / Put" }
-  ]
+    { "id": "e1", "source": "users", "target": "cf", "type": "network", "label": "HTTPS" },
+    { "id": "e2", "source": "cf", "target": "api", "type": "network", "label": "Forward /api/*" },
+    { "id": "e3", "source": "cf", "target": "bucket", "type": "data", "label": "Static assets" },
+    { "id": "e4", "source": "api", "target": "fn", "type": "event", "label": "Invoke" },
+    { "id": "e5", "source": "fn", "target": "db", "type": "data", "label": "Query / Put" }
+  ],
+  "adr": [
+    {
+      "title": "DynamoDB over RDS",
+      "status": "accepted",
+      "context": "Access patterns are key-value and traffic is spiky.",
+      "decision": "Use DynamoDB with on-demand (pay-per-request) billing.",
+      "consequences": "No relational joins, but infinite scale and zero idle cost."
+    }
+  ],
+  "wellArchitected": {
+    "security": "API Gateway request validation, least-privilege IAM execution roles, TLS in transit via CloudFront.",
+    "cost-optimization": "Pay-per-request DynamoDB, Lambda billed per ms, no idle compute — scales to zero.",
+    "performance-efficiency": "DynamoDB single-digit-ms reads, CloudFront edge caching, Lambda co-located with the table."
+  }
 }
