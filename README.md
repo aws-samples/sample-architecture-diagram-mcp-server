@@ -128,12 +128,24 @@ Cloud boundary; use `subnet: "public" | "private"` for VPC placement.
 
 ```bash
 npm run build:standalone   # rebuild dist/index.html (the HTML template)
+npm test                    # run the vitest unit suite
 node mcp-server.js          # run the MCP server over stdio
 ```
 
 The standalone app lives in `standalone/` + `src/`; the MCP server and Node-side
 generators live in `mcp-server.js` + `lib/`. `lib/html-generator.js` injects the
-diagram data and base64-inlined icons into the built `dist/index.html`.
+diagram data and base64-inlined icons into the built `dist/index.html`. Tests
+(`test/`) cover the pure generators — icon resolution, IaC/pricing handoff,
+draw.io XML, and service-config integrity.
+
+## Scope & limitations
+
+Best suited for **single-VPC, single-region** architectures (the common case).
+Current container model supports AWS Cloud → VPC → one public + one private
+subnet; layouts are top-bottom or left-right. Not yet modeled: multiple VPCs or
+accounts, multiple/named subnets, Availability Zones in the interactive HTML, or
+radial layouts. Services without a mapped icon render as a category-colored
+initial (175 services are mapped; run `resolve_icon` to check coverage).
 
 ## License
 
