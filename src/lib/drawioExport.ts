@@ -79,7 +79,7 @@ export function generateDrawioXml(allNodes: Node[], services: any[], connections
     cells.push(`        <mxCell id="e-${esc(c.id)}" value="${esc(label)}" style="${EDGE_STYLE}${dash}strokeColor=#545B64;" edge="1" parent="1" source="svc-${c.source}" target="svc-${c.target}"><mxGeometry relative="1" as="geometry" /></mxCell>`);
   }
 
-  return `<mxfile host="ArcFlow">
+  return `<mxfile host="aws-architecture-diagram-mcp">
   <diagram name="Page-1" id="diagram-1">
     <mxGraphModel dx="2400" dy="1400" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="2400" pageHeight="1400" math="0" shadow="0">
       <root>

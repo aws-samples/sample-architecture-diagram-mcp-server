@@ -1,4 +1,4 @@
-# AWS Live Diagram MCP (ArcFlow)
+# AWS Architecture Diagram MCP
 
 An [MCP](https://modelcontextprotocol.io/) server that turns a list of AWS
 services and connections into a **self-contained, interactive architecture
@@ -8,7 +8,7 @@ email. No server, no internet, no build step for the consumer.
 It also generates `.drawio` files and produces handoff payloads for the official
 [AWS IaC MCP](https://github.com/awslabs/mcp) and AWS Pricing Calculator.
 
-![ArcFlow diagram example](docs/example.png)
+![Architecture diagram example](docs/example.png)
 
 ## Features
 
@@ -63,9 +63,9 @@ Add to your MCP client config (Claude Code / Kiro / Cursor):
 ```json
 {
   "mcpServers": {
-    "aws-live-diagram": {
+    "aws-architecture-diagram": {
       "command": "node",
-      "args": ["/absolute/path/to/aws-live-diagram-mcp/mcp-server.js"]
+      "args": ["/absolute/path/to/aws-architecture-diagram-mcp/mcp-server.js"]
     }
   }
 }

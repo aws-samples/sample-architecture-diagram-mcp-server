@@ -158,27 +158,27 @@ export function StandaloneApp({ data }: Props) {
   const theme = dark ? 'dark' : 'light';
 
   return (
-    <div className={`arcflow-root ${theme}`} data-theme={theme} style={{ width: '100vw', height: '100vh' }}>
+    <div className={`awsdiagram-root ${theme}`} data-theme={theme} style={{ width: '100vw', height: '100vh' }}>
       <style>{`
-        .arcflow-root { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
-        .arcflow-root.dark { --bg: #0f1117; --surface: #1a1d27; --node-bg: #1e2230; --node-border: rgba(255,255,255,0.08); --txt: #e2e8f0; --txt-muted: #94a3b8; --border: rgba(255,255,255,0.06); --icon-filter: brightness(0) invert(1); background: var(--bg); color: var(--txt); }
-        .arcflow-root.light { --bg: #f8fafc; --surface: #ffffff; --node-bg: #ffffff; --node-border: rgba(0,0,0,0.08); --txt: #1e293b; --txt-muted: #64748b; --border: rgba(0,0,0,0.06); --icon-filter: none; background: var(--bg); color: var(--txt); }
-        .arcflow-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; border-bottom: 2px solid #FF9900; background: var(--surface); }
-        .arcflow-header h1 { font-size: 14px; font-weight: 600; margin: 0; }
-        .arcflow-header p { font-size: 11px; color: var(--txt-muted); margin: 2px 0 0; }
-        .arcflow-btn { padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--txt); font-size: 10px; cursor: pointer; }
-        .arcflow-btn:hover { border-color: #FF9900; color: #FF9900; }
-        .arcflow-btn.active { border-color: #3b82f6; color: #3b82f6; }
-        .arcflow-code-panel { position: absolute; top: 12px; right: 12px; bottom: 12px; width: 520px; z-index: 50; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; }
-        .arcflow-code-panel textarea { flex: 1; overflow: auto; padding: 12px; font-size: 11px; font-family: 'SF Mono', Menlo, monospace; line-height: 1.6; margin: 0; color: var(--txt); background: transparent; border: none; resize: none; outline: none; }
-        .arcflow-code-pre { flex: 1; overflow: auto; padding: 12px; font-size: 11px; font-family: 'SF Mono', Menlo, monospace; line-height: 1.6; margin: 0; color: var(--txt); background: transparent; white-space: pre; }
-        .arcflow-code-pre .hljs-attr { color: #79b8ff; }
-        .arcflow-code-pre .hljs-string { color: #9ecbff; }
-        .arcflow-code-pre .hljs-number, .arcflow-code-pre .hljs-literal { color: #f8c555; }
-        .arcflow-root.light .arcflow-code-pre .hljs-attr { color: #005cc5; }
-        .arcflow-root.light .arcflow-code-pre .hljs-string { color: #032f62; }
-        .arcflow-root.light .arcflow-code-pre .hljs-number, .arcflow-root.light .arcflow-code-pre .hljs-literal { color: #b08800; }
-        .arcflow-code-header { display: flex; justify-content: space-between; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+        .awsdiagram-root { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+        .awsdiagram-root.dark { --bg: #0f1117; --surface: #1a1d27; --node-bg: #1e2230; --node-border: rgba(255,255,255,0.08); --txt: #e2e8f0; --txt-muted: #94a3b8; --border: rgba(255,255,255,0.06); --icon-filter: brightness(0) invert(1); background: var(--bg); color: var(--txt); }
+        .awsdiagram-root.light { --bg: #f8fafc; --surface: #ffffff; --node-bg: #ffffff; --node-border: rgba(0,0,0,0.08); --txt: #1e293b; --txt-muted: #64748b; --border: rgba(0,0,0,0.06); --icon-filter: none; background: var(--bg); color: var(--txt); }
+        .awsdiagram-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; border-bottom: 2px solid #FF9900; background: var(--surface); }
+        .awsdiagram-header h1 { font-size: 14px; font-weight: 600; margin: 0; }
+        .awsdiagram-header p { font-size: 11px; color: var(--txt-muted); margin: 2px 0 0; }
+        .awsdiagram-btn { padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--txt); font-size: 10px; cursor: pointer; }
+        .awsdiagram-btn:hover { border-color: #FF9900; color: #FF9900; }
+        .awsdiagram-btn.active { border-color: #3b82f6; color: #3b82f6; }
+        .awsdiagram-code-panel { position: absolute; top: 12px; right: 12px; bottom: 12px; width: 520px; z-index: 50; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; }
+        .awsdiagram-code-panel textarea { flex: 1; overflow: auto; padding: 12px; font-size: 11px; font-family: 'SF Mono', Menlo, monospace; line-height: 1.6; margin: 0; color: var(--txt); background: transparent; border: none; resize: none; outline: none; }
+        .awsdiagram-code-pre { flex: 1; overflow: auto; padding: 12px; font-size: 11px; font-family: 'SF Mono', Menlo, monospace; line-height: 1.6; margin: 0; color: var(--txt); background: transparent; white-space: pre; }
+        .awsdiagram-code-pre .hljs-attr { color: #79b8ff; }
+        .awsdiagram-code-pre .hljs-string { color: #9ecbff; }
+        .awsdiagram-code-pre .hljs-number, .awsdiagram-code-pre .hljs-literal { color: #f8c555; }
+        .awsdiagram-root.light .awsdiagram-code-pre .hljs-attr { color: #005cc5; }
+        .awsdiagram-root.light .awsdiagram-code-pre .hljs-string { color: #032f62; }
+        .awsdiagram-root.light .awsdiagram-code-pre .hljs-number, .awsdiagram-root.light .awsdiagram-code-pre .hljs-literal { color: #b08800; }
+        .awsdiagram-code-header { display: flex; justify-content: space-between; padding: 10px 12px; border-bottom: 1px solid var(--border); }
         .react-flow__node-group { pointer-events: none; }
       `}</style>
 
@@ -321,18 +321,18 @@ export function StandaloneApp({ data }: Props) {
             ? (lang === 'pt' ? 'Spec da arquitetura + instrução. Cole no agente para gerar IaC de produção via awslabs-iac-mcp (CDK/Terraform/CloudFormation).' : 'Architecture spec + instruction. Paste to the agent to generate production IaC via awslabs-iac-mcp (CDK/Terraform/CloudFormation).')
             : (lang === 'pt' ? 'Payload para estimar custos via aws-calculator-mcp. Cole no agente.' : 'Payload to estimate costs via aws-calculator-mcp. Paste to the agent.');
           return (
-          <div className="arcflow-code-panel">
-            <div className="arcflow-code-header" style={{ flexDirection: 'column', gap: 6 }}>
+          <div className="awsdiagram-code-panel">
+            <div className="awsdiagram-code-header" style={{ flexDirection: 'column', gap: 6 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
                 <span style={{ fontSize: 11, fontWeight: 600 }}>{titleLabel}</span>
                 <div style={{ display: 'flex', gap: 6 }}>
-                  <button className="arcflow-btn" onClick={() => { navigator.clipboard?.writeText(codePanel.code); }}>{lang === 'pt' ? 'Copiar' : 'Copy'}</button>
-                  <button className="arcflow-btn" onClick={() => setCodePanel(null)}>✕</button>
+                  <button className="awsdiagram-btn" onClick={() => { navigator.clipboard?.writeText(codePanel.code); }}>{lang === 'pt' ? 'Copiar' : 'Copy'}</button>
+                  <button className="awsdiagram-btn" onClick={() => setCodePanel(null)}>✕</button>
                 </div>
               </div>
               <span style={{ fontSize: 10, color: 'var(--txt-muted)' }}>{desc}</span>
             </div>
-            <pre className="arcflow-code-pre"><code dangerouslySetInnerHTML={{ __html: highlightJson(codePanel.code) }} /></pre>
+            <pre className="awsdiagram-code-pre"><code dangerouslySetInnerHTML={{ __html: highlightJson(codePanel.code) }} /></pre>
           </div>
           );
         })()}

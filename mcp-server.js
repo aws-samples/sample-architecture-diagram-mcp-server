@@ -7,7 +7,7 @@ import { computeLayout } from "./lib/layout.js";
 import { generateDrawio } from "./lib/drawio-xml.js";
 import { generateHtml, SERVICE_ICONS, iconForService } from "./lib/html-generator.js";
 
-const server = new McpServer({ name: "aws-live-diagram-mcp", version: "2.0.0" });
+const server = new McpServer({ name: "aws-architecture-diagram-mcp", version: "2.0.0" });
 
 // v2.0: Full auto-layout — just pass services + connections, positions computed automatically
 server.tool(
@@ -90,7 +90,7 @@ server.tool(
   }
 );
 
-// Interactive animated HTML diagram (like Kiali/ArcFlow)
+// Interactive animated HTML diagram (an interactive canvas)
 server.tool(
   "generate_html_diagram",
   "Generate an interactive animated HTML diagram with React Flow. Nodes are draggable, edges animate data flow direction. Self-contained single HTML file.",
@@ -242,7 +242,7 @@ const CALCULATOR_MAP = {
 
 server.tool(
   "list_service_configs",
-  "List service configuration in two scopes: 'iac' (CDK/TF properties from ArcFlow) and 'pricing' (calculator service key for aws-calculator-mcp). Use get_service_fields(calculatorKey) in calculator MCP for full pricing fields.",
+  "List service configuration in two scopes: 'iac' (CDK/TF properties) and 'pricing' (calculator service key for aws-calculator-mcp). Use get_service_fields(calculatorKey) in calculator MCP for full pricing fields.",
   { service: z.string().optional().describe("Filter by service name (partial match). Omit to list all.") },
   async ({ service }) => {
     if (!service) {
