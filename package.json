@@ -4,6 +4,16 @@
   "description": "MCP server that generates self-contained interactive AWS architecture diagrams (HTML + draw.io), with IaC and pricing handoff.",
   "type": "module",
   "license": "MIT-0",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "aws",
+    "architecture-diagram",
+    "diagram",
+    "drawio",
+    "well-architected"
+  ],
+  "author": "Amazon.com, Inc. or its affiliates",
   "engines": {
     "node": ">=18"
   },

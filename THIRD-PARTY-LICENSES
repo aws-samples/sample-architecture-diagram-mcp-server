@@ -1,0 +1,58 @@
+This project includes third-party open-source software. The interactive HTML
+diagram (dist/index.html) is bundled from the libraries marked "bundled" below;
+the MCP server depends on the "runtime" libraries. All are permissively licensed
+(MIT / BSD-3-Clause / ISC).
+
+The AWS Architecture Icons used at diagram-generation time are NOT included in
+this repository and are subject to their own Terms of Use
+(https://aws.amazon.com/architecture/icons/). See scripts/fetch-icons.sh.
+
+--------------------------------------------------------------------------------
+Bundled into dist/index.html (browser)
+--------------------------------------------------------------------------------
+react                     19.x   MIT            https://github.com/facebook/react
+react-dom                 19.x   MIT            https://github.com/facebook/react
+@xyflow/react             12.x   MIT            https://github.com/xyflow/xyflow
+dagre                     0.8.x  MIT            https://github.com/dagrejs/dagre
+html-to-image             1.11.x MIT            https://github.com/bubkoo/html-to-image
+highlight.js              11.x   BSD-3-Clause   https://github.com/highlightjs/highlight.js
+zustand                   5.x    MIT            https://github.com/pmndrs/zustand
+lucide-react              1.x    ISC            https://github.com/lucide-icons/lucide
+
+--------------------------------------------------------------------------------
+MCP server runtime dependencies (Node)
+--------------------------------------------------------------------------------
+@modelcontextprotocol/sdk 1.x    MIT            https://github.com/modelcontextprotocol/typescript-sdk
+zod                       3.x    MIT            https://github.com/colinhacks/zod
+
+--------------------------------------------------------------------------------
+License texts
+--------------------------------------------------------------------------------
+
+MIT License
+-----------
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions: The above copyright notice and this
+permission notice shall be included in all copies or substantial portions of the
+Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.
+
+BSD-3-Clause (highlight.js)
+---------------------------
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met: (1) redistributions
+of source code retain the copyright notice, this list of conditions and the
+following disclaimer; (2) redistributions in binary form reproduce the same in
+documentation/materials; (3) neither the name of the copyright holder nor the
+names of its contributors may be used to endorse or promote products derived from
+this software without specific prior written permission. THE SOFTWARE IS PROVIDED
+"AS IS" WITHOUT WARRANTY OF ANY KIND.
+
+ISC (lucide-react)
+------------------
+Permission to use, copy, modify, and/or distribute this software for any purpose
+with or without fee is hereby granted, provided that the above copyright notice
+and this permission notice appear in all copies. THE SOFTWARE IS PROVIDED "AS IS".
