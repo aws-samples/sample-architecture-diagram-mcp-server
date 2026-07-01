@@ -10,6 +10,12 @@ It also generates `.drawio` files and produces handoff payloads for the official
 
 ![Architecture diagram example](docs/example.png)
 
+> **Disclaimer:** This is sample code for illustration and documentation
+> purposes. It is provided "as is" without warranty. The diagrams and any IaC or
+> pricing it helps produce are starting points — review, test, and harden them
+> (security, cost, and Well-Architected best practices) before using anything in
+> a production environment.
+
 ## Features
 
 - **Interactive HTML diagram** (React Flow) — draggable nodes, animated edges,
