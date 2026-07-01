@@ -1,0 +1,23 @@
+{
+  "title": "Event Bus",
+  "subtitle": "Hub-and-spoke (radial layout)",
+  "outputPath": "./examples/event-bus-radial.html",
+  "direction": "RADIAL",
+  "services": [
+    { "id": "bus", "service": "Amazon EventBridge", "category": "integration", "role": "Central event bus — routes events to consumers" },
+    { "id": "fnOrder", "service": "AWS Lambda", "category": "compute", "role": "Processes order events" },
+    { "id": "fnMail", "service": "AWS Lambda", "category": "compute", "role": "Sends notifications" },
+    { "id": "sqs", "service": "Amazon SQS", "category": "integration", "role": "Buffers async work" },
+    { "id": "sns", "service": "Amazon SNS", "category": "integration", "role": "Fan-out to subscribers" },
+    { "id": "archive", "service": "Amazon S3", "category": "storage", "role": "Event archive" },
+    { "id": "state", "service": "Amazon DynamoDB", "category": "database", "role": "Projection / read model" }
+  ],
+  "connections": [
+    { "id": "e1", "source": "bus", "target": "fnOrder", "type": "event" },
+    { "id": "e2", "source": "bus", "target": "fnMail", "type": "event" },
+    { "id": "e3", "source": "bus", "target": "sqs", "type": "event" },
+    { "id": "e4", "source": "bus", "target": "sns", "type": "event" },
+    { "id": "e5", "source": "bus", "target": "archive", "type": "data" },
+    { "id": "e6", "source": "bus", "target": "state", "type": "data" }
+  ]
+}

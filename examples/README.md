@@ -1,20 +1,30 @@
 # Examples
 
-## serverless-api.json
-
-A minimal API Gateway + Lambda + DynamoDB architecture, with CloudFront serving
-a static SPA from S3 and users as an external actor.
-
-Use it as the arguments for the `generate_html_diagram` tool, or generate it
-directly from an agent:
-
-> "Generate an interactive diagram for a serverless API: CloudFront in front of
-> API Gateway and an S3 static site; API Gateway invokes a Lambda in a private
-> subnet; Lambda reads/writes DynamoDB."
-
-The produced `serverless-api.html` is fully self-contained — open it in any
-browser. Try the **flow** controls (play/step), **PNG** export, and the **IaC**
-handoff button.
+Each JSON is the arguments for the `generate_html_diagram` tool. Feed one to the
+tool, or describe the architecture and let an agent produce an equivalent file.
+The output `.html` is fully self-contained — open it in any browser.
 
 > Icons must be installed first (`./scripts/fetch-icons.sh`). Without them the
 > nodes render with category-colored initials.
+
+## serverless-api.json
+
+API Gateway + Lambda + DynamoDB behind CloudFront, single VPC. Shows `role`,
+typed connections, `subnet` placement, and an ADR + Well-Architected notes.
+
+## multi-vpc-hybrid.json
+
+On-prem data center connected to **two VPCs** inside a prod **account** — uses
+explicit `groups` with nesting (`account → vpc → private-subnet`) and
+`external`/`parentId` placement. The topology a fixed hierarchy can't express.
+
+## event-bus-radial.json
+
+EventBridge as a hub with six consumers, using `"direction": "RADIAL"` for a
+hub-and-spoke layout.
+
+---
+
+Try the toolbar in any generated diagram: **flow** play/step, **PNG** and
+**.drawio** export, the **ADR** panel (when rationale is present), and the
+**IaC** handoff.

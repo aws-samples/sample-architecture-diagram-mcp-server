@@ -109,20 +109,40 @@ Add to your MCP client config (Claude Code / Kiro / Cursor):
   "subtitle": "Serverless API",
   "outputPath": "/tmp/my-app.html",
   "services": [
-    { "id": "api", "service": "Amazon API Gateway", "shape": "api_gateway", "category": "networking" },
-    { "id": "fn",  "service": "AWS Lambda",         "shape": "lambda",      "category": "compute", "subnet": "private" },
-    { "id": "db",  "service": "Amazon DynamoDB",    "shape": "dynamodb",    "category": "database", "subnet": "private" }
+    { "id": "api", "service": "Amazon API Gateway", "category": "networking",
+      "role": "REST front door — routing, throttling, request validation" },
+    { "id": "fn",  "service": "AWS Lambda", "category": "compute", "subnet": "private",
+      "role": "Handles CRUD operations", "config": { "iac": { "runtime": "nodejs22.x" } } },
+    { "id": "db",  "service": "Amazon DynamoDB", "category": "database", "subnet": "private",
+      "role": "Primary store — single-digit-ms reads", "config": { "pricing": { "writeUnits": 100 } } }
   ],
   "connections": [
-    { "id": "e1", "source": "api", "target": "fn", "label": "Invoke" },
-    { "id": "e2", "source": "fn",  "target": "db", "label": "Query" }
-  ]
+    { "id": "e1", "source": "api", "target": "fn", "type": "event", "label": "Invoke" },
+    { "id": "e2", "source": "fn",  "target": "db", "type": "data",  "label": "Query" }
+  ],
+  "adr": [
+    { "title": "DynamoDB over RDS", "status": "accepted",
+      "context": "Access patterns are key-value; traffic is spiky.",
+      "decision": "Use DynamoDB with on-demand billing.",
+      "consequences": "No joins, but infinite scale and pay-per-request cost." }
+  ],
+  "wellArchitected": {
+    "cost-optimization": "Pay-per-request DynamoDB, Lambda billed per ms — scales to zero.",
+    "security": "API Gateway request validation, least-privilege IAM."
+  }
 }
 ```
 
-`icon` is optional — it's auto-resolved from the service name. Mark services
-with `external: true` (e.g. third-party APIs) to place them outside the AWS
-Cloud boundary; use `subnet: "public" | "private"` for VPC placement.
+Everything beyond `id`/`service`/`category` is optional:
+
+- **`icon`** — auto-resolved from the service name (300+ mapped); pass it only to override.
+- **`role`** — what the component does (the WHY); shown on click and in the IaC handoff.
+- **`subnet: "public" | "private"`** — single-VPC placement shortcut. For arbitrary
+  topologies use top-level `groups` + `parentId` (see [Containers & nesting](#containers--nesting)).
+- **`external: true`** — places third-party/on-prem actors outside the AWS Cloud boundary.
+- **connection `type`** — `network` / `iam` / `event` / `data`, each styled distinctly.
+- **`adr` + `wellArchitected`** — architecture rationale (AWS-adopted formats), shown in
+  the Decisions panel and woven into the IaC handoff.
 
 ## Development
 

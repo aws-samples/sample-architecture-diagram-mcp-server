@@ -1,0 +1,24 @@
+{
+  "title": "Hybrid Multi-VPC",
+  "subtitle": "On-prem ↔ two VPCs in a prod account",
+  "outputPath": "./examples/multi-vpc-hybrid.html",
+  "groups": [
+    { "id": "onprem", "label": "Corporate Data Center", "variant": "corporate-data-center" },
+    { "id": "prod", "label": "Prod Account", "variant": "account" },
+    { "id": "vpcApp", "label": "VPC — App", "parent": "prod", "variant": "vpc" },
+    { "id": "vpcData", "label": "VPC — Data", "parent": "prod", "variant": "vpc" },
+    { "id": "subApp", "label": "Private Subnet", "parent": "vpcApp", "variant": "private-subnet" },
+    { "id": "subData", "label": "Private Subnet", "parent": "vpcData", "variant": "private-subnet" }
+  ],
+  "services": [
+    { "id": "dc", "service": "Server", "category": "general", "parentId": "onprem", "icon": "Res_Users_48_Light.png", "role": "On-prem workload connecting over VPN" },
+    { "id": "alb", "service": "Elastic Load Balancing", "category": "networking", "parentId": "vpcApp", "role": "Public entry point for the app tier" },
+    { "id": "fn", "service": "AWS Lambda", "category": "compute", "parentId": "subApp", "role": "Application logic" },
+    { "id": "db", "service": "Amazon RDS", "category": "database", "parentId": "subData", "role": "Relational store, isolated in the data VPC" }
+  ],
+  "connections": [
+    { "id": "e1", "source": "dc", "target": "alb", "type": "network", "label": "VPN" },
+    { "id": "e2", "source": "alb", "target": "fn", "type": "network" },
+    { "id": "e3", "source": "fn", "target": "db", "type": "data", "label": "query (VPC peering)" }
+  ]
+}
