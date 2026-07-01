@@ -6,7 +6,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z } from "zod";
 import { writeFileSync, existsSync, readdirSync } from "fs";
 import { join } from "path";
-import { execSync } from "child_process";
+import { execFileSync } from "child_process";
 import { computeLayout } from "./lib/layout.js";
 import { generateDrawio } from "./lib/drawio-xml.js";
 import { generateHtml, SERVICE_ICONS, iconForService } from "./lib/html-generator.js";
@@ -171,9 +171,15 @@ function findDrawioCli() {
   ];
   for (const cmd of candidates) {
     try {
-      const probe = cmd.includes("/") ? `test -x "${cmd}"` : `command -v ${cmd}`;
-      execSync(probe, { stdio: "ignore" });
-      return cmd;
+      if (cmd.includes("/")) {
+        // Absolute path: just check the file exists (no process spawn).
+        if (existsSync(cmd)) return cmd;
+      } else {
+        // Bare name: resolve on PATH via `which` (a real binary), args as an
+        // array so there is no shell to inject into.
+        execFileSync("which", [cmd], { stdio: "ignore" });
+        return cmd;
+      }
     } catch { /* try next */ }
   }
   return null;
@@ -198,10 +204,13 @@ server.tool(
         "  - For PNG, prefer generate_html_diagram and use the in-browser PNG button (no CLI needed)." }], isError: true };
     }
     try {
+      // Build the argument list (no shell string) so paths/format cannot be
+      // used for command injection. zod already constrains format/scale.
+      const drawioArgs = ["--export", "--format", String(format), "--scale", String(scale), "--output", outputPath, inputPath];
       // Headless export needs a display; Linux servers require xvfb-run.
       const needsXvfb = process.platform === "linux" && !process.env.DISPLAY;
-      const base = `"${cli}" --export --format ${format} --scale ${scale} --output "${outputPath}" "${inputPath}"`;
-      execSync(needsXvfb ? `xvfb-run -a ${base}` : base, { timeout: 60000, stdio: "ignore" });
+      const [bin, argv] = needsXvfb ? ["xvfb-run", ["-a", cli, ...drawioArgs]] : [cli, drawioArgs];
+      execFileSync(bin, argv, { timeout: 60000, stdio: "ignore" });
       if (!existsSync(outputPath)) {
         return { content: [{ type: "text", text: `Export ran but no output was produced at ${outputPath}. On headless Linux, ensure xvfb is installed (apt-get install xvfb).` }], isError: true };
       }

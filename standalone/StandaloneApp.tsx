@@ -5,7 +5,7 @@ import { ReactFlow, Background, BackgroundVariant, useReactFlow, type NodeTypes,
 import { compoundLayout, type LayoutDirection } from '@/lib/compoundLayout';
 import { resolveGroupsAndMembership } from '@/lib/membership';
 import { generateIacHandoff, generateCalculatorPayload } from '@/lib/codegen';
-import { highlightJson } from '@/lib/codeview';
+import { tokenizeJson } from '@/lib/codeview';
 import { exportPng } from '@/lib/pngExport';
 import { downloadDrawio } from '@/lib/drawioExport';
 import AwsNode from '@/components/AwsNode';
@@ -382,7 +382,7 @@ export function StandaloneApp({ data }: Props) {
               </div>
               <span style={{ fontSize: 10, color: 'var(--txt-muted)' }}>{desc}</span>
             </div>
-            <pre className="awsdiagram-code-pre"><code dangerouslySetInnerHTML={{ __html: highlightJson(codePanel.code) }} /></pre>
+            <pre className="awsdiagram-code-pre"><code>{tokenizeJson(codePanel.code).map((t, k) => t.cls === 'plain' ? t.text : <span key={k} className={`hljs-${t.cls}`}>{t.text}</span>)}</code></pre>
           </div>
           );
         })()}
