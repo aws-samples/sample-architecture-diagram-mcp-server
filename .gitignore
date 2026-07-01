@@ -16,3 +16,8 @@ TODO.md
 *.local.html
 .DS_Store
 *.log
+
+# Agent/editor tooling
+.claude/
+.kiro/
+.worktrees/
