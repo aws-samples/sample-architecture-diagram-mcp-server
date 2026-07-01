@@ -1,5 +1,5 @@
 {
-  "name": "sample-aws-architecture-diagram-mcp",
+  "name": "aws-architecture-diagram-mcp",
   "version": "2.0.0",
   "description": "MCP server that generates self-contained interactive AWS architecture diagrams (HTML + draw.io), with IaC and pricing handoff.",
   "type": "module",
@@ -15,7 +15,7 @@
   ],
   "author": "Amazon.com, Inc. or its affiliates",
   "bin": {
-    "sample-aws-architecture-diagram-mcp": "mcp-server.js",
+    "aws-architecture-diagram-mcp": "mcp-server.js",
     "fetch-icons": "scripts/fetch-icons.sh"
   },
   "files": [

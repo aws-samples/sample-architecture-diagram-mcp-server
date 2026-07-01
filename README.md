@@ -10,11 +10,10 @@ It also generates `.drawio` files and produces handoff payloads for the official
 
 ![Architecture diagram example](docs/example.png)
 
-> **Disclaimer:** This is sample code for illustration and documentation
-> purposes. It is provided "as is" without warranty. The diagrams and any IaC or
-> pricing it helps produce are starting points — review, test, and harden them
-> (security, cost, and Well-Architected best practices) before using anything in
-> a production environment.
+> **Disclaimer:** Provided for illustration and documentation purposes, "as is"
+> without warranty. The diagrams and any IaC or pricing it helps produce are
+> starting points — review, test, and harden them (security, cost, and
+> Well-Architected best practices) before using anything in production.
 
 ## Features
 
@@ -88,7 +87,7 @@ contain `icons/`, and optionally `aws-icons/` and `tech-icons/`).
   "mcpServers": {
     "aws-architecture-diagram": {
       "command": "npx",
-      "args": ["-y", "sample-aws-architecture-diagram-mcp@latest"]
+      "args": ["-y", "aws-architecture-diagram-mcp@latest"]
     }
   }
 }
@@ -101,7 +100,7 @@ contain `icons/`, and optionally `aws-icons/` and `tech-icons/`).
   "mcpServers": {
     "aws-architecture-diagram": {
       "command": "node",
-      "args": ["/absolute/path/to/sample-aws-architecture-diagram-mcp/mcp-server.js"]
+      "args": ["/absolute/path/to/aws-architecture-diagram-mcp/mcp-server.js"]
     }
   }
 }
@@ -109,7 +108,7 @@ contain `icons/`, and optionally `aws-icons/` and `tech-icons/`).
 
 > Icons are not bundled (AWS Terms of Use). On first run without them, diagrams
 > render category-colored initials and the server prints how to add them:
-> `npx --package sample-aws-architecture-diagram-mcp fetch-icons <Asset-Package.zip>`
+> `npx --package aws-architecture-diagram-mcp fetch-icons <Asset-Package.zip>`
 > (download from https://aws.amazon.com/architecture/icons/), or set
 > `AWS_DIAGRAM_ICON_ROOT` to a folder containing `icons/`.
 
