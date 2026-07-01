@@ -21,3 +21,6 @@ TODO.md
 .claude/
 .kiro/
 .worktrees/
+
+# PCSR scanner evidence — attached to the SIM ticket, not shipped in the repo
+docs/pcsr/
