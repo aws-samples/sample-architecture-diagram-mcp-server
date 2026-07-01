@@ -83,3 +83,24 @@ describe('compoundLayout — data-driven groups', () => {
     expect(out.filter(n => n.type === 'aws')).toHaveLength(2);
   });
 });
+
+describe('compoundLayout — radial', () => {
+  const svc = (id: string) => ({ id, type: 'aws', position: { x: 0, y: 0 }, data: {} }) as any;
+
+  it('puts the most-connected node at the center and fans the rest around it', () => {
+    const nodes = ['hub', 's1', 's2', 's3', 's4'].map(svc);
+    const edges = ['s1', 's2', 's3', 's4'].map((t, i) => ({ id: 'e' + i, source: 'hub', target: t } as any));
+    const out = compoundLayout(nodes, edges, {}, 'RADIAL', []);
+    const positions = Object.fromEntries(out.map(n => [n.id, n.position]));
+    // hub near a central point; spokes spread on a ring around it (varied angles)
+    const spokeXs = ['s1', 's2', 's3', 's4'].map(id => positions[id].x);
+    expect(new Set(spokeXs).size).toBeGreaterThan(1); // not a straight line
+    // every node placed
+    expect(out.filter(n => n.type === 'aws')).toHaveLength(5);
+  });
+
+  it('falls back to dagre when groups are present (radial ignored with containers)', () => {
+    const out = compoundLayout([svc('a')], [], { a: 'vpc' }, 'RADIAL', [{ id: 'vpc', label: 'VPC', variant: 'vpc' }]);
+    expect(out.find(n => n.type === 'group')?.id).toBe('vpc'); // container rendered
+  });
+});

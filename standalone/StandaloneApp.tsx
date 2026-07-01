@@ -94,7 +94,15 @@ export function StandaloneApp({ data }: Props) {
       data: { label: i(s.service, lang), icon: s.icon, sub: s.category, role: s.role, config: s.config ? { ...s.config, label: i(s.config.label, lang) } : undefined },
     })), [data, lang]);
 
-  const { groups, membership } = useMemo(() => resolveGroupsAndMembership(data.services || [], (data as any).groups), [data]);
+  // Radial is a flat hub-and-spoke — skip implicit group derivation so the ring
+  // isn't flattened by an aws-cloud container (explicit groups still honored).
+  const { groups, membership } = useMemo(() => {
+    const declared = (data as any).groups;
+    if (direction === 'RADIAL' && !(declared && declared.length)) {
+      return { groups: [], membership: {} };
+    }
+    return resolveGroupsAndMembership(data.services || [], declared);
+  }, [data, direction]);
 
   // A flow step is "playing" whenever a step is selected (manual or auto-play).
   const anyActive = activeStep !== null;
@@ -109,8 +117,9 @@ export function StandaloneApp({ data }: Props) {
         source: c.source,
         target: c.target,
         type: 'custom',
-        sourceHandle: direction === 'TB' ? 'bottom' : 'right',
-        targetHandle: direction === 'TB' ? 'top' : 'left',
+        // Radial fans out in all directions, so let edges float (no fixed handle).
+        sourceHandle: direction === 'RADIAL' ? undefined : (direction === 'TB' ? 'bottom' : 'right'),
+        targetHandle: direction === 'RADIAL' ? undefined : (direction === 'TB' ? 'top' : 'left'),
         data: { label: c.label, stepNumber: i + 1, edgeIndex: idx, bidirectional: c.bidirectional, connType: c.type,
           active: activeStep === i, anyActive, speed },
         animated: true,

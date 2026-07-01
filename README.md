@@ -13,7 +13,7 @@ It also generates `.drawio` files and produces handoff payloads for the official
 ## Features
 
 - **Interactive HTML diagram** (React Flow) — draggable nodes, animated edges,
-  dark/light theme, PT/EN, TB/LR layout. Fully self-contained (icons inlined as
+  dark/light theme, PT/EN, TB/LR/radial layout. Fully self-contained (icons inlined as
   base64), so it works from `file://` and as an email attachment.
 - **Flow execution** — define ordered steps; play/pause, step through, and
   control speed (0.5x / 1x / 2x), with the active hop highlighted.
@@ -162,7 +162,7 @@ from each service's `subnet` field (the common single-VPC case).
 "services": [ { "id": "fn", "service": "AWS Lambda", "category": "compute", "parentId": "subA" } ]
 ```
 
-Remaining limits: layouts are top-bottom or left-right (no radial); services
+Remaining limit: services
 without a mapped icon render as a category-colored initial (300+ services mapped;
 run `resolve_icon` to check coverage).
 

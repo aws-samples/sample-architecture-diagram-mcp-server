@@ -3,12 +3,12 @@ import { useReactFlow } from "@xyflow/react";
 interface Props {
   title: string;
   subtitle?: string;
-  direction: "LR" | "TB";
+  direction: "LR" | "TB" | "RADIAL";
   dark: boolean;
   lang: string;
   visible: boolean;
   onToggle: () => void;
-  onDirection: (d: "LR" | "TB") => void;
+  onDirection: (d: "LR" | "TB" | "RADIAL") => void;
   onTheme: () => void;
   onLang: () => void;
   onExport: (kind: "iac" | "calculator") => void;
@@ -103,6 +103,9 @@ export default function ZoomBar({ title, subtitle, direction, dark, lang, visibl
       </button>
       <button style={active(direction === "LR")} onClick={() => onDirection("LR")}>
         <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 12h18m0 0l-6-6m6 6l-6 6"/></svg>
+      </button>
+      <button style={active(direction === "RADIAL")} onClick={() => onDirection("RADIAL")} title={lang === 'pt' ? 'Radial' : 'Radial'}>
+        <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="4" r="1.5"/><circle cx="12" cy="20" r="1.5"/><circle cx="4" cy="12" r="1.5"/><circle cx="20" cy="12" r="1.5"/><path d="M12 9V5.5M12 15v3.5M9 12H5.5M15 12h3.5"/></svg>
       </button>
 
       {sep}
