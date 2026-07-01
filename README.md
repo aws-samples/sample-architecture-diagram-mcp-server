@@ -24,7 +24,7 @@ It also generates `.drawio` files and produces handoff payloads for the official
 - **Typed connections** — mark edges as `network` / `iam` / `event` / `data`;
   each renders with a distinct color and dash style. Nodes carry a `role`
   describing what they do (shown on click).
-- **Auto icon resolution** — 175+ AWS services mapped to official icons; the
+- **Auto icon resolution** — 300+ AWS services mapped to official icons; the
   agent just passes a service name (`"Amazon RDS"`), no icon path needed.
 - **PNG export** — one click, framed to fit, 2x resolution.
 - **draw.io export** — download an editable `.drawio` of the on-screen diagram
@@ -163,7 +163,7 @@ from each service's `subnet` field (the common single-VPC case).
 ```
 
 Remaining limits: layouts are top-bottom or left-right (no radial); services
-without a mapped icon render as a category-colored initial (175 services mapped;
+without a mapped icon render as a category-colored initial (300+ services mapped;
 run `resolve_icon` to check coverage).
 
 ## License

@@ -29,8 +29,8 @@ describe('iconForService', () => {
     expect(iconForService(undefined as any)).toBeNull();
   });
 
-  it('maps exactly 175 services and points only at real files', () => {
-    expect(Object.keys(SERVICE_ICONS).length).toBe(175);
+  it('maps the full Arch_ icon set (300+) and points only at real files', () => {
+    expect(Object.keys(SERVICE_ICONS).length).toBeGreaterThanOrEqual(300);
     // every mapped value is a filename (png) or a prefixed svg path
     for (const v of Object.values(SERVICE_ICONS)) {
       expect(v).toMatch(/\.(png|svg)$/);
