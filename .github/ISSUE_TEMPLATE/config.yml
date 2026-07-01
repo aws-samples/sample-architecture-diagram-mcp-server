@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security issue
+    url: https://aws.amazon.com/security/vulnerability-reporting/
+    about: Do NOT open a public issue for security reports — use this instead.
