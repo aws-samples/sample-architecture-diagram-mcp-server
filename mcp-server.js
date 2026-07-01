@@ -1,13 +1,15 @@
+#!/usr/bin/env node
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
-import { writeFileSync, existsSync } from "fs";
+import { writeFileSync, existsSync, readdirSync } from "fs";
+import { join } from "path";
 import { execSync } from "child_process";
 import { computeLayout } from "./lib/layout.js";
 import { generateDrawio } from "./lib/drawio-xml.js";
 import { generateHtml, SERVICE_ICONS, iconForService } from "./lib/html-generator.js";
 
-const server = new McpServer({ name: "aws-architecture-diagram-mcp", version: "2.0.0" });
+const server = new McpServer({ name: "sample-aws-architecture-diagram-mcp", version: "2.0.0" });
 
 // v2.0: Full auto-layout — just pass services + connections, positions computed automatically
 server.tool(
@@ -384,6 +386,23 @@ server.tool(
       : `No icon mapping for "${service}". It will fall back to a category-colored initial. Pass an explicit icon (e.g. 'aws-icons/<name>.svg') if needed.` }] };
   }
 );
+
+// First-run hint: if no icons are available, tell the user how to add them.
+// stderr only — never stdout — so the stdio MCP protocol stays clean.
+try {
+  const base = process.env.AWS_DIAGRAM_ICON_ROOT || new URL("./assets", import.meta.url).pathname;
+  const iconDir = join(base, "icons");
+  const hasIcons = existsSync(iconDir) && readdirSync(iconDir).some(f => f.endsWith(".png"));
+  if (!hasIcons) {
+    console.error(
+      "[aws-architecture-diagram] AWS Architecture Icons not found — diagrams will render " +
+      "category-colored initials until you add them.\n" +
+      "  Fix: download the Asset Package from https://aws.amazon.com/architecture/icons/ then run\n" +
+      "       npx --package sample-aws-architecture-diagram-mcp fetch-icons <Asset-Package.zip>\n" +
+      "  or set AWS_DIAGRAM_ICON_ROOT to a folder containing icons/ (icons are not bundled — AWS Terms of Use)."
+    );
+  }
+} catch { /* best-effort hint only */ }
 
 const transport = new StdioServerTransport();
 await server.connect(transport);
