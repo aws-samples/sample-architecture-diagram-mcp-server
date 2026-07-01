@@ -1,3 +1,5 @@
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: MIT-0
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach } from 'vitest';
 import { resolveIcon, iconFilter } from '@/lib/icons';

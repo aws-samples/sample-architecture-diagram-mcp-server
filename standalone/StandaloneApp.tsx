@@ -1,3 +1,5 @@
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: MIT-0
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { ReactFlow, Background, BackgroundVariant, useReactFlow, type NodeTypes, type EdgeTypes, type Node, type Edge } from '@xyflow/react';
 import { compoundLayout, type LayoutDirection } from '@/lib/compoundLayout';

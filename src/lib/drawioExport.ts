@@ -1,3 +1,5 @@
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: MIT-0
 // Client-side .drawio export from the live diagram. Reuses the node positions
 // already computed by compoundLayout and the raw service metadata (shape,
 // category) from the arch data, so the exported file matches what's on screen

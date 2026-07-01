@@ -1,3 +1,5 @@
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: MIT-0
 // This MCP does NOT generate IaC itself. It emits a structured architecture spec
 // plus an instruction for the agent to hand off to the official AWS IaC MCP
 // (awslabs.aws-iac-mcp-server), which produces and validates real, deployable code.

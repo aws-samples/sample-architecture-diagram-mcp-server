@@ -1,3 +1,5 @@
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: MIT-0
 import { describe, it, expect } from 'vitest';
 import { compoundLayout, type GroupSpec } from '@/lib/compoundLayout';
 import { resolveVariant, variantKey, GROUP_VARIANTS, ALL_GROUP_ICONS } from '@/lib/groupVariants';

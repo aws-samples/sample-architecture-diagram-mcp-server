@@ -1,3 +1,5 @@
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: MIT-0
 // Resolve an icon reference to a renderable src.
 // In standalone (email-attachable) HTML, icons are inlined as base64 into
 // window.__ICONS__ at generation time, so we never depend on an external

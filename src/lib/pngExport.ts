@@ -1,3 +1,5 @@
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: MIT-0
 import { toPng } from "html-to-image";
 import { getNodesBounds, getViewportForBounds, type Node } from "@xyflow/react";
 

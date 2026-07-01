@@ -1,3 +1,5 @@
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: MIT-0
 // JSON syntax highlighting for the export panel. Self-contained for file://.
 import hljs from "highlight.js/lib/core";
 import json from "highlight.js/lib/languages/json";

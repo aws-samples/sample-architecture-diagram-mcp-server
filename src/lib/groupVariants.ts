@@ -1,3 +1,5 @@
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: MIT-0
 // Single source of truth for group/container variants — shared by the layout,
 // the React GroupNode, the .drawio exporter, and the Node-side .drawio generator.
 // Adding a container type here makes it available everywhere.

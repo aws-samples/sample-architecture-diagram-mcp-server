@@ -1,3 +1,5 @@
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: MIT-0
 import dagre from "dagre";
 import type { Node, Edge } from "@xyflow/react";
 import { resolveVariant, variantKey } from "./groupVariants";
