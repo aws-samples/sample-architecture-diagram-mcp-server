@@ -6,8 +6,9 @@ diagram** — a single HTML file you can open in any browser or attach to an
 email. No server, no internet, no build step for the consumer.
 
 It also generates `.drawio` files and produces handoff payloads for the official
-[AWS IaC MCP and AWS Pricing MCP](https://github.com/awslabs/mcp) (the latter
-queries the AWS Price List API).
+[AWS IaC MCP](https://github.com/awslabs/mcp) and the
+[AWS Pricing Calculator MCP](https://github.com/aws-samples/sample-aws-pricing-calculator-mcp)
+(the latter needs no AWS credentials).
 
 ![Architecture diagram example](docs/example.png)
 
@@ -37,10 +38,10 @@ queries the AWS Price List API).
   (native AWS4 shapes), straight from the HTML.
 - **IaC handoff** — exports a structured spec + instruction so an agent can
   generate production IaC via the official AWS IaC MCP (no re-implementation).
-- **Pricing handoff** — exports a payload for the AWS Pricing MCP
-  (`awslabs.aws-pricing-mcp-server`): region + per-service config + a service_code
-  discovery hint. This server makes no pricing calls itself; the agent runs the
-  Price List queries (which need AWS credentials) through the pricing MCP.
+- **Pricing handoff** — exports a payload for the AWS Pricing Calculator MCP
+  (`sample-aws-pricing-calculator-mcp`): per-service config + calculator keys. This
+  server makes no pricing calls itself; the agent runs `create_estimate` /
+  `add_service` in the calculator MCP, which needs no AWS credentials.
 - **draw.io output** — `auto_generate_diagram` writes a fully laid-out `.drawio`.
 
 ## AWS diagram guidelines
@@ -127,7 +128,7 @@ contain `icons/`, and optionally `aws-icons/` and `tech-icons/`).
 | `resolve_icon` | Resolve a service name to its icon filename (or list all) |
 | `list_shapes` | AWS4 drawio shape names (for the `.drawio` path) |
 | `list_service_configs` | IaC + pricing config fields per service |
-| `export_pricing_json` | Extract an AWS Pricing MCP (Price List API) handoff payload from a diagram |
+| `export_pricing_json` | Extract an AWS Pricing Calculator MCP handoff payload from a diagram |
 
 ### Example: `generate_html_diagram`
 

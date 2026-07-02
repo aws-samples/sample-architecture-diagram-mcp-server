@@ -51,33 +51,26 @@ export function generateIacHandoff(services: any[], connections: any[], title: s
   }, null, 2);
 }
 
-// ---- Pricing handoff — payload for the AWS Pricing MCP (awslabs aws-pricing-mcp-server) ----
-
-// Price List service_code seed from a display name (codes differ from console names,
-// so the agent resolves the exact code via get_pricing_service_codes).
-function priceListFilter(serviceName: string): string {
-  return serviceName.replace(/^(Amazon|AWS)\s+/i, "").replace(/[^A-Za-z0-9]+/g, "");
-}
+// ---- Pricing handoff — payload for the AWS Pricing Calculator MCP ----
+// (sample-aws-pricing-calculator-mcp — needs NO AWS credentials, so it works
+// out-of-the-box for anyone running this sample.)
 
 export function generatePricingPayload(services: any[], title: string, region: string): string {
   const items = services
     .filter(s => s.config?.pricing)
     .map(s => ({
       service: svcName(s),
-      serviceCodeFilter: priceListFilter(svcName(s)),
+      calculatorKey: s.calculatorKey || svcName(s),
       description: s.config?.label || svcName(s),
-      config: s.config.pricing,
+      config: { region, ...s.config.pricing },
     }));
   return JSON.stringify({
-    tool: "awslabs.aws-pricing-mcp-server",
-    name: title,
-    region,
-    instruction:
-      "Estimate cost with the AWS Pricing MCP. For each service: " +
-      "1) get_pricing_service_codes(filter=serviceCodeFilter) to resolve the exact service_code; " +
-      "2) get_pricing_service_attributes(service_code) to discover filterable Fields; " +
-      "3) get_pricing(service_code, region, filters) mapping this entry's config values to those Fields. " +
-      "The Price List API requires AWS credentials configured in the pricing MCP.",
-    services: items,
+    tool: "sample-aws-pricing-calculator-mcp",
+    steps: [
+      { call: "create_estimate", args: { name: title } },
+      ...items.map(i => ({ call: "add_service", args: { service: i.calculatorKey, group: title, config: i.config, description: i.description } })),
+      { call: "build_estimate" },
+      { call: "export_estimate" },
+    ],
   }, null, 2);
 }

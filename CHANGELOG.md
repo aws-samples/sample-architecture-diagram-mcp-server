@@ -4,13 +4,12 @@ All notable changes to the AWS Architecture Diagram MCP server are documented he
 
 ## [Unreleased]
 
-- **Pricing handoff now targets the AWS Pricing MCP** (`awslabs.aws-pricing-mcp-server`,
-  AWS Price List API) instead of the Pricing Calculator MCP. `export_pricing_json`
-  and the browser pricing export emit region + per-service config + a `serviceCodeFilter`
-  discovery hint; the agent resolves the exact `service_code` and runs `get_pricing`.
-  This server still makes no pricing API calls itself (no credentials, no runtime network).
-- **Fix** — `export_pricing_json` used an out-of-scope `readFileSync` and threw when
-  called; the import is consolidated and the tool now works end to end.
+- **Fix** — `export_pricing_json` referenced an out-of-scope `readFileSync` and threw
+  on every call; the import is consolidated and the tool now works end to end. It also
+  guards a missing file and passes `region` into each estimate line.
+- Pricing handoff confirmed on the **AWS Pricing Calculator MCP**
+  (`sample-aws-pricing-calculator-mcp`), which needs no AWS credentials; the browser
+  payload now also emits `build_estimate` before `export_estimate`.
 
 ## [2.0.0]
 
@@ -28,7 +27,7 @@ All notable changes to the AWS Architecture Diagram MCP server are documented he
   distinctly; per-service `role` shown on click.
 - **Flow execution** — play/step through ordered steps with speed control.
 - **Exports** — PNG and editable `.drawio` from the browser; IaC handoff to the
-  AWS IaC MCP and pricing handoff to the AWS Pricing MCP.
+  AWS IaC MCP and pricing handoff to the AWS Pricing Calculator MCP.
 - **Icon resolution** — 347 AWS services mapped to official icons by name; icons
   are fetched at setup (not bundled — AWS Architecture Icons Terms of Use).
 - 57 unit tests; CI on Node 18/20.
