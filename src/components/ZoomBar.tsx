@@ -139,7 +139,7 @@ export default function ZoomBar({ title, subtitle, direction, dark, lang, visibl
       <button style={btn} onClick={onExportImage} title={lang === 'pt' ? 'Exportar PNG' : 'Export PNG'}>PNG</button>
       <button style={btn} onClick={onExportDrawio} title={lang === 'pt' ? 'Exportar .drawio (editável)' : 'Export .drawio (editable)'}>.drawio</button>
       <button style={btn} onClick={() => onExport("iac")} title="IaC via aws-iac-mcp">IaC</button>
-      <button style={btn} onClick={() => onExport("calculator")} title="Pricing via aws-calculator-mcp">💰</button>
+      <button style={btn} onClick={() => onExport("calculator")} title="Pricing via aws-pricing-mcp">💰</button>
 
       {sep}
 

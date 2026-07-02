@@ -4,7 +4,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
-import { writeFileSync, existsSync, readdirSync } from "fs";
+import { writeFileSync, readFileSync, existsSync, readdirSync } from "fs";
 import { join } from "path";
 import { execFileSync } from "child_process";
 import { computeLayout } from "./lib/layout.js";
@@ -222,12 +222,13 @@ server.tool(
 );
 
 // Service configs reference - tells the agent what config fields each AWS service accepts
-import { readFileSync as _readFileSync } from "fs";
-const SERVICE_CONFIGS = JSON.parse(_readFileSync(new URL("./lib/service-configs.json", import.meta.url), "utf-8"));
+const SERVICE_CONFIGS = JSON.parse(readFileSync(new URL("./lib/service-configs.json", import.meta.url), "utf-8"));
 
-// Pricing field hints for common services (maps to aws-calculator-mcp field keys)
-// Maps IaC service names to aws-calculator-mcp service keys.
-// Agent uses get_service_fields(calculatorKey) in calculator MCP for full pricing field details.
+// Known priceable AWS services (display name -> legacy key). Used as a membership
+// set so export_pricing_json also surfaces services that are priceable even when the
+// diagram carries no explicit pricing config. The exact Price List service_code is
+// resolved by the agent via priceListFilter() + the AWS Pricing MCP; the values here
+// are retained only for backward reference.
 const CALCULATOR_MAP = {
   // AI/ML
   "Amazon Bedrock": "amazonBedrock", "Amazon SageMaker AI": "amazonSageMaker", "Amazon SageMaker": "amazonSageMaker",
@@ -317,47 +318,65 @@ const CALCULATOR_MAP = {
   "AWS Cloud WAN": "aWSCloudWAN",
 };
 
+// Derive a regex seed for the AWS Price List service_code from a display name.
+// Price List codes (e.g. "AmazonEC2", "AWSLambda") differ from console names, so
+// we hand the agent a filter to resolve the exact code via get_pricing_service_codes.
+function priceListFilter(serviceName) {
+  return serviceName.replace(/^(Amazon|AWS)\s+/i, "").replace(/[^A-Za-z0-9]+/g, "");
+}
+
 server.tool(
   "list_service_configs",
-  "List service configuration in two scopes: 'iac' (CDK/TF properties) and 'pricing' (calculator service key for aws-calculator-mcp). Use get_service_fields(calculatorKey) in calculator MCP for full pricing fields.",
+  "List service configuration: 'iac' (CDK/TF properties) plus a Price List service_code discovery hint for the AWS Pricing MCP (awslabs aws-pricing-mcp-server). Resolve the exact service_code with get_pricing_service_codes(filter=serviceCodeFilter), then get_pricing_service_attributes / get_pricing.",
   { service: z.string().optional().describe("Filter by service name (partial match). Omit to list all.") },
   async ({ service }) => {
     if (!service) {
       const names = SERVICE_CONFIGS.map(s => s.service).sort();
-      return { content: [{ type: "text", text: "Available services (" + names.length + "):\n" + names.join("\n") + "\n\nConfig schema: { iac: {...}, pricing: {...}, label: \"...\" }\nFor pricing fields: use get_service_fields(calculatorKey) in aws-calculator-mcp" }] };
+      return { content: [{ type: "text", text: "Available services (" + names.length + "):\n" + names.join("\n") + "\n\nConfig schema: { iac: [...], serviceCodeFilter: \"...\", label: \"...\" }\nFor pricing: use the AWS Pricing MCP — get_pricing_service_codes(filter=serviceCodeFilter), then get_pricing_service_attributes / get_pricing." }] };
     }
     const matches = SERVICE_CONFIGS.filter(s => s.service.toLowerCase().includes(service.toLowerCase()));
     if (!matches.length) return { content: [{ type: "text", text: `No config found for "${service}".` }] };
     const result = matches.map(m => ({
       service: m.service,
       iac: m.fields,
-      calculatorKey: CALCULATOR_MAP[m.service] || null,
-      note: CALCULATOR_MAP[m.service] ? `Use get_service_fields("${CALCULATOR_MAP[m.service]}") in aws-calculator-mcp for pricing fields` : "No calculator mapping available",
+      serviceCodeFilter: priceListFilter(m.service),
+      note: `In the AWS Pricing MCP: get_pricing_service_codes(filter="${priceListFilter(m.service)}") to resolve service_code, then get_pricing_service_attributes / get_pricing.`,
     }));
     return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
   }
 );
 
-// Export pricing data for aws-calculator-mcp integration
+// Export pricing data for the AWS Pricing MCP (awslabs aws-pricing-mcp-server / awslabs-pricing).
+// Handoff only — this server makes no pricing API calls itself; the agent drives the
+// Price List API (which needs AWS credentials) through the pricing MCP.
 server.tool(
   "export_pricing_json",
-  "Extract pricing configuration from a diagram's services. Returns JSON ready to be used with aws-calculator-mcp's create_estimate + add_service tools. The agent should: 1) call create_estimate, 2) call add_service for each entry returned.",
-  { diagramPath: z.string().describe("Path to the .html diagram file to extract pricing from") },
-  async ({ diagramPath }) => {
+  "Extract a pricing handoff payload from a diagram's services for the AWS Pricing MCP (awslabs aws-pricing-mcp-server). This server does NOT call the Price List API; it returns region + per-service config + a service_code discovery hint. For each entry the agent should, in the pricing MCP: 1) get_pricing_service_codes(filter=serviceCodeFilter) to resolve the exact service_code, 2) get_pricing_service_attributes(service_code) to see filterable fields, 3) get_pricing(service_code, region, filters) mapping the config values to filter Fields.",
+  {
+    diagramPath: z.string().describe("Path to the .html diagram file to extract pricing from"),
+    region: z.string().optional().default("us-east-1").describe("AWS region for the Price List query (e.g. us-east-1, sa-east-1)"),
+  },
+  async ({ diagramPath, region }) => {
+    if (!existsSync(diagramPath)) return { content: [{ type: "text", text: `Error: file not found: ${diagramPath}` }], isError: true };
     const html = readFileSync(diagramPath, "utf-8");
     const m = html.match(/id="arch-data"[^>]*>(.*?)<\/script/);
-    if (!m) return { content: [{ type: "text", text: "Error: No arch-data found in file" }] };
+    if (!m) return { content: [{ type: "text", text: "Error: No arch-data found in file" }], isError: true };
     const data = JSON.parse(m[1]);
     const services = (data.services || [])
       .filter(s => s.config?.pricing || CALCULATOR_MAP[s.service])
       .map(s => ({
         service: s.service,
-        calculatorKey: CALCULATOR_MAP[s.service] || null,
-        pricing: s.config?.pricing || {},
+        serviceCodeFilter: priceListFilter(s.service),
+        config: s.config?.pricing || {},
         description: s.config?.label || s.service,
       }));
     if (!services.length) return { content: [{ type: "text", text: "No pricing data found in diagram services." }] };
-    return { content: [{ type: "text", text: JSON.stringify({ title: data.title, services, instruction: "Use create_estimate in aws-calculator-mcp, then add_service for each entry using calculatorKey as the service and pricing values as config." }, null, 2) }] };
+    return { content: [{ type: "text", text: JSON.stringify({
+      title: data.title,
+      region,
+      services,
+      instruction: "Use the AWS Pricing MCP (awslabs aws-pricing-mcp-server). For each service: 1) get_pricing_service_codes(filter=serviceCodeFilter) to resolve service_code, 2) get_pricing_service_attributes(service_code) to discover filter Fields, 3) get_pricing(service_code, region, filters) mapping this entry's config values to the discovered Fields. The Price List API requires AWS credentials configured in the pricing MCP.",
+    }, null, 2) }] };
   }
 );
 

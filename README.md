@@ -6,7 +6,8 @@ diagram** — a single HTML file you can open in any browser or attach to an
 email. No server, no internet, no build step for the consumer.
 
 It also generates `.drawio` files and produces handoff payloads for the official
-[AWS IaC MCP](https://github.com/awslabs/mcp) and AWS Pricing Calculator.
+[AWS IaC MCP and AWS Pricing MCP](https://github.com/awslabs/mcp) (the latter
+queries the AWS Price List API).
 
 ![Architecture diagram example](docs/example.png)
 
@@ -36,7 +37,10 @@ It also generates `.drawio` files and produces handoff payloads for the official
   (native AWS4 shapes), straight from the HTML.
 - **IaC handoff** — exports a structured spec + instruction so an agent can
   generate production IaC via the official AWS IaC MCP (no re-implementation).
-- **Pricing handoff** — exports a payload for the AWS Pricing Calculator MCP.
+- **Pricing handoff** — exports a payload for the AWS Pricing MCP
+  (`awslabs.aws-pricing-mcp-server`): region + per-service config + a service_code
+  discovery hint. This server makes no pricing calls itself; the agent runs the
+  Price List queries (which need AWS credentials) through the pricing MCP.
 - **draw.io output** — `auto_generate_diagram` writes a fully laid-out `.drawio`.
 
 ## AWS diagram guidelines
@@ -123,7 +127,7 @@ contain `icons/`, and optionally `aws-icons/` and `tech-icons/`).
 | `resolve_icon` | Resolve a service name to its icon filename (or list all) |
 | `list_shapes` | AWS4 drawio shape names (for the `.drawio` path) |
 | `list_service_configs` | IaC + pricing config fields per service |
-| `export_pricing_json` | Extract a Pricing Calculator payload from a diagram |
+| `export_pricing_json` | Extract an AWS Pricing MCP (Price List API) handoff payload from a diagram |
 
 ### Example: `generate_html_diagram`
 

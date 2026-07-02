@@ -4,7 +4,7 @@ import { useState, useCallback, useMemo, useEffect } from 'react';
 import { ReactFlow, Background, BackgroundVariant, useReactFlow, type NodeTypes, type EdgeTypes, type Node, type Edge } from '@xyflow/react';
 import { compoundLayout, type LayoutDirection } from '@/lib/compoundLayout';
 import { resolveGroupsAndMembership } from '@/lib/membership';
-import { generateIacHandoff, generateCalculatorPayload } from '@/lib/codegen';
+import { generateIacHandoff, generatePricingPayload } from '@/lib/codegen';
 import { tokenizeJson } from '@/lib/codeview';
 import { exportPng } from '@/lib/pngExport';
 import { downloadDrawio } from '@/lib/drawioExport';
@@ -107,10 +107,10 @@ export function StandaloneApp({ data }: Props) {
     const services = data.services || [];
     const region = 'sa-east-1';
     const title = i(data.title, lang) || 'Architecture';
-    // Both are MCP handoff payloads (JSON): IaC -> awslabs-iac-mcp, calculator -> aws-calculator-mcp.
+    // Both are MCP handoff payloads (JSON): IaC -> awslabs-iac-mcp, pricing -> awslabs-pricing-mcp.
     const code = kind === 'iac'
       ? generateIacHandoff(services, data.connections || [], title, region, { adr: (data as any).adr, wellArchitected: (data as any).wellArchitected })
-      : generateCalculatorPayload(services, title, region);
+      : generatePricingPayload(services, title, region);
     setCodePanel({ code, lang: kind });
   }, [data, lang]);
 
@@ -366,10 +366,10 @@ export function StandaloneApp({ data }: Props) {
         )}
 
         {codePanel && (() => {
-          const titleLabel = codePanel.lang === 'iac' ? 'IaC → aws-iac-mcp' : 'Pricing → aws-calculator-mcp';
+          const titleLabel = codePanel.lang === 'iac' ? 'IaC → aws-iac-mcp' : 'Pricing → aws-pricing-mcp';
           const desc = codePanel.lang === 'iac'
             ? (lang === 'pt' ? 'Spec da arquitetura + instrução. Cole no agente para gerar IaC de produção via awslabs-iac-mcp (CDK/Terraform/CloudFormation).' : 'Architecture spec + instruction. Paste to the agent to generate production IaC via awslabs-iac-mcp (CDK/Terraform/CloudFormation).')
-            : (lang === 'pt' ? 'Payload para estimar custos via aws-calculator-mcp. Cole no agente.' : 'Payload to estimate costs via aws-calculator-mcp. Paste to the agent.');
+            : (lang === 'pt' ? 'Payload para estimar custos via awslabs-pricing-mcp (AWS Price List API). Cole no agente.' : 'Payload to estimate costs via awslabs-pricing-mcp (AWS Price List API). Paste to the agent.');
           return (
           <div className="awsdiagram-code-panel">
             <div className="awsdiagram-code-header" style={{ flexDirection: 'column', gap: 6 }}>

@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
 import { describe, it, expect } from 'vitest';
-import { generateIacHandoff, generateCalculatorPayload } from '@/lib/codegen';
+import { generateIacHandoff, generatePricingPayload } from '@/lib/codegen';
 
 const services = [
   { id: 'users', service: 'Users', category: 'general', external: true },
@@ -57,15 +57,23 @@ describe('generateIacHandoff', () => {
   });
 });
 
-describe('generateCalculatorPayload', () => {
-  it('emits create_estimate + add_service steps only for services with pricing', () => {
-    const out = JSON.parse(generateCalculatorPayload(services, 'My App', 'sa-east-1'));
-    expect(out.tool).toBe('aws-calculator-mcp');
-    const calls = out.steps.map((s: any) => s.call);
-    expect(calls[0]).toBe('create_estimate');
-    // only `db` has pricing config
-    const adds = out.steps.filter((s: any) => s.call === 'add_service');
-    expect(adds).toHaveLength(1);
-    expect(adds[0].args.config.region).toBe('sa-east-1');
+describe('generatePricingPayload', () => {
+  const out = JSON.parse(generatePricingPayload(services, 'My App', 'sa-east-1'));
+
+  it('targets the AWS Pricing MCP (Price List API), not the calculator', () => {
+    expect(out.tool).toBe('awslabs.aws-pricing-mcp-server');
+    expect(out.region).toBe('sa-east-1');
+    expect(out.instruction).toMatch(/get_pricing_service_codes/);
+  });
+
+  it('includes only services that carry pricing config', () => {
+    // only `db` (DynamoDB) has config.pricing
+    expect(out.services).toHaveLength(1);
+    expect(out.services[0].service).toBe('Amazon DynamoDB');
+    expect(out.services[0].config.writeUnits).toBe(100);
+  });
+
+  it('emits a Price List service_code discovery filter stripped of Amazon/AWS prefix', () => {
+    expect(out.services[0].serviceCodeFilter).toBe('DynamoDB');
   });
 });
