@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT-0
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { ReactFlow, Background, BackgroundVariant, useReactFlow, type NodeTypes, type EdgeTypes, type Node, type Edge } from '@xyflow/react';
-import { compoundLayout, type LayoutDirection } from '@/lib/compoundLayout';
+import { elkLayout, type LayoutDirection, type EdgePaths } from '@/lib/compoundLayout';
 import { resolveGroupsAndMembership } from '@/lib/membership';
 import { generateIacHandoff, generatePricingPayload } from '@/lib/codegen';
 import { tokenizeJson } from '@/lib/codeview';
@@ -73,6 +73,9 @@ export function StandaloneApp({ data }: Props) {
   // A flow step is "playing" whenever a step is selected (manual or auto-play).
   const anyActive = activeStep !== null;
 
+  const [allNodes, setAllNodes] = useState<Node[]>([]);
+  const [edgePaths, setEdgePaths] = useState<EdgePaths>({});
+
   const edges: Edge[] = useMemo(() => {
     const targetCount: Record<string, number> = {};
     return (data.connections || []).map((c, i) => {
@@ -87,21 +90,35 @@ export function StandaloneApp({ data }: Props) {
         sourceHandle: direction === 'RADIAL' ? undefined : (direction === 'TB' ? 'bottom' : 'right'),
         targetHandle: direction === 'RADIAL' ? undefined : (direction === 'TB' ? 'top' : 'left'),
         data: { label: c.label, stepNumber: i + 1, edgeIndex: idx, bidirectional: c.bidirectional, connType: c.type,
-          active: activeStep === i, anyActive, speed },
+          active: activeStep === i, anyActive, speed, routed: edgePaths[c.id] },
         animated: true,
       };
     });
-  }, [data, direction, activeStep, anyActive, speed]);
+  }, [data, direction, activeStep, anyActive, speed, edgePaths]);
 
-  const [allNodes, setAllNodes] = useState<Node[]>(() =>
-    compoundLayout(serviceNodes, edges, membership, direction, groups)
+  // Structural edge list for layout — only source/target/id, NOT the per-step
+  // tone/animation data. This keeps ELK from re-running on every play tick.
+  const layoutEdges: Edge[] = useMemo(
+    () => (data.connections || []).map(c => ({ id: c.id, source: c.source, target: c.target })),
+    [data]
   );
 
+  // ELK layout is async; run it whenever the STRUCTURE or direction changes and
+  // re-fit once positions land. A cancel token guards against out-of-order results.
+  useEffect(() => {
+    let cancelled = false;
+    elkLayout(serviceNodes, layoutEdges, membership, direction, groups).then(({ nodes, edgePaths }) => {
+      if (cancelled) return;
+      setAllNodes(nodes);
+      setEdgePaths(edgePaths);
+      setTimeout(() => fitView({ padding: 0.02 }), 50);
+    });
+    return () => { cancelled = true; };
+  }, [serviceNodes, layoutEdges, membership, direction, groups, fitView]);
+
   const relayout = useCallback((dir: LayoutDirection) => {
-    setDirection(dir);
-    setAllNodes(compoundLayout(serviceNodes, edges, membership, dir, groups));
-    setTimeout(() => fitView({ padding: 0.02 }), 50);
-  }, [serviceNodes, edges, membership, groups, fitView]);
+    setDirection(dir); // the effect above re-runs ELK for the new direction
+  }, []);
 
   const exportCode = useCallback((kind: 'iac' | 'calculator') => {
     const services = data.services || [];

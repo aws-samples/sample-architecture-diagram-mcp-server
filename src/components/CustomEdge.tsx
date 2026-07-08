@@ -3,8 +3,32 @@
 import { memo } from "react";
 import { BaseEdge, getSmoothStepPath, type EdgeProps } from "@xyflow/react";
 
+type Pt = { x: number; y: number };
+
+// Trace ELK's orthogonal routing (absolute points) as an SVG path with rounded
+// corners, so arrows follow the computed route instead of cutting across nodes.
+function routedPath(pts: Pt[], r = 8): string | null {
+  if (!pts || pts.length < 2) return null;
+  if (pts.length === 2) return `M ${pts[0].x},${pts[0].y} L ${pts[1].x},${pts[1].y}`;
+  let d = `M ${pts[0].x},${pts[0].y}`;
+  for (let i = 1; i < pts.length - 1; i++) {
+    const p = pts[i], a = pts[i - 1], b = pts[i + 1];
+    const v1 = { x: p.x - a.x, y: p.y - a.y }, v2 = { x: b.x - p.x, y: b.y - p.y };
+    const l1 = Math.hypot(v1.x, v1.y) || 1, l2 = Math.hypot(v2.x, v2.y) || 1;
+    const rr = Math.min(r, l1 / 2, l2 / 2);
+    const s = { x: p.x - (v1.x / l1) * rr, y: p.y - (v1.y / l1) * rr };
+    const e = { x: p.x + (v2.x / l2) * rr, y: p.y + (v2.y / l2) * rr };
+    d += ` L ${s.x},${s.y} Q ${p.x},${p.y} ${e.x},${e.y}`;
+  }
+  const last = pts[pts.length - 1];
+  d += ` L ${last.x},${last.y}`;
+  return d;
+}
+
 function CustomEdge({ id, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, data, style }: EdgeProps) {
-  const [edgePath] = getSmoothStepPath({ sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, borderRadius: 0, offset: 20 });
+  const routed = (data?.routed as Pt[] | undefined);
+  const [smoothPath] = getSmoothStepPath({ sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, borderRadius: 0, offset: 20 });
+  const edgePath = (routed && routedPath(routed)) || smoothPath;
 
   // Flow execution states injected via edge data:
   //  active    — this edge is the current step (highlight + fast dot)
