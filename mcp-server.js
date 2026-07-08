@@ -45,8 +45,8 @@ server.tool(
     // Add users node if requested
     const allServices = includeUsers ? [{ id: "users", service: "Users", shape: "users", category: "general" }, ...services] : services;
 
-    // Auto-compute layout
-    const layout = computeLayout({ services: allServices, connections, region });
+    // Auto-compute layout (ELK layered engine; async)
+    const layout = await computeLayout({ services: allServices, connections, region });
 
     // Generate XML
     const xml = generateDrawio(title, subtitle || "", layout.services, layout.connections, layout.groups, {
