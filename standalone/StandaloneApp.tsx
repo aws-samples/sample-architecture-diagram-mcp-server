@@ -172,17 +172,37 @@ export function StandaloneApp({ data }: Props) {
     return () => clearTimeout(t);
   }, [data.stepZoom, walkActive, walkStep, walkSteps, fitView, allNodes]);
 
+  // Auto-play the walkthrough: advance one beat at a time; stop at the end.
+  const [playing, setPlaying] = useState(false);
+  useEffect(() => {
+    if (!playing || !hasWalk) return;
+    if (walkStep >= walkSteps.length - 1) {
+      const done = setTimeout(() => setPlaying(false), 2600);
+      return () => clearTimeout(done);
+    }
+    const id = setTimeout(() => setWalkStep(s => Math.min(s + 1, walkSteps.length - 1)), 2600);
+    return () => clearTimeout(id);
+  }, [playing, hasWalk, walkStep, walkSteps.length]);
+
+  const togglePlay = useCallback(() => {
+    if (!hasWalk) return;
+    setPlaying(p => {
+      if (!p) setWalkStep(s => (s < 0 || s >= walkSteps.length - 1 ? 0 : s)); // restart from 0 if unstarted/at end
+      return !p;
+    });
+  }, [hasWalk, walkSteps.length]);
+
   // Arrow keys drive the guided walkthrough (only when data.steps is present).
   useEffect(() => {
     if (!hasWalk) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
-        e.preventDefault(); setWalkStep(s => Math.min(s + 1, walkSteps.length - 1));
+        e.preventDefault(); setPlaying(false); setWalkStep(s => Math.min(s + 1, walkSteps.length - 1));
       } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
-        e.preventDefault(); setWalkStep(s => Math.max(s - 1, -1));
-      } else if (e.key === 'Home') { setWalkStep(0); }
-      else if (e.key === 'End') { setWalkStep(walkSteps.length - 1); }
-      else if (e.key === 'Escape') { setWalkStep(-1); }
+        e.preventDefault(); setPlaying(false); setWalkStep(s => Math.max(s - 1, -1));
+      } else if (e.key === 'Home') { setPlaying(false); setWalkStep(0); }
+      else if (e.key === 'End') { setPlaying(false); setWalkStep(walkSteps.length - 1); }
+      else if (e.key === 'Escape') { setPlaying(false); setWalkStep(-1); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -256,7 +276,7 @@ export function StandaloneApp({ data }: Props) {
           );
         })()}
 
-        <ZoomBar title={i(data.title, lang) || 'Architecture'} subtitle={i(data.subtitle, lang)} dark={dark} visible={dockVisible} onToggle={() => setDockVisible(!dockVisible)} onTheme={() => setDark(!dark)} />
+        <ZoomBar title={i(data.title, lang) || 'Architecture'} subtitle={i(data.subtitle, lang)} dark={dark} visible={dockVisible} onToggle={() => setDockVisible(!dockVisible)} onTheme={() => setDark(!dark)} hasWalk={hasWalk} playing={playing} onPlay={togglePlay} />
 
       </div>
     </div>

@@ -158,12 +158,37 @@ export function elkLayout(
       return b ? { ...n, position: { x: b.x, y: b.y } } : { ...n, position: { x: 0, y: 0 } };
     });
 
-    // Capture ELK's orthogonal routing per edge (edgeCoords:ROOT → already global).
+    // Capture ELK's orthogonal routing per edge. NOTE: elkjs ignores
+    // `elk.json.edgeCoords: ROOT` — section points come back relative to the
+    // LEAST-COMMON-ANCESTOR container of the edge's endpoints, not to ROOT. So
+    // an edge whose endpoints both sit inside a container is offset by that
+    // container's origin, landing its arrowhead in the void. Re-anchor each
+    // edge to absolute coords by shifting its points by the LCA container's
+    // absolute position.
+    const ancestorsOf = (svcId: string): string[] => {
+      const chain: string[] = [];
+      let g: string | undefined = membership[svcId];
+      const seen = new Set<string>();
+      while (g && groupById.has(g) && !seen.has(g)) { seen.add(g); chain.push(g); g = groupById.get(g)!.parent; }
+      return chain.reverse(); // outermost → innermost
+    };
+    const lcaContainer = (src: string, tgt: string): string | null => {
+      const a = ancestorsOf(src), b = ancestorsOf(tgt);
+      let lca: string | null = null;
+      for (let i = 0; i < Math.min(a.length, b.length); i++) {
+        if (a[i] === b[i]) lca = a[i]; else break;
+      }
+      return lca; // null → edge is anchored at ROOT (no offset)
+    };
     const edgePaths: EdgePaths = {};
     for (const e of (res.edges || [])) {
       const sec = e.sections && e.sections[0];
       if (!sec) continue;
-      edgePaths[e.id] = [sec.startPoint, ...(sec.bendPoints || []), sec.endPoint];
+      const src = e.sources?.[0], tgt = e.targets?.[0];
+      const lca = src && tgt ? lcaContainer(src, tgt) : null;
+      const o = (lca && abs.get(lca)) || { x: 0, y: 0 };
+      const shift = (p: { x: number; y: number }) => ({ x: p.x + o.x, y: p.y + o.y });
+      edgePaths[e.id] = [sec.startPoint, ...(sec.bendPoints || []), sec.endPoint].map(shift);
     }
 
     return { nodes: [...groupNodes, ...positioned], edgePaths };

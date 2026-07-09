@@ -9,9 +9,12 @@ interface Props {
   visible: boolean;
   onToggle: () => void;
   onTheme: () => void;
+  hasWalk?: boolean;   // a guided walkthrough (data.steps) is present
+  playing?: boolean;   // walkthrough auto-play running
+  onPlay?: () => void; // toggle walkthrough auto-play
 }
 
-export default function ZoomBar({ title, subtitle, dark, visible, onToggle, onTheme }: Props) {
+export default function ZoomBar({ title, subtitle, dark, visible, onToggle, onTheme, hasWalk, playing, onPlay }: Props) {
   const { zoomIn, zoomOut, fitView } = useReactFlow();
 
   if (!visible) {
@@ -80,6 +83,17 @@ export default function ZoomBar({ title, subtitle, dark, visible, onToggle, onTh
       </button>
 
       {sep}
+
+      {/* Walkthrough play/pause (only when a guided walkthrough is present) */}
+      {hasWalk && <>
+        <button style={playing ? { ...btn, borderColor: "#FF9900", color: "#FF9900", background: "rgba(255,153,0,0.1)" } : btn}
+          onClick={onPlay} title={playing ? "Pause walkthrough" : "Play walkthrough"}>
+          {playing
+            ? <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/></svg>
+            : <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>}
+        </button>
+        {sep}
+      </>}
 
       {/* Theme */}
       <button style={btn} onClick={onTheme}>{dark ? "☀" : "☾"}</button>
