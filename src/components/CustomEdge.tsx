@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MIT-0
 import { memo } from "react";
 import { BaseEdge, getSmoothStepPath, type EdgeProps } from "@xyflow/react";
+import { TONE_COLORS, type Tone } from "@/lib/tones";
 
 type Pt = { x: number; y: number };
 
@@ -52,17 +53,25 @@ function CustomEdge({ id, sourceX, sourceY, targetX, targetY, sourcePosition, ta
   };
   const ts = (connType && TYPE_STYLE[connType]) || { stroke: "#4a90d9", dash: data?.dashed ? "6 4" : undefined };
 
+  // Step-mode tone: an active edge takes its step tone (green/red/amber); else
+  // the classic orange. A severed edge stays dashed even when lit (reads "cut")
+  // and drops its flow dot.
+  const tone = data?.tone as Tone | undefined;
+  const activeColor = (active && tone && TONE_COLORS[tone]) || "#FF9900";
+  const activeDash = tone === "severed" ? "10 6" : undefined;
+  const showDot = (active && tone !== "severed") || !anyActive;
+
   return (
     <>
       <BaseEdge
         id={id}
         path={edgePath}
-        style={{ ...style, strokeWidth: active ? 3.5 : 2, stroke: active ? "#FF9900" : ts.stroke, strokeDasharray: active ? undefined : ts.dash, opacity, transition: "opacity .2s, stroke .2s, stroke-width .2s" }}
+        style={{ ...style, strokeWidth: active ? 3.5 : 2, stroke: active ? activeColor : ts.stroke, strokeDasharray: active ? activeDash : ts.dash, opacity, transition: "opacity .2s, stroke .2s, stroke-width .2s" }}
         markerEnd="url(#arrow)"
         markerStart={data?.bidirectional ? "url(#arrow)" : undefined}
       />
-      {(active || !anyActive) && (
-        <circle r={active ? 6 : 4} fill="#FF9900" opacity={opacity}>
+      {showDot && (
+        <circle r={active ? 6 : 4} fill={active ? activeColor : "#FF9900"} opacity={opacity}>
           <animateMotion dur={`${(active ? 1 : 1.5 + (idx % 5) * 0.16) / speed}s`} repeatCount="indefinite" path={edgePath} />
         </circle>
       )}

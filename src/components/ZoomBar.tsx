@@ -5,27 +5,13 @@ import { useReactFlow } from "@xyflow/react";
 interface Props {
   title: string;
   subtitle?: string;
-  direction: "LR" | "TB" | "RADIAL";
   dark: boolean;
-  lang: string;
   visible: boolean;
   onToggle: () => void;
-  onDirection: (d: "LR" | "TB" | "RADIAL") => void;
   onTheme: () => void;
-  onLang: () => void;
-  onExport: (kind: "iac" | "calculator") => void;
-  onExportImage: () => void;
-  onExportDrawio: () => void;
-  hasFlow: boolean;
-  playing: boolean;
-  speed: number;
-  onPlay: () => void;
-  onSpeed: () => void;
-  hasInfo: boolean;
-  onInfo: () => void;
 }
 
-export default function ZoomBar({ title, subtitle, direction, dark, lang, visible, onToggle, onDirection, onTheme, onLang, onExport, onExportImage, onExportDrawio, hasFlow, playing, speed, onPlay, onSpeed, hasInfo, onInfo }: Props) {
+export default function ZoomBar({ title, subtitle, dark, visible, onToggle, onTheme }: Props) {
   const { zoomIn, zoomOut, fitView } = useReactFlow();
 
   if (!visible) {
@@ -54,10 +40,6 @@ export default function ZoomBar({ title, subtitle, direction, dark, lang, visibl
     justifyContent: "center",
     transition: "background .15s",
   };
-
-  const active = (cond: boolean): React.CSSProperties => cond
-    ? { ...btn, borderColor: "#007CBD", color: "#007CBD", background: "rgba(0,124,189,0.1)" }
-    : btn;
 
   const sep = <div style={{ width: 1, height: 20, background: "var(--border)", margin: "0 8px" }} />;
 
@@ -99,47 +81,8 @@ export default function ZoomBar({ title, subtitle, direction, dark, lang, visibl
 
       {sep}
 
-      {/* Layout */}
-      <button style={active(direction === "TB")} onClick={() => onDirection("TB")}>
-        <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 3v18m0 0l-6-6m6 6l6-6"/></svg>
-      </button>
-      <button style={active(direction === "LR")} onClick={() => onDirection("LR")}>
-        <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 12h18m0 0l-6-6m6 6l-6 6"/></svg>
-      </button>
-      <button style={active(direction === "RADIAL")} onClick={() => onDirection("RADIAL")} title={lang === 'pt' ? 'Radial' : 'Radial'}>
-        <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="4" r="1.5"/><circle cx="12" cy="20" r="1.5"/><circle cx="4" cy="12" r="1.5"/><circle cx="20" cy="12" r="1.5"/><path d="M12 9V5.5M12 15v3.5M9 12H5.5M15 12h3.5"/></svg>
-      </button>
-
-      {sep}
-
-      {/* Flow execution */}
-      {hasFlow && <>
-        <button style={active(playing)} onClick={onPlay} title={lang === 'pt' ? 'Reproduzir fluxo' : 'Play flow'}>
-          {playing
-            ? <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/></svg>
-            : <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>}
-        </button>
-        <button style={btn} onClick={onSpeed} title={lang === 'pt' ? 'Velocidade' : 'Speed'}>{speed}x</button>
-        {sep}
-      </>}
-
-      {/* Theme + Lang */}
+      {/* Theme */}
       <button style={btn} onClick={onTheme}>{dark ? "☀" : "☾"}</button>
-      <button style={btn} onClick={onLang}>{lang === 'pt' ? 'EN' : 'PT'}</button>
-
-      {sep}
-
-      {/* Architecture decisions & Well-Architected */}
-      {hasInfo && <>
-        <button style={btn} onClick={onInfo} title={lang === 'pt' ? 'Decisões & Well-Architected' : 'Decisions & Well-Architected'}>ADR</button>
-        {sep}
-      </>}
-
-      {/* Export: PNG image + MCP handoff payloads */}
-      <button style={btn} onClick={onExportImage} title={lang === 'pt' ? 'Exportar PNG' : 'Export PNG'}>PNG</button>
-      <button style={btn} onClick={onExportDrawio} title={lang === 'pt' ? 'Exportar .drawio (editável)' : 'Export .drawio (editable)'}>.drawio</button>
-      <button style={btn} onClick={() => onExport("iac")} title="IaC via aws-iac-mcp">IaC</button>
-      <button style={btn} onClick={() => onExport("calculator")} title="Pricing via aws-pricing-calculator-mcp">💰</button>
 
       {sep}
 
