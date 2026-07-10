@@ -192,12 +192,16 @@ export function StandaloneApp({ data }: Props) {
     });
   }, [hasWalk, walkSteps.length]);
 
-  // Reset the walkthrough back to the first beat (stops autoplay).
+  // Reset the walkthrough to its initial state — no beat active, overlay hidden,
+  // full diagram shown (stops autoplay). -1 = pre-walkthrough state. Also snaps
+  // the camera back to fit the whole diagram, since the stepZoom effect only
+  // runs while a beat is active and won't fire for the -1 state.
   const resetWalk = useCallback(() => {
     if (!hasWalk) return;
     setPlaying(false);
-    setWalkStep(0);
-  }, [hasWalk]);
+    setWalkStep(-1);
+    fitView({ padding: 0.02, duration: 500 });
+  }, [hasWalk, fitView]);
 
   // Arrow keys drive the guided walkthrough (only when data.steps is present).
   useEffect(() => {
