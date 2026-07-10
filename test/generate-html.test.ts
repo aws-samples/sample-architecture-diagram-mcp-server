@@ -97,4 +97,24 @@ describe('generateHtml — arch data wiring', () => {
     const d = archDataOf(generateHtml('T', '', svc, [], {}));
     expect(d.services[0].icon).toMatch(/Simple-Storage-Service/);
   });
+
+  it('inlines guided-walkthrough step and chip icons so the overlay card renders offline', () => {
+    const steps = [{
+      tone: 'survive', nodes: ['fn'], title: 'Runs locally',
+      icon: 'Arch_Amazon-Elastic-Kubernetes-Service_48.png',
+      chips: [
+        { label: 'EBS', ok: true, icon: 'Arch_Amazon-Elastic-Block-Store_48.png' },
+        { label: 'S3', ok: true, icon: 'Arch_Amazon-Simple-Storage-Service_48.png' },
+      ],
+    }];
+    const html = generateHtml('T', '', services, connections, { steps });
+    const map = JSON.parse(html.match(/id="icon-data"[^>]*>([\s\S]*?)<\/script>/)![1]);
+    for (const ref of [
+      'Arch_Amazon-Elastic-Kubernetes-Service_48.png',
+      'Arch_Amazon-Elastic-Block-Store_48.png',
+      'Arch_Amazon-Simple-Storage-Service_48.png',
+    ]) {
+      expect(map[ref], `step/chip icon ${ref} not inlined`).toMatch(/^data:image\//);
+    }
+  });
 });
