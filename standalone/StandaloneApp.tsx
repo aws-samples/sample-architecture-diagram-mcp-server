@@ -192,6 +192,13 @@ export function StandaloneApp({ data }: Props) {
     });
   }, [hasWalk, walkSteps.length]);
 
+  // Reset the walkthrough back to the first beat (stops autoplay).
+  const resetWalk = useCallback(() => {
+    if (!hasWalk) return;
+    setPlaying(false);
+    setWalkStep(0);
+  }, [hasWalk]);
+
   // Arrow keys drive the guided walkthrough (only when data.steps is present).
   useEffect(() => {
     if (!hasWalk) return;
@@ -276,7 +283,7 @@ export function StandaloneApp({ data }: Props) {
           );
         })()}
 
-        <ZoomBar title={i(data.title, lang) || 'Architecture'} subtitle={i(data.subtitle, lang)} dark={dark} visible={dockVisible} onToggle={() => setDockVisible(!dockVisible)} onTheme={() => setDark(!dark)} hasWalk={hasWalk} playing={playing} onPlay={togglePlay} />
+        <ZoomBar title={i(data.title, lang) || 'Architecture'} subtitle={i(data.subtitle, lang)} dark={dark} visible={dockVisible} onToggle={() => setDockVisible(!dockVisible)} onTheme={() => setDark(!dark)} hasWalk={hasWalk} playing={playing} onPlay={togglePlay} onReset={resetWalk} />
 
       </div>
     </div>

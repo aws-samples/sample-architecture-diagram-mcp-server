@@ -9,12 +9,13 @@ interface Props {
   visible: boolean;
   onToggle: () => void;
   onTheme: () => void;
-  hasWalk?: boolean;   // a guided walkthrough (data.steps) is present
-  playing?: boolean;   // walkthrough auto-play running
-  onPlay?: () => void; // toggle walkthrough auto-play
+  hasWalk?: boolean;    // a guided walkthrough (data.steps) is present
+  playing?: boolean;    // walkthrough auto-play running
+  onPlay?: () => void;  // toggle walkthrough auto-play
+  onReset?: () => void; // jump the walkthrough back to the first beat
 }
 
-export default function ZoomBar({ title, subtitle, dark, visible, onToggle, onTheme, hasWalk, playing, onPlay }: Props) {
+export default function ZoomBar({ title, subtitle, dark, visible, onToggle, onTheme, hasWalk, playing, onPlay, onReset }: Props) {
   const { zoomIn, zoomOut, fitView } = useReactFlow();
 
   if (!visible) {
@@ -84,8 +85,11 @@ export default function ZoomBar({ title, subtitle, dark, visible, onToggle, onTh
 
       {sep}
 
-      {/* Walkthrough play/pause (only when a guided walkthrough is present) */}
+      {/* Walkthrough controls (only when a guided walkthrough is present) */}
       {hasWalk && <>
+        <button style={btn} onClick={onReset} title="Restart walkthrough">
+          <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+        </button>
         <button style={playing ? { ...btn, borderColor: "#FF9900", color: "#FF9900", background: "rgba(255,153,0,0.1)" } : btn}
           onClick={onPlay} title={playing ? "Pause walkthrough" : "Play walkthrough"}>
           {playing
