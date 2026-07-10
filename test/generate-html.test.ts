@@ -72,4 +72,29 @@ describe('generateHtml — arch data wiring', () => {
   it('defaults groups to [] when omitted (implicit subnet derivation happens client-side)', () => {
     expect(archDataOf(generateHtml('T', '', services, connections, {})).groups).toEqual([]);
   });
+
+  it('falls back to the AWS4 shape when the display name is not in the service catalog', () => {
+    // "On-prem client"/"Local Gateway" are free text absent from SERVICE_ICONS,
+    // but their shapes (users/endpoint) must still resolve to a real icon so the
+    // node renders an image instead of a fallback initial.
+    const svc = [
+      { id: 'client', service: 'On-prem client', shape: 'users', category: 'general' },
+      { id: 'lgw', service: 'Local Gateway', shape: 'endpoint', category: 'networking' },
+    ];
+    const html = generateHtml('T', '', svc, [], {});
+    const d = archDataOf(html);
+    expect(d.services.find((s: any) => s.id === 'client').icon).toBe('Res_Users_48_Light.png');
+    expect(d.services.find((s: any) => s.id === 'lgw').icon).toBe('Res_Amazon-VPC_Endpoints_48.png');
+    // and both are inlined as data-URIs
+    const map = JSON.parse(html.match(/id="icon-data"[^>]*>([\s\S]*?)<\/script>/)![1]);
+    expect(map['Res_Users_48_Light.png']).toMatch(/^data:image\//);
+    expect(map['Res_Amazon-VPC_Endpoints_48.png']).toMatch(/^data:image\//);
+  });
+
+  it('prefers an explicit display-name match over the shape fallback', () => {
+    // Amazon S3 resolves by name even if a mismatched shape is provided.
+    const svc = [{ id: 's3', service: 'Amazon S3', shape: 'ec2', category: 'storage' }];
+    const d = archDataOf(generateHtml('T', '', svc, [], {}));
+    expect(d.services[0].icon).toMatch(/Simple-Storage-Service/);
+  });
 });
