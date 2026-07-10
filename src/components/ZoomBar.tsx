@@ -64,10 +64,10 @@ export default function ZoomBar({ title, subtitle, dark, visible, onToggle, onTh
       backdropFilter: "blur(12px)",
       boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
     }}>
-      {/* Title */}
-      <div style={{ marginRight: 12, minWidth: 0 }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: "var(--txt)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 220 }}>{title}</div>
-        {subtitle && <div style={{ fontSize: 10, color: "var(--txt-muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 220 }}>{subtitle}</div>}
+      {/* Title — wraps to 2 lines so long deck titles aren't truncated */}
+      <div style={{ marginRight: 12, minWidth: 0, maxWidth: 320 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: "var(--txt)", lineHeight: 1.2, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{title}</div>
+        {subtitle && <div style={{ fontSize: 10, color: "var(--txt-muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 320, marginTop: 2 }}>{subtitle}</div>}
       </div>
 
       {sep}

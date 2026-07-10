@@ -20,7 +20,7 @@ export function resolveGroupsAndMembership(
   const membership: Record<string, string> = {};
 
   if (declaredGroups && declaredGroups.length) {
-    const groups: GroupSpec[] = declaredGroups.map(g => ({ id: g.id, label: g.label || g.id, parent: g.parent, variant: g.variant }));
+    const groups: GroupSpec[] = declaredGroups.map(g => ({ id: g.id, label: g.label || g.id, parent: g.parent, variant: g.variant, icon: (g as GroupSpec).icon }));
     const ids = new Set(groups.map(g => g.id));
     for (const s of services) {
       const p = s.parentId || s.group;

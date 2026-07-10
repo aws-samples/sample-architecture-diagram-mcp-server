@@ -79,5 +79,7 @@
   "internet_gateway": "Res_Amazon-VPC_Internet-Gateway_48.png",
   "nat_gateway": "Res_Amazon-VPC_NAT-Gateway_48.png",
   "customer_gateway": "Res_Amazon-VPC_Customer-Gateway_48.png",
-  "vpn_gateway": "Res_Amazon-VPC_VPN-Gateway_48.png"
+  "vpn_gateway": "Res_Amazon-VPC_VPN-Gateway_48.png",
+  "generic_application": "aws-icons/Business-Application_64.svg",
+  "generic": "aws-icons/Business-Application_64.svg"
 }

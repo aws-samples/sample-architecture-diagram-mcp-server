@@ -20,6 +20,7 @@ export interface GroupSpec {
   label: string;
   parent?: string;   // id of parent group → arbitrary-depth nesting
   variant?: string;  // see groupVariants
+  icon?: string;     // override the container header glyph (service icon ref, or "none")
 }
 
 /** Absolute polyline (ELK's ORTHOGONAL routing) keyed by edge id, in ROOT coords. */
@@ -140,7 +141,7 @@ export function elkLayout(
           id: gp.id,
           type: "group",
           position: { x: b.x, y: b.y },
-          data: { label: gp.label, variant: variantKey(gp.variant) },
+          data: { label: gp.label, variant: variantKey(gp.variant), icon: gp.icon },
           style: {
             width: b.w, height: b.h,
             border: `2px ${variant.dashed ? "dashed" : "solid"} ${variant.stroke}`,
@@ -288,7 +289,7 @@ export function compoundLayout(
       id: grp.id,
       type: "group",
       position: { x: gn.x - gn.width / 2 - pad, y: gn.y - gn.height / 2 - padTop },
-      data: { label: grp.label, variant: variantKey(grp.variant) },
+      data: { label: grp.label, variant: variantKey(grp.variant), icon: grp.icon },
       style: {
         width: gn.width + pad * 2,
         height: gn.height + pad + padTop,

@@ -1,10 +1,29 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
 import { memo } from "react";
-import { BaseEdge, getSmoothStepPath, type EdgeProps } from "@xyflow/react";
+import { BaseEdge, EdgeLabelRenderer, getSmoothStepPath, type EdgeProps } from "@xyflow/react";
 import { TONE_COLORS, type Tone } from "@/lib/tones";
 
 type Pt = { x: number; y: number };
+
+// Midpoint of the routed polyline (or the geometric center for a 2-point edge),
+// used to anchor the edge label pill along the actual path.
+function midpointOf(pts: Pt[] | undefined, fallback: Pt): Pt {
+  if (!pts || pts.length < 2) return fallback;
+  // walk the polyline to its half-length point so the pill sits on the line
+  let total = 0;
+  for (let i = 1; i < pts.length; i++) total += Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y);
+  let half = total / 2;
+  for (let i = 1; i < pts.length; i++) {
+    const seg = Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y);
+    if (half <= seg) {
+      const t = seg === 0 ? 0 : half / seg;
+      return { x: pts[i - 1].x + (pts[i].x - pts[i - 1].x) * t, y: pts[i - 1].y + (pts[i].y - pts[i - 1].y) * t };
+    }
+    half -= seg;
+  }
+  return pts[Math.floor(pts.length / 2)];
+}
 
 // Trace ELK's orthogonal routing (absolute points) as an SVG path with rounded
 // corners, so arrows follow the computed route instead of cutting across nodes.
@@ -61,6 +80,12 @@ function CustomEdge({ id, sourceX, sourceY, targetX, targetY, sourcePosition, ta
   const activeDash = tone === "severed" ? "10 6" : undefined;
   const showDot = (active && tone !== "severed") || !anyActive;
 
+  // Edge label pill: a small chip centered on the path (e.g. port/protocol like
+  // "5432", "HTTPS 443"). Rendered via EdgeLabelRenderer so it's HTML, not SVG.
+  const label = data?.label as string | undefined;
+  const mid = label ? midpointOf(routed, { x: (sourceX + targetX) / 2, y: (sourceY + targetY) / 2 }) : null;
+  const labelColor = active ? activeColor : ts.stroke;
+
   return (
     <>
       <BaseEdge
@@ -74,6 +99,32 @@ function CustomEdge({ id, sourceX, sourceY, targetX, targetY, sourcePosition, ta
         <circle r={active ? 6 : 4} fill={active ? activeColor : "#FF9900"} opacity={opacity}>
           <animateMotion dur={`${(active ? 1 : 1.5 + (idx % 5) * 0.16) / speed}s`} repeatCount="indefinite" path={edgePath} />
         </circle>
+      )}
+      {label && mid && (
+        <EdgeLabelRenderer>
+          <div
+            className="nodrag nopan"
+            style={{
+              position: "absolute",
+              transform: `translate(-50%, -50%) translate(${mid.x}px, ${mid.y}px)`,
+              pointerEvents: "none",
+              opacity,
+              padding: "1px 7px",
+              borderRadius: 999,
+              fontSize: 10,
+              fontWeight: 600,
+              lineHeight: 1.5,
+              whiteSpace: "nowrap",
+              color: labelColor,
+              background: "var(--surface, #fff)",
+              border: `1px solid ${labelColor}55`,
+              boxShadow: "0 1px 3px rgba(0,0,0,0.12)",
+              transition: "opacity .2s, color .2s, border-color .2s",
+            }}
+          >
+            {label}
+          </div>
+        </EdgeLabelRenderer>
       )}
     </>
   );

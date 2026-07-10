@@ -13,9 +13,17 @@ export function resolveIcon(ref?: string): string | null {
   return ref.includes('/') ? '/' + ref : '/icons/' + ref;
 }
 
-// SVGs under aws-icons/ are monochrome and recolored via the icon-filter CSS var
-// in dark mode; base64 data-URIs and Arch_*.png are full-color and must not be filtered.
+// Some icons are MONOCHROME (single dark glyph on transparent) — they vanish on
+// the dark canvas, so we recolor them to white via the icon-filter CSS var in
+// dark mode. Full-color icons must NOT be filtered. Unlike the deck's <Icon>
+// (which treats ALL Res_* as monochrome), the AWS Resource set here is mostly
+// FULL-COLOR (Res_Amazon-EC2_Instances = orange, Res_Amazon-VPC_NAT = purple),
+// so we only invert the genuinely monochrome refs:
+//   • aws-icons/*                line-art SVGs (navy glyph)
+//   • *_Light.(png|svg)          the light-background monochrome cut (e.g. Res_Users_48_Light)
 export function iconFilter(ref?: string): string {
-  if (ref && ref.startsWith('aws-icons/')) return 'var(--icon-filter, none)';
+  if (!ref) return 'none';
+  if (ref.startsWith('aws-icons/')) return 'var(--icon-filter, none)';
+  if (/_Light\.(png|svg)$/i.test(ref)) return 'var(--icon-filter, none)';
   return 'none';
 }

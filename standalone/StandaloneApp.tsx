@@ -8,6 +8,7 @@ import AwsNode from '@/components/AwsNode';
 import GroupNode from '@/components/GroupNode';
 import CustomEdge from '@/components/CustomEdge';
 import StepCard, { type WalkStep } from '@/components/StepCard';
+import NodeModal, { type NodeDetail } from '@/components/NodeModal';
 import ZoomBar from '@/components/ZoomBar';
 import { TONE_COLORS, type Tone } from '@/lib/tones';
 
@@ -51,8 +52,11 @@ export function StandaloneApp({ data }: Props) {
       id: s.id,
       type: 'aws',
       position: { x: 0, y: 0 },
-      data: { label: i(s.service, lang), icon: s.icon, sub: s.category, role: s.role },
+      data: { label: i(s.service, lang), icon: s.icon, sub: s.category, role: i(s.role, lang), config: s.config },
     })), [data, lang]);
+
+  // Node detail modal — opens when a diagram node is clicked.
+  const [detailNode, setDetailNode] = useState<NodeDetail | null>(null);
 
   const { groups, membership } = useMemo(() => {
     return resolveGroupsAndMembership(data.services || [], (data as any).groups);
@@ -71,7 +75,7 @@ export function StandaloneApp({ data }: Props) {
     const nt: Record<string, Tone> = {}, et: Record<string, Tone> = {}, gt: Record<string, Tone> = {};
     if (walkActive) {
       const step = walkSteps[Math.min(walkStep, walkSteps.length - 1)];
-      const tone = (step?.tone || 'survive') as Tone;
+      const tone = (step?.tone || 'accent') as Tone;
       for (const id of (step?.nodes || [])) nt[id] = tone;
       for (const id of (step?.edges || [])) et[id] = tone;
       for (const id of (step?.groups || [])) gt[id] = tone;
@@ -151,7 +155,7 @@ export function StandaloneApp({ data }: Props) {
     // group node: tint its border + glow when this step selects it.
     const gt = groupTone[n.id];
     if (gt) {
-      const gc = TONE_COLORS[gt] || TONE_COLORS.survive;
+      const gc = TONE_COLORS[gt] || TONE_COLORS.accent;
       return { ...n, hidden, style: { ...n.style, border: `2.5px solid ${gc}`, background: `${gc}14`, boxShadow: `0 0 0 3px ${gc}33` } };
     }
     return { ...n, hidden };
@@ -228,8 +232,8 @@ export function StandaloneApp({ data }: Props) {
     <div className={`awsdiagram-root ${theme}`} data-theme={theme} style={{ width: '100vw', height: '100vh' }}>
       <style>{`
         .awsdiagram-root { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
-        .awsdiagram-root.dark { --bg: #0f1117; --surface: #1a1d27; --node-bg: #1e2230; --node-border: rgba(255,255,255,0.08); --txt: #e2e8f0; --txt-muted: #94a3b8; --border: rgba(255,255,255,0.06); --icon-filter: brightness(0) invert(1); --card-bg: rgba(24,28,40,0.92); --dot: rgba(255,255,255,0.12); background: var(--bg); color: var(--txt); }
-        .awsdiagram-root.light { --bg: #f8fafc; --surface: #ffffff; --node-bg: #ffffff; --node-border: rgba(0,0,0,0.08); --txt: #1e293b; --txt-muted: #64748b; --border: rgba(0,0,0,0.06); --icon-filter: none; --card-bg: rgba(255,255,255,0.94); --dot: rgba(0,0,0,0.12); background: var(--bg); color: var(--txt); }
+        .awsdiagram-root.dark { --bg: #0f1117; --surface: #1a1d27; --node-bg: #1e2230; --node-border: rgba(255,255,255,0.08); --txt: #e2e8f0; --txt-muted: #94a3b8; --border: rgba(255,255,255,0.06); --icon-filter: brightness(0) invert(1); --card-bg: rgba(24,28,40,0.94); --dot: rgba(255,255,255,0.12); --chip-bg: rgba(148,163,184,0.14); background: var(--bg); color: var(--txt); }
+        .awsdiagram-root.light { --bg: #f8fafc; --surface: #ffffff; --node-bg: #ffffff; --node-border: rgba(0,0,0,0.08); --txt: #1e293b; --txt-muted: #64748b; --border: rgba(0,0,0,0.06); --icon-filter: none; --card-bg: rgba(255,255,255,0.96); --dot: rgba(0,0,0,0.12); --chip-bg: rgba(100,116,139,0.1); background: var(--bg); color: var(--txt); }
         .awsdiagram-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; border-bottom: 2px solid #FF9900; background: var(--surface); }
         .awsdiagram-header h1 { font-size: 14px; font-weight: 600; margin: 0; }
         .awsdiagram-header p { font-size: 11px; color: var(--txt-muted); margin: 2px 0 0; }
@@ -261,6 +265,10 @@ export function StandaloneApp({ data }: Props) {
           minZoom={0.2}
           maxZoom={3}
           nodesDraggable={true}
+          onNodeClick={(_e, n) => {
+            if (n.type !== 'aws') return;
+            setDetailNode({ id: n.id, label: String(n.data.label || n.id), icon: n.data.icon as string | undefined, category: n.data.sub as string | undefined, role: n.data.role as string | undefined, config: n.data.config as NodeDetail['config'] });
+          }}
         >
           <Background variant={BackgroundVariant.Dots} gap={20} size={1} color={dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.05)'} />
           <svg style={{ position: 'absolute', width: 0, height: 0 }}>
@@ -272,9 +280,19 @@ export function StandaloneApp({ data }: Props) {
           </svg>
         </ReactFlow>
 
-        {/* Guided walkthrough overlay card — floats over the canvas (left/right)
-            or flows above it (top), pinned per the active step's cardSide. */}
+        {/* Guided walkthrough overlay card — floats over the canvas (left/right),
+            flows above it (top), or covers the whole page as a centered modal
+            with a backdrop (full — good for an intro/overview beat). */}
         {walkActive && (() => {
+          if (cardSide === 'full') {
+            return (
+              <div style={{ position: 'absolute', inset: 0, zIndex: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 32, background: dark ? 'rgba(6,8,12,0.72)' : 'rgba(15,23,42,0.45)', backdropFilter: 'blur(6px)', pointerEvents: 'none' }}>
+                <div style={{ width: 'min(90%, 720px)' }}>
+                  <StepCard steps={walkSteps} activeStep={walkStep} />
+                </div>
+              </div>
+            );
+          }
           const posStyle: CSSProperties = cardSide === 'top'
             ? { top: 16, left: '50%', transform: 'translateX(-50%)', width: 'min(80%, 760px)' }
             : cardSide === 'left'
@@ -286,6 +304,8 @@ export function StandaloneApp({ data }: Props) {
             </div>
           );
         })()}
+
+        <NodeModal node={detailNode} onClose={() => setDetailNode(null)} />
 
         <ZoomBar title={i(data.title, lang) || 'Architecture'} subtitle={i(data.subtitle, lang)} dark={dark} visible={dockVisible} onToggle={() => setDockVisible(!dockVisible)} onTheme={() => setDark(!dark)} hasWalk={hasWalk} playing={playing} onPlay={togglePlay} onReset={resetWalk} />
 

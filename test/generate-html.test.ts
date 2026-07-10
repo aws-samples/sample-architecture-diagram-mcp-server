@@ -36,19 +36,10 @@ describe('generateHtml — arch data wiring', () => {
     expect(d.connections.find((c: any) => c.id === 'e2').type).toBe('event');
   });
 
-  it('passes ADR and Well-Architected through to the data', () => {
-    const adr = [{ title: 'X over Y', status: 'accepted', decision: 'use X' }];
-    const wa = { security: 'least privilege IAM' };
-    const d = archDataOf(generateHtml('T', '', services, connections, { adr, wellArchitected: wa }));
-    expect(d.adr).toHaveLength(1);
-    expect(d.adr[0].title).toBe('X over Y');
-    expect(d.wellArchitected.security).toMatch(/least privilege/i);
-  });
-
-  it('defaults adr to [] and wellArchitected to null when omitted', () => {
-    const d = archDataOf(generateHtml('T', '', services, connections, {}));
-    expect(d.adr).toEqual([]);
-    expect(d.wellArchitected).toBeNull();
+  it('does NOT emit adr / wellArchitected (their UI panels were removed — rationale lives in steps now)', () => {
+    const d = archDataOf(generateHtml('T', '', services, connections, { adr: [{ title: 'X' }], wellArchitected: { security: 'x' } }));
+    expect(d.adr).toBeUndefined();
+    expect(d.wellArchitected).toBeUndefined();
   });
 
   it('always inlines all group/container icons (incl. account, ASG, data center)', () => {
