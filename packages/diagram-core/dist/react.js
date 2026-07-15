@@ -498,15 +498,28 @@ import { Fragment as Fragment4, jsx as jsx5, jsxs as jsxs5 } from "react/jsx-run
 function mdInline(str) {
   if (typeof str !== "string") return str;
   const out = [];
-  const re = /(\*\*([^*]+)\*\*|`([^`]+)`|\*([^*]+)\*)/g;
+  const re = /(\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)|\*\*([^*]+)\*\*|`([^`]+)`|\*([^*]+)\*)/g;
   let last = 0, m, k = 0;
   while (m = re.exec(str)) {
     if (m.index > last) out.push(str.slice(last, m.index));
-    if (m[2] != null) out.push(/* @__PURE__ */ jsx5("strong", { className: "font-bold text-[color:var(--txt,#e2e8f0)]", children: m[2] }, k++));
-    else if (m[3] != null) out.push(
-      /* @__PURE__ */ jsx5("code", { className: "font-mono text-[0.92em] px-1 py-px rounded bg-[color:var(--chip-bg,rgba(148,163,184,0.16))] border border-[color:var(--border,rgba(255,255,255,0.12))]", children: m[3] }, k++)
+    if (m[2] != null && m[3] != null) out.push(
+      /* @__PURE__ */ jsx5(
+        "a",
+        {
+          href: m[3],
+          target: "_blank",
+          rel: "noopener noreferrer",
+          className: "underline decoration-dotted underline-offset-2 text-[color:var(--accent,#22c55e)] hover:opacity-80",
+          children: m[2]
+        },
+        k++
+      )
     );
-    else if (m[4] != null) out.push(/* @__PURE__ */ jsx5("em", { className: "italic", children: m[4] }, k++));
+    else if (m[4] != null) out.push(/* @__PURE__ */ jsx5("strong", { className: "font-bold text-[color:var(--txt,#e2e8f0)]", children: m[4] }, k++));
+    else if (m[5] != null) out.push(
+      /* @__PURE__ */ jsx5("code", { className: "font-mono text-[0.92em] px-1 py-px rounded bg-[color:var(--chip-bg,rgba(148,163,184,0.16))] border border-[color:var(--border,rgba(255,255,255,0.12))]", children: m[5] }, k++)
+    );
+    else if (m[6] != null) out.push(/* @__PURE__ */ jsx5("em", { className: "italic", children: m[6] }, k++));
     last = m.index + m[0].length;
   }
   if (last < str.length) out.push(str.slice(last));
@@ -550,15 +563,24 @@ function CodeBlock({ code, label, color }) {
     /* @__PURE__ */ jsx5("pre", { className: "m-0 px-3 py-2.5 text-[12px] leading-relaxed font-mono whitespace-pre overflow-x-auto text-[color:var(--txt,#e2e8f0)] bg-[color:var(--chip-bg,rgba(148,163,184,0.1))]", children: code })
   ] });
 }
-function CardShell({ color, full, children }) {
+function CardShell({ color, full, header, children }) {
+  const bodyPad = full ? "px-7 py-6" : "px-[22px] py-[18px]";
   return /* @__PURE__ */ jsxs5(
     "div",
     {
-      className: `relative rounded-2xl border text-[color:var(--txt,#e2e8f0)] overflow-hidden ${full ? "px-7 py-6 max-h-[82vh] overflow-y-auto" : "px-[22px] py-[18px]"}`,
+      className: "relative rounded-2xl border text-[color:var(--txt,#e2e8f0)] overflow-hidden flex flex-col max-h-[88vh]",
       style: { borderColor: `${color}59`, background: "var(--card-solid, var(--card-bg, #181c28))", boxShadow: `0 16px 40px ${color}2e, 0 4px 14px rgba(0,0,0,0.28)` },
       children: [
-        /* @__PURE__ */ jsx5("span", { className: "absolute top-0 left-0 right-0 h-1", style: { background: color }, "aria-hidden": true }),
-        children
+        /* @__PURE__ */ jsx5("span", { className: "absolute top-0 left-0 right-0 h-1 z-10", style: { background: color }, "aria-hidden": true }),
+        header && /* @__PURE__ */ jsx5(
+          "div",
+          {
+            className: "shrink-0 px-4 pt-3 pb-2.5 border-b",
+            style: { borderColor: `${color}33`, background: `${color}0f` },
+            children: header
+          }
+        ),
+        /* @__PURE__ */ jsx5("div", { className: `${bodyPad} ${full ? "overflow-y-auto" : ""}`, children })
       ]
     }
   );
@@ -714,7 +736,7 @@ function resolveBullets(items, lang) {
   if (!items) return void 0;
   return items.map((b) => typeof b === "string" ? tr(b, lang) : { ...b, text: tr(b.text, lang), strong: b.strong != null ? tr(b.strong, lang) : void 0 });
 }
-function StepCard({ steps, activeStep, lang = "en", Icon: Icon2 }) {
+function StepCard({ steps, activeStep, lang = "en", Icon: Icon2, onPick }) {
   const idx = Math.min(Math.max(activeStep, 0), steps.length - 1);
   const step = steps[idx] || {};
   const tone = step.tone || "accent";
@@ -724,7 +746,63 @@ function StepCard({ steps, activeStep, lang = "en", Icon: Icon2 }) {
   const showBadge = badgeLabel !== false && badgeLabel !== "";
   const isFull = step.cardSide === "full";
   const chips = step.chips?.map((c) => ({ ...c, label: tr(c.label, lang) }));
-  return /* @__PURE__ */ jsx6(CardShell, { color, full: isFull, children: /* @__PURE__ */ jsx6(AnimatePresence, { mode: "wait", children: /* @__PURE__ */ jsxs6(
+  const flowRail = /* @__PURE__ */ jsxs6("div", { className: "flex items-center gap-2", style: { pointerEvents: "auto" }, children: [
+    /* @__PURE__ */ jsx6("div", { className: "flex items-center flex-wrap gap-y-1 flex-1 min-w-0", children: steps.map((s, i) => {
+      const c = resolveToneColor(s.tone, s.color);
+      const active = i === idx;
+      const done = i < idx;
+      const on = active || done;
+      const eyebrow = tr(s.eyebrow, lang);
+      return /* @__PURE__ */ jsxs6("div", { className: "flex items-center", children: [
+        i > 0 && /* @__PURE__ */ jsx6("span", { style: { width: 12, height: 2, borderRadius: 2, background: i <= idx ? c : "var(--border, rgba(148,163,184,0.3))", transition: "background .25s" } }),
+        /* @__PURE__ */ jsxs6(
+          "button",
+          {
+            type: "button",
+            onClick: onPick ? () => onPick(i) : void 0,
+            title: eyebrow || `${i + 1}`,
+            "aria-label": eyebrow || `${i + 1}`,
+            style: {
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              cursor: onPick ? "pointer" : "default",
+              height: 24,
+              padding: active ? "0 10px 0 3px" : 0,
+              minWidth: 24,
+              borderRadius: 999,
+              border: "none",
+              transition: "all .25s",
+              background: active ? c : "transparent"
+            },
+            children: [
+              /* @__PURE__ */ jsx6("span", { style: {
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+                width: 20,
+                height: 20,
+                borderRadius: "50%",
+                fontSize: 10.5,
+                fontWeight: 800,
+                border: on ? "none" : "1.5px solid var(--border, rgba(148,163,184,0.4))",
+                background: active ? "rgba(255,255,255,0.28)" : done ? c : "transparent",
+                color: active ? "#fff" : done ? "#fff" : "var(--txt-muted, #94a3b8)"
+              }, children: i + 1 }),
+              active && eyebrow && /* @__PURE__ */ jsx6("span", { style: { fontSize: 10.5, fontWeight: 800, color: "#fff", whiteSpace: "nowrap", textTransform: "uppercase", letterSpacing: 0.4 }, children: eyebrow.replace(/^\d+\s*·\s*/, "") })
+            ]
+          }
+        )
+      ] }, i);
+    }) }),
+    /* @__PURE__ */ jsxs6("span", { className: "font-mono text-[11px] shrink-0", style: { color: "var(--txt-muted, #94a3b8)" }, children: [
+      idx + 1,
+      "/",
+      steps.length
+    ] })
+  ] });
+  return /* @__PURE__ */ jsx6(CardShell, { color, full: isFull, header: flowRail, children: /* @__PURE__ */ jsx6(AnimatePresence, { mode: "wait", children: /* @__PURE__ */ jsxs6(
     motion.div,
     {
       initial: { opacity: 0, y: 6 },
@@ -737,7 +815,7 @@ function StepCard({ steps, activeStep, lang = "en", Icon: Icon2 }) {
           meta.glyph && /* @__PURE__ */ jsx6("span", { children: meta.glyph }),
           badgeLabel
         ] }),
-        /* @__PURE__ */ jsx6(CardHeader, { icon: step.icon, eyebrow: tr(step.eyebrow, lang), title: tr(step.title, lang), color, big: isFull, Icon: Icon2 }),
+        /* @__PURE__ */ jsx6(CardHeader, { icon: step.icon, title: tr(step.title, lang), color, big: isFull, Icon: Icon2 }),
         step.body && /* @__PURE__ */ jsx6(Body, { big: isFull, children: tr(step.body, lang) }),
         step.bullets && /* @__PURE__ */ jsx6(Bullets, { items: resolveBullets(step.bullets, lang), color, Icon: Icon2 }),
         step.process && /* @__PURE__ */ jsx6(NumberedSteps, { items: step.process.map((p) => typeof p === "string" ? { text: tr(p, lang) } : { ...p, label: tr(p.label, lang), text: tr(p.text, lang) }), color, Icon: Icon2 }),
@@ -810,9 +888,92 @@ function NodeModal({ node, onClose, Icon: Icon2, strings }) {
 
 // src/components/ZoomBar.jsx
 import { useReactFlow } from "@xyflow/react";
+import { useState as useState3, useEffect, useRef } from "react";
 import { Fragment as Fragment5, jsx as jsx8, jsxs as jsxs8 } from "react/jsx-runtime";
 var noopUi = (k) => k;
 var defLangLabel = (l) => (l || "").toUpperCase();
+function LangMenu({ lang, languages, onLang, langLabel, ui, btn, dark }) {
+  const [open, setOpen] = useState3(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    if (!open) return;
+    const close = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener("mousedown", close);
+    document.addEventListener("keydown", (e) => e.key === "Escape" && setOpen(false));
+    return () => document.removeEventListener("mousedown", close);
+  }, [open]);
+  return /* @__PURE__ */ jsxs8("div", { ref, style: { position: "relative" }, children: [
+    /* @__PURE__ */ jsxs8(
+      "button",
+      {
+        style: { ...btn, gap: 6 },
+        title: ui("language", lang),
+        onClick: () => setOpen((o) => !o),
+        "aria-haspopup": "listbox",
+        "aria-expanded": open,
+        children: [
+          /* @__PURE__ */ jsxs8("svg", { width: "15", height: "15", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: [
+            /* @__PURE__ */ jsx8("circle", { cx: "12", cy: "12", r: "9" }),
+            /* @__PURE__ */ jsx8("path", { d: "M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18" })
+          ] }),
+          /* @__PURE__ */ jsx8("span", { style: { fontSize: 11, fontWeight: 700 }, children: langLabel(lang) }),
+          /* @__PURE__ */ jsx8("svg", { width: "10", height: "10", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2.5", strokeLinecap: "round", strokeLinejoin: "round", style: { transform: open ? "rotate(180deg)" : "none", transition: "transform .15s" }, children: /* @__PURE__ */ jsx8("path", { d: "m6 9 6 6 6-6" }) })
+        ]
+      }
+    ),
+    open && /* @__PURE__ */ jsx8("div", { role: "listbox", style: {
+      position: "absolute",
+      bottom: "calc(100% + 8px)",
+      left: "50%",
+      transform: "translateX(-50%)",
+      minWidth: 140,
+      maxHeight: 260,
+      overflowY: "auto",
+      padding: 4,
+      background: dark ? "rgba(26,29,39,0.98)" : "rgba(255,255,255,0.98)",
+      border: "1px solid var(--border)",
+      borderRadius: 10,
+      backdropFilter: "blur(12px)",
+      boxShadow: "0 8px 28px rgba(0,0,0,0.35)",
+      zIndex: 40
+    }, children: languages.map((l) => {
+      const active = l === lang;
+      return /* @__PURE__ */ jsxs8(
+        "button",
+        {
+          role: "option",
+          "aria-selected": active,
+          onClick: () => {
+            onLang?.(l);
+            setOpen(false);
+          },
+          style: {
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            width: "100%",
+            textAlign: "left",
+            padding: "8px 10px",
+            border: "none",
+            borderRadius: 6,
+            cursor: "pointer",
+            fontSize: 13,
+            background: active ? "rgba(255,153,0,0.14)" : "transparent",
+            color: active ? "#FF9900" : "var(--txt)",
+            fontWeight: active ? 700 : 500
+          },
+          children: [
+            /* @__PURE__ */ jsx8("span", { style: { width: 16, display: "inline-flex", justifyContent: "center" }, children: active ? "\u2713" : "" }),
+            langLabel(l)
+          ]
+        },
+        l
+      );
+    }) })
+  ] });
+}
 function ZoomBar({
   title,
   subtitle,
@@ -945,15 +1106,7 @@ function ZoomBar({
       sep
     ] }),
     languages.length > 1 && /* @__PURE__ */ jsxs8(Fragment5, { children: [
-      /* @__PURE__ */ jsx8("div", { style: { display: "flex", gap: 2 }, title: ui("language", lang), children: languages.map((l) => /* @__PURE__ */ jsx8(
-        "button",
-        {
-          style: l === lang ? { ...btn, padding: "0 8px", borderColor: "#FF9900", color: "#FF9900", background: "rgba(255,153,0,0.1)", fontWeight: 700, fontSize: 11 } : { ...btn, padding: "0 8px", fontSize: 11 },
-          onClick: () => onLang?.(l),
-          children: langLabel(l)
-        },
-        l
-      )) }),
+      /* @__PURE__ */ jsx8(LangMenu, { lang, languages, onLang, langLabel, ui, btn, dark }),
       sep
     ] }),
     /* @__PURE__ */ jsx8("button", { style: btn, onClick: onTheme, title: ui("theme", lang), children: dark ? "\u2600" : "\u263E" }),
@@ -963,7 +1116,7 @@ function ZoomBar({
 }
 
 // src/components/LiveDiagram.jsx
-import { useMemo, useEffect, useState as useState3, useCallback } from "react";
+import { useMemo, useEffect as useEffect2, useState as useState4, useCallback } from "react";
 import {
   ReactFlow,
   ReactFlowProvider,
@@ -1077,12 +1230,12 @@ function DiagramCanvas({
       };
     });
   }, [data, direction, animate, straight, lang, markerId, edgeTuning]);
-  const [baseNodes, setBaseNodes] = useState3([]);
-  const [edgePaths, setEdgePaths] = useState3({});
+  const [baseNodes, setBaseNodes] = useState4([]);
+  const [edgePaths, setEdgePaths] = useState4({});
   const decorateBase = useCallback((nodes2) => nodes2.map(
     (n) => n.type === "group" ? { ...n, data: { ...n.data, id: n.id, label: tr(n.data?.label, lang), pill: n.data?.pill != null ? tr(n.data.pill, lang) : void 0, IconComponent: Icon2, scale: nodeLayout === "horizontal" ? "lg" : "sm", vars, collapsible: !!collapsible && n.data?.collapsible, onToggleCollapse: collapsible ? onToggleCollapse : void 0 } } : n
   ), [Icon2, nodeLayout, vars, lang, collapsible, onToggleCollapse]);
-  useEffect(() => {
+  useEffect2(() => {
     let alive = true;
     layoutWithFallback(serviceNodes, baseEdges, membership, {
       direction,
@@ -1134,19 +1287,21 @@ function DiagramCanvas({
     const hidden = endpointHidden || (visibleIds ? !active : false);
     return { ...e, hidden, data: { ...e.data, active, tone: edgeTone[e.id], anyActive, routed: edgePaths[e.id] } };
   }), [baseEdges, edgeTone, anyActive, edgePaths, visibleIds, presentIds]);
-  useEffect(() => {
+  useEffect2(() => {
     const t = setTimeout(() => fitView({ padding: fitPadding }), 60);
     return () => clearTimeout(t);
   }, [baseNodes, fitView, fitPadding, stepFocus ? activeStep : 0]);
-  useEffect(() => {
+  useEffect2(() => {
     if (!stepZoom || !anyActive) return;
     const step = steps?.[Math.min(activeStep, (steps?.length || 1) - 1)];
     const focusIds = step?.zoom || step?.nodes || [];
     const maxZoom = step?.maxZoom ?? 2.2;
     const laidOut = new Set(baseNodes.map((n) => n.id));
     const present = focusIds.filter((id) => laidOut.has(id));
+    const cardSide = step?.cardSide;
+    const sidePad = cardSide === "top" ? { top: "40%", bottom: "8%", left: "8%", right: "8%" } : cardSide === "left" ? { left: "38%", right: "6%", top: "10%", bottom: "10%" } : cardSide === "right" ? { right: "38%", left: "6%", top: "10%", bottom: "10%" } : 0.35;
     const t = setTimeout(() => {
-      if (present.length) fitView({ nodes: present.map((id) => ({ id })), padding: 0.35, duration: 700, maxZoom });
+      if (present.length) fitView({ nodes: present.map((id) => ({ id })), padding: sidePad, duration: 700, maxZoom });
       else fitView({ padding: fitPadding, duration: 700 });
     }, 120);
     return () => clearTimeout(t);
@@ -1183,79 +1338,11 @@ function DiagramCanvas({
     }
   );
 }
-function StepFlow({ steps, activeStep, dark, lang, onPick }) {
-  if (!Array.isArray(steps) || steps.length < 2) return null;
-  const cur = activeStep;
-  return /* @__PURE__ */ jsx9("div", { style: {
-    position: "absolute",
-    top: 16,
-    left: "50%",
-    transform: "translateX(-50%)",
-    zIndex: 28,
-    display: "flex",
-    alignItems: "center",
-    padding: "7px 12px",
-    background: dark ? "rgba(26,29,39,0.92)" : "rgba(255,255,255,0.94)",
-    border: "1px solid var(--border)",
-    borderRadius: 999,
-    backdropFilter: "blur(12px)",
-    boxShadow: "0 4px 18px rgba(0,0,0,0.22)",
-    maxWidth: "92vw",
-    overflowX: "auto"
-  }, children: steps.map((s, i) => {
-    const color = resolveToneColor(s.tone, s.color);
-    const active = i === cur;
-    const done = cur >= 0 && i < cur;
-    const on = active || done;
-    const eyebrow = tr(s.eyebrow, lang);
-    return /* @__PURE__ */ jsxs9("div", { style: { display: "flex", alignItems: "center" }, children: [
-      i > 0 && /* @__PURE__ */ jsx9("span", { style: { width: 16, height: 2, borderRadius: 2, background: cur >= 0 && i <= cur ? color : "var(--border)", transition: "background .25s" } }),
-      /* @__PURE__ */ jsxs9(
-        "button",
-        {
-          type: "button",
-          onClick: () => onPick(i),
-          title: eyebrow || `${i + 1}`,
-          style: {
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-            cursor: "pointer",
-            height: 26,
-            padding: active ? "0 11px 0 4px" : 0,
-            minWidth: 26,
-            borderRadius: 999,
-            border: "none",
-            transition: "all .25s",
-            background: active ? color : "transparent"
-          },
-          children: [
-            /* @__PURE__ */ jsx9("span", { style: {
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
-              width: 22,
-              height: 22,
-              borderRadius: "50%",
-              fontSize: 11,
-              fontWeight: 800,
-              border: on ? "none" : "1.5px solid var(--border)",
-              background: active ? "rgba(255,255,255,0.28)" : done ? color : "transparent",
-              color: active ? "#fff" : done ? "#fff" : "var(--txt-muted)"
-            }, children: i + 1 }),
-            active && eyebrow && /* @__PURE__ */ jsx9("span", { style: { fontSize: 11, fontWeight: 800, color: "#fff", whiteSpace: "nowrap", textTransform: "uppercase", letterSpacing: 0.4 }, children: eyebrow.replace(/^\d+\s*·\s*/, "") })
-          ]
-        }
-      )
-    ] }, i);
-  }) });
-}
-function StepOverlay({ steps, activeStep, lang, Icon: Icon2, stepLayout, dark }) {
+function StepOverlay({ steps, activeStep, lang, Icon: Icon2, stepLayout, dark, onPick }) {
   if (!(Array.isArray(steps) && steps.length > 0 && activeStep >= 0)) return null;
   const step = steps[Math.min(activeStep, steps.length - 1)] || {};
   const cardSide = step.cardSide || "right";
-  const card = /* @__PURE__ */ jsx9(StepCard, { steps, activeStep, lang, Icon: Icon2 });
+  const card = /* @__PURE__ */ jsx9(StepCard, { steps, activeStep, lang, Icon: Icon2, onPick });
   if (stepLayout === "drawer") {
     return /* @__PURE__ */ jsx9(
       motion3.div,
@@ -1281,9 +1368,9 @@ function StepOverlay({ steps, activeStep, lang, Icon: Icon2, stepLayout, dark })
     );
   }
   if (cardSide === "full") {
-    return /* @__PURE__ */ jsx9("div", { style: { position: "absolute", inset: 0, zIndex: 40, display: "flex", alignItems: "center", justifyContent: "center", padding: 32, background: dark ? "rgba(6,8,12,0.72)" : "rgba(15,23,42,0.45)", backdropFilter: "blur(6px)", pointerEvents: "none" }, children: /* @__PURE__ */ jsx9("div", { style: { width: "min(90%, 720px)" }, children: card }) });
+    return /* @__PURE__ */ jsx9("div", { style: { position: "absolute", inset: 0, zIndex: 40, display: "flex", alignItems: "center", justifyContent: "center", padding: 32, background: dark ? "rgba(6,8,12,0.72)" : "rgba(15,23,42,0.45)", backdropFilter: "blur(6px)", pointerEvents: "none" }, children: /* @__PURE__ */ jsx9("div", { style: { width: "min(92%, 860px)" }, children: card }) });
   }
-  const pos = cardSide === "top" ? { top: 16, left: "50%", transform: "translateX(-50%)", width: "min(80%, 760px)" } : cardSide === "left" ? { top: 16, left: 16, width: "min(34%, 420px)" } : { top: 16, right: 16, width: "min(34%, 420px)" };
+  const pos = cardSide === "top" ? { top: 16, left: "50%", transform: "translateX(-50%)", width: "min(88%, 900px)" } : cardSide === "left" ? { top: 16, left: 16, width: "min(40%, 520px)" } : { top: 16, right: 16, width: "min(40%, 520px)" };
   return /* @__PURE__ */ jsx9("div", { style: { position: "absolute", zIndex: 30, pointerEvents: "none", ...pos }, children: card });
 }
 function LiveDiagram({
@@ -1328,10 +1415,10 @@ function LiveDiagram({
   const hasWalk = Array.isArray(steps) && steps.length > 0;
   const costUrl = data?.costUrl || (hasWalk ? steps.find((s) => s?.costUrl)?.costUrl : void 0);
   const costLabel = data?.costLabel || (hasWalk ? steps.find((s) => s?.costUrl)?.costLabel : void 0);
-  const [internalStep, setInternalStep] = useState3(-1);
-  const [playing, setPlaying] = useState3(false);
+  const [internalStep, setInternalStep] = useState4(-1);
+  const [playing, setPlaying] = useState4(false);
   const step = control === "auto" ? internalStep : activeStep ?? -1;
-  const [collapsed, setCollapsed] = useState3(() => new Set(defaultCollapsed || []));
+  const [collapsed, setCollapsed] = useState4(() => new Set(defaultCollapsed || []));
   const onToggleCollapse = useCallback((gid) => {
     setCollapsed((prev) => {
       const next = new Set(prev);
@@ -1339,7 +1426,7 @@ function LiveDiagram({
       return next;
     });
   }, []);
-  useEffect(() => {
+  useEffect2(() => {
     if (control !== "auto" || !hasWalk) return;
     const onKey = (e) => {
       if (e.key === "ArrowRight" || e.key === " " || e.key === "PageDown") {
@@ -1364,7 +1451,7 @@ function LiveDiagram({
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [control, hasWalk, steps]);
-  useEffect(() => {
+  useEffect2(() => {
     if (control !== "auto" || !playing || !hasWalk) return;
     if (internalStep >= steps.length - 1) {
       const d = setTimeout(() => setPlaying(false), 2600);
@@ -1373,10 +1460,10 @@ function LiveDiagram({
     const id = setTimeout(() => setInternalStep((s) => Math.min(s + 1, steps.length - 1)), 2600);
     return () => clearTimeout(id);
   }, [control, playing, hasWalk, internalStep, steps]);
-  const [selfDark, setSelfDark] = useState3(false);
+  const [selfDark, setSelfDark] = useState4(false);
   const themeClass = theme === "self" ? selfDark ? "dark" : "light" : "";
-  const [detailNode, setDetailNode] = useState3(null);
-  const [dockVisible, setDockVisible] = useState3(true);
+  const [detailNode, setDetailNode] = useState4(null);
+  const [dockVisible, setDockVisible] = useState4(true);
   const cardSide = hasWalk && step >= 0 ? steps[Math.min(step, steps.length - 1)]?.cardSide : null;
   const effectiveStepLayout = cardSide === "full" ? "overlay" : stepLayout;
   return /* @__PURE__ */ jsx9(ReactFlowProvider, { children: /* @__PURE__ */ jsxs9("div", { className: `ld-frame ${themeClass} ${className}`.trim(), style: { width: "100%", height: "100%", position: "relative" }, children: [
@@ -1417,20 +1504,11 @@ function LiveDiagram({
         lang,
         Icon: Icon2,
         stepLayout: effectiveStepLayout,
-        dark: theme === "self" ? selfDark : false
-      }
-    ),
-    chrome && hasWalk && control === "auto" && dockVisible && step >= 0 && /* @__PURE__ */ jsx9(
-      StepFlow,
-      {
-        steps,
-        activeStep: step,
-        dark: selfDark,
-        lang,
-        onPick: (i) => {
+        dark: theme === "self" ? selfDark : false,
+        onPick: chrome && control === "auto" ? (i) => {
           setPlaying(false);
           setInternalStep(i);
-        }
+        } : void 0
       }
     ),
     chrome && /* @__PURE__ */ jsxs9(Fragment6, { children: [

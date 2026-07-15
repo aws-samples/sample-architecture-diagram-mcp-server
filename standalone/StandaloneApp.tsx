@@ -11,9 +11,10 @@
 //   • the '--*' CSS var namespace + light/dark theme it owns itself (chrome=true,
 //     theme='self' → the ZoomBar dock drives play/zoom/theme/language);
 //   • the UI-chrome i18n table (ui / LANG_LABEL) for the dock + node modal.
+import { useState } from 'react';
 import { LiveDiagram } from '@aws-live-diagram/core/react';
 import { HORIZONTAL_GEOMETRY } from '@aws-live-diagram/core';
-import { ui, LANG_LABEL } from '@/lib/i18n';
+import { makeUi, makeLangLabel } from '@/lib/i18n';
 import { McpIcon } from './McpIcon';
 
 interface Props {
@@ -26,6 +27,8 @@ interface Props {
     direction?: string;
     lang?: string;
     languages?: string[];
+    uiStrings?: Record<string, Record<string, string>>;
+    langLabels?: Record<string, string>;
     steps?: any[];
     stepFocus?: boolean;
     stepZoom?: boolean;
@@ -57,12 +60,22 @@ const CHROME_STYLE = `
 `;
 
 export function StandaloneApp({ data }: Props) {
+  // The language switch is host-driven: LiveDiagram renders the EN/PT buttons but
+  // delegates the active language to the host via lang + onLangChange, so we hold
+  // it in state here and re-render the whole diagram in the picked language.
+  const [lang, setLang] = useState(data.lang || 'en');
+  // Chrome i18n resolvers, layering any author-supplied overrides over the
+  // built-in en/pt/es table — so a diagram authored in any language (ja, fr, …)
+  // can fully localize the toolbar/modal, not just its content.
+  const uiResolver = makeUi(data.uiStrings as any);
+  const langLabel = makeLangLabel(data.langLabels);
   return (
     <>
       <style>{CHROME_STYLE}</style>
       <LiveDiagram
         data={data}
-        lang={data.lang || 'en'}
+        lang={lang}
+        onLangChange={setLang}
         languages={data.languages || []}
         direction={(data.direction as any) || 'LR'}
         steps={data.steps}
@@ -84,8 +97,8 @@ export function StandaloneApp({ data }: Props) {
         zoomOnScroll
         collapsible={(data as any).collapsible !== false}
         defaultCollapsed={(data as any).defaultCollapsed || []}
-        ui={ui}
-        langLabel={(l: string) => LANG_LABEL[l] || l.toUpperCase()}
+        ui={uiResolver}
+        langLabel={langLabel}
       />
     </>
   );

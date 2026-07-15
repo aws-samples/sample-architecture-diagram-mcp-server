@@ -37,11 +37,31 @@ const UI: Record<UIKey, Record<string, string>> = {
   language:     { en: "Language",            pt: "Idioma",            es: "Idioma" },
 };
 
-/** Native display name for a language chip. */
+/** Native display name for a language chip (built-ins; any other code upper-cases). */
 export const LANG_LABEL: Record<string, string> = { en: "EN", pt: "PT", es: "ES", fr: "FR", de: "DE" };
 
-/** Look up a fixed UI-chrome string for the active language (English fallback). */
+// Author-supplied chrome overrides let ANY language be fully localized, not just
+// the en/pt/es baked in above: e.g. uiStrings = { cost: { ja: "料金見積もり" }, … }.
+// Resolution order per (key, lang): author override → built-in table → English.
+export type UIStrings = Partial<Record<UIKey, Record<string, string>>>;
+
+/** Build a `ui(key, lang)` resolver, layering author overrides over the built-ins. */
+export function makeUi(overrides?: UIStrings): (key: UIKey, lang: Lang) => string {
+  return (key, lang) => {
+    const o = overrides?.[key];
+    if (o && o[lang] != null) return o[lang];
+    const row = UI[key];
+    return row[lang] ?? row.en;
+  };
+}
+
+/** Default resolver (no author overrides) — built-in table with English fallback. */
 export function ui(key: UIKey, lang: Lang): string {
   const row = UI[key];
   return row[lang] ?? row.en;
+}
+
+/** Build a language-label resolver: author `langLabels` → built-in → UPPERCASE. */
+export function makeLangLabel(labels?: Record<string, string>): (l: string) => string {
+  return (l) => labels?.[l] ?? LANG_LABEL[l] ?? (l || "").toUpperCase();
 }

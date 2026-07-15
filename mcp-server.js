@@ -125,7 +125,9 @@ server.tool(
     groups: z.array(groupSchema).optional().describe("Explicit containers for arbitrary topologies. When omitted, a single AWS Cloud → VPC → public/private subnet tree is derived from each service's `subnet`."),
     direction: z.enum(["LR", "TB"]).optional().describe("Layout flow direction: LR (left→right, default) or TB (top→bottom)."),
     lang: z.string().optional().describe("Language the content is authored in (ISO 639-1, e.g. 'en', 'pt', 'es'). Default 'en'. The UI chrome (modal headings, tooltips) adapts to it."),
-    languages: z.array(z.string()).optional().describe("Offer a language switch in the toolbar. List every language you provide text for (e.g. ['en','pt']). When set with >1 entry, ALL author text fields (title, subtitle, service/role, group label, step title/eyebrow/body/badge, bullets, chips, sections) may be a per-language map { en: '…', pt: '…' } instead of a plain string, and the toolbar lets the viewer switch. Omit for single-language diagrams."),
+    languages: z.array(z.string()).optional().describe("Offer a language switch in the toolbar. List every language you provide text for — ANY ISO 639-1 code works, not just en/pt (e.g. ['en','es','ja','fr']). When set with >1 entry, ALL author text fields (title, subtitle, service/role, group label, step title/eyebrow/body/badge, bullets, chips, sections) may be a per-language map { en: '…', ja: '…' } instead of a plain string, and the toolbar lets the viewer switch. Omit for single-language diagrams."),
+    uiStrings: z.record(z.record(z.string())).optional().describe("Localize the built-in UI chrome (toolbar tooltips + node-modal headings) for languages beyond the built-in en/pt/es — keyed by UI key then language, e.g. { cost: { ja: '料金見積もり' }, restart: { ja: 'ウォークスルーを再開' } }. Keys: iac, pricing, architecture, restart, play, pause, theme, collapse, expand, language, cost. Omitted (key,lang) falls back to the built-in table, then English."),
+    langLabels: z.record(z.string()).optional().describe("Display label per language for its toolbar switch button, e.g. { en: 'EN', ja: '日本語', 'zh-CN': '中文' }. Defaults to a built-in for en/pt/es/fr/de, else the uppercased code."),
     steps: z.array(stepSchema).optional().describe("Guided walkthrough beats. Arrow keys / the dock's play button step through them; each shows an overlay card and can tint+zoom a subset of the diagram."),
     stepZoom: z.boolean().optional().describe("When steps are present, glide the camera onto each beat's `zoom` (or `nodes`). Default off."),
     stepFocus: z.boolean().optional().describe("When steps are present, hide non-active nodes each beat to isolate it. Default off (dim instead of hide)."),
@@ -135,8 +137,8 @@ server.tool(
     costUrl: z.string().optional().describe("If set, the toolbar dock shows a 'Cost estimate' button that opens this URL in a new tab (e.g. an AWS Pricing Calculator estimate)."),
     costLabel: z.string().optional().describe("Label for the cost button (default: localized 'Cost estimate')."),
   },
-  async ({ title, subtitle, outputPath, services, connections, groups, direction, steps, stepZoom, stepFocus, lang, languages, flowDots, collapsible, defaultCollapsed, costUrl, costLabel }) => {
-    const html = generateHtml(title, subtitle || "", services, connections, { groups, direction, steps, stepZoom, stepFocus, lang, languages, flowDots, collapsible, defaultCollapsed, costUrl, costLabel });
+  async ({ title, subtitle, outputPath, services, connections, groups, direction, steps, stepZoom, stepFocus, lang, languages, uiStrings, langLabels, flowDots, collapsible, defaultCollapsed, costUrl, costLabel }) => {
+    const html = generateHtml(title, subtitle || "", services, connections, { groups, direction, steps, stepZoom, stepFocus, lang, languages, uiStrings, langLabels, flowDots, collapsible, defaultCollapsed, costUrl, costLabel });
     writeFileSync(outputPath, html, "utf-8");
     const extras = [groups?.length ? `${groups.length} group(s)` : null, steps?.length ? `${steps.length}-step walkthrough` : null].filter(Boolean);
     return { content: [{ type: "text", text: `Interactive diagram saved: ${outputPath}${extras.length ? "\nIncluded: " + extras.join(", ") : ""}\nOpen in browser for animated data flow visualization.${iconWarning(services)}` }] };
@@ -433,10 +435,10 @@ const draftSummary = (id, d) => `draft ${id}: ${d.services.length} service(s), $
 
 server.tool("diagram_create",
   "Start an incremental diagram draft. Returns a draftId; feed it to diagram_add_services / diagram_add_connections / diagram_add_groups / diagram_add_steps in any order, then diagram_render to write the HTML. Use this when building a diagram in stages; use generate_html_diagram for a single-shot build.",
-  { title: z.string(), subtitle: z.string().optional(), direction: z.enum(["LR", "TB"]).optional(), stepZoom: z.boolean().optional(), stepFocus: z.boolean().optional(), flowDots: z.boolean().optional().describe("Animate a dot travelling along each connection. Default true. Set false for a static, print-friendly look."), lang: z.string().optional(), languages: z.array(z.string()).optional().describe("Offer a toolbar language switch; when >1, author text fields may be per-language maps { en, pt, … }."), costUrl: z.string().optional().describe("If set, the toolbar shows a 'Cost estimate' button opening this URL (e.g. AWS Pricing Calculator)."), costLabel: z.string().optional().describe("Label for the cost button.") },
-  async ({ title, subtitle, direction, stepZoom, stepFocus, flowDots, lang, languages, costUrl, costLabel }) => {
+  { title: z.string(), subtitle: z.string().optional(), direction: z.enum(["LR", "TB"]).optional(), stepZoom: z.boolean().optional(), stepFocus: z.boolean().optional(), flowDots: z.boolean().optional().describe("Animate a dot travelling along each connection. Default true. Set false for a static, print-friendly look."), lang: z.string().optional(), languages: z.array(z.string()).optional().describe("Offer a toolbar language switch; ANY language works (en, es, ja, …). When >1, author text fields may be per-language maps { en, ja, … }."), uiStrings: z.record(z.record(z.string())).optional().describe("Localize the UI chrome (tooltips/modal headings) for languages beyond built-in en/pt/es: { <uiKey>: { <lang>: text } }. Keys: iac, pricing, architecture, restart, play, pause, theme, collapse, expand, language, cost."), langLabels: z.record(z.string()).optional().describe("Toolbar switch label per language, e.g. { ja: '日本語' }."), costUrl: z.string().optional().describe("If set, the toolbar shows a 'Cost estimate' button opening this URL (e.g. AWS Pricing Calculator)."), costLabel: z.string().optional().describe("Label for the cost button.") },
+  async ({ title, subtitle, direction, stepZoom, stepFocus, flowDots, lang, languages, uiStrings, langLabels, costUrl, costLabel }) => {
     const id = `d${++draftSeq}`;
-    drafts.set(id, { title, subtitle: subtitle || "", direction: direction || "LR", services: [], connections: [], groups: [], steps: [], stepZoom: !!stepZoom, stepFocus: !!stepFocus, flowDots, lang, languages, costUrl, costLabel });
+    drafts.set(id, { title, subtitle: subtitle || "", direction: direction || "LR", services: [], connections: [], groups: [], steps: [], stepZoom: !!stepZoom, stepFocus: !!stepFocus, flowDots, lang, languages, uiStrings, langLabels, costUrl, costLabel });
     return { content: [{ type: "text", text: `Created ${id}. Add pieces with diagram_add_* (draftId="${id}"), then diagram_render.` }] };
   }
 );
@@ -482,7 +484,7 @@ server.tool("diagram_render",
   { draftId: z.string(), outputPath: z.string(), keep: z.boolean().optional() },
   async ({ draftId, outputPath, keep }) => {
     const d = getDraft(draftId);
-    const html = generateHtml(d.title, d.subtitle, d.services, d.connections, { groups: d.groups, direction: d.direction, steps: d.steps, stepZoom: d.stepZoom, stepFocus: d.stepFocus, flowDots: d.flowDots, lang: d.lang, languages: d.languages, costUrl: d.costUrl, costLabel: d.costLabel });
+    const html = generateHtml(d.title, d.subtitle, d.services, d.connections, { groups: d.groups, direction: d.direction, steps: d.steps, stepZoom: d.stepZoom, stepFocus: d.stepFocus, flowDots: d.flowDots, lang: d.lang, languages: d.languages, uiStrings: d.uiStrings, langLabels: d.langLabels, costUrl: d.costUrl, costLabel: d.costLabel });
     writeFileSync(outputPath, html, "utf-8");
     if (!keep) drafts.delete(draftId);
     return { content: [{ type: "text", text: `Rendered ${draftSummary(draftId, d)} → ${outputPath}${keep ? " (draft kept)" : " (draft cleared)"}${iconWarning(d.services)}` }] };

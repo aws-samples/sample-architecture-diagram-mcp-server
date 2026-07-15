@@ -29,11 +29,12 @@ declare function CustomEdge({ id, sourceX, sourceY, targetX, targetY, sourcePosi
     style: any;
 }): react.JSX.Element;
 
-declare function StepCard({ steps, activeStep, lang, Icon }: {
+declare function StepCard({ steps, activeStep, lang, Icon, onPick }: {
     steps: any;
     activeStep: any;
     lang?: string;
     Icon: any;
+    onPick: any;
 }): react.JSX.Element;
 
 declare function NodeModal({ node, onClose, Icon, strings }: {
@@ -70,9 +71,10 @@ declare function CodeBlock({ code, label, color }: {
     label: any;
     color: any;
 }): react.JSX.Element;
-declare function CardShell({ color, full, children }: {
+declare function CardShell({ color, full, header, children }: {
     color: any;
     full: any;
+    header: any;
     children: any;
 }): react.JSX.Element;
 declare function IconTile({ icon, color, size, Icon }: {

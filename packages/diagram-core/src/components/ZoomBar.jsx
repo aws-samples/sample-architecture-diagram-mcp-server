@@ -4,9 +4,62 @@
 // language switch, theme toggle, collapse. UI-chrome strings are injected via
 // `ui(key)` and `langLabel(code)` so the host owns the chrome i18n table.
 import { useReactFlow } from "@xyflow/react";
+import { useState, useEffect, useRef } from "react";
 
 const noopUi = (k) => k;
 const defLangLabel = (l) => (l || "").toUpperCase();
+
+// Language picker: a single button showing the active language that opens a popup
+// menu of all offered languages. Scales to any number of languages (a flat button
+// row does not), and keeps the dock compact.
+function LangMenu({ lang, languages, onLang, langLabel, ui, btn, dark }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    if (!open) return;
+    const close = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener("mousedown", close);
+    document.addEventListener("keydown", (e) => e.key === "Escape" && setOpen(false));
+    return () => document.removeEventListener("mousedown", close);
+  }, [open]);
+  return (
+    <div ref={ref} style={{ position: "relative" }}>
+      <button style={{ ...btn, gap: 6 }} title={ui("language", lang)} onClick={() => setOpen((o) => !o)}
+        aria-haspopup="listbox" aria-expanded={open}>
+        {/* globe glyph */}
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/></svg>
+        <span style={{ fontSize: 11, fontWeight: 700 }}>{langLabel(lang)}</span>
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform .15s" }}><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      {open && (
+        <div role="listbox" style={{
+          position: "absolute", bottom: "calc(100% + 8px)", left: "50%", transform: "translateX(-50%)",
+          minWidth: 140, maxHeight: 260, overflowY: "auto", padding: 4,
+          background: dark ? "rgba(26,29,39,0.98)" : "rgba(255,255,255,0.98)",
+          border: "1px solid var(--border)", borderRadius: 10, backdropFilter: "blur(12px)",
+          boxShadow: "0 8px 28px rgba(0,0,0,0.35)", zIndex: 40,
+        }}>
+          {languages.map((l) => {
+            const active = l === lang;
+            return (
+              <button key={l} role="option" aria-selected={active}
+                onClick={() => { onLang?.(l); setOpen(false); }}
+                style={{
+                  display: "flex", alignItems: "center", gap: 8, width: "100%", textAlign: "left",
+                  padding: "8px 10px", border: "none", borderRadius: 6, cursor: "pointer", fontSize: 13,
+                  background: active ? "rgba(255,153,0,0.14)" : "transparent",
+                  color: active ? "#FF9900" : "var(--txt)", fontWeight: active ? 700 : 500,
+                }}>
+                <span style={{ width: 16, display: "inline-flex", justifyContent: "center" }}>{active ? "✓" : ""}</span>
+                {langLabel(l)}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function ZoomBar({
   title, subtitle, dark, visible, onToggle, onTheme,
@@ -88,15 +141,7 @@ export default function ZoomBar({
         {sep}
       </>}
       {languages.length > 1 && <>
-        <div style={{ display: "flex", gap: 2 }} title={ui("language", lang)}>
-          {languages.map((l) => (
-            <button key={l}
-              style={l === lang ? { ...btn, padding: "0 8px", borderColor: "#FF9900", color: "#FF9900", background: "rgba(255,153,0,0.1)", fontWeight: 700, fontSize: 11 } : { ...btn, padding: "0 8px", fontSize: 11 }}
-              onClick={() => onLang?.(l)}>
-              {langLabel(l)}
-            </button>
-          ))}
-        </div>
+        <LangMenu lang={lang} languages={languages} onLang={onLang} langLabel={langLabel} ui={ui} btn={btn} dark={dark} />
         {sep}
       </>}
       <button style={btn} onClick={onTheme} title={ui("theme", lang)}>{dark ? "☀" : "☾"}</button>
