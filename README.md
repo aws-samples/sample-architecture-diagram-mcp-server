@@ -32,15 +32,19 @@ containers, and flip the theme, all offline:
 ## Features
 
 - **Interactive HTML diagram** (React Flow) — draggable nodes, animated edges,
-  dark/light theme, PT/EN, TB/LR/radial layout. Fully self-contained (icons inlined as
-  base64), so it works from `file://` and as an email attachment.
+  dark/light theme, any-language switch, LR/TB layout. Fully self-contained (icons
+  inlined as base64), so it works from `file://` and as an email attachment.
 - **Guided walkthrough** — define ordered *beats*; arrow keys or the dock's play
   button step through them. Each beat shows an overlay card (title, rich-markdown
-  body, bullets, status chips, code snippets) and tints + optionally zooms/isolates
-  a subset of the diagram, so a single HTML file both *is* the diagram and *narrates* it.
-- **Bilingual / multi-language** — pass `languages: ['en','pt', …]` and author any
-  text field as a `{ en, pt }` map; the toolbar shows a language switch and the whole
-  diagram (labels, roles, walkthrough) re-renders in place.
+  body, bullets, status chips, code snippets) whose position you pick per beat via
+  `cardSide` (`right` default, `left`, `top`, or `full` centered modal), and tints —
+  and optionally zooms (`stepZoom`) or isolates (`stepFocus`) — a subset of the diagram.
+  Effects are opt-in per diagram, so a single HTML file both *is* the diagram and
+  *narrates* it. See [Guided walkthrough](#guided-walkthrough) for all knobs.
+- **Any language** — pass `languages: ['en','ja','fr', …]` and author any text field
+  as a `{ en, ja, … }` map; the toolbar shows a language dropdown and the whole diagram
+  (labels, roles, walkthrough) re-renders in place. Not limited to EN/PT — localize
+  the UI chrome for any language with `uiStrings` + `langLabels`.
 - **Cost estimate button** — pass `costUrl` to add a toolbar button linking to an
   AWS Pricing Calculator estimate (or any URL).
 - **Collapsible containers** — every group header has a fold toggle; collapse a VPC
@@ -204,6 +208,44 @@ Everything beyond `id`/`service`/`category` is optional:
   be a `{ en, pt, … }` map instead of a plain string.
 - **`costUrl` / `costLabel`** — add a toolbar button linking to a cost estimate.
 - **`collapsible` / `defaultCollapsed`** — fold/expand containers.
+
+## Guided walkthrough
+
+Pass a `steps` array to turn a static diagram into a narrated tour. Each *beat* is
+an object; the viewer advances with the arrow keys or the dock's play button.
+
+**Card position** — `cardSide` per beat controls where the overlay card sits:
+
+| `cardSide` | Where the card renders |
+|---|---|
+| `right` (default) | Docked to the right of the canvas |
+| `left` | Docked to the left |
+| `top` | Flows above the canvas |
+| `full` | Centered full-page modal over a dimmed backdrop — ideal for an intro/overview beat |
+
+**Effects** — opt-in, set once on the diagram (not per beat):
+
+| Field | Default | Effect |
+|---|---|---|
+| `stepZoom` | `false` | Glide the camera onto each beat's `zoom` (or its `nodes`) |
+| `stepFocus` | `false` | Hide non-active nodes each beat (isolate) instead of just dimming them |
+| `flowDots` | `true` | Animate a dot travelling along each edge; set `false` for a static, print-friendly look |
+
+**Per-beat highlighting** — `nodes` / `edges` / `groups` (ids to tint), `zoom`
+(ids to frame, needs `stepZoom`), `maxZoom`, and `tone` / `color` for the accent.
+Card content: `eyebrow`, `title`, `body` (markdown), `bullets`, `chips`, `code`,
+`process`, `sections`.
+
+```jsonc
+"stepZoom": true,
+"steps": [
+  { "cardSide": "full", "eyebrow": "Overview", "title": "Serverless API",
+    "body": "Edge → auth → compute → storage.", "badge": false },
+  { "cardSide": "right", "eyebrow": "1 · Compute", "title": "Process & persist",
+    "body": "**Lambda** writes to **DynamoDB**.",
+    "nodes": ["fn", "db"], "zoom": ["fn", "db"], "badge": false }
+]
+```
 
 ## Development
 
