@@ -20,7 +20,7 @@ framing each stage and an overlay card explaining the WHY:
 The same self-contained HTML is fully interactive — switch language, collapse
 containers, and flip the theme, all offline:
 
-| Language switch (EN ⇄ PT) | Collapsible containers | Light / dark theme |
+| Language switch (any language) | Collapsible containers | Light / dark theme |
 |:---:|:---:|:---:|
 | ![Language switch](docs/lang-switch.gif) | ![Collapsible containers](docs/collapse.gif) | ![Theme toggle](docs/theme.gif) |
 
@@ -53,27 +53,26 @@ containers, and flip the theme, all offline:
 - **Typed connections** — mark edges as `network` / `iam` / `event` / `data`;
   each renders with a distinct color and dash style. Nodes carry a `role`
   describing what they do (shown on click).
-- **Auto icon resolution** — 300+ AWS services mapped to official icons; the
+- **Auto icon resolution** — 350+ AWS services mapped to official icons; the
   agent just passes a service name (`"Amazon RDS"`), no icon path needed.
-- **PNG export** — one click, framed to fit, 2x resolution.
-- **draw.io export** — download an editable `.drawio` of the on-screen diagram
-  (native AWS4 shapes), straight from the HTML.
+- **`.drawio` output** — `auto_generate_diagram` writes a fully laid-out, editable
+  `.drawio` file (native AWS4 shapes); `export_diagram` converts it to PNG/SVG/PDF
+  (needs the `drawio` CLI).
 - **IaC handoff** — exports a structured spec + instruction so an agent can
   generate production IaC via the official AWS IaC MCP (no re-implementation).
 - **Pricing handoff** — exports a payload for the AWS Pricing Calculator MCP
   (`sample-aws-pricing-calculator-mcp`): per-service config + calculator keys. This
   server makes no pricing calls itself; the agent runs `create_estimate` /
   `add_service` in the calculator MCP, which needs no AWS credentials.
-- **draw.io output** — `auto_generate_diagram` writes a fully laid-out `.drawio`.
 
 ## AWS diagram guidelines
 
 The output follows the official AWS architecture diagram guidance:
 official icon set only, every node labeled, left-to-right / top-to-bottom flow,
-2pt lines on shapes and arrows, an editable source (`.drawio`), and process
-steps kept out of the canvas (shown in the flow panel/legend). For best results,
-label nodes with the canonical service name from the
-[AWS Offering Names Wiki](https://aws.amazon.com/architecture/icons/) on first
+and an editable source (`.drawio`). Process narration is kept off the canvas —
+it lives in the guided-walkthrough overlay cards, not as clutter on the diagram.
+For best results, label nodes with the canonical service name from the
+[AWS Architecture Icons](https://aws.amazon.com/architecture/icons/) set on first
 use, and re-download the icon set when AWS refreshes it (quarterly).
 
 ## Prerequisites
@@ -95,7 +94,7 @@ npm install
 ./scripts/fetch-icons.sh ~/Downloads/Asset-Package_*.zip
 ```
 
-This downloads ~750 official icons (services + group containers) into
+This downloads ~810 official icons (services + group containers) into
 `assets/icons/`. A handful of niche services map to category SVGs under
 `assets/aws-icons/` instead — drop your own SVGs there if you want custom icons.
 
@@ -172,11 +171,11 @@ shape.
   "subtitle": "Serverless API",
   "outputPath": "/tmp/my-app.html",
   "services": [
-    { "id": "api", "service": "Amazon API Gateway", "category": "networking",
+    { "id": "api", "service": "Amazon API Gateway", "shape": "api_gateway", "category": "networking",
       "role": "REST front door — routing, throttling, request validation" },
-    { "id": "fn",  "service": "AWS Lambda", "category": "compute", "subnet": "private",
+    { "id": "fn",  "service": "AWS Lambda", "shape": "lambda", "category": "compute", "subnet": "private",
       "role": "Handles CRUD operations", "config": { "iac": { "runtime": "nodejs22.x" } } },
-    { "id": "db",  "service": "Amazon DynamoDB", "category": "database", "subnet": "private",
+    { "id": "db",  "service": "Amazon DynamoDB", "shape": "dynamodb", "category": "database", "subnet": "private",
       "role": "Primary store — single-digit-ms reads", "config": { "pricing": { "writeUnits": 100 } } }
   ],
   "connections": [
@@ -194,20 +193,37 @@ shape.
 }
 ```
 
-Everything beyond `id`/`service`/`category` is optional:
+Each service needs `id`, `service`, `shape`, and `category`. Everything below is optional.
 
-- **`icon`** — auto-resolved from the service name (300+ mapped); pass it only to override.
+**Per service:**
+
+- **`icon`** — auto-resolved from the service name (350+ mapped); pass it only to override
+  (e.g. for a non-AWS component: `"icon": "tech-icons/whatsapp.svg"`).
+- **`label`** — friendly display name shown under the icon; keep `service` a clean,
+  icon-resolvable AWS name and put the custom name here.
 - **`role`** — what the component does (the WHY); shown when the node is clicked.
 - **`subnet: "public" | "private"`** — single-VPC placement shortcut. For arbitrary
   topologies use top-level `groups` + `parentId` (see [Containers & nesting](#containers--nesting)).
-- **`external: true`** — places third-party/on-prem actors outside the AWS Cloud boundary.
-- **connection `type`** — `network` / `iam` / `event` / `data`, each styled distinctly.
-- **`steps` (+ `stepZoom` / `stepFocus`)** — guided walkthrough beats; each tints and
-  optionally frames a subset of the diagram with an overlay card.
-- **`languages` + `lang`** — offer a toolbar language switch; any text field may then
-  be a `{ en, pt, … }` map instead of a plain string.
+- **`external: true`** (+ **`isApi`**) — place a third-party/on-prem actor outside the AWS Cloud boundary.
+- **`pill` / `pillOverlay`** — a short qualifier badge on the node (e.g. `"On-premises"`, `"GPU"`).
+- **`config.iac` / `config.pricing`** — key/value rows shown in the node's detail modal and
+  fed to the IaC / pricing handoffs (e.g. `{ "iac": { "runtime": "nodejs22.x" } }`).
+
+**Per connection:**
+
+- **`type`** — `network` / `iam` / `event` / `data`, each styled distinctly.
+- **`label`** — a short pill on the edge (e.g. `"HTTPS 443"`).
+- **`bidirectional`** — arrowheads at both ends (sync replication, peering, request/response).
+- **`dashed`** — force a dashed line.
+
+**Per diagram:**
+
+- **`steps` (+ `stepZoom` / `stepFocus`)** — guided walkthrough beats (see [Guided walkthrough](#guided-walkthrough)).
+- **`languages` + `lang`** (+ **`uiStrings`** / **`langLabels`**) — offer a toolbar language
+  switch; any text field may then be a `{ en, ja, … }` map instead of a plain string.
 - **`costUrl` / `costLabel`** — add a toolbar button linking to a cost estimate.
 - **`collapsible` / `defaultCollapsed`** — fold/expand containers.
+- **`direction`** — `LR` (default) or `TB` layout flow.
 
 ## Guided walkthrough
 

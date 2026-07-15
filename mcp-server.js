@@ -173,7 +173,7 @@ function findDrawioCli() {
 // Export tool
 server.tool(
   "export_diagram",
-  "Export a .drawio file to PNG/SVG/PDF. Requires the draw.io desktop CLI (optional dependency). Note: the generate_html_diagram diagram already exports PNG and .drawio from the browser without any CLI.",
+  "Export a .drawio file (from auto_generate_diagram / generate_diagram) to PNG/SVG/PDF. Requires the draw.io desktop CLI (optional dependency).",
   { inputPath: z.string(), outputPath: z.string(), format: z.enum(["png", "svg", "pdf"]).optional().default("png"), scale: z.number().optional().default(2) },
   async ({ inputPath, outputPath, format, scale }) => {
     if (!existsSync(inputPath)) {
