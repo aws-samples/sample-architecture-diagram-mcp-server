@@ -12,20 +12,24 @@
 import { useState } from "react";
 import { resolveVariant } from "../groupVariants.js";
 
-// Minimal inline-markdown renderer for card text: **bold**, `code`, *italic*.
-// Returns an array of React nodes; safe (no HTML injection — plain spans only).
+// Minimal inline-markdown renderer for card text: **bold**, `code`, *italic*,
+// and [label](https://url) links (open in a new tab; http/https only).
+// Returns an array of React nodes; safe (no HTML injection — plain spans/anchors only).
 // Keeps author text readable while allowing light emphasis and inline code.
 export function mdInline(str) {
   if (typeof str !== "string") return str;
   const out = [];
-  const re = /(\*\*([^*]+)\*\*|`([^`]+)`|\*([^*]+)\*)/g;
+  const re = /(\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)|\*\*([^*]+)\*\*|`([^`]+)`|\*([^*]+)\*)/g;
   let last = 0, m, k = 0;
   while ((m = re.exec(str))) {
     if (m.index > last) out.push(str.slice(last, m.index));
-    if (m[2] != null) out.push(<strong key={k++} className="font-bold text-[color:var(--txt,#e2e8f0)]">{m[2]}</strong>);
-    else if (m[3] != null) out.push(
-      <code key={k++} className="font-mono text-[0.92em] px-1 py-px rounded bg-[color:var(--chip-bg,rgba(148,163,184,0.16))] border border-[color:var(--border,rgba(255,255,255,0.12))]">{m[3]}</code>);
-    else if (m[4] != null) out.push(<em key={k++} className="italic">{m[4]}</em>);
+    if (m[2] != null && m[3] != null) out.push(
+      <a key={k++} href={m[3]} target="_blank" rel="noopener noreferrer"
+        className="underline decoration-dotted underline-offset-2 text-[color:var(--accent,#22c55e)] hover:opacity-80">{m[2]}</a>);
+    else if (m[4] != null) out.push(<strong key={k++} className="font-bold text-[color:var(--txt,#e2e8f0)]">{m[4]}</strong>);
+    else if (m[5] != null) out.push(
+      <code key={k++} className="font-mono text-[0.92em] px-1 py-px rounded bg-[color:var(--chip-bg,rgba(148,163,184,0.16))] border border-[color:var(--border,rgba(255,255,255,0.12))]">{m[5]}</code>);
+    else if (m[6] != null) out.push(<em key={k++} className="italic">{m[6]}</em>);
     last = m.index + m[0].length;
   }
   if (last < str.length) out.push(str.slice(last));
@@ -59,16 +63,29 @@ export function CodeBlock({ code, label, color }) {
   );
 }
 
-export function CardShell({ color, full, children }) {
+export function CardShell({ color, full, header, children }) {
+  // Optional `header` renders as a full-bleed band (its own surface + divider),
+  // OUTSIDE the body padding, so a step-flow rail reads as a distinct header
+  // strip. Body keeps the usual padding; when `full`, the body scrolls but the
+  // header stays pinned on top.
+  const bodyPad = full ? "px-7 py-6" : "px-[22px] py-[18px]";
   return (
     <div
-      className={`relative rounded-2xl border text-[color:var(--txt,#e2e8f0)] overflow-hidden ${full ? "px-7 py-6 max-h-[82vh] overflow-y-auto" : "px-[22px] py-[18px]"}`}
+      className="relative rounded-2xl border text-[color:var(--txt,#e2e8f0)] overflow-hidden flex flex-col max-h-[88vh]"
       // Fully opaque surface (no blur) so text never competes with the diagram
       // behind it; a thicker accent border + a top accent bar anchor the tone.
       style={{ borderColor: `${color}59`, background: "var(--card-solid, var(--card-bg, #181c28))", boxShadow: `0 16px 40px ${color}2e, 0 4px 14px rgba(0,0,0,0.28)` }}
     >
-      <span className="absolute top-0 left-0 right-0 h-1" style={{ background: color }} aria-hidden />
-      {children}
+      <span className="absolute top-0 left-0 right-0 h-1 z-10" style={{ background: color }} aria-hidden />
+      {header && (
+        <div className="shrink-0 px-4 pt-3 pb-2.5 border-b"
+          style={{ borderColor: `${color}33`, background: `${color}0f` }}>
+          {header}
+        </div>
+      )}
+      <div className={`${bodyPad} ${full ? "overflow-y-auto" : ""}`}>
+        {children}
+      </div>
     </div>
   );
 }

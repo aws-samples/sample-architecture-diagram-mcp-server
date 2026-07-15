@@ -16,7 +16,7 @@ function resolveBullets(items, lang) {
     : { ...b, text: tr(b.text, lang), strong: b.strong != null ? tr(b.strong, lang) : undefined });
 }
 
-export default function StepCard({ steps, activeStep, lang = "en", Icon }) {
+export default function StepCard({ steps, activeStep, lang = "en", Icon, onPick }) {
   const idx = Math.min(Math.max(activeStep, 0), steps.length - 1);
   const step = steps[idx] || {};
   const tone = step.tone || "accent";
@@ -29,10 +29,48 @@ export default function StepCard({ steps, activeStep, lang = "en", Icon }) {
   const isFull = step.cardSide === "full";
   const chips = step.chips?.map((c) => ({ ...c, label: tr(c.label, lang) }));
 
+  // Step-flow rail — same aesthetic as the (now-removed) external pill, but
+  // hosted in its own header band (see CardShell `header`): numbered circles
+  // joined by connectors, done beats filled, the active beat expands to show
+  // its eyebrow; a N/total counter sits at the right. The whole rail is the
+  // navigation (click a number to jump).
+  const flowRail = (
+    <div className="flex items-center gap-2" style={{ pointerEvents: "auto" }}>
+      <div className="flex items-center flex-wrap gap-y-1 flex-1 min-w-0">
+        {steps.map((s, i) => {
+          const c = resolveToneColor(s.tone, s.color);
+          const active = i === idx;
+          const done = i < idx;
+          const on = active || done;
+          const eyebrow = tr(s.eyebrow, lang);
+          return (
+            <div key={i} className="flex items-center">
+              {i > 0 && <span style={{ width: 12, height: 2, borderRadius: 2, background: i <= idx ? c : "var(--border, rgba(148,163,184,0.3))", transition: "background .25s" }} />}
+              <button type="button" onClick={onPick ? () => onPick(i) : undefined} title={eyebrow || `${i + 1}`} aria-label={eyebrow || `${i + 1}`}
+                style={{ display: "flex", alignItems: "center", gap: 6, cursor: onPick ? "pointer" : "default",
+                  height: 24, padding: active ? "0 10px 0 3px" : 0, minWidth: 24,
+                  borderRadius: 999, border: "none", transition: "all .25s", background: active ? c : "transparent" }}>
+                <span style={{ display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                  width: 20, height: 20, borderRadius: "50%", fontSize: 10.5, fontWeight: 800,
+                  border: on ? "none" : "1.5px solid var(--border, rgba(148,163,184,0.4))",
+                  background: active ? "rgba(255,255,255,0.28)" : done ? c : "transparent",
+                  color: active ? "#fff" : done ? "#fff" : "var(--txt-muted, #94a3b8)" }}>{i + 1}</span>
+                {active && eyebrow && (
+                  <span style={{ fontSize: 10.5, fontWeight: 800, color: "#fff", whiteSpace: "nowrap", textTransform: "uppercase", letterSpacing: 0.4 }}>
+                    {eyebrow.replace(/^\d+\s*·\s*/, "")}
+                  </span>
+                )}
+              </button>
+            </div>
+          );
+        })}
+      </div>
+      <span className="font-mono text-[11px] shrink-0" style={{ color: "var(--txt-muted, #94a3b8)" }}>{idx + 1}/{steps.length}</span>
+    </div>
+  );
+
   return (
-    <CardShell color={color} full={isFull}>
-      {/* Step indicator (progress rail + counter) intentionally omitted — the
-          external StepFlow rail already shows position/navigation. */}
+    <CardShell color={color} full={isFull} header={flowRail}>
       <AnimatePresence mode="wait">
         <motion.div key={idx}
           initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
@@ -44,7 +82,9 @@ export default function StepCard({ steps, activeStep, lang = "en", Icon }) {
             </span>
           )}
 
-          <CardHeader icon={step.icon} eyebrow={tr(step.eyebrow, lang)} title={tr(step.title, lang)} color={color} big={isFull} Icon={Icon} />
+          {/* eyebrow pill omitted here — the active beat in the header step-flow
+              rail already shows it; showing it twice was redundant. */}
+          <CardHeader icon={step.icon} title={tr(step.title, lang)} color={color} big={isFull} Icon={Icon} />
 
           {step.body && <Body big={isFull}>{tr(step.body, lang)}</Body>}
           {step.bullets && <Bullets items={resolveBullets(step.bullets, lang)} color={color} Icon={Icon} />}

@@ -167,8 +167,19 @@ function DiagramCanvas({
     const maxZoom = step?.maxZoom ?? 2.2;
     const laidOut = new Set(baseNodes.map(n => n.id));
     const present = focusIds.filter(id => laidOut.has(id));
+    // Reserve room for the overlay card so the zoomed nodes (and the animated
+    // flow between them) sit beside/below the card instead of under it. The card
+    // is pinned by cardSide; mirror it with asymmetric fit padding (xyflow 12
+    // accepts directional padding). Card layouts also carry an in-card step-flow
+    // rail, so the two elements read together.
+    const cardSide = step?.cardSide;
+    const sidePad = cardSide === "top"
+      ? { top: "40%", bottom: "8%", left: "8%", right: "8%" }
+      : cardSide === "left" ? { left: "38%", right: "6%", top: "10%", bottom: "10%" }
+      : cardSide === "right" ? { right: "38%", left: "6%", top: "10%", bottom: "10%" }
+      : 0.35;
     const t = setTimeout(() => {
-      if (present.length) fitView({ nodes: present.map(id => ({ id })), padding: 0.35, duration: 700, maxZoom });
+      if (present.length) fitView({ nodes: present.map(id => ({ id })), padding: sidePad, duration: 700, maxZoom });
       else fitView({ padding: fitPadding, duration: 700 });
     }, 120);
     return () => clearTimeout(t);
@@ -247,11 +258,11 @@ function StepFlow({ steps, activeStep, dark, lang, onPick }) {
 }
 
 // Overlay card positioning (drawer/panel/overlay/full) — wraps the shared StepCard.
-function StepOverlay({ steps, activeStep, lang, Icon, stepLayout, dark }) {
+function StepOverlay({ steps, activeStep, lang, Icon, stepLayout, dark, onPick }) {
   if (!(Array.isArray(steps) && steps.length > 0 && activeStep >= 0)) return null;
   const step = steps[Math.min(activeStep, steps.length - 1)] || {};
   const cardSide = step.cardSide || "right";
-  const card = <StepCard steps={steps} activeStep={activeStep} lang={lang} Icon={Icon} />;
+  const card = <StepCard steps={steps} activeStep={activeStep} lang={lang} Icon={Icon} onPick={onPick} />;
 
   if (stepLayout === "drawer") {
     return <motion.div initial={{ x: 40, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.3 }}
@@ -265,14 +276,14 @@ function StepOverlay({ steps, activeStep, lang, Icon, stepLayout, dark }) {
   if (cardSide === "full") {
     return (
       <div style={{ position: "absolute", inset: 0, zIndex: 40, display: "flex", alignItems: "center", justifyContent: "center", padding: 32, background: dark ? "rgba(6,8,12,0.72)" : "rgba(15,23,42,0.45)", backdropFilter: "blur(6px)", pointerEvents: "none" }}>
-        <div style={{ width: "min(90%, 720px)" }}>{card}</div>
+        <div style={{ width: "min(92%, 860px)" }}>{card}</div>
       </div>
     );
   }
   const pos = cardSide === "top"
-    ? { top: 16, left: "50%", transform: "translateX(-50%)", width: "min(80%, 760px)" }
-    : cardSide === "left" ? { top: 16, left: 16, width: "min(34%, 420px)" }
-    : { top: 16, right: 16, width: "min(34%, 420px)" };
+    ? { top: 16, left: "50%", transform: "translateX(-50%)", width: "min(88%, 900px)" }
+    : cardSide === "left" ? { top: 16, left: 16, width: "min(40%, 520px)" }
+    : { top: 16, right: 16, width: "min(40%, 520px)" };
   return <div style={{ position: "absolute", zIndex: 30, pointerEvents: "none", ...pos }}>{card}</div>;
 }
 
@@ -354,11 +365,10 @@ export function LiveDiagram({
           zoomOnScroll={zoomOnScroll}
         />
         <StepOverlay steps={steps} activeStep={step} lang={lang} Icon={Icon}
-          stepLayout={effectiveStepLayout} dark={theme === "self" ? selfDark : false} />
-        {chrome && hasWalk && control === "auto" && dockVisible && step >= 0 && (
-          <StepFlow steps={steps} activeStep={step} dark={selfDark} lang={lang}
-            onPick={(i) => { setPlaying(false); setInternalStep(i); }} />
-        )}
+          stepLayout={effectiveStepLayout} dark={theme === "self" ? selfDark : false}
+          onPick={chrome && control === "auto" ? (i) => { setPlaying(false); setInternalStep(i); } : undefined} />
+        {/* External StepFlow pill removed — the navigation rail now lives inside
+            the card (see StepCard), so the two elements read as one. */}
         {chrome && (
           <>
             {nodeModal && <NodeModal node={detailNode} onClose={() => setDetailNode(null)} Icon={Icon} strings={ui ? { iac: ui("iac", lang), pricing: ui("pricing", lang) } : undefined} />}
