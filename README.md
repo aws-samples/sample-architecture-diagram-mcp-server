@@ -15,7 +15,7 @@ It also generates `.drawio` files and produces handoff payloads for the official
 Guided walkthrough — step through the architecture beat by beat, with the camera
 framing each stage and an overlay card explaining the WHY:
 
-![Guided walkthrough](docs/walkthrough.png)
+![Guided walkthrough](docs/walkthrough.gif)
 
 > **Disclaimer:** Provided for illustration and documentation purposes, "as is"
 > without warranty. The diagrams and any IaC or pricing it helps produce are
