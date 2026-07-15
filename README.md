@@ -12,6 +12,11 @@ It also generates `.drawio` files and produces handoff payloads for the official
 
 ![Architecture diagram example](docs/example.png)
 
+Guided walkthrough — step through the architecture beat by beat, with the camera
+framing each stage and an overlay card explaining the WHY:
+
+![Guided walkthrough](docs/walkthrough.png)
+
 > **Disclaimer:** Provided for illustration and documentation purposes, "as is"
 > without warranty. The diagrams and any IaC or pricing it helps produce are
 > starting points — review, test, and harden them (security, cost, and
@@ -22,12 +27,18 @@ It also generates `.drawio` files and produces handoff payloads for the official
 - **Interactive HTML diagram** (React Flow) — draggable nodes, animated edges,
   dark/light theme, PT/EN, TB/LR/radial layout. Fully self-contained (icons inlined as
   base64), so it works from `file://` and as an email attachment.
-- **Flow execution** — define ordered steps; play/pause, step through, and
-  control speed (0.5x / 1x / 2x), with the active hop highlighted.
-- **Architecture rationale** — attach **ADRs** (Architectural Decision Records,
-  the AWS-adopted `context → decision → consequences` format) and **AWS
-  Well-Architected** pillar notes. Shown in a Decisions panel and woven into the
-  IaC handoff so the agent generates infra that honors the intent.
+- **Guided walkthrough** — define ordered *beats*; arrow keys or the dock's play
+  button step through them. Each beat shows an overlay card (title, rich-markdown
+  body, bullets, status chips, code snippets) and tints + optionally zooms/isolates
+  a subset of the diagram, so a single HTML file both *is* the diagram and *narrates* it.
+- **Bilingual / multi-language** — pass `languages: ['en','pt', …]` and author any
+  text field as a `{ en, pt }` map; the toolbar shows a language switch and the whole
+  diagram (labels, roles, walkthrough) re-renders in place.
+- **Cost estimate button** — pass `costUrl` to add a toolbar button linking to an
+  AWS Pricing Calculator estimate (or any URL).
+- **Collapsible containers** — every group header has a fold toggle; collapse a VPC
+  or account to a small box and the layout re-flows (start dense diagrams pre-collapsed
+  with `defaultCollapsed`).
 - **Typed connections** — mark edges as `network` / `iam` / `event` / `data`;
   each renders with a distinct color and dash style. Nodes carry a `role`
   describing what they do (shown on click).
@@ -121,7 +132,13 @@ contain `icons/`, and optionally `aws-icons/` and `tech-icons/`).
 
 | Tool | Purpose |
 |------|---------|
-| `generate_html_diagram` | Interactive self-contained HTML diagram (the main one) |
+| `generate_html_diagram` | Interactive self-contained HTML diagram in one call (the main one) |
+| `diagram_create` | Start an incremental draft; returns a `draftId` |
+| `diagram_add_services` | Append services (nodes) to a draft |
+| `diagram_add_connections` | Append connections (edges) to a draft |
+| `diagram_add_groups` | Append container groups to a draft |
+| `diagram_add_steps` | Append guided-walkthrough beats to a draft |
+| `diagram_render` | Render an incremental draft to a self-contained HTML file |
 | `auto_generate_diagram` | Fully auto-laid-out `.drawio` file |
 | `generate_diagram` | `.drawio` with manual x/y positioning |
 | `export_diagram` | Convert `.drawio` → PNG/SVG/PDF (needs `drawio` CLI) |
@@ -129,6 +146,12 @@ contain `icons/`, and optionally `aws-icons/` and `tech-icons/`).
 | `list_shapes` | AWS4 drawio shape names (for the `.drawio` path) |
 | `list_service_configs` | IaC + pricing config fields per service |
 | `export_pricing_json` | Extract an AWS Pricing Calculator MCP handoff payload from a diagram |
+
+For a diagram built up in stages (e.g. as an agent reasons through an
+architecture), use the **incremental builder**: `diagram_create` →
+`diagram_add_*` (in any order) → `diagram_render`. For a single-shot build, use
+`generate_html_diagram`. Both speak the exact same service/connection/group/step
+shape.
 
 ### Example: `generate_html_diagram`
 
@@ -149,43 +172,50 @@ contain `icons/`, and optionally `aws-icons/` and `tech-icons/`).
     { "id": "e1", "source": "api", "target": "fn", "type": "event", "label": "Invoke" },
     { "id": "e2", "source": "fn",  "target": "db", "type": "data",  "label": "Query" }
   ],
-  "adr": [
-    { "title": "DynamoDB over RDS", "status": "accepted",
-      "context": "Access patterns are key-value; traffic is spiky.",
-      "decision": "Use DynamoDB with on-demand billing.",
-      "consequences": "No joins, but infinite scale and pay-per-request cost." }
+  "steps": [
+    { "eyebrow": "1 · Compute + data", "title": "Process & persist",
+      "body": "**Lambda** validates the request and writes to **DynamoDB**.",
+      "nodes": ["fn", "db"], "zoom": ["fn", "db"], "badge": false }
   ],
-  "wellArchitected": {
-    "cost-optimization": "Pay-per-request DynamoDB, Lambda billed per ms — scales to zero.",
-    "security": "API Gateway request validation, least-privilege IAM."
-  }
+  "stepZoom": true,
+  "costUrl": "https://calculator.aws/#/estimate?id=…",
+  "costLabel": "Cost estimate"
 }
 ```
 
 Everything beyond `id`/`service`/`category` is optional:
 
 - **`icon`** — auto-resolved from the service name (300+ mapped); pass it only to override.
-- **`role`** — what the component does (the WHY); shown on click and in the IaC handoff.
+- **`role`** — what the component does (the WHY); shown when the node is clicked.
 - **`subnet: "public" | "private"`** — single-VPC placement shortcut. For arbitrary
   topologies use top-level `groups` + `parentId` (see [Containers & nesting](#containers--nesting)).
 - **`external: true`** — places third-party/on-prem actors outside the AWS Cloud boundary.
 - **connection `type`** — `network` / `iam` / `event` / `data`, each styled distinctly.
-- **`adr` + `wellArchitected`** — architecture rationale (AWS-adopted formats), shown in
-  the Decisions panel and woven into the IaC handoff.
+- **`steps` (+ `stepZoom` / `stepFocus`)** — guided walkthrough beats; each tints and
+  optionally frames a subset of the diagram with an overlay card.
+- **`languages` + `lang`** — offer a toolbar language switch; any text field may then
+  be a `{ en, pt, … }` map instead of a plain string.
+- **`costUrl` / `costLabel`** — add a toolbar button linking to a cost estimate.
+- **`collapsible` / `defaultCollapsed`** — fold/expand containers.
 
 ## Development
 
 ```bash
+npm run build:core         # build the shared @aws-live-diagram/core render package
 npm run build:standalone   # rebuild dist/index.html (the HTML template)
 npm test                    # run the vitest unit suite
 node mcp-server.js          # run the MCP server over stdio
 ```
 
-The standalone app lives in `standalone/` + `src/`; the MCP server and Node-side
-generators live in `mcp-server.js` + `lib/`. `lib/html-generator.js` injects the
-diagram data and base64-inlined icons into the built `dist/index.html`. Tests
-(`test/`) cover the pure generators — icon resolution, IaC/pricing handoff,
-draw.io XML, and service-config integrity.
+The repo is an npm workspace. The React render layer (nodes, edges, group
+containers, walkthrough cards, layout engine) lives in
+`packages/diagram-core` (`@aws-live-diagram/core`) and is shared by the standalone
+app in `standalone/` + `src/`. The MCP server and Node-side generators live in
+`mcp-server.js` + `lib/`; `lib/schemas.js` is the single source of truth for the
+input shape (imported by both the tools and the local example generators).
+`lib/html-generator.js` injects the diagram data and base64-inlined icons into
+the built `dist/index.html`. Tests (`test/`) cover the pure generators — icon
+resolution, IaC/pricing handoff, draw.io XML, and service-config integrity.
 
 ## Containers & nesting
 
