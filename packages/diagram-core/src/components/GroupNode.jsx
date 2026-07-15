@@ -74,6 +74,7 @@ function GroupNode({ data }) {
           padding: "3px 14px", borderRadius: 999,
           fontSize: pillSize, fontWeight: 800, letterSpacing: 0.3, lineHeight: 1.3,
           color: "#fff", background: g.stroke, boxShadow: `0 2px 8px ${g.stroke}66`, whiteSpace: "nowrap",
+          border: "1.5px solid rgba(255,255,255,0.5)",
         }}>{pill}</span>
       )}
       <div {...handlers}
@@ -86,7 +87,8 @@ function GroupNode({ data }) {
           <span style={{
             flexShrink: 0, padding: lg ? "3px 12px" : "3px 11px", borderRadius: 999,
             fontSize: pillSize, fontWeight: 700, letterSpacing: 0.3, lineHeight: 1.3,
-            color: g.stroke, background: `${g.stroke}1F`, border: `1.5px solid ${g.stroke}66`, whiteSpace: "nowrap",
+            // Solid variant fill + white text for strong contrast in light & dark.
+            color: "#fff", background: g.stroke, whiteSpace: "nowrap",
           }}>{pill}</span>
         )}
       </div>

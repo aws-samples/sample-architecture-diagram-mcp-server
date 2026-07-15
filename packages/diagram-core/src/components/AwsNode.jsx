@@ -62,13 +62,16 @@ function AwsNode({ data }) {
       padding: isH ? "3px 12px" : "3px 11px", borderRadius: 999,
       fontSize: isH ? 13 : 12, fontWeight: 800, letterSpacing: 0.3, lineHeight: 1.3,
       color: "#fff", background: color, boxShadow: `0 2px 8px ${color}66`, whiteSpace: "nowrap",
+      border: "1.5px solid rgba(255,255,255,0.5)",
     }}>{pill}</span>
   );
   const inlinePill = pill && !pillOverlay && (
     <span style={{
-      display: "inline-block", marginTop: 5, padding: isH ? "2px 9px" : "2px 9px", borderRadius: 999,
+      display: "inline-block", marginTop: 5, padding: isH ? "2px 10px" : "2px 10px", borderRadius: 999,
       fontSize: isH ? 12 : 11, fontWeight: 700, letterSpacing: 0.2, lineHeight: 1.4,
-      color, background: `${color}1F`, border: `1px solid ${color}66`, whiteSpace: "nowrap",
+      // Solid tone fill + white text — reads with strong contrast on both light
+      // and dark surfaces (the old translucent fill washed out on light themes).
+      color: "#fff", background: color, whiteSpace: "nowrap",
     }}>{pill}</span>
   );
   const labelEl = <div style={{ fontSize: isH ? 19 : 15, fontWeight: 700, color: `var(${vars.txt}, #1e293b)`, lineHeight: isH ? 1.2 : 1.25 }}>{label}</div>;

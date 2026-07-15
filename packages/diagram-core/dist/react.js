@@ -188,20 +188,22 @@ function AwsNode({ data }) {
     color: "#fff",
     background: color,
     boxShadow: `0 2px 8px ${color}66`,
-    whiteSpace: "nowrap"
+    whiteSpace: "nowrap",
+    border: "1.5px solid rgba(255,255,255,0.5)"
   }, children: pill });
   const inlinePill = pill && !pillOverlay && /* @__PURE__ */ jsx2("span", { style: {
     display: "inline-block",
     marginTop: 5,
-    padding: isH ? "2px 9px" : "2px 9px",
+    padding: isH ? "2px 10px" : "2px 10px",
     borderRadius: 999,
     fontSize: isH ? 12 : 11,
     fontWeight: 700,
     letterSpacing: 0.2,
     lineHeight: 1.4,
-    color,
-    background: `${color}1F`,
-    border: `1px solid ${color}66`,
+    // Solid tone fill + white text — reads with strong contrast on both light
+    // and dark surfaces (the old translucent fill washed out on light themes).
+    color: "#fff",
+    background: color,
     whiteSpace: "nowrap"
   }, children: pill });
   const labelEl = /* @__PURE__ */ jsx2("div", { style: { fontSize: isH ? 19 : 15, fontWeight: 700, color: `var(${vars.txt}, #1e293b)`, lineHeight: isH ? 1.2 : 1.25 }, children: label });
@@ -304,7 +306,8 @@ function GroupNode({ data }) {
       color: "#fff",
       background: g.stroke,
       boxShadow: `0 2px 8px ${g.stroke}66`,
-      whiteSpace: "nowrap"
+      whiteSpace: "nowrap",
+      border: "1.5px solid rgba(255,255,255,0.5)"
     }, children: pill }),
     /* @__PURE__ */ jsxs3(
       "div",
@@ -322,9 +325,9 @@ function GroupNode({ data }) {
             fontWeight: 700,
             letterSpacing: 0.3,
             lineHeight: 1.3,
-            color: g.stroke,
-            background: `${g.stroke}1F`,
-            border: `1.5px solid ${g.stroke}66`,
+            // Solid variant fill + white text for strong contrast in light & dark.
+            color: "#fff",
+            background: g.stroke,
             whiteSpace: "nowrap"
           }, children: pill })
         ]
