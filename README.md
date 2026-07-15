@@ -17,6 +17,13 @@ framing each stage and an overlay card explaining the WHY:
 
 ![Guided walkthrough](docs/walkthrough.gif)
 
+The same self-contained HTML is fully interactive — switch language, collapse
+containers, and flip the theme, all offline:
+
+| Language switch (EN ⇄ PT) | Collapsible containers | Light / dark theme |
+|:---:|:---:|:---:|
+| ![Language switch](docs/lang-switch.gif) | ![Collapsible containers](docs/collapse.gif) | ![Theme toggle](docs/theme.gif) |
+
 > **Disclaimer:** Provided for illustration and documentation purposes, "as is"
 > without warranty. The diagrams and any IaC or pricing it helps produce are
 > starting points — review, test, and harden them (security, cost, and
