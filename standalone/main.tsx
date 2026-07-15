@@ -1,8 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
 import { createRoot } from 'react-dom/client';
-import { ReactFlowProvider } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import './index.css';
 import { StandaloneApp } from './StandaloneApp';
 
 const dataEl = document.getElementById('arch-data');
@@ -19,8 +19,7 @@ try {
   (window as any).__ICONS__ = {};
 }
 
+// The core LiveDiagram wraps itself in a ReactFlowProvider.
 createRoot(document.getElementById('root')!).render(
-  <ReactFlowProvider>
-    <StandaloneApp data={archData} />
-  </ReactFlowProvider>
+  <StandaloneApp data={archData} />
 );

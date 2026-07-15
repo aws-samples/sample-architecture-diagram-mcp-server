@@ -2,11 +2,12 @@
 // SPDX-License-Identifier: MIT-0
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
 import { viteSingleFile } from 'vite-plugin-singlefile';
 import { resolve } from 'path';
 
 export default defineConfig({
-  plugins: [react(), viteSingleFile()],
+  plugins: [react(), tailwindcss(), viteSingleFile()],
   root: resolve(__dirname, 'standalone'),
   resolve: {
     alias: { '@': resolve(__dirname, 'src') },

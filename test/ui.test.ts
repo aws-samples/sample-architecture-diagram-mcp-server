@@ -23,7 +23,7 @@ describe('resolveIcon (browser)', () => {
   });
 
   it('applies the recolor filter only to monochrome aws-icons SVGs', () => {
-    expect(iconFilter('aws-icons/networking.svg')).toBe('var(--icon-filter, none)');
+    expect(iconFilter('aws-icons/user.svg')).toBe('var(--icon-filter, none)');
     expect(iconFilter('Arch_AWS-Lambda_48.png')).toBe('none');
   });
 });

@@ -28,8 +28,12 @@
   "engines": {
     "node": ">=18"
   },
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "build:standalone": "vite build --config vite.config.ts",
+    "build:core": "npm run build --workspace @aws-live-diagram/core",
     "fetch-icons": "./scripts/fetch-icons.sh",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -41,6 +45,7 @@
     "zod": "^3.25.67"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.3.2",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/dagre": "^0.7.52",
@@ -49,12 +54,15 @@
     "@vitejs/plugin-react": "^4.5.2",
     "@xyflow/react": "^12.10.2",
     "dagre": "^0.8.5",
+    "framer-motion": "^12.42.2",
     "highlight.js": "^11.11.1",
     "html-to-image": "^1.11.13",
     "jsdom": "^29.1.1",
     "lucide-react": "^1.7.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "tailwindcss": "^4.3.2",
+    "tsup": "^8.5.1",
     "typescript": "^5.8.3",
     "vite": "^6.3.5",
     "vite-plugin-singlefile": "^2.0.3",

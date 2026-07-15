@@ -1,0 +1,15 @@
+/* Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved. */
+/* SPDX-License-Identifier: MIT-0 */
+@import "tailwindcss";
+
+/* The overlay-card components (cardKit / StepCard / NodeModal) now live in the
+   shared @aws-live-diagram/core package. Tailwind v4 only auto-detects sources
+   under the Vite root (standalone/), so it never scans the core — its utility
+   classes would be dropped and the cards render unstyled. Point Tailwind at the
+   built core bundle (and the local standalone sources). */
+@source "../node_modules/@aws-live-diagram/core/dist";
+@source "./";
+
+/* Dark mode keys off the `.dark` class on the root (StandaloneApp toggles it),
+   not the OS media query — mirrors the deck so shared components behave the same. */
+@custom-variant dark (&:where(.dark, .dark *));

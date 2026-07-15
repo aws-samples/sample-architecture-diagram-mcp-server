@@ -1,0 +1,41 @@
+{
+  "name": "@aws-live-diagram/core",
+  "version": "1.0.0",
+  "description": "Framework-agnostic diagram vocabulary shared by the aws-live-diagram MCP and downstream renderers (slides): tone palette, group-container variants, group membership, layout primitives, the i18n text resolver, and (via ./react) the shared Icon/LiveDiagram React components.",
+  "license": "MIT-0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./layout-engine": {
+      "types": "./dist/layout-engine.d.ts",
+      "import": "./dist/layout-engine.js"
+    },
+    "./react": {
+      "types": "./dist/react.d.ts",
+      "import": "./dist/react.js"
+    }
+  },
+  "files": ["dist", "src"],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "framer-motion": ">=11",
+    "@xyflow/react": ">=12",
+    "elkjs": ">=0.9",
+    "dagre": ">=0.8"
+  },
+  "peerDependenciesMeta": {
+    "react": { "optional": true },
+    "framer-motion": { "optional": true },
+    "@xyflow/react": { "optional": true },
+    "elkjs": { "optional": true },
+    "dagre": { "optional": true }
+  }
+}

@@ -108,4 +108,23 @@ describe('generateHtml — arch data wiring', () => {
       expect(map[ref], `step/chip icon ${ref} not inlined`).toMatch(/^data:image\//);
     }
   });
+
+  it('threads lang/languages into the arch data (opt-in multi-language)', () => {
+    const d = archDataOf(generateHtml('T', '', services, connections, { lang: 'pt', languages: ['en', 'pt'] }));
+    expect(d.lang).toBe('pt');
+    expect(d.languages).toEqual(['en', 'pt']);
+  });
+
+  it('omits lang/languages when not provided (single-language default)', () => {
+    const d = archDataOf(generateHtml('T', '', services, connections, {}));
+    expect(d.lang).toBeUndefined();
+    expect(d.languages).toBeUndefined();
+  });
+
+  it('preserves per-language content maps verbatim for the client to resolve', () => {
+    const svc = [{ id: 'a', service: { en: 'User', pt: 'Usuário' }, shape: 'users', category: 'general' }];
+    const d = archDataOf(generateHtml({ en: 'Title', pt: 'Título' } as any, '', svc, [], { lang: 'en', languages: ['en', 'pt'] }));
+    expect(d.title).toEqual({ en: 'Title', pt: 'Título' });
+    expect(d.services[0].service).toEqual({ en: 'User', pt: 'Usuário' });
+  });
 });

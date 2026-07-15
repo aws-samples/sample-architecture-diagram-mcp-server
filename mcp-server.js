@@ -9,9 +9,23 @@ import { join } from "path";
 import { execFileSync } from "child_process";
 import { computeLayout } from "./lib/layout.js";
 import { generateDrawio } from "./lib/drawio-xml.js";
-import { generateHtml, SERVICE_ICONS, iconForService } from "./lib/html-generator.js";
+import { generateHtml, SERVICE_ICONS, iconForService, iconResolutionReport } from "./lib/html-generator.js";
 
 const server = new McpServer({ name: "sample-aws-architecture-diagram-mcp", version: "2.0.0" });
+
+// Build a model-facing note listing nodes that resolved to NO icon (bare initial).
+// Returned in the tool result so the model can fix them in a follow-up call —
+// icons are resolved from the `service` display name, so the fix is either a
+// canonical AWS name (query resolve_icon) or an explicit `icon` reference.
+function iconWarning(services) {
+  const unresolved = iconResolutionReport(services);
+  if (!unresolved.length) return "";
+  const lines = unresolved.map(u => `  • "${u.id}" (service: ${JSON.stringify(u.service)})`).join("\n");
+  return `\n\n⚠️ ${unresolved.length} node(s) had NO icon and render as a plain initial:\n${lines}\n`
+    + `To fix: give each a canonical AWS service name (call resolve_icon to confirm, e.g. "Amazon SageMaker", "NAT Gateway") `
+    + `or pass an explicit \`icon\` (e.g. "aws-icons/kiro.svg"). Keep your human-readable text in \`label\`/\`role\`, not \`service\`, `
+    + `since \`service\` is what drives icon resolution.`;
+}
 
 // v2.0: Full auto-layout — just pass services + connections, positions computed automatically
 server.tool(
@@ -94,89 +108,9 @@ server.tool(
   }
 );
 
-// A bullet is a plain string OR a styled object. Reused for step + section bullets.
-const bulletSchema = z.union([
-  z.string(),
-  z.object({
-    text: z.string().describe("Bullet body text."),
-    strong: z.string().optional().describe("Bold lead rendered before the text (e.g. a term being defined). If omitted, a 'Lead — rest' / 'Lead: rest' prefix in `text` is auto-bolded."),
-    color: z.string().optional().describe("Hex colour for this bullet's marker + lead (overrides the card tone)."),
-    icon: z.string().optional().describe("Icon reference used as the bullet marker (replaces the dot)."),
-    glyph: z.string().optional().describe("Single-char marker instead of the dot: '✓' (green), '✕' (red), '≈'/'△' (amber), '→', etc."),
-  }),
-]);
-
-// Reusable piece schemas — shared by the one-shot generate_html_diagram tool and
-// the incremental diagram_add_* builder tools so both speak the exact same shape.
-const toneEnum = z.enum(["accent", "info", "success", "warn", "danger", "neutral", "survive", "degrade", "severed"]);
-
-const serviceSchema = z.object({
-  id: z.string(),
-  service: z.string().describe("Canonical AWS service name used as the node label. Use the official full name on first use (e.g. 'Amazon Simple Storage Service', 'Amazon Elastic Compute Cloud') per the AWS Offering Names Wiki; short forms ('Amazon S3', 'Amazon EC2') are fine when space is tight. Every node must be labeled."),
-  shape: z.string(),
-  icon: z.string().optional().describe("Icon reference inlined as base64 into the HTML: bare name resolves under icons/ (e.g. 'Arch_Amazon-RDS_48.png'), prefixed path used as-is (e.g. 'aws-icons/user.svg', 'tech-icons/whatsapp.svg')"),
-  category: z.enum(["compute", "storage", "database", "networking", "security", "integration", "analytics", "ai", "management", "general"]),
-  label: z.string().optional(),
-  role: z.string().optional().describe("What this component DOES (the WHY). Shown as the description when the user CLICKS the node to open its detail modal. E.g. 'Authenticates API consumers via JWT', 'Stores order data with single-digit-ms reads'."),
-  parentId: z.string().optional().describe("ID of the group this service belongs to (from the top-level `groups`). Enables arbitrary nesting: multi-VPC, AZs, accounts, on-prem. Takes precedence over `subnet`."),
-  subnet: z.enum(["public", "private"]).optional().describe("Shortcut for single-VPC diagrams: auto-nests under AWS Cloud → VPC → public/private subnet when `groups` is not provided."),
-  external: z.boolean().optional(),
-  isApi: z.boolean().optional(),
-  // Per-node detail modal content. Everything here is editable per service and
-  // shown when the user clicks the node: role (above) + these key/value sections.
-  config: z.object({
-    iac: z.record(z.union([z.string(), z.number(), z.boolean()])).optional().describe("Configuration rows shown under 'Configuração (IaC)' in the node modal: e.g. { instanceClass: 'db.m7g.xlarge', engine: 'PostgreSQL 15.2', storage: '45 GB gp3' }."),
-    pricing: z.record(z.union([z.string(), z.number(), z.boolean()])).optional().describe("Rows shown under 'Custo / dimensionamento' in the node modal: e.g. { replicas: 2, 'vCPU': 4, 'RAM': '16 GB', 'est. mensal': 'USD 320' }."),
-    label: z.string().optional().describe("Short display label shown under the node icon (in the diagram, not the modal)."),
-  }).optional().describe("Per-node detail-modal content (clicking the node opens it) + IaC/pricing handoff. Freely editable per service."),
-});
-
-const connectionSchema = z.object({
-  id: z.string(),
-  source: z.string(),
-  target: z.string(),
-  label: z.string().optional().describe("Short label rendered as a pill on the edge (e.g. a port/protocol like '5432' or 'HTTPS 443')."),
-  type: z.enum(["network", "iam", "event", "data"]).optional().describe("Connection semantics, styled distinctly: network (solid), iam (dashed, auth/permission), event (dotted, async/pub-sub), data (solid, read/write)."),
-  dashed: z.boolean().optional(),
-});
-
-const groupSchema = z.object({
-  id: z.string().describe("Group id referenced by services' parentId and by child groups' parent."),
-  label: z.string().describe("Display label, e.g. 'VPC A', 'us-east-1a', 'Prod Account'."),
-  parent: z.string().optional().describe("Parent group id for nesting (arbitrary depth)."),
-  variant: z.enum(["aws-cloud", "region", "vpc", "public-subnet", "private-subnet", "availability-zone", "account", "organization", "auto-scaling-group", "group", "corporate-data-center", "on-premises"]).optional().describe("Container type → official AWS group icon + color."),
-  icon: z.string().optional().describe("Override the container's header glyph with a specific icon reference (e.g. 'Res_Amazon-Elastic-Kubernetes-Service_EKS-on-Outposts_48.png' to badge an 'EKS Cluster' group). Pass 'none' to show the label only (logical sub-groups like a Kubernetes namespace)."),
-});
-
-const stepSchema = z.object({
-  tone: toneEnum.optional().describe("Named accent for this beat's highlight: accent (orange, default), info (blue), success (green), warn (amber), danger (red), neutral (slate). Resilience aliases survive/degrade/severed still work."),
-  color: z.string().optional().describe("Arbitrary hex accent (e.g. '#8C4FFF') overriding `tone` for this beat's card + highlights."),
-  cardSide: z.enum(["left", "right", "top", "full"]).optional().describe("Where the overlay card sits: right (default), left, top (flows above the canvas), or full (centered full-page modal with a dimmed backdrop — good for an intro/overview beat)."),
-  nodes: z.array(z.string()).optional().describe("Service ids highlighted (tinted) in this beat."),
-  edges: z.array(z.string()).optional().describe("Connection ids highlighted in this beat."),
-  groups: z.array(z.string()).optional().describe("Group ids tinted (border+glow) in this beat."),
-  tones: z.record(toneEnum).optional().describe("Per-node tone override: { nodeId: tone } — use when a beat mixes tones (e.g. one node danger, rest accent)."),
-  edgeTones: z.record(toneEnum).optional().describe("Per-edge tone override: { edgeId: tone }."),
-  groupTones: z.record(toneEnum).optional().describe("Per-group tone override: { groupId: tone }."),
-  zoom: z.array(z.string()).optional().describe("Node/group ids to frame the camera on this beat (requires stepZoom). Empty array = fit the whole diagram."),
-  maxZoom: z.number().optional().describe("Max zoom level when framing this beat (default 2.2). Lower it (e.g. 1.4) to keep more context visible."),
-  eyebrow: z.string().optional().describe("Small uppercase label above the card title, e.g. '1 · Ingress'."),
-  icon: z.string().optional().describe("Icon reference shown next to the card title (same resolution as service icon)."),
-  title: z.string().optional().describe("Card heading for this beat."),
-  body: z.string().optional().describe("Card description paragraph."),
-  badge: z.union([z.string(), z.literal(false)]).optional().describe("Override the tone badge label; false hides it (recommended for architecture walkthroughs — the eyebrow already labels the beat)."),
-  bullets: z.array(bulletSchema).optional().describe("Bullet list under the body. Each item is a plain string, or a styled object {text, strong?, color?, icon?, glyph?} for richer bullets."),
-  chips: z.array(z.object({
-    label: z.string(),
-    ok: z.union([z.boolean(), z.literal("warn")]).optional().describe("Status glyph: true=green ✓, false=red ✗, 'warn'=amber ≈, omit=neutral dot."),
-    icon: z.string().optional().describe("Icon reference shown inside the chip."),
-  })).optional().describe("Status chips row at the bottom of the card."),
-  sections: z.array(z.object({
-    title: z.string().optional().describe("Section heading (uppercase accent), e.g. 'Data', 'Integrations'."),
-    body: z.string().optional().describe("Section paragraph."),
-    bullets: z.array(bulletSchema).optional().describe("Section bullet list (same string-or-styled-object format as step bullets)."),
-  })).optional().describe("Rich documentation sections (title + body + bullets each). Mainly for a full-page overview beat (cardSide:'full') that reads like a system README — scrolls if long."),
-});
+// Input schemas live in lib/schemas.js so the local example generators
+// (gen-*.mjs) validate against the SAME contract these tools expose.
+import { serviceSchema, connectionSchema, groupSchema, stepSchema } from "./lib/schemas.js";
 
 // Interactive animated HTML diagram (an interactive canvas)
 server.tool(
@@ -190,15 +124,22 @@ server.tool(
     connections: z.array(connectionSchema),
     groups: z.array(groupSchema).optional().describe("Explicit containers for arbitrary topologies. When omitted, a single AWS Cloud → VPC → public/private subnet tree is derived from each service's `subnet`."),
     direction: z.enum(["LR", "TB"]).optional().describe("Layout flow direction: LR (left→right, default) or TB (top→bottom)."),
+    lang: z.string().optional().describe("Language the content is authored in (ISO 639-1, e.g. 'en', 'pt', 'es'). Default 'en'. The UI chrome (modal headings, tooltips) adapts to it."),
+    languages: z.array(z.string()).optional().describe("Offer a language switch in the toolbar. List every language you provide text for (e.g. ['en','pt']). When set with >1 entry, ALL author text fields (title, subtitle, service/role, group label, step title/eyebrow/body/badge, bullets, chips, sections) may be a per-language map { en: '…', pt: '…' } instead of a plain string, and the toolbar lets the viewer switch. Omit for single-language diagrams."),
     steps: z.array(stepSchema).optional().describe("Guided walkthrough beats. Arrow keys / the dock's play button step through them; each shows an overlay card and can tint+zoom a subset of the diagram."),
     stepZoom: z.boolean().optional().describe("When steps are present, glide the camera onto each beat's `zoom` (or `nodes`). Default off."),
     stepFocus: z.boolean().optional().describe("When steps are present, hide non-active nodes each beat to isolate it. Default off (dim instead of hide)."),
+    flowDots: z.boolean().optional().describe("Animate a dot travelling along each connection to convey flow direction. Default true. Set false for a static, print-friendly look (arrowheads only, no motion)."),
+    collapsible: z.boolean().optional().describe("Show a fold toggle (▸/▾) on every group header so the viewer can collapse/expand containers (d3-zoomable-treemap style); collapsing a group hides its children, shrinks it to a small box, and re-runs the layout. Default true."),
+    defaultCollapsed: z.array(z.string()).optional().describe("Group ids that start COLLAPSED on load — good for a dense diagram whose overview should read clean, letting the viewer expand only what they need (e.g. ['vpcdados'])."),
+    costUrl: z.string().optional().describe("If set, the toolbar dock shows a 'Cost estimate' button that opens this URL in a new tab (e.g. an AWS Pricing Calculator estimate)."),
+    costLabel: z.string().optional().describe("Label for the cost button (default: localized 'Cost estimate')."),
   },
-  async ({ title, subtitle, outputPath, services, connections, groups, direction, steps, stepZoom, stepFocus }) => {
-    const html = generateHtml(title, subtitle || "", services, connections, { groups, direction, steps, stepZoom, stepFocus });
+  async ({ title, subtitle, outputPath, services, connections, groups, direction, steps, stepZoom, stepFocus, lang, languages, flowDots, collapsible, defaultCollapsed, costUrl, costLabel }) => {
+    const html = generateHtml(title, subtitle || "", services, connections, { groups, direction, steps, stepZoom, stepFocus, lang, languages, flowDots, collapsible, defaultCollapsed, costUrl, costLabel });
     writeFileSync(outputPath, html, "utf-8");
     const extras = [groups?.length ? `${groups.length} group(s)` : null, steps?.length ? `${steps.length}-step walkthrough` : null].filter(Boolean);
-    return { content: [{ type: "text", text: `Interactive diagram saved: ${outputPath}${extras.length ? "\nIncluded: " + extras.join(", ") : ""}\nOpen in browser for animated data flow visualization.` }] };
+    return { content: [{ type: "text", text: `Interactive diagram saved: ${outputPath}${extras.length ? "\nIncluded: " + extras.join(", ") : ""}\nOpen in browser for animated data flow visualization.${iconWarning(services)}` }] };
   }
 );
 
@@ -420,17 +361,36 @@ server.tool(
 // Shapes reference
 server.tool("list_shapes", "List common AWS4 drawio shape names for the .drawio path (auto_generate_diagram/generate_diagram, field `shape`). For the interactive HTML path use service display names + resolve_icon instead.", { category: z.string().optional() },
   async ({ category }) => {
+    // Curated per AWS official service categories. Every 48px architecture icon
+    // shipped in assets/icons is represented here by its canonical shape key
+    // (aliases like `dms`, `iam`, `firehose` also resolve — see shape-icons.json).
     const shapes = {
-      compute: ["ec2", "lambda", "fargate", "batch", "lightsail", "elastic_beanstalk", "outposts", "parallel_computing_service"],
-      containers: ["ecs", "eks", "fargate", "ecr", "red_hat_openshift"],
-      storage: ["s3", "elastic_block_store", "elastic_file_system", "fsx", "backup", "storage_gateway"],
-      database: ["rds", "aurora", "dynamodb", "elasticache", "neptune", "documentdb_with_mongodb_compatibility", "memorydb_for_redis", "keyspaces", "redshift"],
-      networking: ["cloudfront", "route_53", "vpc", "elastic_load_balancing", "direct_connect", "global_accelerator", "transit_gateway", "vpc_lattice"],
-      security: ["cognito", "guardduty", "secrets_manager", "key_management_service", "waf", "shield", "security_hub", "inspector", "macie", "network_firewall"],
-      integration: ["simple_queue_service", "simple_notification_service", "eventbridge", "step_functions", "mq", "appsync", "simple_email_service"],
-      analytics: ["athena", "kinesis", "glue", "managed_streaming_for_apache_kafka", "opensearch_service", "emr"],
-      ai: ["bedrock", "sagemaker", "rekognition", "textract", "transcribe", "polly", "translate", "lex", "comprehend"],
-      management: ["cloudwatch_2", "cloudtrail", "config", "systems_manager", "organizations", "cloudformation", "trusted_advisor"],
+      compute: ["ec2", "lambda", "fargate", "batch", "lightsail", "lightsail_for_research", "elastic_beanstalk", "outposts", "outposts_family", "outposts_servers", "parallel_computing_service", "parallel_cluster", "ec2_auto_scaling", "auto_scaling", "application_auto_scaling", "app_runner", "ec2_image_builder", "elastic_fabric_adapter", "nitro_enclaves", "bottlerocket", "elastic_vmware_service", "elastic_inference", "serverless_application_repository", "simspace_weaver", "nice_enginframe"],
+      containers: ["ecs", "eks", "ecr", "red_hat_openshift", "eks_anywhere", "ecs_anywhere", "eks_cloud", "eks_distro"],
+      storage: ["s3", "s3_on_outposts", "elastic_block_store", "elastic_file_system", "fsx", "fsx_ontap", "fsx_lustre", "fsx_openzfs", "fsx_for_wfs", "file_cache", "backup", "storage_gateway", "glacier", "backint_agent"],
+      database: ["rds", "aurora", "dynamodb", "elasticache", "neptune", "documentdb_with_mongodb_compatibility", "memorydb_for_redis", "keyspaces", "redshift", "timestream", "qldb", "rds_on_vmware", "oracle_database_at_aws"],
+      networking: ["cloudfront", "route_53", "vpc", "elastic_load_balancing", "direct_connect", "global_accelerator", "transit_gateway", "vpc_lattice", "api_gateway", "privatelink", "cloud_map", "client_vpn", "site_to_site_vpn", "cloud_wan", "app_mesh", "local_zones", "wavelength", "private_5g", "telco_network_builder"],
+      security: ["cognito", "guardduty", "acm", "private_ca", "secrets_manager", "key_management_service", "waf", "shield", "security_hub", "inspector", "macie", "network_firewall", "iam", "iam_identity_center", "cloudhsm", "firewall_manager", "detective", "audit_manager", "directory_service", "verified_access", "verified_permissions", "signer", "security_incident_response", "payment_cryptography", "artifact", "cloud_directory", "security_lake"],
+      integration: ["simple_queue_service", "simple_notification_service", "eventbridge", "step_functions", "express_workflows", "mq", "appsync", "simple_email_service", "appflow", "b2b_data_interchange", "appconfig", "appfabric"],
+      analytics: ["athena", "kinesis", "kinesis_data_streams", "kinesis_video_streams", "firehose", "glue", "glue_databrew", "glue_elastic_views", "managed_streaming_for_apache_kafka", "managed_flink", "opensearch_service", "emr", "quicksight", "lake_formation", "datazone", "mwaa", "clean_rooms", "data_exchange", "finspace", "cloudsearch", "data_pipeline", "entity_resolution"],
+      ai: ["bedrock", "sagemaker", "sagemaker_ai", "sagemaker_ground_truth", "sagemaker_studio_lab", "amazon_q", "nova", "rekognition", "textract", "transcribe", "polly", "translate", "lex", "comprehend", "kendra", "personalize", "forecast", "fraud_detector", "augmented_ai_a2i", "codeguru", "codewhisperer", "devops_guru", "monitron", "lookout_for_equipment", "lookout_for_metrics", "lookout_for_vision", "panorama", "deep_learning_amis", "deep_learning_containers", "deepcomposer", "deeplens", "deepracer", "neuron", "elastic_transcoder"],
+      ml_frameworks: ["apache_mxnet_on_aws", "pytorch_on_aws", "tensorflow_on_aws"],
+      healthcare: ["healthlake", "healthimaging", "healthomics", "healthscribe", "comprehend_medical"],
+      developer_tools: ["codeartifact", "codebuild", "codecommit", "codedeploy", "codepipeline", "codestar", "codecatalyst", "cdk", "cloud9", "cloudshell", "command_line_interface", "x_ray", "corretto", "tools_and_sdks", "application_composer", "infrastructure_composer", "cloud_control_api"],
+      migration: ["dms", "datasync", "migration_hub", "application_migration_service", "application_discovery_service", "migration_evaluator", "elastic_disaster_recovery", "transfer_family", "snowball", "snowball_edge", "snowcone", "mainframe_modernization", "data_transfer_terminal", "transform"],
+      management: ["cloudwatch_2", "cloudtrail", "config", "systems_manager", "organizations", "cloudformation", "trusted_advisor", "control_tower", "service_catalog", "resource_access_manager", "well_architected_tool", "resilience_hub", "fault_injection_service", "compute_optimizer", "proton", "chatbot", "health_dashboard", "management_console", "console_mobile_application", "launch_wizard", "license_manager", "resource_explorer", "distro_for_opentelemetry", "user_notifications", "service_management_connector", "managed_services", "application_recovery_controller", "opsworks", "prometheus", "grafana"],
+      cost: ["cost_explorer", "budgets", "cost_and_usage_report", "billing_conductor", "savings_plans", "reserved_instance_reporting", "application_cost_profiler"],
+      iot: ["iot_core", "iot_greengrass", "iot_analytics", "iot_button", "iot_1_click", "iot_device_defender", "iot_device_management", "iot_events", "iot_expresslink", "iot_fleetwise", "iot_sitewise", "iot_twinmaker", "iot_roborunner", "freertos"],
+      media: ["elemental_appliances_and_software", "elemental_conductor", "elemental_delta", "elemental_link", "elemental_live", "elemental_mediaconnect", "elemental_mediaconvert", "elemental_medialive", "elemental_mediapackage", "elemental_mediastore", "elemental_mediatailor", "elemental_server", "interactive_video_service", "nimble_studio", "deadline_cloud", "thinkbox_deadline", "thinkbox_frost", "thinkbox_krakatoa", "thinkbox_sequoia", "thinkbox_stoke", "thinkbox_xmesh"],
+      business_apps: ["connect", "pinpoint", "pinpoint_apis", "chime", "chime_sdk", "workmail", "workdocs", "workdocs_sdk", "wickr", "supply_chain", "end_user_messaging", "alexa_for_business", "app_studio"],
+      end_user_computing: ["workspaces", "workspaces_thin_client", "appstream_2", "nice_dcv", "dcv"],
+      front_end: ["amplify", "device_farm", "location_service"],
+      game: ["gamelift", "gamelift_servers", "gamelift_streams", "gamesparks", "gamekit", "open_3d_engine"],
+      robotics: ["robomaker"],
+      satellite: ["ground_station"],
+      quantum: ["braket"],
+      blockchain: ["managed_blockchain"],
+      customer_enablement: ["activate", "iq", "marketplace", "professional_services", "support", "training_certification", "repost", "repost_private"],
     };
     return { content: [{ type: "text", text: JSON.stringify(category ? { [category]: shapes[category] } : shapes, null, 2) }] };
   }
@@ -473,10 +433,10 @@ const draftSummary = (id, d) => `draft ${id}: ${d.services.length} service(s), $
 
 server.tool("diagram_create",
   "Start an incremental diagram draft. Returns a draftId; feed it to diagram_add_services / diagram_add_connections / diagram_add_groups / diagram_add_steps in any order, then diagram_render to write the HTML. Use this when building a diagram in stages; use generate_html_diagram for a single-shot build.",
-  { title: z.string(), subtitle: z.string().optional(), direction: z.enum(["LR", "TB"]).optional(), stepZoom: z.boolean().optional(), stepFocus: z.boolean().optional() },
-  async ({ title, subtitle, direction, stepZoom, stepFocus }) => {
+  { title: z.string(), subtitle: z.string().optional(), direction: z.enum(["LR", "TB"]).optional(), stepZoom: z.boolean().optional(), stepFocus: z.boolean().optional(), flowDots: z.boolean().optional().describe("Animate a dot travelling along each connection. Default true. Set false for a static, print-friendly look."), lang: z.string().optional(), languages: z.array(z.string()).optional().describe("Offer a toolbar language switch; when >1, author text fields may be per-language maps { en, pt, … }."), costUrl: z.string().optional().describe("If set, the toolbar shows a 'Cost estimate' button opening this URL (e.g. AWS Pricing Calculator)."), costLabel: z.string().optional().describe("Label for the cost button.") },
+  async ({ title, subtitle, direction, stepZoom, stepFocus, flowDots, lang, languages, costUrl, costLabel }) => {
     const id = `d${++draftSeq}`;
-    drafts.set(id, { title, subtitle: subtitle || "", direction: direction || "LR", services: [], connections: [], groups: [], steps: [], stepZoom: !!stepZoom, stepFocus: !!stepFocus });
+    drafts.set(id, { title, subtitle: subtitle || "", direction: direction || "LR", services: [], connections: [], groups: [], steps: [], stepZoom: !!stepZoom, stepFocus: !!stepFocus, flowDots, lang, languages, costUrl, costLabel });
     return { content: [{ type: "text", text: `Created ${id}. Add pieces with diagram_add_* (draftId="${id}"), then diagram_render.` }] };
   }
 );
@@ -522,10 +482,10 @@ server.tool("diagram_render",
   { draftId: z.string(), outputPath: z.string(), keep: z.boolean().optional() },
   async ({ draftId, outputPath, keep }) => {
     const d = getDraft(draftId);
-    const html = generateHtml(d.title, d.subtitle, d.services, d.connections, { groups: d.groups, direction: d.direction, steps: d.steps, stepZoom: d.stepZoom, stepFocus: d.stepFocus });
+    const html = generateHtml(d.title, d.subtitle, d.services, d.connections, { groups: d.groups, direction: d.direction, steps: d.steps, stepZoom: d.stepZoom, stepFocus: d.stepFocus, flowDots: d.flowDots, lang: d.lang, languages: d.languages, costUrl: d.costUrl, costLabel: d.costLabel });
     writeFileSync(outputPath, html, "utf-8");
     if (!keep) drafts.delete(draftId);
-    return { content: [{ type: "text", text: `Rendered ${draftSummary(draftId, d)} → ${outputPath}${keep ? " (draft kept)" : " (draft cleared)"}` }] };
+    return { content: [{ type: "text", text: `Rendered ${draftSummary(draftId, d)} → ${outputPath}${keep ? " (draft kept)" : " (draft cleared)"}${iconWarning(d.services)}` }] };
   }
 );
 
