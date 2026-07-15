@@ -9,6 +9,9 @@ assets/tech-icons/
 # Generated example output (contains base64-inlined icons → not redistributed)
 examples/*.html
 
+# Local example generators — may embed real customer architectures (never ship)
+gen-*.mjs
+
 # Personal scratch notes
 TODO.md
 
