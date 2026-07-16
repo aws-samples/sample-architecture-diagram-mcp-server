@@ -1754,15 +1754,17 @@ function EditorCanvas({
     canRedo() {
       return future.current.length > 0;
     },
-    // Add a group/container box (variant e.g. "vpc","region","group").
-    addGroup(variantName = "group", label = "Group") {
+    // Add a group/container box. `screenPos` (from a drop) places it at the
+    // pointer; otherwise it's staggered so repeated adds don't stack exactly.
+    addGroup(variantName = "group", label = "Group", screenPos) {
       snapshot();
       const variant = resolveVariant(variantName);
       const gid = uid("g");
+      const position = screenPos ? screenToFlowPosition({ x: screenPos.x, y: screenPos.y }) : { x: 120 + _seq % 6 * 32, y: 120 + _seq % 6 * 32 };
       const node = {
         id: gid,
         type: "group",
-        position: { x: 120, y: 120 },
+        position,
         data: { id: gid, label, variant: variantName, IconComponent: Icon2, scale: nodeLayout === "horizontal" ? "lg" : "sm", vars, resizable: true },
         style: groupStyle(variant, 360, 240, 0)
       };
@@ -1821,6 +1823,28 @@ function EditorCanvas({
   }, []);
   const onDrop = useCallback2((e) => {
     e.preventDefault();
+    const pos = { x: e.clientX, y: e.clientY };
+    const gRaw = e.dataTransfer.getData("application/ld-group");
+    if (gRaw) {
+      let g;
+      try {
+        g = JSON.parse(gRaw);
+      } catch {
+        return;
+      }
+      snapshot();
+      const variant = resolveVariant(g.variant);
+      const gid = uid("g");
+      const position2 = screenToFlowPosition(pos);
+      setNodes((ns) => [{
+        id: gid,
+        type: "group",
+        position: position2,
+        data: { id: gid, label: g.label || g.variant, variant: g.variant, IconComponent: Icon2, scale: nodeLayout === "horizontal" ? "lg" : "sm", vars, resizable: true },
+        style: groupStyle(variant, 360, 240, 0)
+      }, ...ns]);
+      return;
+    }
     const raw = e.dataTransfer.getData("application/ld-service");
     if (!raw) return;
     let svc;
@@ -1830,7 +1854,7 @@ function EditorCanvas({
       return;
     }
     snapshot();
-    const position = screenToFlowPosition({ x: e.clientX, y: e.clientY });
+    const position = screenToFlowPosition(pos);
     const node = buildServiceNode(
       { id: uid("n"), service: svc.name || svc.label || "Service", icon: svc.icon, category: svc.category },
       { lang, vars, Icon: Icon2, geom, nodeLayout }
