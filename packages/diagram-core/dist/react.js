@@ -1592,7 +1592,7 @@ function EditorCanvas({
   snap = false,
   snapSize = 16
 }) {
-  const { fitView, screenToFlowPosition } = useReactFlow3();
+  const { fitView, screenToFlowPosition, zoomIn, zoomOut } = useReactFlow3();
   const geom = { ...DEFAULT_GEOMETRY, ...geometry || {} };
   const decorateGroup = useCallback2((n) => n.type === "group" ? { ...n, data: {
     ...n.data,
@@ -1681,18 +1681,14 @@ function EditorCanvas({
   }, [setNodes, snapshot]);
   const renameNode = useCallback2((_e, node) => {
     if (!node) return;
-    const cur = typeof node.data?.label === "string" ? node.data.label : "";
-    const next = window.prompt("R\xF3tulo:", cur);
-    if (next == null) return;
-    editorApi.current?.updateNodeData(node.id, { label: next });
-  }, []);
+    setNodes((ns) => ns.map((n) => ({ ...n, selected: n.id === node.id })));
+    setEdges((es) => es.map((e) => ({ ...e, selected: false })));
+  }, [setNodes, setEdges]);
   const renameEdge = useCallback2((_e, edge) => {
     if (!edge) return;
-    const cur = typeof edge.data?.label === "string" ? edge.data.label : "";
-    const next = window.prompt("R\xF3tulo da conex\xE3o:", cur);
-    if (next == null) return;
-    editorApi.current?.updateEdgeData(edge.id, { label: next, showLabel: !!next });
-  }, []);
+    setEdges((es) => es.map((e) => ({ ...e, selected: e.id === edge.id })));
+    setNodes((ns) => ns.map((n) => ({ ...n, selected: false })));
+  }, [setNodes, setEdges]);
   const editorApi = useRef2(null);
   const api = {
     // Add a service node at a SCREEN point (click-to-add or drop) or centered.
@@ -1821,6 +1817,12 @@ function EditorCanvas({
     fit() {
       fitView({ padding: 0.12, maxZoom: 1, duration: 300 });
     },
+    zoomIn() {
+      zoomIn({ duration: 200 });
+    },
+    zoomOut() {
+      zoomOut({ duration: 200 });
+    },
     getDiagram() {
       return serializeDiagram(nodes, edges);
     },
@@ -1911,7 +1913,7 @@ function EditorCanvas({
     }
   };
   editorApi.current = api;
-  useImperativeHandle(editorRef, () => api, [nodes, edges, setNodes, setEdges, screenToFlowPosition, fitView, decorateGroup, lang, vars, Icon2, geom, nodeLayout, direction, snapshot]);
+  useImperativeHandle(editorRef, () => api, [nodes, edges, setNodes, setEdges, screenToFlowPosition, fitView, zoomIn, zoomOut, decorateGroup, lang, vars, Icon2, geom, nodeLayout, direction, snapshot]);
   useEffect3(() => {
     const onKey = (e) => {
       const t = e.target;

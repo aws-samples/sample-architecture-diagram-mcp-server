@@ -38,7 +38,7 @@ function EditorCanvas({
   vars = {}, Icon, markerId = "ld-arrow", editorRef, controls = true, minimap = true,
   bg = "dots", snap = false, snapSize = 16,
 }) {
-  const { fitView, screenToFlowPosition } = useReactFlow();
+  const { fitView, screenToFlowPosition, zoomIn, zoomOut } = useReactFlow();
   const geom = { ...DEFAULT_GEOMETRY, ...(geometry || {}) };
 
   // Decorate a group node built by the layout engine so GroupNode can render it
@@ -155,20 +155,19 @@ function EditorCanvas({
   // Double-click a node/edge → quick inline rename via a prompt. (A prompt keeps
   // the label edit reliable across zoom/pan without a floating input that must
   // track the viewport transform; the side panel offers richer editing.)
+  // Double-click selects the node/edge (React Flow marks it selected), which the
+  // host uses to open its format drawer with the label field focused — instead
+  // of a jarring window.prompt. Selecting is enough; no modal.
   const renameNode = useCallback((_e, node) => {
     if (!node) return;
-    const cur = typeof node.data?.label === "string" ? node.data.label : "";
-    const next = window.prompt("Rótulo:", cur);
-    if (next == null) return;
-    editorApi.current?.updateNodeData(node.id, { label: next });
-  }, []);
+    setNodes(ns => ns.map(n => ({ ...n, selected: n.id === node.id })));
+    setEdges(es => es.map(e => ({ ...e, selected: false })));
+  }, [setNodes, setEdges]);
   const renameEdge = useCallback((_e, edge) => {
     if (!edge) return;
-    const cur = typeof edge.data?.label === "string" ? edge.data.label : "";
-    const next = window.prompt("Rótulo da conexão:", cur);
-    if (next == null) return;
-    editorApi.current?.updateEdgeData(edge.id, { label: next, showLabel: !!next });
-  }, []);
+    setEdges(es => es.map(e => ({ ...e, selected: e.id === edge.id })));
+    setNodes(ns => ns.map(n => ({ ...n, selected: false })));
+  }, [setNodes, setEdges]);
 
   // A stable ref to the imperative API so the dblclick handlers (defined before
   // useImperativeHandle) can call updateNodeData/updateEdgeData.
@@ -287,6 +286,8 @@ function EditorCanvas({
       setTimeout(() => fitView({ padding: 0.12, maxZoom: 1 }), 40);
     },
     fit() { fitView({ padding: 0.12, maxZoom: 1, duration: 300 }); },
+    zoomIn() { zoomIn({ duration: 200 }); },
+    zoomOut() { zoomOut({ duration: 200 }); },
     getDiagram() { return serializeDiagram(nodes, edges); },
     setDiagram(next) { setNodes([]); setEdges([]); /* host re-mounts via value key */ void next; },
 
@@ -357,7 +358,7 @@ function EditorCanvas({
     },
   };
   editorApi.current = api;
-  useImperativeHandle(editorRef, () => api, [nodes, edges, setNodes, setEdges, screenToFlowPosition, fitView, decorateGroup, lang, vars, Icon, geom, nodeLayout, direction, snapshot]);
+  useImperativeHandle(editorRef, () => api, [nodes, edges, setNodes, setEdges, screenToFlowPosition, fitView, zoomIn, zoomOut, decorateGroup, lang, vars, Icon, geom, nodeLayout, direction, snapshot]);
 
   // Keyboard: undo/redo + copy/paste/duplicate. Ignore when typing in an input.
   useEffect(() => {
