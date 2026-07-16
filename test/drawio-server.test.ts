@@ -60,6 +60,23 @@ describe('generateDrawio (server-side .drawio)', () => {
     const xml = generateDrawio('T', 's', services, conns, [], {});
     expect(xml).toContain('strokeColor=#545B64');
   });
+
+  it('places the Data Flow legend to the RIGHT of all content (no overlap)', () => {
+    // A wide layout: two service boxes far to the right. The legend must start
+    // past the rightmost content edge, not at the old fixed x=1780.
+    const wide = [
+      { id: 'a', service: 'A', shape: 'lambda', category: 'compute', x: 100, y: 200 },
+      { id: 'b', service: 'B', shape: 'dynamodb', category: 'database', x: 3000, y: 200 },
+    ];
+    const steps = [{ number: 1, badgeX: 200, badgeY: 260, description: 'flow' }];
+    const xml = generateDrawio('T', 's', wide, [{ id: 'e1', source: 'a', target: 'b', label: 'flow' }], [], { steps });
+    // pull the legend-bg x coordinate out of the XML
+    const m = xml.match(/id="legend-bg"[\s\S]*?<mxGeometry x="(\d+)"/);
+    expect(m).toBeTruthy();
+    const legendX = Number(m![1]);
+    // rightmost content edge is b.x (3000) + node width (180) = 3180
+    expect(legendX).toBeGreaterThan(3180);
+  });
 });
 
 describe('computeLayout (shared ELK compound engine)', () => {
