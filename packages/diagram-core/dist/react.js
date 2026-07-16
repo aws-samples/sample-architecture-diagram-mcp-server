@@ -1609,7 +1609,7 @@ function EditorCanvas({
       setNodes(withParent.map(decorateGroup));
       setEdges(baseEdges);
       loadedRef.current = true;
-      setTimeout(() => fitView({ padding: 0.12 }), 60);
+      setTimeout(() => fitView({ padding: 0.12, maxZoom: 1 }), 60);
     });
     return () => {
       alive = false;
@@ -1783,10 +1783,10 @@ function EditorCanvas({
       );
       const withParent = laid.map((n) => n.type === "aws" && membership[n.id] ? { ...n, parentId: membership[n.id], extent: "parent" } : n);
       setNodes(withParent.map(decorateGroup));
-      setTimeout(() => fitView({ padding: 0.12 }), 40);
+      setTimeout(() => fitView({ padding: 0.12, maxZoom: 1 }), 40);
     },
     fit() {
-      fitView({ padding: 0.12, duration: 300 });
+      fitView({ padding: 0.12, maxZoom: 1, duration: 300 });
     },
     getDiagram() {
       return serializeDiagram(nodes, edges);
@@ -1864,7 +1864,7 @@ function EditorCanvas({
       minZoom: 0.1,
       maxZoom: 3,
       fitView: true,
-      fitViewOptions: { padding: 0.12 },
+      fitViewOptions: { padding: 0.12, maxZoom: 1 },
       deleteKeyCode: ["Backspace", "Delete"],
       children: [
         /* @__PURE__ */ jsx10(
