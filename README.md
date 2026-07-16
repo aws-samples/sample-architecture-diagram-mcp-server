@@ -56,8 +56,9 @@ containers, and flip the theme, all offline:
 - **Auto icon resolution** — 350+ AWS services mapped to official icons; the
   agent just passes a service name (`"Amazon RDS"`), no icon path needed.
 - **`.drawio` output** — `auto_generate_diagram` writes a fully laid-out, editable
-  `.drawio` file (native AWS4 shapes); `export_diagram` converts it to PNG/SVG/PDF
-  (needs the `drawio` CLI).
+  `.drawio` file (native AWS4 shapes) using the same ELK compound engine as the
+  HTML, so it supports arbitrary group nesting and typed connections too;
+  `export_diagram` converts it to PNG/SVG/PDF (needs the `drawio` CLI).
 - **IaC handoff** — exports a structured spec + instruction so an agent can
   generate production IaC via the official AWS IaC MCP (no re-implementation).
 - **Pricing handoff** — exports a payload for the AWS Pricing Calculator MCP
@@ -296,6 +297,11 @@ Services join a group via `parentId`. This models multi-VPC, multi-account,
 multi-AZ, and hybrid (on-prem ↔ AWS) architectures. If you omit `groups`, a
 single `AWS Cloud → VPC → public/private subnet` tree is derived automatically
 from each service's `subnet` field (the common single-VPC case).
+
+Both output paths share one layout engine (ELK compound), so the **`.drawio`
+path (`auto_generate_diagram`) supports the same 12 container variants, arbitrary
+nesting, and typed connections** as the interactive HTML — the two stay visually
+consistent.
 
 ```jsonc
 "groups": [
