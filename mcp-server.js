@@ -30,19 +30,20 @@ function iconWarning(services) {
 // v2.0: Full auto-layout — just pass services + connections, positions computed automatically
 server.tool(
   "auto_generate_diagram",
-  "Generate a fully positioned AWS architecture diagram. Automatically computes layout, group sizing, badge positions, and edge routing. No manual x/y needed.",
+  "Generate a fully positioned AWS architecture .drawio diagram. Computes layout, container sizing, badge positions, and edge routing with the SAME ELK compound engine as the interactive HTML — no manual x/y. Containers: pass `groups` + services' `parentId` for arbitrary nesting (multi-VPC, accounts, AZs, on-prem), OR just `subnet` on services for the classic single AWS Cloud → VPC → public/private subnet tree.",
   {
     title: z.string(),
     subtitle: z.string().optional(),
     outputPath: z.string().describe("Absolute path for .drawio output"),
-    region: z.string().optional().default("sa-east-1"),
+    region: z.string().optional().default("us-east-1"),
     services: z.array(z.object({
       id: z.string(),
       service: z.string().describe("Display name"),
       shape: z.string().describe("AWS4 shape: lambda, fargate, rds, s3, etc."),
       category: z.enum(["compute", "storage", "database", "networking", "security", "integration", "analytics", "ai", "management", "general"]),
       label: z.string().optional().describe("Italic sub-label"),
-      subnet: z.enum(["public", "private"]).optional().describe("Which subnet (omit = outside VPC, edge service)"),
+      parentId: z.string().optional().describe("Id of the container (from `groups`) this service sits in. Enables arbitrary nesting; takes precedence over `subnet`."),
+      subnet: z.enum(["public", "private"]).optional().describe("Single-VPC shortcut when `groups`/`parentId` are not used (omit = outside VPC, edge service)."),
       external: z.boolean().optional().describe("True for external integrations (Pix, Gov.br, etc.)"),
       isApi: z.boolean().optional().describe("For externals: true=API/internet icon, false=app icon"),
     })),
@@ -54,14 +55,20 @@ server.tool(
       type: z.enum(["network", "iam", "event", "data"]).optional().describe("Connection semantics, styled distinctly (matches the HTML): network (blue), iam (red dashed), event (pink dotted), data (green)."),
       dashed: z.boolean().optional(),
     })),
+    groups: z.array(z.object({
+      id: z.string(),
+      label: z.string(),
+      parent: z.string().optional().describe("Parent container id, for nesting to any depth."),
+      variant: z.enum(["aws-cloud", "region", "vpc", "public-subnet", "private-subnet", "availability-zone", "account", "organization", "auto-scaling-group", "group", "corporate-data-center", "on-premises"]).optional().describe("Container type → official AWS4 group icon + colour."),
+    })).optional().describe("Explicit containers for arbitrary topologies. Services join one via `parentId`. Omit to derive the classic AWS Cloud → VPC → subnet tree from each service's `subnet`."),
     includeUsers: z.boolean().optional().default(true),
   },
-  async ({ title, subtitle, outputPath, region, services, connections, includeUsers }) => {
+  async ({ title, subtitle, outputPath, region, services, connections, groups, includeUsers }) => {
     // Add users node if requested
     const allServices = includeUsers ? [{ id: "users", service: "Users", shape: "users", category: "general" }, ...services] : services;
 
-    // Auto-compute layout (ELK layered engine; async)
-    const layout = await computeLayout({ services: allServices, connections, region });
+    // Auto-compute layout (shared ELK compound engine; async)
+    const layout = await computeLayout({ services: allServices, connections, region, groups });
 
     // Generate XML
     const xml = generateDrawio(title, subtitle || "", layout.services, layout.connections, layout.groups, {

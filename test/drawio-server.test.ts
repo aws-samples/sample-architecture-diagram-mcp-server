@@ -6,6 +6,8 @@
 import { describe, it, expect } from 'vitest';
 // @ts-expect-error — plain JS module, no types
 import { generateDrawio, GROUP_STYLES } from '../lib/drawio-xml.js';
+// @ts-expect-error — plain JS module, no types
+import { computeLayout } from '../lib/layout.js';
 
 const services = [
   { id: 'api', service: 'Amazon API Gateway', shape: 'api_gateway', category: 'networking', x: 200, y: 200 },
@@ -57,5 +59,45 @@ describe('generateDrawio (server-side .drawio)', () => {
     const conns = [{ id: 'e1', source: 'api', target: 'fn' }];
     const xml = generateDrawio('T', 's', services, conns, [], {});
     expect(xml).toContain('strokeColor=#545B64');
+  });
+});
+
+describe('computeLayout (shared ELK compound engine)', () => {
+  const svc = [
+    { id: 'api', service: 'API GW', shape: 'api_gateway', category: 'networking', subnet: 'public' },
+    { id: 'fn', service: 'Lambda', shape: 'lambda', category: 'compute', subnet: 'private' },
+    { id: 'db', service: 'DynamoDB', shape: 'dynamodb', category: 'database', subnet: 'private' },
+  ];
+  const conns = [{ id: 'e1', source: 'api', target: 'fn' }, { id: 'e2', source: 'fn', target: 'db' }];
+
+  it('derives the classic AWS Cloud → VPC → subnet tree from `subnet` (back-compat)', async () => {
+    const l = await computeLayout({ services: svc, connections: conns });
+    const types = l.groups.map((g: any) => g.type);
+    expect(types).toContain('aws-cloud');
+    expect(types).toContain('vpc');
+    expect(types).toContain('public-subnet');
+    expect(types).toContain('private-subnet');
+    expect(l.services.every((s: any) => Number.isFinite(s.x) && Number.isFinite(s.y))).toBe(true);
+  });
+
+  it('honours arbitrary explicit group nesting (org → account → vpc → az)', async () => {
+    const groups = [
+      { id: 'org', label: 'Org', variant: 'organization' },
+      { id: 'acct', label: 'Acct', parent: 'org', variant: 'account' },
+      { id: 'vpc', label: 'VPC', parent: 'acct', variant: 'vpc' },
+      { id: 'az', label: 'AZ-a', parent: 'vpc', variant: 'availability-zone' },
+    ];
+    const services = [
+      { id: 'fn', service: 'Lambda', shape: 'lambda', category: 'compute', parentId: 'az' },
+      { id: 'db', service: 'DynamoDB', shape: 'dynamodb', category: 'database', parentId: 'az' },
+    ];
+    const l = await computeLayout({ services, connections: [{ id: 'e1', source: 'fn', target: 'db' }], groups });
+    const by: any = Object.fromEntries(l.groups.map((g: any) => [g.id, g]));
+    expect(l.groups).toHaveLength(4);
+    // each child rectangle sits inside its parent's rectangle
+    const inside = (c: any, p: any) => c.x >= p.x - 2 && c.y >= p.y - 2 && c.x + c.w <= p.x + p.w + 2 && c.y + c.h <= p.y + p.h + 2;
+    expect(inside(by.acct, by.org)).toBe(true);
+    expect(inside(by.vpc, by.acct)).toBe(true);
+    expect(inside(by.az, by.vpc)).toBe(true);
   });
 });
