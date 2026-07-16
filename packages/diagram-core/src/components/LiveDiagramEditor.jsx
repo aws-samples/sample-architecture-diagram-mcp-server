@@ -191,12 +191,18 @@ function EditorCanvas({
         if (n.id !== id) return n;
         const data = { ...n.data, ...patch };
         if (n.data?.__src) data.__src = { ...n.data.__src };
-        // Group: label/variant edits; a variant change recomputes the box style.
+        // Group: label/variant/pill edits; a variant change recomputes the box style.
         if (n.type === "group") {
           const next = { ...n, data };
           if (patch.variant !== undefined) {
             const w = n.style?.width || 360, h = n.style?.height || 240;
             next.style = { ...n.style, ...groupStyle(resolveVariant(patch.variant), w, h, 0) };
+          }
+          if (data.__src) {
+            if (patch.label !== undefined) data.__src.label = patch.label;
+            if (patch.variant !== undefined) data.__src.variant = patch.variant;
+            if (patch.pill !== undefined) data.__src.pill = patch.pill;
+            if (patch.pillOverlay !== undefined) data.__src.pillOverlay = patch.pillOverlay;
           }
           return next;
         }
@@ -205,6 +211,8 @@ function EditorCanvas({
         if (patch.sub !== undefined && data.__src) data.__src.category = patch.sub;
         if (patch.staticTone !== undefined && data.__src) data.__src.tone = patch.staticTone;
         if (patch.role !== undefined && data.__src) data.__src.role = patch.role;
+        if (patch.pill !== undefined && data.__src) data.__src.pill = patch.pill;
+        if (patch.pillOverlay !== undefined && data.__src) data.__src.pillOverlay = patch.pillOverlay;
         return { ...n, data };
       }));
     },

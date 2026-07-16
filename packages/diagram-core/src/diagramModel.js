@@ -98,6 +98,10 @@ function serviceFromNode(n) {
   const out = { id: n.id, service: d.label || n.id };
   if (d.icon) out.icon = d.icon;
   if (d.sub) out.category = d.sub;
+  if (d.role) out.role = d.role;
+  if (d.staticTone) out.tone = d.staticTone;
+  if (d.pill) out.pill = d.pill;
+  if (d.pillOverlay) out.pillOverlay = d.pillOverlay;
   if (n.parentId) out.parentId = n.parentId;
   return out;
 }
@@ -116,6 +120,8 @@ function groupFromNode(n) {
   if (n.parentId) out.parent = n.parentId;
   if (d.variant) out.variant = d.variant;
   if (d.icon) out.icon = d.icon;
+  if (d.pill) out.pill = d.pill;
+  if (d.pillOverlay) out.pillOverlay = d.pillOverlay;
   return out;
 }
 

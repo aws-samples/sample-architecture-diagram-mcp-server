@@ -6,7 +6,7 @@ import {
 } from "./chunk-2EKNJYAS.js";
 import {
   layoutWithFallback
-} from "./chunk-UYGFLUBT.js";
+} from "./chunk-KLZNBA34.js";
 import {
   DEFAULT_GEOMETRY,
   __export,
@@ -17,7 +17,7 @@ import {
   resolveVariant,
   serializeDiagram,
   tr
-} from "./chunk-HEDIZ3SZ.js";
+} from "./chunk-HS3UXZFS.js";
 
 // src/Icon.jsx
 import { useState } from "react";
@@ -1689,6 +1689,12 @@ function EditorCanvas({
             const w = n.style?.width || 360, h = n.style?.height || 240;
             next.style = { ...n.style, ...groupStyle(resolveVariant(patch.variant), w, h, 0) };
           }
+          if (data.__src) {
+            if (patch.label !== void 0) data.__src.label = patch.label;
+            if (patch.variant !== void 0) data.__src.variant = patch.variant;
+            if (patch.pill !== void 0) data.__src.pill = patch.pill;
+            if (patch.pillOverlay !== void 0) data.__src.pillOverlay = patch.pillOverlay;
+          }
           return next;
         }
         if (patch.label !== void 0 && data.__src) {
@@ -1698,6 +1704,8 @@ function EditorCanvas({
         if (patch.sub !== void 0 && data.__src) data.__src.category = patch.sub;
         if (patch.staticTone !== void 0 && data.__src) data.__src.tone = patch.staticTone;
         if (patch.role !== void 0 && data.__src) data.__src.role = patch.role;
+        if (patch.pill !== void 0 && data.__src) data.__src.pill = patch.pill;
+        if (patch.pillOverlay !== void 0 && data.__src) data.__src.pillOverlay = patch.pillOverlay;
         return { ...n, data };
       }));
     },
