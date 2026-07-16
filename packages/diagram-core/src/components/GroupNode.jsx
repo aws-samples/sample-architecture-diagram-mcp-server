@@ -68,6 +68,11 @@ function GroupNode({ data, selected }) {
     <div style={{ width: "100%", height: "100%", position: "relative" }}>
       {resizable && <NodeResizer minWidth={140} minHeight={100} isVisible={selected}
         lineStyle={{ borderColor: g.stroke }} handleStyle={{ width: 8, height: 8, background: g.stroke }} />}
+      {/* Editable mode: a transparent hit layer makes the whole box selectable
+          (the container is otherwise pointer-transparent so canvas drags pass
+          through). It sits BEHIND child nodes (zIndex 0 vs children above), so
+          clicking a member still selects the member, not the group. */}
+      {resizable && <div style={{ position: "absolute", inset: 0, zIndex: 0, pointerEvents: "all" }} />}
       {/* Overlay pill: a solid badge anchored to the container's top-left edge
           (like the node pillOverlay), for a qualifier such as an instance type. */}
       {pill && pillOverlay && (

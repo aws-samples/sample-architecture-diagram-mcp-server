@@ -306,6 +306,7 @@ function GroupNode({ data, selected }) {
         handleStyle: { width: 8, height: 8, background: g.stroke }
       }
     ),
+    resizable && /* @__PURE__ */ jsx3("div", { style: { position: "absolute", inset: 0, zIndex: 0, pointerEvents: "all" } }),
     pill && pillOverlay && // Ribbon label floating on the top edge, matching the slides deck
     // LabeledBoundary (align:left, compact): left-3 (12px), -top-3 (-12px),
     // px-3.5 horizontal padding.
