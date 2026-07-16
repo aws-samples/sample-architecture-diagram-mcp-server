@@ -11,8 +11,9 @@ declare function AwsNode({ data }: {
 
 declare const _default$1: react.MemoExoticComponent<typeof GroupNode>;
 
-declare function GroupNode({ data }: {
+declare function GroupNode({ data, selected }: {
     data: any;
+    selected: any;
 }): react.JSX.Element;
 
 declare const _default: react.MemoExoticComponent<typeof CustomEdge>;

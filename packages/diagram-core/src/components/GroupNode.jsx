@@ -7,12 +7,15 @@
 // icon:"none" to show the label only, or an explicit icon ref to override the
 // variant glyph. CSS var namespace is host-configurable via data.vars.
 import { memo } from "react";
+import { NodeResizer } from "@xyflow/react";
 import { resolveVariant } from "../groupVariants.js";
 
-function GroupNode({ data }) {
+function GroupNode({ data, selected }) {
   const lg = data.scale === "lg";
   const vars = { txt: "--txt", ...(data.vars || {}) };
   const Icon = data.IconComponent;
+  // Editable mode injects `resizable` so the group box can be dragged bigger.
+  const resizable = !!data.resizable;
 
   const label = data.label || "Group";
   const g = resolveVariant(data.variant);
@@ -63,6 +66,8 @@ function GroupNode({ data }) {
   const { style: cp, ...handlers } = clickProps;
   return (
     <div style={{ width: "100%", height: "100%", position: "relative" }}>
+      {resizable && <NodeResizer minWidth={140} minHeight={100} isVisible={selected}
+        lineStyle={{ borderColor: g.stroke }} handleStyle={{ width: 8, height: 8, background: g.stroke }} />}
       {/* Overlay pill: a solid badge anchored to the container's top-left edge
           (like the node pillOverlay), for a qualifier such as an instance type. */}
       {pill && pillOverlay && (

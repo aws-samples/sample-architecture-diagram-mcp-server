@@ -240,11 +240,13 @@ var AwsNode_default = memo(AwsNode);
 
 // src/components/GroupNode.jsx
 import { memo as memo2 } from "react";
+import { NodeResizer } from "@xyflow/react";
 import { jsx as jsx3, jsxs as jsxs3 } from "react/jsx-runtime";
-function GroupNode({ data }) {
+function GroupNode({ data, selected }) {
   const lg = data.scale === "lg";
   const vars = { txt: "--txt", ...data.vars || {} };
   const Icon2 = data.IconComponent;
+  const resizable = !!data.resizable;
   const label = data.label || "Group";
   const g = resolveVariant(data.variant);
   const pill = data.pill ? String(data.pill) : "";
@@ -294,6 +296,16 @@ function GroupNode({ data }) {
   }
   const { style: cp, ...handlers } = clickProps;
   return /* @__PURE__ */ jsxs3("div", { style: { width: "100%", height: "100%", position: "relative" }, children: [
+    resizable && /* @__PURE__ */ jsx3(
+      NodeResizer,
+      {
+        minWidth: 140,
+        minHeight: 100,
+        isVisible: selected,
+        lineStyle: { borderColor: g.stroke },
+        handleStyle: { width: 8, height: 8, background: g.stroke }
+      }
+    ),
     pill && pillOverlay && // Ribbon label floating on the top edge, matching the slides deck
     // LabeledBoundary (align:left, compact): left-3 (12px), -top-3 (-12px),
     // px-3.5 horizontal padding.
@@ -1516,12 +1528,14 @@ function LiveDiagram({
 var LiveDiagram_default = LiveDiagram;
 
 // src/components/LiveDiagramEditor.jsx
-import { useEffect as useEffect3, useCallback as useCallback2, useRef as useRef2, useImperativeHandle, forwardRef } from "react";
+import { useEffect as useEffect3, useState as useState5, useCallback as useCallback2, useRef as useRef2, useImperativeHandle, forwardRef } from "react";
 import {
   ReactFlow as ReactFlow2,
   ReactFlowProvider as ReactFlowProvider2,
   Background as Background2,
   BackgroundVariant as BackgroundVariant2,
+  Controls,
+  MiniMap,
   useReactFlow as useReactFlow3,
   useNodesState,
   useEdgesState,
@@ -1536,6 +1550,8 @@ var uid = (p) => `${p}-${Date.now().toString(36)}-${(_seq++).toString(36)}`;
 function EditorCanvas({
   value,
   onChange,
+  onSelectionChange,
+  onHistoryChange,
   lang = "en",
   direction = "TB",
   geometry,
@@ -1543,7 +1559,9 @@ function EditorCanvas({
   vars = {},
   Icon: Icon2,
   markerId = "ld-arrow",
-  editorRef
+  editorRef,
+  controls = true,
+  minimap = true
 }) {
   const { fitView, screenToFlowPosition } = useReactFlow3();
   const geom = { ...DEFAULT_GEOMETRY, ...geometry || {} };
@@ -1554,11 +1572,25 @@ function EditorCanvas({
     pill: n.data?.pill != null ? tr(n.data.pill, lang) : void 0,
     IconComponent: Icon2,
     scale: nodeLayout === "horizontal" ? "lg" : "sm",
-    vars
+    vars,
+    resizable: true
   } } : n, [Icon2, nodeLayout, vars, lang]);
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const loadedRef = useRef2(false);
+  const past = useRef2([]);
+  const future = useRef2([]);
+  const restoring = useRef2(false);
+  const [histTick, setHistTick] = useState5(0);
+  const snapshot = useCallback2(() => {
+    past.current.push({ nodes, edges });
+    if (past.current.length > 100) past.current.shift();
+    future.current = [];
+    setHistTick((t) => t + 1);
+  }, [nodes, edges]);
+  useEffect3(() => {
+    if (onHistoryChange) onHistoryChange({ canUndo: past.current.length > 0, canRedo: future.current.length > 0 });
+  }, [histTick, onHistoryChange]);
   const valueKey = value?.__key ?? value?.id ?? "";
   useEffect3(() => {
     let alive = true;
@@ -1592,6 +1624,7 @@ function EditorCanvas({
     onChange(serializeDiagram(nodes, edges, base));
   }, [nodes, edges]);
   const onConnect = useCallback2((params) => {
+    snapshot();
     setEdges((eds) => addEdge({
       ...params,
       id: uid("e"),
@@ -1599,9 +1632,11 @@ function EditorCanvas({
       data: { markerId, active: false, anyActive: false, speed: 1 },
       animated: true
     }, eds));
-  }, [setEdges, markerId]);
+  }, [setEdges, markerId, snapshot]);
   const onNodeDragStop = useCallback2((_evt, node) => {
-    if (!node || node.type !== "aws") return;
+    if (!node) return;
+    snapshot();
+    if (node.type !== "aws") return;
     setNodes((ns) => {
       const groups = ns.filter((n) => n.type === "group");
       const cx = node.position.x + (node.width || 0) / 2;
@@ -1613,10 +1648,26 @@ function EditorCanvas({
       const parentId = inside ? inside.id : void 0;
       return ns.map((n) => n.id === node.id ? { ...n, parentId, extent: parentId ? "parent" : void 0 } : n);
     });
-  }, [setNodes]);
-  useImperativeHandle(editorRef, () => ({
-    // Add a service node at a screen point (drop) or centered.
+  }, [setNodes, snapshot]);
+  const renameNode = useCallback2((_e, node) => {
+    if (!node) return;
+    const cur = typeof node.data?.label === "string" ? node.data.label : "";
+    const next = window.prompt("R\xF3tulo:", cur);
+    if (next == null) return;
+    editorApi.current?.updateNodeData(node.id, { label: next });
+  }, []);
+  const renameEdge = useCallback2((_e, edge) => {
+    if (!edge) return;
+    const cur = typeof edge.data?.label === "string" ? edge.data.label : "";
+    const next = window.prompt("R\xF3tulo da conex\xE3o:", cur);
+    if (next == null) return;
+    editorApi.current?.updateEdgeData(edge.id, { label: next, showLabel: !!next });
+  }, []);
+  const editorApi = useRef2(null);
+  const api = {
+    // Add a service node at a SCREEN point (click-to-add or drop) or centered.
     addService(svc, screenPos) {
+      snapshot();
       const position = screenPos ? screenToFlowPosition({ x: screenPos.x, y: screenPos.y }) : { x: 200, y: 160 };
       const node = buildServiceNode(
         { id: uid("n"), service: svc.name || svc.label || "Service", icon: svc.icon, category: svc.category },
@@ -1625,15 +1676,86 @@ function EditorCanvas({
       node.position = position;
       setNodes((ns) => [...ns, node]);
     },
+    // Patch a node's editable data (label/category/tone/variant/…) from a panel.
+    updateNodeData(id, patch) {
+      snapshot();
+      setNodes((ns) => ns.map((n) => {
+        if (n.id !== id) return n;
+        const data = { ...n.data, ...patch };
+        if (n.data?.__src) data.__src = { ...n.data.__src };
+        if (n.type === "group") {
+          const next = { ...n, data };
+          if (patch.variant !== void 0) {
+            const w = n.style?.width || 360, h = n.style?.height || 240;
+            next.style = { ...n.style, ...groupStyle(resolveVariant(patch.variant), w, h, 0) };
+          }
+          return next;
+        }
+        if (patch.label !== void 0 && data.__src) {
+          data.__src.service = patch.label;
+          delete data.__src.label;
+        }
+        if (patch.sub !== void 0 && data.__src) data.__src.category = patch.sub;
+        if (patch.staticTone !== void 0 && data.__src) data.__src.tone = patch.staticTone;
+        if (patch.role !== void 0 && data.__src) data.__src.role = patch.role;
+        return { ...n, data };
+      }));
+    },
+    // Patch an edge's editable data (label/type/dashed).
+    updateEdgeData(id, patch) {
+      snapshot();
+      setEdges((es) => es.map((e) => e.id === id ? { ...e, data: { ...e.data, ...patch } } : e));
+    },
+    deleteSelection() {
+      snapshot();
+      setNodes((ns) => ns.filter((n) => !n.selected));
+      setEdges((es) => es.filter((e) => !e.selected));
+    },
+    deleteById(id) {
+      snapshot();
+      setNodes((ns) => ns.filter((n) => n.id !== id));
+      setEdges((es) => es.filter((e) => e.id !== id && e.source !== id && e.target !== id));
+    },
+    undo() {
+      if (!past.current.length) return;
+      restoring.current = true;
+      future.current.push({ nodes, edges });
+      const prev = past.current.pop();
+      setNodes(prev.nodes);
+      setEdges(prev.edges);
+      setHistTick((t) => t + 1);
+      setTimeout(() => {
+        restoring.current = false;
+      }, 0);
+    },
+    redo() {
+      if (!future.current.length) return;
+      restoring.current = true;
+      past.current.push({ nodes, edges });
+      const nxt = future.current.pop();
+      setNodes(nxt.nodes);
+      setEdges(nxt.edges);
+      setHistTick((t) => t + 1);
+      setTimeout(() => {
+        restoring.current = false;
+      }, 0);
+    },
+    canUndo() {
+      return past.current.length > 0;
+    },
+    canRedo() {
+      return future.current.length > 0;
+    },
     // Add a group/container box (variant e.g. "vpc","region","group").
     addGroup(variantName = "group", label = "Group") {
+      snapshot();
       const variant = resolveVariant(variantName);
       const gid = uid("g");
       const node = {
         id: gid,
         type: "group",
         position: { x: 120, y: 120 },
-        data: { id: gid, label, variant: variantName, IconComponent: Icon2, scale: nodeLayout === "horizontal" ? "lg" : "sm", vars },
+        data: { id: gid, label, variant: variantName, IconComponent: Icon2, scale: nodeLayout === "horizontal" ? "lg" : "sm", vars, resizable: true },
         style: groupStyle(variant, 360, 240, 0)
       };
       setNodes((ns) => [node, ...ns]);
@@ -1642,9 +1764,9 @@ function EditorCanvas({
     // comes from the live node parentIds (membershipFromNodes) — the serializer's
     // services don't re-derive it, so read it straight off the canvas.
     async autoLayout() {
-      const snapshot = serializeDiagram(nodes, edges);
+      const snapshot2 = serializeDiagram(nodes, edges);
       const membership = membershipFromNodes(nodes);
-      const { groups } = resolveGroupsAndMembership(snapshot.services, snapshot.groups);
+      const { groups } = resolveGroupsAndMembership(snapshot2.services, snapshot2.groups);
       const { nodes: laid } = await layoutWithFallback(
         nodes.filter((n) => n.type === "aws"),
         edges,
@@ -1666,7 +1788,51 @@ function EditorCanvas({
       setEdges([]);
       void next;
     }
-  }), [nodes, edges, setNodes, setEdges, screenToFlowPosition, fitView, decorateGroup, lang, vars, Icon2, geom, nodeLayout, direction]);
+  };
+  editorApi.current = api;
+  useImperativeHandle(editorRef, () => api, [nodes, edges, setNodes, setEdges, screenToFlowPosition, fitView, decorateGroup, lang, vars, Icon2, geom, nodeLayout, direction, snapshot]);
+  useEffect3(() => {
+    const onKey = (e) => {
+      const mod = e.metaKey || e.ctrlKey;
+      if (!mod) return;
+      const k = e.key.toLowerCase();
+      if (k === "z" && !e.shiftKey) {
+        e.preventDefault();
+        editorApi.current?.undo();
+      } else if (k === "z" && e.shiftKey || k === "y") {
+        e.preventDefault();
+        editorApi.current?.redo();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+  const onDragOver = useCallback2((e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "copy";
+  }, []);
+  const onDrop = useCallback2((e) => {
+    e.preventDefault();
+    const raw = e.dataTransfer.getData("application/ld-service");
+    if (!raw) return;
+    let svc;
+    try {
+      svc = JSON.parse(raw);
+    } catch {
+      return;
+    }
+    snapshot();
+    const position = screenToFlowPosition({ x: e.clientX, y: e.clientY });
+    const node = buildServiceNode(
+      { id: uid("n"), service: svc.name || svc.label || "Service", icon: svc.icon, category: svc.category },
+      { lang, vars, Icon: Icon2, geom, nodeLayout }
+    );
+    node.position = position;
+    setNodes((ns) => [...ns, node]);
+  }, [screenToFlowPosition, setNodes, lang, vars, Icon2, geom, nodeLayout, snapshot]);
+  const handleSelection = useCallback2(({ nodes: sn, edges: se }) => {
+    if (onSelectionChange) onSelectionChange({ nodes: sn || [], edges: se || [] });
+  }, [onSelectionChange]);
   return /* @__PURE__ */ jsxs10(
     ReactFlow2,
     {
@@ -1678,6 +1844,11 @@ function EditorCanvas({
       onEdgesChange,
       onConnect,
       onNodeDragStop,
+      onDrop,
+      onDragOver,
+      onNodeDoubleClick: renameNode,
+      onEdgeDoubleClick: renameEdge,
+      onSelectionChange: handleSelection,
       nodesDraggable: true,
       nodesConnectable: true,
       elementsSelectable: true,
@@ -1697,6 +1868,8 @@ function EditorCanvas({
             color: `var(${vars.dot || "--dot"}, rgba(0,0,0,0.05))`
           }
         ),
+        controls && /* @__PURE__ */ jsx10(Controls, {}),
+        minimap && /* @__PURE__ */ jsx10(MiniMap, { pannable: true, zoomable: true, nodeStrokeWidth: 2, style: { background: `var(${vars.nodeBg || "--nodeBg"}, #fff)` } }),
         /* @__PURE__ */ jsx10("svg", { style: { position: "absolute", width: 0, height: 0 }, children: /* @__PURE__ */ jsx10("defs", { children: /* @__PURE__ */ jsx10("marker", { id: markerId, viewBox: "0 0 10 10", refX: "8", refY: "5", markerWidth: "7", markerHeight: "7", orient: "auto-start-reverse", children: /* @__PURE__ */ jsx10("path", { d: "M 0 0 L 10 5 L 0 10 z", fill: "#4a90d9" }) }) }) })
       ]
     }
