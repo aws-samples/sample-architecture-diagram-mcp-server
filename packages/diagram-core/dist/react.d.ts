@@ -5,8 +5,9 @@ declare const DARK_VARIANT_BASES: Set<string>;
 
 declare const _default$2: react.MemoExoticComponent<typeof AwsNode>;
 
-declare function AwsNode({ data }: {
+declare function AwsNode({ data, selected }: {
     data: any;
+    selected: any;
 }): react.JSX.Element;
 
 declare const _default$1: react.MemoExoticComponent<typeof GroupNode>;

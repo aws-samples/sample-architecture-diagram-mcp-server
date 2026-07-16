@@ -34,8 +34,9 @@ let _seq = 0;
 const uid = (p) => `${p}-${Date.now().toString(36)}-${(_seq++).toString(36)}`;
 
 function EditorCanvas({
-  value, onChange, onSelectionChange, onHistoryChange, lang = "en", direction = "TB", geometry, nodeLayout = "horizontal",
+  value, onChange, onSelectionChange, onHistoryChange, onContextMenu, lang = "en", direction = "TB", geometry, nodeLayout = "horizontal",
   vars = {}, Icon, markerId = "ld-arrow", editorRef, controls = true, minimap = true,
+  bg = "dots", snap = false, snapSize = 16,
 }) {
   const { fitView, screenToFlowPosition } = useReactFlow();
   const geom = { ...DEFAULT_GEOMETRY, ...(geometry || {}) };
@@ -43,11 +44,13 @@ function EditorCanvas({
   // Decorate a group node built by the layout engine so GroupNode can render it
   // (inject Icon/scale/vars + resolve its label AND pill), mirroring LiveDiagram
   // — resolving the pill is required, else an i18n {en,pt} pill crashes React.
+  // Mark every node resizable (editor mode) + resolve group label/pill for
+  // GroupNode. Applied to nodes entering editable state (load / auto-layout).
   const decorateGroup = useCallback((n) => n.type === "group"
     ? { ...n, data: { ...n.data, id: n.id, label: tr(n.data?.label, lang),
         pill: n.data?.pill != null ? tr(n.data.pill, lang) : undefined,
         IconComponent: Icon, scale: nodeLayout === "horizontal" ? "lg" : "sm", vars, resizable: true } }
-    : n, [Icon, nodeLayout, vars, lang]);
+    : { ...n, data: { ...n.data, resizable: true } }, [Icon, nodeLayout, vars, lang]);
 
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
@@ -62,6 +65,7 @@ function EditorCanvas({
   const past = useRef([]);
   const future = useRef([]);
   const restoring = useRef(false);
+  const clipboard = useRef(null);   // { nodes, edges } for copy/paste
   const [histTick, setHistTick] = useState(0);
   const snapshot = useCallback(() => {
     past.current.push({ nodes, edges });
@@ -182,6 +186,7 @@ function EditorCanvas({
         { id: uid("n"), service: svc.name || svc.label || "Service", icon: svc.icon, category: svc.category },
         { lang, vars, Icon, geom, nodeLayout });
       node.position = position;
+      node.data.resizable = true;
       setNodes(ns => [...ns, node]);
     },
     // Patch a node's editable data (label/category/tone/variant/…) from a panel.
@@ -284,18 +289,89 @@ function EditorCanvas({
     fit() { fitView({ padding: 0.12, maxZoom: 1, duration: 300 }); },
     getDiagram() { return serializeDiagram(nodes, edges); },
     setDiagram(next) { setNodes([]); setEdges([]); /* host re-mounts via value key */ void next; },
+
+    // ── Copy / paste / duplicate ──
+    // Clipboard holds the currently-selected nodes + the edges fully inside the
+    // selection. Paste re-ids them (keeping internal edge links) with an offset.
+    copy() {
+      const selNodes = nodes.filter(n => n.selected);
+      if (!selNodes.length) return;
+      const ids = new Set(selNodes.map(n => n.id));
+      const selEdges = edges.filter(e => ids.has(e.source) && ids.has(e.target));
+      clipboard.current = { nodes: JSON.parse(JSON.stringify(selNodes)), edges: JSON.parse(JSON.stringify(selEdges)) };
+    },
+    paste(screenPos) {
+      const clip = clipboard.current;
+      if (!clip?.nodes?.length) return;
+      snapshot();
+      const idMap = {};
+      const dx = 40, dy = 40;
+      const pastedNodes = clip.nodes.map(n => {
+        const nid = n.type === "group" ? uid("g") : uid("n");
+        idMap[n.id] = nid;
+        return { ...n, id: nid, selected: true,
+          position: { x: (n.position?.x || 0) + dx, y: (n.position?.y || 0) + dy },
+          data: { ...n.data, id: n.type === "group" ? nid : n.data?.id },
+          parentId: n.parentId && idMap[n.parentId] ? idMap[n.parentId] : undefined };
+      });
+      const pastedEdges = clip.edges.map(e => ({ ...e, id: uid("e"),
+        source: idMap[e.source], target: idMap[e.target], selected: false }));
+      setNodes(ns => ns.map(n => ({ ...n, selected: false })).concat(pastedNodes.map(decorateGroup)));
+      setEdges(es => es.concat(pastedEdges));
+      void screenPos;
+    },
+    duplicate() { this.copy(); this.paste(); },
+
+    // ── Align / distribute the current multi-selection ──
+    align(dir) {
+      const sel = nodes.filter(n => n.selected && n.type !== "group");
+      if (sel.length < 2) return;
+      snapshot();
+      const xs = sel.map(n => n.position.x), ys = sel.map(n => n.position.y);
+      const rx = sel.map(n => n.position.x + (n.width || 0)), by = sel.map(n => n.position.y + (n.height || 0));
+      const minX = Math.min(...xs), maxX = Math.max(...rx), cX = (minX + maxX) / 2;
+      const minY = Math.min(...ys), maxY = Math.max(...by), cY = (minY + maxY) / 2;
+      const ids = new Set(sel.map(n => n.id));
+      setNodes(ns => ns.map(n => {
+        if (!ids.has(n.id)) return n;
+        const w = n.width || 0, h = n.height || 0; const p = { ...n.position };
+        if (dir === "left") p.x = minX;
+        else if (dir === "right") p.x = maxX - w;
+        else if (dir === "hcenter") p.x = cX - w / 2;
+        else if (dir === "top") p.y = minY;
+        else if (dir === "bottom") p.y = maxY - h;
+        else if (dir === "vcenter") p.y = cY - h / 2;
+        return { ...n, position: p };
+      }));
+    },
+    distribute(axis) {
+      const sel = nodes.filter(n => n.selected && n.type !== "group");
+      if (sel.length < 3) return;
+      snapshot();
+      const key = axis === "h" ? "x" : "y";
+      const sorted = [...sel].sort((a, b) => a.position[key] - b.position[key]);
+      const first = sorted[0].position[key], last = sorted[sorted.length - 1].position[key];
+      const step = (last - first) / (sorted.length - 1);
+      const pos = {}; sorted.forEach((n, i) => { pos[n.id] = first + i * step; });
+      setNodes(ns => ns.map(n => pos[n.id] != null ? { ...n, position: { ...n.position, [key]: pos[n.id] } } : n));
+    },
   };
   editorApi.current = api;
   useImperativeHandle(editorRef, () => api, [nodes, edges, setNodes, setEdges, screenToFlowPosition, fitView, decorateGroup, lang, vars, Icon, geom, nodeLayout, direction, snapshot]);
 
-  // Keyboard: Ctrl/Cmd+Z undo, Ctrl/Cmd+Shift+Z (or Ctrl+Y) redo.
+  // Keyboard: undo/redo + copy/paste/duplicate. Ignore when typing in an input.
   useEffect(() => {
     const onKey = (e) => {
+      const t = e.target;
+      if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
       const mod = e.metaKey || e.ctrlKey;
       if (!mod) return;
       const k = e.key.toLowerCase();
       if (k === "z" && !e.shiftKey) { e.preventDefault(); editorApi.current?.undo(); }
       else if ((k === "z" && e.shiftKey) || k === "y") { e.preventDefault(); editorApi.current?.redo(); }
+      else if (k === "c") { editorApi.current?.copy(); }
+      else if (k === "v") { e.preventDefault(); editorApi.current?.paste(); }
+      else if (k === "d") { e.preventDefault(); editorApi.current?.duplicate(); }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -331,12 +407,23 @@ function EditorCanvas({
       { id: uid("n"), service: svc.name || svc.label || "Service", icon: svc.icon, category: svc.category },
       { lang, vars, Icon, geom, nodeLayout });
     node.position = position;
+    node.data.resizable = true;
     setNodes(ns => [...ns, node]);
   }, [screenToFlowPosition, setNodes, lang, vars, Icon, geom, nodeLayout, snapshot]);
 
   const handleSelection = useCallback(({ nodes: sn, edges: se }) => {
     if (onSelectionChange) onSelectionChange({ nodes: sn || [], edges: se || [] });
   }, [onSelectionChange]);
+
+  // Right-click → tell the host to open a context menu (kind + target id + point).
+  const ctx = useCallback((kind) => (e, obj) => {
+    if (!onContextMenu) return;
+    e.preventDefault();
+    onContextMenu({ kind, id: obj?.id, x: e.clientX, y: e.clientY });
+  }, [onContextMenu]);
+
+  // Background: dots (grid), lines (striped), or plain (white/none).
+  const bgVariant = bg === "lines" ? BackgroundVariant.Lines : BackgroundVariant.Dots;
 
   return (
     <ReactFlow
@@ -345,12 +432,14 @@ function EditorCanvas({
       onNodeDragStop={onNodeDragStop} onDrop={onDrop} onDragOver={onDragOver}
       onNodeDoubleClick={renameNode} onEdgeDoubleClick={renameEdge}
       onSelectionChange={handleSelection}
+      onNodeContextMenu={ctx("node")} onEdgeContextMenu={ctx("edge")} onPaneContextMenu={ctx("pane")}
+      snapToGrid={snap} snapGrid={[snapSize, snapSize]}
       nodesDraggable nodesConnectable elementsSelectable
       proOptions={{ hideAttribution: true }} minZoom={0.1} maxZoom={3}
       fitView fitViewOptions={{ padding: 0.12, maxZoom: 1 }} deleteKeyCode={["Backspace", "Delete"]}
     >
-      <Background variant={BackgroundVariant.Dots} gap={20} size={1}
-        color={`var(${vars.dot || "--dot"}, rgba(0,0,0,0.05))`} />
+      {bg !== "plain" && <Background variant={bgVariant} gap={bg === "lines" ? 24 : 20} size={1}
+        color={`var(${vars.dot || "--dot"}, rgba(0,0,0,0.05))`} />}
       {controls && <Controls />}
       {minimap && <MiniMap pannable zoomable nodeStrokeWidth={2} style={{ background: `var(${vars.nodeBg || "--nodeBg"}, #fff)` }} />}
       <svg style={{ position: "absolute", width: 0, height: 0 }}>

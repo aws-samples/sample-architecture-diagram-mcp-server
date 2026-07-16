@@ -7,7 +7,7 @@
 // its own resolveAsset/iconBase); when absent, a colored initial is shown.
 // CSS var namespace is host-configurable via `data.vars`.
 import { memo } from "react";
-import { Handle, Position } from "@xyflow/react";
+import { Handle, Position, NodeResizer } from "@xyflow/react";
 import { TONE_COLORS } from "../tones.js";
 
 const CATEGORY_COLORS = {
@@ -18,11 +18,12 @@ const CATEGORY_COLORS = {
 
 const VAR = { nodeBg: "--node-bg", txt: "--txt", txtMuted: "--txt-muted" };
 
-function AwsNode({ data }) {
+function AwsNode({ data, selected }) {
   const layout = data.layout === "horizontal" ? "horizontal" : "vertical";
   const isH = layout === "horizontal";
   const vars = { ...VAR, ...(data.vars || {}) };
   const Icon = data.IconComponent;
+  const resizable = !!data.resizable;   // editor mode: allow drag-resize
 
   const category = String(data.sub || data.category || "general");
   const baseColor = CATEGORY_COLORS[category] || CATEGORY_COLORS.general;
@@ -51,9 +52,11 @@ function AwsNode({ data }) {
     opacity: dimmed ? 0.28 : 1,
     transform: active ? "scale(1.04)" : "scale(1)",
     transition: "opacity .35s, transform .35s, box-shadow .35s, border-color .35s",
+    // Height is a MINIMUM (not fixed) so the card grows to fit a wrapped label
+    // instead of clipping long service names. Width defaults keep a sane box.
     ...(isH
-      ? { width: data.nodeW || 272, height: data.nodeH || 116, padding: "12px 18px", borderRadius: 12, display: "flex", alignItems: "center", gap: 14 }
-      : { width: 180, padding: "16px 14px 12px", borderRadius: 14, textAlign: "center" }),
+      ? { width: data.nodeW || 272, minHeight: data.nodeH || 84, padding: "12px 18px", borderRadius: 12, display: "flex", alignItems: "center", gap: 14 }
+      : { width: data.nodeW || 180, minHeight: data.nodeH, padding: "16px 14px 12px", borderRadius: 14, textAlign: "center" }),
   };
 
   const overlayPill = pill && pillOverlay && (
@@ -74,7 +77,9 @@ function AwsNode({ data }) {
       color: "#fff", background: color, whiteSpace: "nowrap",
     }}>{pill}</span>
   );
-  const labelEl = <div style={{ fontSize: isH ? 19 : 15, fontWeight: 700, color: `var(${vars.txt}, #1e293b)`, lineHeight: isH ? 1.2 : 1.25 }}>{label}</div>;
+  const labelEl = <div style={{ fontSize: isH ? 16 : 14, fontWeight: 700, color: `var(${vars.txt}, #1e293b)`, lineHeight: 1.25,
+    // Wrap long names to up to 2 lines instead of overflowing the card.
+    overflowWrap: "anywhere", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{label}</div>;
   const subEl = sublabel && <div style={{ fontSize: isH ? 14 : 12, color: `var(${vars.txtMuted}, #64748b)`, fontStyle: "italic", marginTop: 2 }}>{sublabel}</div>;
 
   const hs = isH ? 10 : 8;   // target handle size
@@ -82,6 +87,8 @@ function AwsNode({ data }) {
 
   return (
     <div style={frame}>
+      {resizable && <NodeResizer minWidth={120} minHeight={56} isVisible={selected}
+        lineStyle={{ borderColor: color }} handleStyle={{ width: 7, height: 7, background: color }} />}
       <Handle type="target" position={Position.Top} id="top" style={{ width: hs, height: hs, background: color, border: "none" }} />
       <Handle type="target" position={Position.Left} id="left" style={{ width: hs, height: hs, background: color, border: "none" }} />
       {overlayPill}

@@ -136,7 +136,7 @@ var Icon_default = Icon;
 
 // src/components/AwsNode.jsx
 import { memo } from "react";
-import { Handle, Position } from "@xyflow/react";
+import { Handle, Position, NodeResizer } from "@xyflow/react";
 import { Fragment as Fragment2, jsx as jsx2, jsxs as jsxs2 } from "react/jsx-runtime";
 var CATEGORY_COLORS = {
   compute: "#ED7100",
@@ -149,11 +149,12 @@ var CATEGORY_COLORS = {
   general: "#545B64"
 };
 var VAR = { nodeBg: "--node-bg", txt: "--txt", txtMuted: "--txt-muted" };
-function AwsNode({ data }) {
+function AwsNode({ data, selected }) {
   const layout = data.layout === "horizontal" ? "horizontal" : "vertical";
   const isH = layout === "horizontal";
   const vars = { ...VAR, ...data.vars || {} };
   const Icon2 = data.IconComponent;
+  const resizable = !!data.resizable;
   const category = String(data.sub || data.category || "general");
   const baseColor = CATEGORY_COLORS[category] || CATEGORY_COLORS.general;
   const label = String(data.label || "");
@@ -177,7 +178,9 @@ function AwsNode({ data }) {
     opacity: dimmed ? 0.28 : 1,
     transform: active ? "scale(1.04)" : "scale(1)",
     transition: "opacity .35s, transform .35s, box-shadow .35s, border-color .35s",
-    ...isH ? { width: data.nodeW || 272, height: data.nodeH || 116, padding: "12px 18px", borderRadius: 12, display: "flex", alignItems: "center", gap: 14 } : { width: 180, padding: "16px 14px 12px", borderRadius: 14, textAlign: "center" }
+    // Height is a MINIMUM (not fixed) so the card grows to fit a wrapped label
+    // instead of clipping long service names. Width defaults keep a sane box.
+    ...isH ? { width: data.nodeW || 272, minHeight: data.nodeH || 84, padding: "12px 18px", borderRadius: 12, display: "flex", alignItems: "center", gap: 14 } : { width: data.nodeW || 180, minHeight: data.nodeH, padding: "16px 14px 12px", borderRadius: 14, textAlign: "center" }
   };
   const overlayPill = pill && pillOverlay && /* @__PURE__ */ jsx2("span", { style: {
     position: "absolute",
@@ -211,11 +214,32 @@ function AwsNode({ data }) {
     background: color,
     whiteSpace: "nowrap"
   }, children: pill });
-  const labelEl = /* @__PURE__ */ jsx2("div", { style: { fontSize: isH ? 19 : 15, fontWeight: 700, color: `var(${vars.txt}, #1e293b)`, lineHeight: isH ? 1.2 : 1.25 }, children: label });
+  const labelEl = /* @__PURE__ */ jsx2("div", { style: {
+    fontSize: isH ? 16 : 14,
+    fontWeight: 700,
+    color: `var(${vars.txt}, #1e293b)`,
+    lineHeight: 1.25,
+    // Wrap long names to up to 2 lines instead of overflowing the card.
+    overflowWrap: "anywhere",
+    display: "-webkit-box",
+    WebkitLineClamp: 2,
+    WebkitBoxOrient: "vertical",
+    overflow: "hidden"
+  }, children: label });
   const subEl = sublabel && /* @__PURE__ */ jsx2("div", { style: { fontSize: isH ? 14 : 12, color: `var(${vars.txtMuted}, #64748b)`, fontStyle: "italic", marginTop: 2 }, children: sublabel });
   const hs = isH ? 10 : 8;
   const ss = isH ? 8 : 6;
   return /* @__PURE__ */ jsxs2("div", { style: frame, children: [
+    resizable && /* @__PURE__ */ jsx2(
+      NodeResizer,
+      {
+        minWidth: 120,
+        minHeight: 56,
+        isVisible: selected,
+        lineStyle: { borderColor: color },
+        handleStyle: { width: 7, height: 7, background: color }
+      }
+    ),
     /* @__PURE__ */ jsx2(Handle, { type: "target", position: Position.Top, id: "top", style: { width: hs, height: hs, background: color, border: "none" } }),
     /* @__PURE__ */ jsx2(Handle, { type: "target", position: Position.Left, id: "left", style: { width: hs, height: hs, background: color, border: "none" } }),
     overlayPill,
@@ -240,7 +264,7 @@ var AwsNode_default = memo(AwsNode);
 
 // src/components/GroupNode.jsx
 import { memo as memo2 } from "react";
-import { NodeResizer } from "@xyflow/react";
+import { NodeResizer as NodeResizer2 } from "@xyflow/react";
 import { jsx as jsx3, jsxs as jsxs3 } from "react/jsx-runtime";
 function GroupNode({ data, selected }) {
   const lg = data.scale === "lg";
@@ -297,7 +321,7 @@ function GroupNode({ data, selected }) {
   const { style: cp, ...handlers } = clickProps;
   return /* @__PURE__ */ jsxs3("div", { style: { width: "100%", height: "100%", position: "relative" }, children: [
     resizable && /* @__PURE__ */ jsx3(
-      NodeResizer,
+      NodeResizer2,
       {
         minWidth: 140,
         minHeight: 100,
@@ -1553,6 +1577,7 @@ function EditorCanvas({
   onChange,
   onSelectionChange,
   onHistoryChange,
+  onContextMenu,
   lang = "en",
   direction = "TB",
   geometry,
@@ -1562,7 +1587,10 @@ function EditorCanvas({
   markerId = "ld-arrow",
   editorRef,
   controls = true,
-  minimap = true
+  minimap = true,
+  bg = "dots",
+  snap = false,
+  snapSize = 16
 }) {
   const { fitView, screenToFlowPosition } = useReactFlow3();
   const geom = { ...DEFAULT_GEOMETRY, ...geometry || {} };
@@ -1575,13 +1603,14 @@ function EditorCanvas({
     scale: nodeLayout === "horizontal" ? "lg" : "sm",
     vars,
     resizable: true
-  } } : n, [Icon2, nodeLayout, vars, lang]);
+  } } : { ...n, data: { ...n.data, resizable: true } }, [Icon2, nodeLayout, vars, lang]);
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const loadedRef = useRef2(false);
   const past = useRef2([]);
   const future = useRef2([]);
   const restoring = useRef2(false);
+  const clipboard = useRef2(null);
   const [histTick, setHistTick] = useState5(0);
   const snapshot = useCallback2(() => {
     past.current.push({ nodes, edges });
@@ -1675,6 +1704,7 @@ function EditorCanvas({
         { lang, vars, Icon: Icon2, geom, nodeLayout }
       );
       node.position = position;
+      node.data.resizable = true;
       setNodes((ns) => [...ns, node]);
     },
     // Patch a node's editable data (label/category/tone/variant/…) from a panel.
@@ -1798,12 +1828,94 @@ function EditorCanvas({
       setNodes([]);
       setEdges([]);
       void next;
+    },
+    // ── Copy / paste / duplicate ──
+    // Clipboard holds the currently-selected nodes + the edges fully inside the
+    // selection. Paste re-ids them (keeping internal edge links) with an offset.
+    copy() {
+      const selNodes = nodes.filter((n) => n.selected);
+      if (!selNodes.length) return;
+      const ids = new Set(selNodes.map((n) => n.id));
+      const selEdges = edges.filter((e) => ids.has(e.source) && ids.has(e.target));
+      clipboard.current = { nodes: JSON.parse(JSON.stringify(selNodes)), edges: JSON.parse(JSON.stringify(selEdges)) };
+    },
+    paste(screenPos) {
+      const clip = clipboard.current;
+      if (!clip?.nodes?.length) return;
+      snapshot();
+      const idMap = {};
+      const dx = 40, dy = 40;
+      const pastedNodes = clip.nodes.map((n) => {
+        const nid = n.type === "group" ? uid("g") : uid("n");
+        idMap[n.id] = nid;
+        return {
+          ...n,
+          id: nid,
+          selected: true,
+          position: { x: (n.position?.x || 0) + dx, y: (n.position?.y || 0) + dy },
+          data: { ...n.data, id: n.type === "group" ? nid : n.data?.id },
+          parentId: n.parentId && idMap[n.parentId] ? idMap[n.parentId] : void 0
+        };
+      });
+      const pastedEdges = clip.edges.map((e) => ({
+        ...e,
+        id: uid("e"),
+        source: idMap[e.source],
+        target: idMap[e.target],
+        selected: false
+      }));
+      setNodes((ns) => ns.map((n) => ({ ...n, selected: false })).concat(pastedNodes.map(decorateGroup)));
+      setEdges((es) => es.concat(pastedEdges));
+      void screenPos;
+    },
+    duplicate() {
+      this.copy();
+      this.paste();
+    },
+    // ── Align / distribute the current multi-selection ──
+    align(dir) {
+      const sel = nodes.filter((n) => n.selected && n.type !== "group");
+      if (sel.length < 2) return;
+      snapshot();
+      const xs = sel.map((n) => n.position.x), ys = sel.map((n) => n.position.y);
+      const rx = sel.map((n) => n.position.x + (n.width || 0)), by = sel.map((n) => n.position.y + (n.height || 0));
+      const minX = Math.min(...xs), maxX = Math.max(...rx), cX = (minX + maxX) / 2;
+      const minY = Math.min(...ys), maxY = Math.max(...by), cY = (minY + maxY) / 2;
+      const ids = new Set(sel.map((n) => n.id));
+      setNodes((ns) => ns.map((n) => {
+        if (!ids.has(n.id)) return n;
+        const w = n.width || 0, h = n.height || 0;
+        const p = { ...n.position };
+        if (dir === "left") p.x = minX;
+        else if (dir === "right") p.x = maxX - w;
+        else if (dir === "hcenter") p.x = cX - w / 2;
+        else if (dir === "top") p.y = minY;
+        else if (dir === "bottom") p.y = maxY - h;
+        else if (dir === "vcenter") p.y = cY - h / 2;
+        return { ...n, position: p };
+      }));
+    },
+    distribute(axis) {
+      const sel = nodes.filter((n) => n.selected && n.type !== "group");
+      if (sel.length < 3) return;
+      snapshot();
+      const key = axis === "h" ? "x" : "y";
+      const sorted = [...sel].sort((a, b) => a.position[key] - b.position[key]);
+      const first = sorted[0].position[key], last = sorted[sorted.length - 1].position[key];
+      const step = (last - first) / (sorted.length - 1);
+      const pos = {};
+      sorted.forEach((n, i) => {
+        pos[n.id] = first + i * step;
+      });
+      setNodes((ns) => ns.map((n) => pos[n.id] != null ? { ...n, position: { ...n.position, [key]: pos[n.id] } } : n));
     }
   };
   editorApi.current = api;
   useImperativeHandle(editorRef, () => api, [nodes, edges, setNodes, setEdges, screenToFlowPosition, fitView, decorateGroup, lang, vars, Icon2, geom, nodeLayout, direction, snapshot]);
   useEffect3(() => {
     const onKey = (e) => {
+      const t = e.target;
+      if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
       const mod = e.metaKey || e.ctrlKey;
       if (!mod) return;
       const k = e.key.toLowerCase();
@@ -1813,6 +1925,14 @@ function EditorCanvas({
       } else if (k === "z" && e.shiftKey || k === "y") {
         e.preventDefault();
         editorApi.current?.redo();
+      } else if (k === "c") {
+        editorApi.current?.copy();
+      } else if (k === "v") {
+        e.preventDefault();
+        editorApi.current?.paste();
+      } else if (k === "d") {
+        e.preventDefault();
+        editorApi.current?.duplicate();
       }
     };
     window.addEventListener("keydown", onKey);
@@ -1861,11 +1981,18 @@ function EditorCanvas({
       { lang, vars, Icon: Icon2, geom, nodeLayout }
     );
     node.position = position;
+    node.data.resizable = true;
     setNodes((ns) => [...ns, node]);
   }, [screenToFlowPosition, setNodes, lang, vars, Icon2, geom, nodeLayout, snapshot]);
   const handleSelection = useCallback2(({ nodes: sn, edges: se }) => {
     if (onSelectionChange) onSelectionChange({ nodes: sn || [], edges: se || [] });
   }, [onSelectionChange]);
+  const ctx = useCallback2((kind) => (e, obj) => {
+    if (!onContextMenu) return;
+    e.preventDefault();
+    onContextMenu({ kind, id: obj?.id, x: e.clientX, y: e.clientY });
+  }, [onContextMenu]);
+  const bgVariant = bg === "lines" ? BackgroundVariant2.Lines : BackgroundVariant2.Dots;
   return /* @__PURE__ */ jsxs10(
     ReactFlow2,
     {
@@ -1882,6 +2009,11 @@ function EditorCanvas({
       onNodeDoubleClick: renameNode,
       onEdgeDoubleClick: renameEdge,
       onSelectionChange: handleSelection,
+      onNodeContextMenu: ctx("node"),
+      onEdgeContextMenu: ctx("edge"),
+      onPaneContextMenu: ctx("pane"),
+      snapToGrid: snap,
+      snapGrid: [snapSize, snapSize],
       nodesDraggable: true,
       nodesConnectable: true,
       elementsSelectable: true,
@@ -1892,11 +2024,11 @@ function EditorCanvas({
       fitViewOptions: { padding: 0.12, maxZoom: 1 },
       deleteKeyCode: ["Backspace", "Delete"],
       children: [
-        /* @__PURE__ */ jsx10(
+        bg !== "plain" && /* @__PURE__ */ jsx10(
           Background2,
           {
-            variant: BackgroundVariant2.Dots,
-            gap: 20,
+            variant: bgVariant,
+            gap: bg === "lines" ? 24 : 20,
             size: 1,
             color: `var(${vars.dot || "--dot"}, rgba(0,0,0,0.05))`
           }
