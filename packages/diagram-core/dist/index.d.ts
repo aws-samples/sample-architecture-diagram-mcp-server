@@ -198,4 +198,91 @@ declare namespace HORIZONTAL_GEOMETRY {
 }
 declare namespace SLIDES_GEOMETRY { }
 
-export { DEFAULT_GEOMETRY, HORIZONTAL_GEOMETRY, SLIDES_GEOMETRY, TONE_COLORS, TONE_META, type Tone, ancestorsOf, elkGraphOptions, elkGroupPadding, elkSpacing, groupDepth, i18n, lcaContainer, radialLayout, resolveGroupsAndMembership, resolveToneColor, toneColor, toneMeta, tr };
+/**
+ * Build the `data` object an `aws` React-Flow node expects, from a service.
+ * Mirrors the mapping the render path used inline; shared so the editor produces
+ * identical nodes. `ctx` carries the host-injected bits (Icon, geometry, vars).
+ */
+declare function buildServiceNodeData(s: any, { lang, vars, Icon, geom, nodeLayout }?: {
+    lang?: string;
+    vars?: {};
+    geom?: {};
+    nodeLayout?: string;
+}): {
+    label: any;
+    icon: any;
+    sub: any;
+    role: any;
+    pill: any;
+    pillOverlay: any;
+    staticTone: any;
+    config: any;
+    layout: string;
+    vars: {};
+    IconComponent: any;
+    nodeW: any;
+    nodeH: any;
+    __src: any;
+};
+/** Build a full `aws` React-Flow node (id/type/position/data) from a service. */
+declare function buildServiceNode(s: any, ctx: any): {
+    id: any;
+    type: string;
+    position: {
+        x: number;
+        y: number;
+    };
+    data: {
+        label: any;
+        icon: any;
+        sub: any;
+        role: any;
+        pill: any;
+        pillOverlay: any;
+        staticTone: any;
+        config: any;
+        layout: string;
+        vars: {};
+        IconComponent: any;
+        nodeW: any;
+        nodeH: any;
+        __src: any;
+    };
+};
+/** Build the `custom` edge for a connection. `edgeIndex` disambiguates parallels. */
+declare function buildBaseEdge(c: any, { direction, lang, animate, straight, markerId, edgeTuning, edgeIndex }?: {
+    direction?: string;
+    lang?: string;
+    animate?: boolean;
+    straight?: boolean;
+    markerId?: string;
+    edgeIndex?: number;
+}): {
+    id: any;
+    source: any;
+    target: any;
+    type: string;
+    sourceHandle: string;
+    targetHandle: string;
+    data: any;
+    animated: boolean;
+};
+/** The React-Flow group-overlay node style for a resolved variant + depth. */
+declare function groupStyle(variant: any, w: any, h: any, depth?: number): {
+    width: any;
+    height: any;
+    border: string;
+    borderRadius: number;
+    background: string;
+    zIndex: number;
+};
+/**
+ * Serialize live React-Flow nodes/edges back to the diagram JSON contract.
+ * `base` carries top-level fields to preserve (title/subtitle/direction/…).
+ */
+declare function serializeDiagram(nodes: any, edges: any, base?: {}): {
+    services: any[];
+    connections: any;
+};
+
+export { DEFAULT_GEOMETRY, HORIZONTAL_GEOMETRY, SLIDES_GEOMETRY, TONE_COLORS, TONE_META, type Tone, ancestorsOf, buildBaseEdge, buildServiceNode, buildServiceNodeData, elkGraphOptions, elkGroupPadding, elkSpacing, groupDepth, groupStyle, i18n, lcaContainer, radialLayout, resolveGroupsAndMembership, resolveToneColor, serializeDiagram, toneColor, toneMeta, tr };

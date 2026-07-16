@@ -13,3 +13,4 @@ export { default as NodeModal } from "./components/NodeModal.jsx";
 export { default as ZoomBar } from "./components/ZoomBar.jsx";
 export * as cardKit from "./components/cardKit.jsx";
 export { LiveDiagram, default as LiveDiagramDefault } from "./components/LiveDiagram.jsx";
+export { LiveDiagramEditor } from "./components/LiveDiagramEditor.jsx";

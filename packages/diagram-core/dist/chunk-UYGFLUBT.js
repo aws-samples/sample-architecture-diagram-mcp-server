@@ -4,27 +4,18 @@ import {
   elkGroupPadding,
   elkSpacing,
   groupDepth,
+  groupStyle,
   lcaContainer,
   radialLayout,
   resolveVariant,
   variantKey
-} from "./chunk-AG34KT55.js";
+} from "./chunk-HEDIZ3SZ.js";
 
 // src/layoutEngine.js
 import ELK from "elkjs/lib/elk.bundled.js";
 import dagre from "dagre";
 var elk = new ELK();
 var geomOf = (g) => ({ ...DEFAULT_GEOMETRY, ...g || {} });
-function groupStyle(variant, w, h, depth) {
-  return {
-    width: w,
-    height: h,
-    border: `2px ${variant.dashed ? "dashed" : "solid"} ${variant.stroke}`,
-    borderRadius: 8,
-    background: variant.stroke + "0F",
-    zIndex: -10 + depth
-  };
-}
 function elkLayout(serviceNodes, edges, membership, opts = {}) {
   const {
     direction = "TB",

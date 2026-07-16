@@ -68,26 +68,11 @@ function resolveGroupsAndMembership(services, declaredGroups) {
   return { groups, membership };
 }
 
-// src/i18n.js
-function tr(val, lang, fallback = "en") {
-  if (val == null) return "";
-  if (typeof val === "string") return val;
-  if (typeof val === "object") return val[lang] ?? val[fallback] ?? Object.values(val)[0] ?? "";
-  return String(val);
-}
-var i18n = (val, lang) => {
-  if (val == null) return "";
-  if (typeof val === "string") return val;
-  return val[lang] || val.en || val.pt || "";
-};
-
 export {
   TONE_COLORS,
   TONE_META,
   resolveToneColor,
   toneColor,
   toneMeta,
-  resolveGroupsAndMembership,
-  tr,
-  i18n
+  resolveGroupsAndMembership
 };

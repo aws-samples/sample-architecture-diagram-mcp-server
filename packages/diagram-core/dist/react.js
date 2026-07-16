@@ -2,17 +2,22 @@ import {
   TONE_COLORS,
   TONE_META,
   resolveGroupsAndMembership,
-  resolveToneColor,
-  tr
-} from "./chunk-UXUWAPVA.js";
+  resolveToneColor
+} from "./chunk-2EKNJYAS.js";
 import {
   layoutWithFallback
-} from "./chunk-FT22Z53L.js";
+} from "./chunk-UYGFLUBT.js";
 import {
   DEFAULT_GEOMETRY,
   __export,
-  resolveVariant
-} from "./chunk-AG34KT55.js";
+  buildBaseEdge,
+  buildServiceNode,
+  groupStyle,
+  membershipFromNodes,
+  resolveVariant,
+  serializeDiagram,
+  tr
+} from "./chunk-HEDIZ3SZ.js";
 
 // src/Icon.jsx
 import { useState } from "react";
@@ -1174,26 +1179,10 @@ function DiagramCanvas({
     }
     return { nodeTone: nt, edgeTone: et, groupTone: gt };
   }, [steps, activeStep, anyActive]);
-  const serviceNodes = useMemo(() => (data.services || []).map((s) => ({
-    id: s.id,
-    type: "aws",
-    position: { x: 0, y: 0 },
-    data: {
-      label: tr(s.label != null ? s.label : s.service, lang),
-      icon: s.icon,
-      sub: s.category,
-      role: tr(s.role, lang),
-      pill: tr(s.pill, lang),
-      pillOverlay: s.pillOverlay,
-      staticTone: s.tone,
-      config: s.config ? { ...s.config, label: tr(s.config.label, lang) } : void 0,
-      layout: nodeLayout,
-      vars,
-      IconComponent: Icon2,
-      nodeW: geom.nodeW,
-      nodeH: geom.nodeH
-    }
-  })), [data, lang, nodeLayout, vars, Icon2, geom.nodeW, geom.nodeH]);
+  const serviceNodes = useMemo(
+    () => (data.services || []).map((s) => buildServiceNode(s, { lang, vars, Icon: Icon2, geom, nodeLayout })),
+    [data, lang, nodeLayout, vars, Icon2, geom.nodeW, geom.nodeH]
+  );
   const { groups, membership } = useMemo(() => {
     const declared = data.groups;
     if (direction === "RADIAL" && !(declared && declared.length)) return { groups: [], membership: {} };
@@ -1201,33 +1190,10 @@ function DiagramCanvas({
   }, [data, direction]);
   const baseEdges = useMemo(() => {
     const targetCount = {};
-    return (data.connections || []).map((c, idx) => {
+    return (data.connections || []).map((c) => {
       const seen = targetCount[c.target] || 0;
       targetCount[c.target] = seen + 1;
-      return {
-        id: c.id,
-        source: c.source,
-        target: c.target,
-        type: "custom",
-        sourceHandle: direction === "RADIAL" ? void 0 : direction === "TB" ? "bottom" : "right",
-        targetHandle: direction === "RADIAL" ? void 0 : direction === "TB" ? "top" : "left",
-        data: {
-          label: tr(c.label, lang),
-          showLabel: c.showLabel,
-          edgeIndex: seen,
-          bidirectional: c.bidirectional,
-          connType: c.type,
-          dashed: c.dashed,
-          severed: c.severed,
-          active: false,
-          anyActive: false,
-          speed: 1,
-          straight,
-          markerId,
-          ...edgeTuning
-        },
-        animated: animate
-      };
+      return buildBaseEdge(c, { direction, lang, animate, straight, markerId, edgeTuning, edgeIndex: seen });
     });
   }, [data, direction, animate, straight, lang, markerId, edgeTuning]);
   const [baseNodes, setBaseNodes] = useState4([]);
@@ -1548,6 +1514,198 @@ function LiveDiagram({
   ] }) });
 }
 var LiveDiagram_default = LiveDiagram;
+
+// src/components/LiveDiagramEditor.jsx
+import { useEffect as useEffect3, useCallback as useCallback2, useRef as useRef2, useImperativeHandle, forwardRef } from "react";
+import {
+  ReactFlow as ReactFlow2,
+  ReactFlowProvider as ReactFlowProvider2,
+  Background as Background2,
+  BackgroundVariant as BackgroundVariant2,
+  useReactFlow as useReactFlow3,
+  useNodesState,
+  useEdgesState,
+  addEdge
+} from "@xyflow/react";
+import "@xyflow/react/dist/style.css";
+import { jsx as jsx10, jsxs as jsxs10 } from "react/jsx-runtime";
+var NODE_TYPES2 = { aws: AwsNode_default, group: GroupNode_default };
+var EDGE_TYPES2 = { custom: CustomEdge_default };
+var _seq = 0;
+var uid = (p) => `${p}-${Date.now().toString(36)}-${(_seq++).toString(36)}`;
+function EditorCanvas({
+  value,
+  onChange,
+  lang = "en",
+  direction = "TB",
+  geometry,
+  nodeLayout = "horizontal",
+  vars = {},
+  Icon: Icon2,
+  markerId = "ld-arrow",
+  editorRef
+}) {
+  const { fitView, screenToFlowPosition } = useReactFlow3();
+  const geom = { ...DEFAULT_GEOMETRY, ...geometry || {} };
+  const decorateGroup = useCallback2((n) => n.type === "group" ? { ...n, data: {
+    ...n.data,
+    id: n.id,
+    label: tr(n.data?.label, lang),
+    pill: n.data?.pill != null ? tr(n.data.pill, lang) : void 0,
+    IconComponent: Icon2,
+    scale: nodeLayout === "horizontal" ? "lg" : "sm",
+    vars
+  } } : n, [Icon2, nodeLayout, vars, lang]);
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const loadedRef = useRef2(false);
+  const valueKey = value?.__key ?? value?.id ?? "";
+  useEffect3(() => {
+    let alive = true;
+    loadedRef.current = false;
+    const svcNodes = (value?.services || []).map((s) => buildServiceNode(s, { lang, vars, Icon: Icon2, geom, nodeLayout }));
+    const seenByTarget = {};
+    const baseEdges = (value?.connections || []).map((c) => {
+      const seen = seenByTarget[c.target] || 0;
+      seenByTarget[c.target] = seen + 1;
+      return buildBaseEdge(c, { direction, lang, animate: true, markerId, edgeIndex: seen });
+    });
+    const { groups, membership } = resolveGroupsAndMembership(value?.services || [], value?.groups);
+    layoutWithFallback(svcNodes, baseEdges, membership, { direction, geometry: geom, groups }).then(({ nodes: laid }) => {
+      if (!alive) return;
+      const withParent = laid.map((n) => n.type === "aws" && membership[n.id] ? { ...n, parentId: membership[n.id], extent: "parent" } : n);
+      setNodes(withParent.map(decorateGroup));
+      setEdges(baseEdges);
+      loadedRef.current = true;
+      setTimeout(() => fitView({ padding: 0.12 }), 60);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [valueKey]);
+  useEffect3(() => {
+    if (!onChange || !loadedRef.current) return;
+    const base = {};
+    for (const k of ["title", "subtitle", "direction", "edgeStyle"]) if (value?.[k] != null) base[k] = value[k];
+    if (value?.__key != null) base.__key = value.__key;
+    if (value?.id != null) base.id = value.id;
+    onChange(serializeDiagram(nodes, edges, base));
+  }, [nodes, edges]);
+  const onConnect = useCallback2((params) => {
+    setEdges((eds) => addEdge({
+      ...params,
+      id: uid("e"),
+      type: "custom",
+      data: { markerId, active: false, anyActive: false, speed: 1 },
+      animated: true
+    }, eds));
+  }, [setEdges, markerId]);
+  const onNodeDragStop = useCallback2((_evt, node) => {
+    if (!node || node.type !== "aws") return;
+    setNodes((ns) => {
+      const groups = ns.filter((n) => n.type === "group");
+      const cx = node.position.x + (node.width || 0) / 2;
+      const cy = node.position.y + (node.height || 0) / 2;
+      const inside = groups.find((g) => {
+        const w = g.style?.width || 0, h = g.style?.height || 0;
+        return cx >= g.position.x && cx <= g.position.x + w && cy >= g.position.y && cy <= g.position.y + h;
+      });
+      const parentId = inside ? inside.id : void 0;
+      return ns.map((n) => n.id === node.id ? { ...n, parentId, extent: parentId ? "parent" : void 0 } : n);
+    });
+  }, [setNodes]);
+  useImperativeHandle(editorRef, () => ({
+    // Add a service node at a screen point (drop) or centered.
+    addService(svc, screenPos) {
+      const position = screenPos ? screenToFlowPosition({ x: screenPos.x, y: screenPos.y }) : { x: 200, y: 160 };
+      const node = buildServiceNode(
+        { id: uid("n"), service: svc.name || svc.label || "Service", icon: svc.icon, category: svc.category },
+        { lang, vars, Icon: Icon2, geom, nodeLayout }
+      );
+      node.position = position;
+      setNodes((ns) => [...ns, node]);
+    },
+    // Add a group/container box (variant e.g. "vpc","region","group").
+    addGroup(variantName = "group", label = "Group") {
+      const variant = resolveVariant(variantName);
+      const gid = uid("g");
+      const node = {
+        id: gid,
+        type: "group",
+        position: { x: 120, y: 120 },
+        data: { id: gid, label, variant: variantName, IconComponent: Icon2, scale: nodeLayout === "horizontal" ? "lg" : "sm", vars },
+        style: groupStyle(variant, 360, 240, 0)
+      };
+      setNodes((ns) => [node, ...ns]);
+    },
+    // ELK/dagre auto-layout of the current graph (a "tidy" button). Membership
+    // comes from the live node parentIds (membershipFromNodes) — the serializer's
+    // services don't re-derive it, so read it straight off the canvas.
+    async autoLayout() {
+      const snapshot = serializeDiagram(nodes, edges);
+      const membership = membershipFromNodes(nodes);
+      const { groups } = resolveGroupsAndMembership(snapshot.services, snapshot.groups);
+      const { nodes: laid } = await layoutWithFallback(
+        nodes.filter((n) => n.type === "aws"),
+        edges,
+        membership,
+        { direction, geometry: geom, groups }
+      );
+      const withParent = laid.map((n) => n.type === "aws" && membership[n.id] ? { ...n, parentId: membership[n.id], extent: "parent" } : n);
+      setNodes(withParent.map(decorateGroup));
+      setTimeout(() => fitView({ padding: 0.12 }), 40);
+    },
+    fit() {
+      fitView({ padding: 0.12, duration: 300 });
+    },
+    getDiagram() {
+      return serializeDiagram(nodes, edges);
+    },
+    setDiagram(next) {
+      setNodes([]);
+      setEdges([]);
+      void next;
+    }
+  }), [nodes, edges, setNodes, setEdges, screenToFlowPosition, fitView, decorateGroup, lang, vars, Icon2, geom, nodeLayout, direction]);
+  return /* @__PURE__ */ jsxs10(
+    ReactFlow2,
+    {
+      nodes,
+      edges,
+      nodeTypes: NODE_TYPES2,
+      edgeTypes: EDGE_TYPES2,
+      onNodesChange,
+      onEdgesChange,
+      onConnect,
+      onNodeDragStop,
+      nodesDraggable: true,
+      nodesConnectable: true,
+      elementsSelectable: true,
+      proOptions: { hideAttribution: true },
+      minZoom: 0.1,
+      maxZoom: 3,
+      fitView: true,
+      fitViewOptions: { padding: 0.12 },
+      deleteKeyCode: ["Backspace", "Delete"],
+      children: [
+        /* @__PURE__ */ jsx10(
+          Background2,
+          {
+            variant: BackgroundVariant2.Dots,
+            gap: 20,
+            size: 1,
+            color: `var(${vars.dot || "--dot"}, rgba(0,0,0,0.05))`
+          }
+        ),
+        /* @__PURE__ */ jsx10("svg", { style: { position: "absolute", width: 0, height: 0 }, children: /* @__PURE__ */ jsx10("defs", { children: /* @__PURE__ */ jsx10("marker", { id: markerId, viewBox: "0 0 10 10", refX: "8", refY: "5", markerWidth: "7", markerHeight: "7", orient: "auto-start-reverse", children: /* @__PURE__ */ jsx10("path", { d: "M 0 0 L 10 5 L 0 10 z", fill: "#4a90d9" }) }) }) })
+      ]
+    }
+  );
+}
+var LiveDiagramEditor = forwardRef(function LiveDiagramEditor2(props, ref) {
+  const { className = "", ...rest } = props;
+  return /* @__PURE__ */ jsx10(ReactFlowProvider2, { children: /* @__PURE__ */ jsx10("div", { className: `ld-frame ${className}`.trim(), style: { width: "100%", height: "100%", position: "relative" }, children: /* @__PURE__ */ jsx10(EditorCanvas, { ...rest, editorRef: ref }) }) });
+});
 export {
   AwsNode_default as AwsNode,
   CustomEdge_default as CustomEdge,
@@ -1557,6 +1715,7 @@ export {
   Icon_default as IconDefault,
   LiveDiagram,
   LiveDiagram_default as LiveDiagramDefault,
+  LiveDiagramEditor,
   NodeModal,
   StepCard,
   ZoomBar,

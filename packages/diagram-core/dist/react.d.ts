@@ -142,6 +142,8 @@ declare namespace cardKit {
   export { cardKit_Body as Body, cardKit_Bullets as Bullets, cardKit_CardHeader as CardHeader, cardKit_CardShell as CardShell, cardKit_Chips as Chips, cardKit_CodeBlock as CodeBlock, cardKit_CostLink as CostLink, cardKit_IconTile as IconTile, cardKit_KeyValues as KeyValues, cardKit_NumberedSteps as NumberedSteps, cardKit_Section as Section, cardKit_mdInline as mdInline, cardKit_resolveVariant as resolveVariant };
 }
 
+declare const LiveDiagramEditor: react.ForwardRefExoticComponent<react.RefAttributes<any>>;
+
 /**
  * @param {object}   props
  * @param {string}   props.src            icon reference (any form above).
@@ -205,4 +207,4 @@ declare function LiveDiagram({ data, lang, animate, direction, edgeStyle, steps,
     nodeModal?: boolean;
 }): react.JSX.Element;
 
-export { _default$2 as AwsNode, _default as CustomEdge, DARK_VARIANT_BASES, _default$1 as GroupNode, Icon, Icon as IconDefault, LiveDiagram, LiveDiagram as LiveDiagramDefault, NodeModal, StepCard, ZoomBar, cardKit };
+export { _default$2 as AwsNode, _default as CustomEdge, DARK_VARIANT_BASES, _default$1 as GroupNode, Icon, Icon as IconDefault, LiveDiagram, LiveDiagram as LiveDiagramDefault, LiveDiagramEditor, NodeModal, StepCard, ZoomBar, cardKit };

@@ -9,6 +9,11 @@ export * from "./groupVariants.js";
 export * from "./membership.js";
 export * from "./i18n.js";
 export * from "./layout.js";
+// Diagram model: node/edge builders, groupStyle, and the serializer
+// (nodes/edges → {services, connections, groups}). Pure (only i18n) — safe here.
+export {
+  buildServiceNode, buildServiceNodeData, buildBaseEdge, groupStyle, serializeDiagram,
+} from "./diagramModel.js";
 // NOTE: layoutEngine (elkLayout/compoundLayout) is NOT re-exported here — it
 // pulls elkjs + dagre. Import it from "@aws-live-diagram/core/layout-engine" so
 // the pure "." entry stays dependency-free.

@@ -21,22 +21,12 @@ import {
   groupDepth, lcaContainer, radialLayout,
 } from "./layout.js";
 import { resolveVariant, variantKey } from "./groupVariants.js";
+import { groupStyle } from "./diagramModel.js";
 
 const elk = new ELK();
 
 /** Merge caller geometry over the defaults. */
 const geomOf = (g) => ({ ...DEFAULT_GEOMETRY, ...(g || {}) });
-
-/** Build the group-overlay React-Flow node style for a variant + depth. */
-function groupStyle(variant, w, h, depth) {
-  return {
-    width: w, height: h,
-    border: `2px ${variant.dashed ? "dashed" : "solid"} ${variant.stroke}`,
-    borderRadius: 8,
-    background: variant.stroke + "0F",
-    zIndex: -10 + depth,
-  };
-}
 
 /**
  * Async ELK compound layout. Returns { nodes, edgePaths }.

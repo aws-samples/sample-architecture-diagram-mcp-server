@@ -34,6 +34,7 @@ import { tr } from "../i18n.js";
 import { resolveGroupsAndMembership } from "../membership.js";
 import { DEFAULT_GEOMETRY } from "../layout.js";
 import { layoutWithFallback } from "../layoutEngine.js";
+import { buildServiceNode, buildBaseEdge } from "../diagramModel.js";
 
 const NODE_TYPES = { aws: AwsNode, group: GroupNode };
 const EDGE_TYPES = { custom: CustomEdge };
@@ -66,15 +67,8 @@ function DiagramCanvas({
   }, [steps, activeStep, anyActive]);
 
   const serviceNodes = useMemo(() =>
-    (data.services || []).map(s => ({
-      id: s.id, type: "aws", position: { x: 0, y: 0 },
-      data: {
-        label: tr(s.label != null ? s.label : s.service, lang), icon: s.icon, sub: s.category, role: tr(s.role, lang),
-        pill: tr(s.pill, lang), pillOverlay: s.pillOverlay, staticTone: s.tone,
-        config: s.config ? { ...s.config, label: tr(s.config.label, lang) } : undefined,
-        layout: nodeLayout, vars, IconComponent: Icon, nodeW: geom.nodeW, nodeH: geom.nodeH,
-      },
-    })), [data, lang, nodeLayout, vars, Icon, geom.nodeW, geom.nodeH]);
+    (data.services || []).map(s => buildServiceNode(s, { lang, vars, Icon, geom, nodeLayout })),
+    [data, lang, nodeLayout, vars, Icon, geom.nodeW, geom.nodeH]);
 
   const { groups, membership } = useMemo(() => {
     const declared = data.groups;
@@ -84,20 +78,10 @@ function DiagramCanvas({
 
   const baseEdges = useMemo(() => {
     const targetCount = {};
-    return (data.connections || []).map((c, idx) => {
+    return (data.connections || []).map((c) => {
       const seen = targetCount[c.target] || 0;
       targetCount[c.target] = seen + 1;
-      return {
-        id: c.id, source: c.source, target: c.target, type: "custom",
-        sourceHandle: direction === "RADIAL" ? undefined : (direction === "TB" ? "bottom" : "right"),
-        targetHandle: direction === "RADIAL" ? undefined : (direction === "TB" ? "top" : "left"),
-        data: {
-          label: tr(c.label, lang), showLabel: c.showLabel, edgeIndex: seen,
-          bidirectional: c.bidirectional, connType: c.type, dashed: c.dashed, severed: c.severed,
-          active: false, anyActive: false, speed: 1, straight, markerId, ...edgeTuning,
-        },
-        animated: animate,
-      };
+      return buildBaseEdge(c, { direction, lang, animate, straight, markerId, edgeTuning, edgeIndex: seen });
     });
   }, [data, direction, animate, straight, lang, markerId, edgeTuning]);
 

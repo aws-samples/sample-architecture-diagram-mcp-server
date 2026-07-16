@@ -44,6 +44,19 @@ function variantKey(v) {
 }
 var ALL_GROUP_ICONS = [...new Set(Object.values(GROUP_VARIANTS).map((v) => v.icon))];
 
+// src/i18n.js
+function tr(val, lang, fallback = "en") {
+  if (val == null) return "";
+  if (typeof val === "string") return val;
+  if (typeof val === "object") return val[lang] ?? val[fallback] ?? Object.values(val)[0] ?? "";
+  return String(val);
+}
+var i18n = (val, lang) => {
+  if (val == null) return "";
+  if (typeof val === "string") return val;
+  return val[lang] || val.en || val.pt || "";
+};
+
 // src/layout.js
 var DEFAULT_GEOMETRY = {
   nodeW: 180,
@@ -163,6 +176,134 @@ function radialLayout(serviceNodes, edges, geom = DEFAULT_GEOMETRY) {
   return out;
 }
 
+// src/diagramModel.js
+function buildServiceNodeData(s, { lang = "en", vars = {}, Icon, geom = {}, nodeLayout = "horizontal" } = {}) {
+  return {
+    label: tr(s.label != null ? s.label : s.service, lang),
+    icon: s.icon,
+    sub: s.category,
+    role: tr(s.role, lang),
+    pill: tr(s.pill, lang),
+    pillOverlay: s.pillOverlay,
+    staticTone: s.tone,
+    config: s.config ? { ...s.config, label: tr(s.config.label, lang) } : void 0,
+    layout: nodeLayout,
+    vars,
+    IconComponent: Icon,
+    nodeW: geom.nodeW,
+    nodeH: geom.nodeH,
+    // Keep the ORIGINAL authoring object so the editor can serialize back
+    // faithfully (preserving service/label/i18n maps/full config/tone/etc.)
+    // rather than reconstructing lossily from the render-enriched `data`.
+    __src: s
+  };
+}
+function buildServiceNode(s, ctx) {
+  return { id: s.id, type: "aws", position: { x: 0, y: 0 }, data: buildServiceNodeData(s, ctx) };
+}
+function buildBaseEdge(c, { direction = "TB", lang = "en", animate = true, straight = false, markerId = "ld-arrow", edgeTuning, edgeIndex = 0 } = {}) {
+  return {
+    id: c.id,
+    source: c.source,
+    target: c.target,
+    type: "custom",
+    sourceHandle: direction === "RADIAL" ? void 0 : direction === "TB" ? "bottom" : "right",
+    targetHandle: direction === "RADIAL" ? void 0 : direction === "TB" ? "top" : "left",
+    data: {
+      label: tr(c.label, lang),
+      showLabel: c.showLabel,
+      edgeIndex,
+      bidirectional: c.bidirectional,
+      connType: c.type,
+      dashed: c.dashed,
+      severed: c.severed,
+      active: false,
+      anyActive: false,
+      speed: 1,
+      straight,
+      markerId,
+      ...edgeTuning,
+      __src: c
+      // original connection, for faithful serialize-back
+    },
+    animated: animate
+  };
+}
+function groupStyle(variant, w, h, depth = 0) {
+  return {
+    width: w,
+    height: h,
+    border: `2px ${variant.dashed ? "dashed" : "solid"} ${variant.stroke}`,
+    borderRadius: 8,
+    background: variant.stroke + "0F",
+    zIndex: -10 + depth
+  };
+}
+function serviceFromNode(n) {
+  const d = n.data || {};
+  const src = d.__src;
+  if (src) {
+    const out2 = { ...src };
+    if (n.parentId) out2.parentId = n.parentId;
+    else delete out2.parentId;
+    return out2;
+  }
+  const out = { id: n.id, service: d.label || n.id };
+  if (d.icon) out.icon = d.icon;
+  if (d.sub) out.category = d.sub;
+  if (n.parentId) out.parentId = n.parentId;
+  return out;
+}
+function groupFromNode(n) {
+  const d = n.data || {};
+  const src = d.__src;
+  if (src) {
+    const out2 = { ...src };
+    if (n.parentId) out2.parent = n.parentId;
+    else delete out2.parent;
+    return out2;
+  }
+  const out = { id: n.id };
+  if (d.label) out.label = d.label;
+  if (n.parentId) out.parent = n.parentId;
+  if (d.variant) out.variant = d.variant;
+  if (d.icon) out.icon = d.icon;
+  return out;
+}
+function connectionFromEdge(e) {
+  const d = e.data || {};
+  const src = d.__src;
+  if (src) {
+    return { ...src, source: e.source, target: e.target };
+  }
+  const out = { id: e.id, source: e.source, target: e.target };
+  if (d.label) out.label = d.label;
+  if (d.connType) out.type = d.connType;
+  if (d.dashed) out.dashed = d.dashed;
+  if (d.severed) out.severed = d.severed;
+  if (d.bidirectional) out.bidirectional = d.bidirectional;
+  if (d.showLabel) out.showLabel = d.showLabel;
+  return out;
+}
+function serializeDiagram(nodes, edges, base = {}) {
+  const services = [];
+  const groups = [];
+  for (const n of nodes) {
+    if (n.type === "group") groups.push(groupFromNode(n));
+    else if (n.type === "aws") services.push(serviceFromNode(n));
+  }
+  const connections = edges.map(connectionFromEdge);
+  const out = { ...base, services, connections };
+  if (groups.length) out.groups = groups;
+  else delete out.groups;
+  return out;
+}
+function membershipFromNodes(nodes) {
+  const m = {};
+  for (const n of nodes) if (n.type === "aws" && n.parentId) m[n.id] = n.parentId;
+  return m;
+}
+
 export {
   __export,
   GROUP_VARIANTS,
@@ -171,6 +312,8 @@ export {
   resolveVariant,
   variantKey,
   ALL_GROUP_ICONS,
+  tr,
+  i18n,
   DEFAULT_GEOMETRY,
   HORIZONTAL_GEOMETRY,
   SLIDES_GEOMETRY,
@@ -180,5 +323,11 @@ export {
   groupDepth,
   ancestorsOf,
   lcaContainer,
-  radialLayout
+  radialLayout,
+  buildServiceNodeData,
+  buildServiceNode,
+  buildBaseEdge,
+  groupStyle,
+  serializeDiagram,
+  membershipFromNodes
 };
