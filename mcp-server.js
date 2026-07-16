@@ -51,6 +51,7 @@ server.tool(
       source: z.string(),
       target: z.string(),
       label: z.string().optional().describe("Step description for legend"),
+      type: z.enum(["network", "iam", "event", "data"]).optional().describe("Connection semantics, styled distinctly (matches the HTML): network (blue), iam (red dashed), event (pink dotted), data (green)."),
       dashed: z.boolean().optional(),
     })),
     includeUsers: z.boolean().optional().default(true),
