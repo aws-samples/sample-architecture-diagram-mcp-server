@@ -71,7 +71,10 @@ export function CardShell({ color, full, header, children }) {
   const bodyPad = full ? "px-7 py-6" : "px-[22px] py-[18px]";
   return (
     <div
-      className="relative rounded-2xl border text-[color:var(--txt,#e2e8f0)] overflow-hidden flex flex-col max-h-[88vh]"
+      // max-h: cap at 88vh on its own, but also never exceed the wrapper
+      // (max-h-full) — so a side card whose wrapper sets maxHeight can grow to
+      // that and then scroll its body, instead of being clipped at a fixed 88vh.
+      className="relative rounded-2xl border text-[color:var(--txt,#e2e8f0)] overflow-hidden flex flex-col max-h-[88vh] [max-height:100%]"
       // Fully opaque surface (no blur) so text never competes with the diagram
       // behind it; a thicker accent border + a top accent bar anchor the tone.
       // pointerEvents:auto re-enables interaction on the card itself — the
@@ -87,7 +90,9 @@ export function CardShell({ color, full, header, children }) {
           {header}
         </div>
       )}
-      <div className={`${bodyPad} ${full ? "overflow-y-auto" : ""}`}>
+      {/* Body scrolls whenever the card is height-constrained (full modal OR a
+          side card capped by its wrapper), so long content never clips. */}
+      <div className={`${bodyPad} overflow-y-auto min-h-0`}>
         {children}
       </div>
     </div>

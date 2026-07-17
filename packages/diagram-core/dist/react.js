@@ -611,7 +611,7 @@ function CardShell({ color, full, header, children }) {
   return /* @__PURE__ */ jsxs5(
     "div",
     {
-      className: "relative rounded-2xl border text-[color:var(--txt,#e2e8f0)] overflow-hidden flex flex-col max-h-[88vh]",
+      className: "relative rounded-2xl border text-[color:var(--txt,#e2e8f0)] overflow-hidden flex flex-col max-h-[88vh] [max-height:100%]",
       style: { pointerEvents: "auto", borderColor: `${color}59`, background: "var(--card-solid, var(--card-bg, #181c28))", boxShadow: `0 16px 40px ${color}2e, 0 4px 14px rgba(0,0,0,0.28)` },
       children: [
         /* @__PURE__ */ jsx5("span", { className: "absolute top-0 left-0 right-0 h-1 z-10", style: { background: color }, "aria-hidden": true }),
@@ -623,7 +623,7 @@ function CardShell({ color, full, header, children }) {
             children: header
           }
         ),
-        /* @__PURE__ */ jsx5("div", { className: `${bodyPad} ${full ? "overflow-y-auto" : ""}`, children })
+        /* @__PURE__ */ jsx5("div", { className: `${bodyPad} overflow-y-auto min-h-0`, children })
       ]
     }
   );
@@ -1470,7 +1470,8 @@ function StepOverlay({
   if (cardSide === "full") {
     return /* @__PURE__ */ jsx9("div", { style: { position: "absolute", inset: 0, zIndex: 40, display: "flex", alignItems: "center", justifyContent: "center", padding: 32, background: dark ? "rgba(6,8,12,0.72)" : "rgba(15,23,42,0.45)", backdropFilter: "blur(6px)", pointerEvents: "none" }, children: /* @__PURE__ */ jsx9("div", { style: { width: "min(92%, 860px)" }, children: card }) });
   }
-  const pos = cardSide === "top" ? { top: 16, left: "50%", transform: `translateX(-50%)${scale !== 1 ? ` scale(${scale})` : ""}`, transformOrigin: "top center", width: "min(88%, 900px)" } : cardSide === "left" ? { top: 16, left: 16, width: "min(40%, 520px)", transform: scale !== 1 ? `scale(${scale})` : void 0, transformOrigin: "top left" } : { top: 16, right: 16, width: "min(40%, 520px)", transform: scale !== 1 ? `scale(${scale})` : void 0, transformOrigin: "top right" };
+  const sideMaxH = "calc(100vh - 32px)";
+  const pos = cardSide === "top" ? { top: 16, left: "50%", transform: `translateX(-50%)${scale !== 1 ? ` scale(${scale})` : ""}`, transformOrigin: "top center", width: "min(88%, 900px)" } : cardSide === "left" ? { top: 16, left: 16, width: "min(46%, 640px)", maxHeight: sideMaxH, transform: scale !== 1 ? `scale(${scale})` : void 0, transformOrigin: "top left" } : { top: 16, right: 16, width: "min(46%, 640px)", maxHeight: sideMaxH, transform: scale !== 1 ? `scale(${scale})` : void 0, transformOrigin: "top right" };
   return /* @__PURE__ */ jsx9("div", { style: { position: "absolute", zIndex: 30, pointerEvents: "none", ...pos }, children: card });
 }
 function LiveDiagram({

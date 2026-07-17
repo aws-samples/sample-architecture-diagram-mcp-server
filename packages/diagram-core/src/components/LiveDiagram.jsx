@@ -275,10 +275,14 @@ function StepOverlay({ steps, activeStep, lang, Icon, stepLayout, dark, onPick,
       </div>
     );
   }
+  // left/right cards: wider (up to 640px / 46vw) and allowed to grow taller —
+  // maxHeight up to ~90vh (bottom gutter) so a long beat uses more of the side
+  // column before the card body scrolls, without pinning to the footer.
+  const sideMaxH = "calc(100vh - 32px)";
   const pos = cardSide === "top"
     ? { top: 16, left: "50%", transform: `translateX(-50%)${scale !== 1 ? ` scale(${scale})` : ""}`, transformOrigin: "top center", width: "min(88%, 900px)" }
-    : cardSide === "left" ? { top: 16, left: 16, width: "min(40%, 520px)", transform: scale !== 1 ? `scale(${scale})` : undefined, transformOrigin: "top left" }
-    : { top: 16, right: 16, width: "min(40%, 520px)", transform: scale !== 1 ? `scale(${scale})` : undefined, transformOrigin: "top right" };
+    : cardSide === "left" ? { top: 16, left: 16, width: "min(46%, 640px)", maxHeight: sideMaxH, transform: scale !== 1 ? `scale(${scale})` : undefined, transformOrigin: "top left" }
+    : { top: 16, right: 16, width: "min(46%, 640px)", maxHeight: sideMaxH, transform: scale !== 1 ? `scale(${scale})` : undefined, transformOrigin: "top right" };
   return <div style={{ position: "absolute", zIndex: 30, pointerEvents: "none", ...pos }}>{card}</div>;
 }
 
