@@ -246,14 +246,18 @@ function StepFlow({ steps, activeStep, dark, lang, onPick }) {
 // cardSide; `cardScale` scales the card content (viewer text-size control) via a
 // CSS transform anchored to the pinned corner so positioning is unaffected.
 function StepOverlay({ steps, activeStep, lang, Icon, stepLayout, dark, onPick,
-  expanded = false, cardScale = 1, onToggleExpand, expandLabel, collapseLabel }) {
+  expanded = false, cardScale = 1, onToggleExpand, expandLabel, collapseLabel,
+  onTextBigger, onTextSmaller, canTextBigger, canTextSmaller, textSmallerLabel, textLargerLabel }) {
   if (!(Array.isArray(steps) && steps.length > 0 && activeStep >= 0)) return null;
   const step = steps[Math.min(activeStep, steps.length - 1)] || {};
   // Expand forces the full-page overlay; otherwise honour the step's own side.
   const cardSide = expanded ? "full" : (step.cardSide || "right");
   const card = <StepCard steps={steps} activeStep={activeStep} lang={lang} Icon={Icon}
     onPick={onPick} expanded={expanded} onToggleExpand={onToggleExpand}
-    expandLabel={expandLabel} collapseLabel={collapseLabel} />;
+    expandLabel={expandLabel} collapseLabel={collapseLabel}
+    onTextBigger={onTextBigger} onTextSmaller={onTextSmaller}
+    canTextBigger={canTextBigger} canTextSmaller={canTextSmaller}
+    textSmallerLabel={textSmallerLabel} textLargerLabel={textLargerLabel} />;
 
   // Text-size scale (pinned layouts only — the full/expanded card is already large).
   const scale = expanded ? 1 : cardScale;
@@ -386,7 +390,12 @@ export function LiveDiagram({
           onPick={chrome && control === "auto" ? (i) => { setPlaying(false); setInternalStep(i); } : undefined}
           expanded={cardExpanded} cardScale={cardScale}
           onToggleExpand={chrome ? () => setCardExpanded(v => !v) : undefined}
-          expandLabel={ui ? ui("expand", lang) : undefined} collapseLabel={ui ? ui("collapse", lang) : undefined} />
+          expandLabel={ui ? ui("expand", lang) : undefined} collapseLabel={ui ? ui("collapse", lang) : undefined}
+          onTextBigger={chrome ? () => setCardScaleIdx(i => Math.min(i + 1, CARD_SCALES.length - 1)) : undefined}
+          onTextSmaller={chrome ? () => setCardScaleIdx(i => Math.max(i - 1, 0)) : undefined}
+          canTextBigger={chrome && !cardExpanded && cardScaleIdx < CARD_SCALES.length - 1}
+          canTextSmaller={chrome && !cardExpanded && cardScaleIdx > 0}
+          textSmallerLabel={ui ? ui("textSmaller", lang) : undefined} textLargerLabel={ui ? ui("textLarger", lang) : undefined} />
         {/* External StepFlow pill removed — the navigation rail now lives inside
             the card (see StepCard), so the two elements read as one. */}
         {chrome && (
@@ -401,11 +410,6 @@ export function LiveDiagram({
               costUrl={costUrl} costLabel={costLabel != null ? tr(costLabel, lang) : undefined}
               onPlay={() => { setPlaying(p => { if (!p) setInternalStep(s => (s < 0 || s >= steps.length - 1 ? 0 : s)); return !p; }); }}
               onReset={() => { setPlaying(false); setInternalStep(-1); }}
-              hasCard={hasWalk && step >= 0}
-              onTextBigger={() => setCardScaleIdx(i => Math.min(i + 1, CARD_SCALES.length - 1))}
-              onTextSmaller={() => setCardScaleIdx(i => Math.max(i - 1, 0))}
-              canTextBigger={hasWalk && step >= 0 && !cardExpanded && cardScaleIdx < CARD_SCALES.length - 1}
-              canTextSmaller={hasWalk && step >= 0 && !cardExpanded && cardScaleIdx > 0}
               lang={lang} languages={languages} onLang={onLangChange} ui={ui} langLabel={langLabel}
             />
           </>

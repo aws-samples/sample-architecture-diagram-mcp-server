@@ -779,7 +779,23 @@ function resolveBullets(items, lang) {
   if (!items) return void 0;
   return items.map((b) => typeof b === "string" ? tr(b, lang) : { ...b, text: tr(b.text, lang), strong: b.strong != null ? tr(b.strong, lang) : void 0 });
 }
-function StepCard({ steps, activeStep, lang = "en", Icon: Icon2, onPick, expanded = false, onToggleExpand, expandLabel = "Expandir", collapseLabel = "Recolher" }) {
+function StepCard({
+  steps,
+  activeStep,
+  lang = "en",
+  Icon: Icon2,
+  onPick,
+  expanded = false,
+  onToggleExpand,
+  expandLabel = "Expandir",
+  collapseLabel = "Recolher",
+  onTextBigger,
+  onTextSmaller,
+  canTextBigger = false,
+  canTextSmaller = false,
+  textSmallerLabel = "A\u2212",
+  textLargerLabel = "A+"
+}) {
   const idx = Math.min(Math.max(activeStep, 0), steps.length - 1);
   const step = steps[idx] || {};
   const tone = step.tone || "accent";
@@ -843,6 +859,64 @@ function StepCard({ steps, activeStep, lang = "en", Icon: Icon2, onPick, expande
       idx + 1,
       "/",
       steps.length
+    ] }),
+    (onTextSmaller || onTextBigger) && /* @__PURE__ */ jsxs6("div", { className: "flex items-center gap-1 shrink-0", style: { pointerEvents: "auto" }, children: [
+      /* @__PURE__ */ jsxs6(
+        "button",
+        {
+          type: "button",
+          disabled: !canTextSmaller,
+          onClick: canTextSmaller ? onTextSmaller : void 0,
+          title: textSmallerLabel,
+          "aria-label": textSmallerLabel,
+          style: {
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: 24,
+            height: 24,
+            borderRadius: 7,
+            border: "1px solid var(--border, rgba(148,163,184,0.4))",
+            background: "transparent",
+            color: "var(--txt-muted, #94a3b8)",
+            cursor: canTextSmaller ? "pointer" : "default",
+            opacity: canTextSmaller ? 1 : 0.4,
+            gap: 1
+          },
+          children: [
+            /* @__PURE__ */ jsx6("span", { style: { fontSize: 10, fontWeight: 800 }, children: "A" }),
+            /* @__PURE__ */ jsx6("span", { style: { fontSize: 13, fontWeight: 800 }, children: "\u2212" })
+          ]
+        }
+      ),
+      /* @__PURE__ */ jsxs6(
+        "button",
+        {
+          type: "button",
+          disabled: !canTextBigger,
+          onClick: canTextBigger ? onTextBigger : void 0,
+          title: textLargerLabel,
+          "aria-label": textLargerLabel,
+          style: {
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: 24,
+            height: 24,
+            borderRadius: 7,
+            border: "1px solid var(--border, rgba(148,163,184,0.4))",
+            background: "transparent",
+            color: "var(--txt-muted, #94a3b8)",
+            cursor: canTextBigger ? "pointer" : "default",
+            opacity: canTextBigger ? 1 : 0.4,
+            gap: 1
+          },
+          children: [
+            /* @__PURE__ */ jsx6("span", { style: { fontSize: 10, fontWeight: 800 }, children: "A" }),
+            /* @__PURE__ */ jsx6("span", { style: { fontSize: 13, fontWeight: 800 }, children: "+" })
+          ]
+        }
+      )
     ] }),
     onToggleExpand && /* @__PURE__ */ jsx6(
       "button",
@@ -1056,11 +1130,6 @@ function ZoomBar({
   attention = false,
   costUrl,
   costLabel,
-  hasCard = false,
-  onTextBigger,
-  onTextSmaller,
-  canTextBigger = false,
-  canTextSmaller = false,
   lang = "en",
   languages = [],
   onLang,
@@ -1173,35 +1242,6 @@ function ZoomBar({
               /* @__PURE__ */ jsx8("line", { x1: "16", y1: "17", x2: "16", y2: "14" })
             ] }),
             costLabel || ui("cost", lang)
-          ]
-        }
-      ),
-      sep
-    ] }),
-    hasCard && (onTextSmaller || onTextBigger) && /* @__PURE__ */ jsxs8(Fragment5, { children: [
-      /* @__PURE__ */ jsxs8(
-        "button",
-        {
-          style: { ...btn, opacity: canTextSmaller ? 1 : 0.4, cursor: canTextSmaller ? "pointer" : "default", gap: 2 },
-          disabled: !canTextSmaller,
-          onClick: canTextSmaller ? onTextSmaller : void 0,
-          title: ui("textSmaller", lang),
-          children: [
-            /* @__PURE__ */ jsx8("span", { style: { fontSize: 11, fontWeight: 800 }, children: "A" }),
-            /* @__PURE__ */ jsx8("span", { style: { fontSize: 15, fontWeight: 800 }, children: "\u2212" })
-          ]
-        }
-      ),
-      /* @__PURE__ */ jsxs8(
-        "button",
-        {
-          style: { ...btn, opacity: canTextBigger ? 1 : 0.4, cursor: canTextBigger ? "pointer" : "default", gap: 2 },
-          disabled: !canTextBigger,
-          onClick: canTextBigger ? onTextBigger : void 0,
-          title: ui("textLarger", lang),
-          children: [
-            /* @__PURE__ */ jsx8("span", { style: { fontSize: 11, fontWeight: 800 }, children: "A" }),
-            /* @__PURE__ */ jsx8("span", { style: { fontSize: 15, fontWeight: 800 }, children: "+" })
           ]
         }
       ),
@@ -1413,7 +1453,13 @@ function StepOverlay({
   cardScale = 1,
   onToggleExpand,
   expandLabel,
-  collapseLabel
+  collapseLabel,
+  onTextBigger,
+  onTextSmaller,
+  canTextBigger,
+  canTextSmaller,
+  textSmallerLabel,
+  textLargerLabel
 }) {
   if (!(Array.isArray(steps) && steps.length > 0 && activeStep >= 0)) return null;
   const step = steps[Math.min(activeStep, steps.length - 1)] || {};
@@ -1429,7 +1475,13 @@ function StepOverlay({
       expanded,
       onToggleExpand,
       expandLabel,
-      collapseLabel
+      collapseLabel,
+      onTextBigger,
+      onTextSmaller,
+      canTextBigger,
+      canTextSmaller,
+      textSmallerLabel,
+      textLargerLabel
     }
   );
   const scale = expanded ? 1 : cardScale;
@@ -1627,7 +1679,13 @@ function LiveDiagram({
         cardScale,
         onToggleExpand: chrome ? () => setCardExpanded((v) => !v) : void 0,
         expandLabel: ui ? ui("expand", lang) : void 0,
-        collapseLabel: ui ? ui("collapse", lang) : void 0
+        collapseLabel: ui ? ui("collapse", lang) : void 0,
+        onTextBigger: chrome ? () => setCardScaleIdx((i) => Math.min(i + 1, CARD_SCALES.length - 1)) : void 0,
+        onTextSmaller: chrome ? () => setCardScaleIdx((i) => Math.max(i - 1, 0)) : void 0,
+        canTextBigger: chrome && !cardExpanded && cardScaleIdx < CARD_SCALES.length - 1,
+        canTextSmaller: chrome && !cardExpanded && cardScaleIdx > 0,
+        textSmallerLabel: ui ? ui("textSmaller", lang) : void 0,
+        textLargerLabel: ui ? ui("textLarger", lang) : void 0
       }
     ),
     chrome && /* @__PURE__ */ jsxs9(Fragment6, { children: [
@@ -1656,11 +1714,6 @@ function LiveDiagram({
             setPlaying(false);
             setInternalStep(-1);
           },
-          hasCard: hasWalk && step >= 0,
-          onTextBigger: () => setCardScaleIdx((i) => Math.min(i + 1, CARD_SCALES.length - 1)),
-          onTextSmaller: () => setCardScaleIdx((i) => Math.max(i - 1, 0)),
-          canTextBigger: hasWalk && step >= 0 && !cardExpanded && cardScaleIdx < CARD_SCALES.length - 1,
-          canTextSmaller: hasWalk && step >= 0 && !cardExpanded && cardScaleIdx > 0,
           lang,
           languages,
           onLang: onLangChange,

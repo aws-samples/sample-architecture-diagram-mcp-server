@@ -16,7 +16,8 @@ function resolveBullets(items, lang) {
     : { ...b, text: tr(b.text, lang), strong: b.strong != null ? tr(b.strong, lang) : undefined });
 }
 
-export default function StepCard({ steps, activeStep, lang = "en", Icon, onPick, expanded = false, onToggleExpand, expandLabel = "Expandir", collapseLabel = "Recolher" }) {
+export default function StepCard({ steps, activeStep, lang = "en", Icon, onPick, expanded = false, onToggleExpand, expandLabel = "Expandir", collapseLabel = "Recolher",
+  onTextBigger, onTextSmaller, canTextBigger = false, canTextSmaller = false, textSmallerLabel = "A−", textLargerLabel = "A+" }) {
   const idx = Math.min(Math.max(activeStep, 0), steps.length - 1);
   const step = steps[idx] || {};
   const tone = step.tone || "accent";
@@ -68,6 +69,24 @@ export default function StepCard({ steps, activeStep, lang = "en", Icon, onPick,
         })}
       </div>
       <span className="font-mono text-[11px] shrink-0" style={{ color: "var(--txt-muted, #94a3b8)" }}>{idx + 1}/{steps.length}</span>
+      {(onTextSmaller || onTextBigger) && (
+        <div className="flex items-center gap-1 shrink-0" style={{ pointerEvents: "auto" }}>
+          <button type="button" disabled={!canTextSmaller}
+            onClick={canTextSmaller ? onTextSmaller : undefined} title={textSmallerLabel} aria-label={textSmallerLabel}
+            style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 24, height: 24, borderRadius: 7,
+              border: "1px solid var(--border, rgba(148,163,184,0.4))", background: "transparent", color: "var(--txt-muted, #94a3b8)",
+              cursor: canTextSmaller ? "pointer" : "default", opacity: canTextSmaller ? 1 : 0.4, gap: 1 }}>
+            <span style={{ fontSize: 10, fontWeight: 800 }}>A</span><span style={{ fontSize: 13, fontWeight: 800 }}>−</span>
+          </button>
+          <button type="button" disabled={!canTextBigger}
+            onClick={canTextBigger ? onTextBigger : undefined} title={textLargerLabel} aria-label={textLargerLabel}
+            style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 24, height: 24, borderRadius: 7,
+              border: "1px solid var(--border, rgba(148,163,184,0.4))", background: "transparent", color: "var(--txt-muted, #94a3b8)",
+              cursor: canTextBigger ? "pointer" : "default", opacity: canTextBigger ? 1 : 0.4, gap: 1 }}>
+            <span style={{ fontSize: 10, fontWeight: 800 }}>A</span><span style={{ fontSize: 13, fontWeight: 800 }}>+</span>
+          </button>
+        </div>
+      )}
       {onToggleExpand && (
         <button type="button" onClick={onToggleExpand}
           title={expanded ? collapseLabel : expandLabel} aria-label={expanded ? collapseLabel : expandLabel}
