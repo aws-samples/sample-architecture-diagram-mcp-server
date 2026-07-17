@@ -74,7 +74,11 @@ export function CardShell({ color, full, header, children }) {
       className="relative rounded-2xl border text-[color:var(--txt,#e2e8f0)] overflow-hidden flex flex-col max-h-[88vh]"
       // Fully opaque surface (no blur) so text never competes with the diagram
       // behind it; a thicker accent border + a top accent bar anchor the tone.
-      style={{ borderColor: `${color}59`, background: "var(--card-solid, var(--card-bg, #181c28))", boxShadow: `0 16px 40px ${color}2e, 0 4px 14px rgba(0,0,0,0.28)` }}
+      // pointerEvents:auto re-enables interaction on the card itself — the
+      // StepOverlay wrapper sets pointerEvents:none so clicks on the empty area
+      // AROUND the card still pan the canvas, but that also swallowed clicks on
+      // the card's own links/CTA/code-copy; the card must opt back in.
+      style={{ pointerEvents: "auto", borderColor: `${color}59`, background: "var(--card-solid, var(--card-bg, #181c28))", boxShadow: `0 16px 40px ${color}2e, 0 4px 14px rgba(0,0,0,0.28)` }}
     >
       <span className="absolute top-0 left-0 right-0 h-1 z-10" style={{ background: color }} aria-hidden />
       {header && (

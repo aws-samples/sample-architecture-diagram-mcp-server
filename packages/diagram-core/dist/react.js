@@ -612,7 +612,7 @@ function CardShell({ color, full, header, children }) {
     "div",
     {
       className: "relative rounded-2xl border text-[color:var(--txt,#e2e8f0)] overflow-hidden flex flex-col max-h-[88vh]",
-      style: { borderColor: `${color}59`, background: "var(--card-solid, var(--card-bg, #181c28))", boxShadow: `0 16px 40px ${color}2e, 0 4px 14px rgba(0,0,0,0.28)` },
+      style: { pointerEvents: "auto", borderColor: `${color}59`, background: "var(--card-solid, var(--card-bg, #181c28))", boxShadow: `0 16px 40px ${color}2e, 0 4px 14px rgba(0,0,0,0.28)` },
       children: [
         /* @__PURE__ */ jsx5("span", { className: "absolute top-0 left-0 right-0 h-1 z-10", style: { background: color }, "aria-hidden": true }),
         header && /* @__PURE__ */ jsx5(
