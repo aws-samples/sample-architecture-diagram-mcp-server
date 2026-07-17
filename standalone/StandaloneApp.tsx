@@ -79,6 +79,8 @@ export function StandaloneApp({ data }: Props) {
         languages={data.languages || []}
         direction={(data.direction as any) || 'LR'}
         steps={data.steps}
+        startStep={(data as any).startStep}
+        startCardScale={(data as any).startCardScale}
         stepFocus={data.stepFocus}
         stepZoom={data.stepZoom}
         flowDots={data.flowDots}

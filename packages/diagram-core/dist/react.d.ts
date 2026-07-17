@@ -180,7 +180,7 @@ declare namespace Icon {
     let displayName: string;
 }
 
-declare function LiveDiagram({ data, lang, animate, direction, edgeStyle, steps, activeStep, stepLayout, fitPadding, stepFocus, spacing, stepZoom, className, geometry, nodeLayout, vars, Icon, markerId, reanchorEdges, groupsInteractive, edgeTuning, flowDots, control, chrome, theme, languages, onLangChange, ui, langLabel, title, subtitle, collapsible, defaultCollapsed, zoomOnScroll, nodeModal, }: {
+declare function LiveDiagram({ data, lang, animate, direction, edgeStyle, steps, activeStep, stepLayout, fitPadding, stepFocus, spacing, stepZoom, className, geometry, nodeLayout, vars, Icon, markerId, reanchorEdges, groupsInteractive, edgeTuning, flowDots, control, chrome, theme, languages, onLangChange, ui, langLabel, title, subtitle, collapsible, defaultCollapsed, zoomOnScroll, nodeModal, startStep, startCardScale, }: {
     data: any;
     lang?: string;
     animate?: boolean;
@@ -216,6 +216,8 @@ declare function LiveDiagram({ data, lang, animate, direction, edgeStyle, steps,
     defaultCollapsed?: any[];
     zoomOnScroll?: boolean;
     nodeModal?: boolean;
+    startStep?: number;
+    startCardScale?: number;
 }): react.JSX.Element;
 
 export { _default$2 as AwsNode, _default as CustomEdge, DARK_VARIANT_BASES, _default$1 as GroupNode, Icon, Icon as IconDefault, LiveDiagram, LiveDiagram as LiveDiagramDefault, LiveDiagramEditor, NodeModal, StepCard, ZoomBar, cardKit };

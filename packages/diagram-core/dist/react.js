@@ -1509,13 +1509,15 @@ function LiveDiagram({
   collapsible = false,
   defaultCollapsed = [],
   zoomOnScroll = false,
-  nodeModal = true
+  nodeModal = true,
+  startStep = -1,
+  startCardScale = 0
 }) {
   const resolvedEdgeTuning = flowDots === false ? { dots: false, ...edgeTuning } : edgeTuning;
   const hasWalk = Array.isArray(steps) && steps.length > 0;
   const costUrl = data?.costUrl || (hasWalk ? steps.find((s) => s?.costUrl)?.costUrl : void 0);
   const costLabel = data?.costLabel || (hasWalk ? steps.find((s) => s?.costUrl)?.costLabel : void 0);
-  const [internalStep, setInternalStep] = useState4(-1);
+  const [internalStep, setInternalStep] = useState4(() => Number.isInteger(startStep) ? Math.max(-1, Math.min(startStep, (steps?.length ?? 0) - 1)) : -1);
   const [playing, setPlaying] = useState4(false);
   const step = control === "auto" ? internalStep : activeStep ?? -1;
   const [collapsed, setCollapsed] = useState4(() => new Set(defaultCollapsed || []));
@@ -1565,15 +1567,16 @@ function LiveDiagram({
   const [detailNode, setDetailNode] = useState4(null);
   const [dockVisible, setDockVisible] = useState4(true);
   const CARD_SCALES = [1, 1.15, 1.3, 1.45];
+  const initScaleIdx = Math.max(0, Math.min(startCardScale | 0, CARD_SCALES.length - 1));
   const [cardExpanded, setCardExpanded] = useState4(false);
-  const [cardScaleIdx, setCardScaleIdx] = useState4(0);
+  const [cardScaleIdx, setCardScaleIdx] = useState4(initScaleIdx);
   const cardScale = CARD_SCALES[cardScaleIdx] ?? 1;
   useEffect2(() => {
     if (step < 0) {
       setCardExpanded(false);
-      setCardScaleIdx(0);
+      setCardScaleIdx(initScaleIdx);
     }
-  }, [step]);
+  }, [step, initScaleIdx]);
   const cardSide = hasWalk && step >= 0 ? steps[Math.min(step, steps.length - 1)]?.cardSide : null;
   const effectiveStepLayout = cardSide === "full" || cardExpanded ? "overlay" : stepLayout;
   return /* @__PURE__ */ jsx9(ReactFlowProvider, { children: /* @__PURE__ */ jsxs9("div", { className: `ld-frame ${themeClass} ${className}`.trim(), style: { width: "100%", height: "100%", position: "relative" }, children: [

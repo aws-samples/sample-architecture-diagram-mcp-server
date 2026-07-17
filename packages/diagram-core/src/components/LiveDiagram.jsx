@@ -292,7 +292,7 @@ export function LiveDiagram({
   edgeTuning, flowDots = true, control = "controlled", chrome = false, theme = "host",
   languages = [], onLangChange, ui, langLabel, title, subtitle,
   collapsible = false, defaultCollapsed = [], zoomOnScroll = false,
-  nodeModal = true,
+  nodeModal = true, startStep = -1, startCardScale = 0,
 }) {
   // flowDots=false turns off the animated dot travelling along every edge, for a
   // static-arrow look. Merged into edgeTuning (spread onto each edge's data), so
@@ -306,7 +306,11 @@ export function LiveDiagram({
   // Taken from data.costUrl, or the first step that declares one.
   const costUrl = data?.costUrl || (hasWalk ? steps.find(s => s?.costUrl)?.costUrl : undefined);
   const costLabel = data?.costLabel || (hasWalk ? steps.find(s => s?.costUrl)?.costLabel : undefined);
-  const [internalStep, setInternalStep] = useState(-1);
+  // startStep: which beat to open on. -1 (default) = show the whole-diagram
+  // overview first; 0+ opens directly on that beat (so a wide diagram lands
+  // already zoomed into a legible region instead of a tiny fit-all view).
+  const [internalStep, setInternalStep] = useState(() =>
+    Number.isInteger(startStep) ? Math.max(-1, Math.min(startStep, (steps?.length ?? 0) - 1)) : -1);
   const [playing, setPlaying] = useState(false);
   const step = control === "auto" ? internalStep : (activeStep ?? -1);
 
@@ -345,14 +349,17 @@ export function LiveDiagram({
 
   // ── Step-card viewer controls: expand-to-full toggle + text-size scale ──
   const CARD_SCALES = [1, 1.15, 1.3, 1.45];
+  // startCardScale: initial text-size step (0–3) the card opens at, so a diagram
+  // can start with a LARGER card out of the gate; A−/A+ still adjust from there.
+  const initScaleIdx = Math.max(0, Math.min(startCardScale | 0, CARD_SCALES.length - 1));
   const [cardExpanded, setCardExpanded] = useState(false);
-  const [cardScaleIdx, setCardScaleIdx] = useState(0);
+  const [cardScaleIdx, setCardScaleIdx] = useState(initScaleIdx);
   const cardScale = CARD_SCALES[cardScaleIdx] ?? 1;
-  // Reset both when the walkthrough leaves the active state, so a dismissed tour
-  // reopens at defaults.
+  // Reset when the walkthrough leaves the active state, so a dismissed tour
+  // reopens at its configured defaults.
   useEffect(() => {
-    if (step < 0) { setCardExpanded(false); setCardScaleIdx(0); }
-  }, [step]);
+    if (step < 0) { setCardExpanded(false); setCardScaleIdx(initScaleIdx); }
+  }, [step, initScaleIdx]);
 
   const cardSide = hasWalk && step >= 0 ? (steps[Math.min(step, steps.length - 1)]?.cardSide) : null;
   const effectiveStepLayout = (cardSide === "full" || cardExpanded) ? "overlay" : stepLayout;
