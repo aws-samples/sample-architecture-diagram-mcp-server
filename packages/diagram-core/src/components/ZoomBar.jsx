@@ -65,6 +65,7 @@ export default function ZoomBar({
   title, subtitle, dark, visible, onToggle, onTheme,
   hasWalk, playing, onPlay, onReset, attention = false,
   costUrl, costLabel,
+  hasCard = false, onTextBigger, onTextSmaller, canTextBigger = false, canTextSmaller = false,
   lang = "en", languages = [], onLang,
   ui = noopUi, langLabel = defLangLabel,
 }) {
@@ -138,6 +139,17 @@ export default function ZoomBar({
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="8" y1="17" x2="8" y2="12"/><line x1="12" y1="17" x2="12" y2="8"/><line x1="16" y1="17" x2="16" y2="14"/></svg>
           {costLabel || ui("cost", lang)}
         </a>
+        {sep}
+      </>}
+      {hasCard && (onTextSmaller || onTextBigger) && <>
+        <button style={{ ...btn, opacity: canTextSmaller ? 1 : 0.4, cursor: canTextSmaller ? "pointer" : "default", gap: 2 }}
+          disabled={!canTextSmaller} onClick={canTextSmaller ? onTextSmaller : undefined} title={ui("textSmaller", lang)}>
+          <span style={{ fontSize: 11, fontWeight: 800 }}>A</span><span style={{ fontSize: 15, fontWeight: 800 }}>−</span>
+        </button>
+        <button style={{ ...btn, opacity: canTextBigger ? 1 : 0.4, cursor: canTextBigger ? "pointer" : "default", gap: 2 }}
+          disabled={!canTextBigger} onClick={canTextBigger ? onTextBigger : undefined} title={ui("textLarger", lang)}>
+          <span style={{ fontSize: 11, fontWeight: 800 }}>A</span><span style={{ fontSize: 15, fontWeight: 800 }}>+</span>
+        </button>
         {sep}
       </>}
       {languages.length > 1 && <>

@@ -31,12 +31,16 @@ declare function CustomEdge({ id, sourceX, sourceY, targetX, targetY, sourcePosi
     style: any;
 }): react.JSX.Element;
 
-declare function StepCard({ steps, activeStep, lang, Icon, onPick }: {
+declare function StepCard({ steps, activeStep, lang, Icon, onPick, expanded, onToggleExpand, expandLabel, collapseLabel }: {
     steps: any;
     activeStep: any;
     lang?: string;
     Icon: any;
     onPick: any;
+    expanded?: boolean;
+    onToggleExpand: any;
+    expandLabel?: string;
+    collapseLabel?: string;
 }): react.JSX.Element;
 
 declare function NodeModal({ node, onClose, Icon, strings }: {
@@ -46,7 +50,7 @@ declare function NodeModal({ node, onClose, Icon, strings }: {
     strings: any;
 }): react.JSX.Element;
 
-declare function ZoomBar({ title, subtitle, dark, visible, onToggle, onTheme, hasWalk, playing, onPlay, onReset, attention, costUrl, costLabel, lang, languages, onLang, ui, langLabel, }: {
+declare function ZoomBar({ title, subtitle, dark, visible, onToggle, onTheme, hasWalk, playing, onPlay, onReset, attention, costUrl, costLabel, hasCard, onTextBigger, onTextSmaller, canTextBigger, canTextSmaller, lang, languages, onLang, ui, langLabel, }: {
     title: any;
     subtitle: any;
     dark: any;
@@ -60,6 +64,11 @@ declare function ZoomBar({ title, subtitle, dark, visible, onToggle, onTheme, ha
     attention?: boolean;
     costUrl: any;
     costLabel: any;
+    hasCard?: boolean;
+    onTextBigger: any;
+    onTextSmaller: any;
+    canTextBigger?: boolean;
+    canTextSmaller?: boolean;
     lang?: string;
     languages?: any[];
     onLang: any;

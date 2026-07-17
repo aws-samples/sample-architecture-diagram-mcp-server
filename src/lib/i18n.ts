@@ -22,9 +22,11 @@ export { tr } from "@aws-live-diagram/core";
 
 // UI chrome strings. Add a language by adding a column; unknown languages fall
 // back to English. Keep keys stable — components look them up by key.
-type UIKey = "iac" | "pricing" | "architecture" | "restart" | "play" | "pause" | "theme" | "collapse" | "expand" | "language" | "cost";
+type UIKey = "iac" | "pricing" | "architecture" | "restart" | "play" | "pause" | "theme" | "collapse" | "expand" | "language" | "cost" | "textLarger" | "textSmaller";
 const UI: Record<UIKey, Record<string, string>> = {
   cost:         { en: "Cost estimate",       pt: "Estimativa de custo", es: "Estimación de costo" },
+  textLarger:   { en: "Larger card text",    pt: "Aumentar texto do cartão", es: "Agrandar texto de la tarjeta" },
+  textSmaller:  { en: "Smaller card text",   pt: "Diminuir texto do cartão", es: "Reducir texto de la tarjeta" },
   iac:          { en: "Configuration (IaC)", pt: "Configuração (IaC)", es: "Configuración (IaC)" },
   pricing:      { en: "Cost / sizing",       pt: "Custo / dimensionamento", es: "Costo / dimensionamiento" },
   architecture: { en: "Architecture",        pt: "Arquitetura",       es: "Arquitectura" },

@@ -6,7 +6,7 @@ import {
 } from "./chunk-2EKNJYAS.js";
 import {
   layoutWithFallback
-} from "./chunk-KLZNBA34.js";
+} from "./chunk-UMT5OKXZ.js";
 import {
   DEFAULT_GEOMETRY,
   __export,
@@ -17,7 +17,7 @@ import {
   resolveVariant,
   serializeDiagram,
   tr
-} from "./chunk-HS3UXZFS.js";
+} from "./chunk-RES6EHLA.js";
 
 // src/Icon.jsx
 import { useState } from "react";
@@ -170,6 +170,7 @@ function AwsNode({ data, selected }) {
   const iconSize = isH ? 56 : 64;
   const iconInner = isH ? 52 : 56;
   const iconEl = Icon2 ? /* @__PURE__ */ jsx2(Icon2, { src: data.icon ? String(data.icon) : void 0, size: iconInner, alt: label, color }) : /* @__PURE__ */ jsx2("span", { style: { fontSize: isH ? 26 : 30, fontWeight: 700, color }, children: initial });
+  const sizing = resizable ? { width: "100%", height: "100%" } : isH ? { width: data.nodeW || 272, minHeight: data.nodeH || 84 } : { width: data.nodeW || 180, minHeight: data.nodeH };
   const frame = {
     position: "relative",
     border: `3px solid ${color}`,
@@ -177,10 +178,10 @@ function AwsNode({ data, selected }) {
     boxShadow: active && toneCol ? `0 0 0 4px ${toneCol}33, 0 8px 28px ${toneCol}55` : isH ? "0 4px 16px rgba(0,0,0,0.2)" : "0 2px 10px rgba(0,0,0,0.18)",
     opacity: dimmed ? 0.28 : 1,
     transform: active ? "scale(1.04)" : "scale(1)",
-    transition: "opacity .35s, transform .35s, box-shadow .35s, border-color .35s",
-    // Height is a MINIMUM (not fixed) so the card grows to fit a wrapped label
-    // instead of clipping long service names. Width defaults keep a sane box.
-    ...isH ? { width: data.nodeW || 272, minHeight: data.nodeH || 84, padding: "12px 18px", borderRadius: 12, display: "flex", alignItems: "center", gap: 14 } : { width: data.nodeW || 180, minHeight: data.nodeH, padding: "16px 14px 12px", borderRadius: 14, textAlign: "center" }
+    transition: "opacity .35s, box-shadow .35s, border-color .35s",
+    boxSizing: "border-box",
+    ...sizing,
+    ...isH ? { padding: "12px 18px", borderRadius: 12, display: "flex", alignItems: "center", gap: 14 } : { padding: "16px 14px 12px", borderRadius: 14, textAlign: "center" }
   };
   const overlayPill = pill && pillOverlay && /* @__PURE__ */ jsx2("span", { style: {
     position: "absolute",
@@ -778,7 +779,7 @@ function resolveBullets(items, lang) {
   if (!items) return void 0;
   return items.map((b) => typeof b === "string" ? tr(b, lang) : { ...b, text: tr(b.text, lang), strong: b.strong != null ? tr(b.strong, lang) : void 0 });
 }
-function StepCard({ steps, activeStep, lang = "en", Icon: Icon2, onPick }) {
+function StepCard({ steps, activeStep, lang = "en", Icon: Icon2, onPick, expanded = false, onToggleExpand, expandLabel = "Expandir", collapseLabel = "Recolher" }) {
   const idx = Math.min(Math.max(activeStep, 0), steps.length - 1);
   const step = steps[idx] || {};
   const tone = step.tone || "accent";
@@ -786,7 +787,7 @@ function StepCard({ steps, activeStep, lang = "en", Icon: Icon2, onPick }) {
   const meta = TONE_META[tone] || TONE_META.accent;
   const badgeLabel = step.badge && step.badge !== true ? tr(step.badge, lang) : false;
   const showBadge = badgeLabel !== false && badgeLabel !== "";
-  const isFull = step.cardSide === "full";
+  const isFull = step.cardSide === "full" || expanded;
   const chips = step.chips?.map((c) => ({ ...c, label: tr(c.label, lang) }));
   const flowRail = /* @__PURE__ */ jsxs6("div", { className: "flex items-center gap-2", style: { pointerEvents: "auto" }, children: [
     /* @__PURE__ */ jsx6("div", { className: "flex items-center flex-wrap gap-y-1 flex-1 min-w-0", children: steps.map((s, i) => {
@@ -842,7 +843,32 @@ function StepCard({ steps, activeStep, lang = "en", Icon: Icon2, onPick }) {
       idx + 1,
       "/",
       steps.length
-    ] })
+    ] }),
+    onToggleExpand && /* @__PURE__ */ jsx6(
+      "button",
+      {
+        type: "button",
+        onClick: onToggleExpand,
+        title: expanded ? collapseLabel : expandLabel,
+        "aria-label": expanded ? collapseLabel : expandLabel,
+        style: {
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0,
+          width: 24,
+          height: 24,
+          marginLeft: 2,
+          borderRadius: 7,
+          cursor: "pointer",
+          border: "1px solid var(--border, rgba(148,163,184,0.4))",
+          background: "transparent",
+          color: "var(--txt-muted, #94a3b8)",
+          pointerEvents: "auto"
+        },
+        children: expanded ? /* @__PURE__ */ jsx6("svg", { width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: /* @__PURE__ */ jsx6("path", { d: "M9 9 4 4m0 0v5m0-5h5m6 6 5 5m0 0v-5m0 5h-5M9 15l-5 5m0 0v-5m0 5h5m6-6 5-5m0 0v5m0-5h-5" }) }) : /* @__PURE__ */ jsx6("svg", { width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: /* @__PURE__ */ jsx6("path", { d: "M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" }) })
+      }
+    )
   ] });
   return /* @__PURE__ */ jsx6(CardShell, { color, full: isFull, header: flowRail, children: /* @__PURE__ */ jsx6(AnimatePresence, { mode: "wait", children: /* @__PURE__ */ jsxs6(
     motion.div,
@@ -1030,6 +1056,11 @@ function ZoomBar({
   attention = false,
   costUrl,
   costLabel,
+  hasCard = false,
+  onTextBigger,
+  onTextSmaller,
+  canTextBigger = false,
+  canTextSmaller = false,
   lang = "en",
   languages = [],
   onLang,
@@ -1142,6 +1173,35 @@ function ZoomBar({
               /* @__PURE__ */ jsx8("line", { x1: "16", y1: "17", x2: "16", y2: "14" })
             ] }),
             costLabel || ui("cost", lang)
+          ]
+        }
+      ),
+      sep
+    ] }),
+    hasCard && (onTextSmaller || onTextBigger) && /* @__PURE__ */ jsxs8(Fragment5, { children: [
+      /* @__PURE__ */ jsxs8(
+        "button",
+        {
+          style: { ...btn, opacity: canTextSmaller ? 1 : 0.4, cursor: canTextSmaller ? "pointer" : "default", gap: 2 },
+          disabled: !canTextSmaller,
+          onClick: canTextSmaller ? onTextSmaller : void 0,
+          title: ui("textSmaller", lang),
+          children: [
+            /* @__PURE__ */ jsx8("span", { style: { fontSize: 11, fontWeight: 800 }, children: "A" }),
+            /* @__PURE__ */ jsx8("span", { style: { fontSize: 15, fontWeight: 800 }, children: "\u2212" })
+          ]
+        }
+      ),
+      /* @__PURE__ */ jsxs8(
+        "button",
+        {
+          style: { ...btn, opacity: canTextBigger ? 1 : 0.4, cursor: canTextBigger ? "pointer" : "default", gap: 2 },
+          disabled: !canTextBigger,
+          onClick: canTextBigger ? onTextBigger : void 0,
+          title: ui("textLarger", lang),
+          children: [
+            /* @__PURE__ */ jsx8("span", { style: { fontSize: 11, fontWeight: 800 }, children: "A" }),
+            /* @__PURE__ */ jsx8("span", { style: { fontSize: 15, fontWeight: 800 }, children: "+" })
           ]
         }
       ),
@@ -1341,11 +1401,38 @@ function DiagramCanvas({
     }
   );
 }
-function StepOverlay({ steps, activeStep, lang, Icon: Icon2, stepLayout, dark, onPick }) {
+function StepOverlay({
+  steps,
+  activeStep,
+  lang,
+  Icon: Icon2,
+  stepLayout,
+  dark,
+  onPick,
+  expanded = false,
+  cardScale = 1,
+  onToggleExpand,
+  expandLabel,
+  collapseLabel
+}) {
   if (!(Array.isArray(steps) && steps.length > 0 && activeStep >= 0)) return null;
   const step = steps[Math.min(activeStep, steps.length - 1)] || {};
-  const cardSide = step.cardSide || "right";
-  const card = /* @__PURE__ */ jsx9(StepCard, { steps, activeStep, lang, Icon: Icon2, onPick });
+  const cardSide = expanded ? "full" : step.cardSide || "right";
+  const card = /* @__PURE__ */ jsx9(
+    StepCard,
+    {
+      steps,
+      activeStep,
+      lang,
+      Icon: Icon2,
+      onPick,
+      expanded,
+      onToggleExpand,
+      expandLabel,
+      collapseLabel
+    }
+  );
+  const scale = expanded ? 1 : cardScale;
   if (stepLayout === "drawer") {
     return /* @__PURE__ */ jsx9(
       motion3.div,
@@ -1353,7 +1440,17 @@ function StepOverlay({ steps, activeStep, lang, Icon: Icon2, stepLayout, dark, o
         initial: { x: 40, opacity: 0 },
         animate: { x: 0, opacity: 1 },
         transition: { duration: 0.3 },
-        style: { position: "absolute", top: 16, right: 16, bottom: 16, width: "min(34%, 460px)", zIndex: 30, pointerEvents: "none" },
+        style: {
+          position: "absolute",
+          top: 16,
+          right: 16,
+          bottom: 16,
+          width: "min(34%, 460px)",
+          zIndex: 30,
+          pointerEvents: "none",
+          transform: scale !== 1 ? `scale(${scale})` : void 0,
+          transformOrigin: "top right"
+        },
         children: card
       }
     );
@@ -1365,7 +1462,7 @@ function StepOverlay({ steps, activeStep, lang, Icon: Icon2, stepLayout, dark, o
         initial: { y: -20, opacity: 0 },
         animate: { y: 0, opacity: 1 },
         transition: { duration: 0.25 },
-        style: { position: "absolute", top: 16, left: "50%", transform: "translateX(-50%)", width: "min(80%, 760px)", zIndex: 30, pointerEvents: "none" },
+        style: { position: "absolute", top: 16, left: "50%", transform: `translateX(-50%)${scale !== 1 ? ` scale(${scale})` : ""}`, transformOrigin: "top center", width: "min(80%, 760px)", zIndex: 30, pointerEvents: "none" },
         children: card
       }
     );
@@ -1373,7 +1470,7 @@ function StepOverlay({ steps, activeStep, lang, Icon: Icon2, stepLayout, dark, o
   if (cardSide === "full") {
     return /* @__PURE__ */ jsx9("div", { style: { position: "absolute", inset: 0, zIndex: 40, display: "flex", alignItems: "center", justifyContent: "center", padding: 32, background: dark ? "rgba(6,8,12,0.72)" : "rgba(15,23,42,0.45)", backdropFilter: "blur(6px)", pointerEvents: "none" }, children: /* @__PURE__ */ jsx9("div", { style: { width: "min(92%, 860px)" }, children: card }) });
   }
-  const pos = cardSide === "top" ? { top: 16, left: "50%", transform: "translateX(-50%)", width: "min(88%, 900px)" } : cardSide === "left" ? { top: 16, left: 16, width: "min(40%, 520px)" } : { top: 16, right: 16, width: "min(40%, 520px)" };
+  const pos = cardSide === "top" ? { top: 16, left: "50%", transform: `translateX(-50%)${scale !== 1 ? ` scale(${scale})` : ""}`, transformOrigin: "top center", width: "min(88%, 900px)" } : cardSide === "left" ? { top: 16, left: 16, width: "min(40%, 520px)", transform: scale !== 1 ? `scale(${scale})` : void 0, transformOrigin: "top left" } : { top: 16, right: 16, width: "min(40%, 520px)", transform: scale !== 1 ? `scale(${scale})` : void 0, transformOrigin: "top right" };
   return /* @__PURE__ */ jsx9("div", { style: { position: "absolute", zIndex: 30, pointerEvents: "none", ...pos }, children: card });
 }
 function LiveDiagram({
@@ -1467,8 +1564,18 @@ function LiveDiagram({
   const themeClass = theme === "self" ? selfDark ? "dark" : "light" : "";
   const [detailNode, setDetailNode] = useState4(null);
   const [dockVisible, setDockVisible] = useState4(true);
+  const CARD_SCALES = [1, 1.15, 1.3, 1.45];
+  const [cardExpanded, setCardExpanded] = useState4(false);
+  const [cardScaleIdx, setCardScaleIdx] = useState4(0);
+  const cardScale = CARD_SCALES[cardScaleIdx] ?? 1;
+  useEffect2(() => {
+    if (step < 0) {
+      setCardExpanded(false);
+      setCardScaleIdx(0);
+    }
+  }, [step]);
   const cardSide = hasWalk && step >= 0 ? steps[Math.min(step, steps.length - 1)]?.cardSide : null;
-  const effectiveStepLayout = cardSide === "full" ? "overlay" : stepLayout;
+  const effectiveStepLayout = cardSide === "full" || cardExpanded ? "overlay" : stepLayout;
   return /* @__PURE__ */ jsx9(ReactFlowProvider, { children: /* @__PURE__ */ jsxs9("div", { className: `ld-frame ${themeClass} ${className}`.trim(), style: { width: "100%", height: "100%", position: "relative" }, children: [
     /* @__PURE__ */ jsx9(
       DiagramCanvas,
@@ -1511,7 +1618,12 @@ function LiveDiagram({
         onPick: chrome && control === "auto" ? (i) => {
           setPlaying(false);
           setInternalStep(i);
-        } : void 0
+        } : void 0,
+        expanded: cardExpanded,
+        cardScale,
+        onToggleExpand: chrome ? () => setCardExpanded((v) => !v) : void 0,
+        expandLabel: ui ? ui("expand", lang) : void 0,
+        collapseLabel: ui ? ui("collapse", lang) : void 0
       }
     ),
     chrome && /* @__PURE__ */ jsxs9(Fragment6, { children: [
@@ -1540,6 +1652,11 @@ function LiveDiagram({
             setPlaying(false);
             setInternalStep(-1);
           },
+          hasCard: hasWalk && step >= 0,
+          onTextBigger: () => setCardScaleIdx((i) => Math.min(i + 1, CARD_SCALES.length - 1)),
+          onTextSmaller: () => setCardScaleIdx((i) => Math.max(i - 1, 0)),
+          canTextBigger: hasWalk && step >= 0 && !cardExpanded && cardScaleIdx < CARD_SCALES.length - 1,
+          canTextSmaller: hasWalk && step >= 0 && !cardExpanded && cardScaleIdx > 0,
           lang,
           languages,
           onLang: onLangChange,
@@ -1578,6 +1695,7 @@ function EditorCanvas({
   onSelectionChange,
   onHistoryChange,
   onContextMenu,
+  onZoomChange,
   lang = "en",
   direction = "TB",
   geometry,
@@ -1592,7 +1710,7 @@ function EditorCanvas({
   snap = false,
   snapSize = 16
 }) {
-  const { fitView, screenToFlowPosition, zoomIn, zoomOut } = useReactFlow3();
+  const { fitView, screenToFlowPosition, zoomIn, zoomOut, zoomTo, getZoom } = useReactFlow3();
   const geom = { ...DEFAULT_GEOMETRY, ...geometry || {} };
   const decorateGroup = useCallback2((n) => n.type === "group" ? { ...n, data: {
     ...n.data,
@@ -1633,6 +1751,51 @@ function EditorCanvas({
       return buildBaseEdge(c, { direction, lang, animate: true, markerId, edgeIndex: seen });
     });
     const { groups, membership } = resolveGroupsAndMembership(value?.services || [], value?.groups);
+    const svcSrc = value?.services || [];
+    const hasSavedLayout = svcSrc.length > 0 && svcSrc.every((s) => s.pos && typeof s.pos.x === "number");
+    if (hasSavedLayout) {
+      const srcById = {};
+      for (const g of value?.groups || []) if (g.id) srcById[g.id] = g;
+      const orderedGroups = [...groups].sort((a, b) => a.parent === b.id ? 1 : b.parent === a.id ? -1 : 0);
+      const groupNodes = orderedGroups.map((gp) => {
+        const src = srcById[gp.id] || gp;
+        const p = src.pos || {};
+        const variant = resolveVariant(gp.variant);
+        const w = p.w || 360, h = p.h || 240;
+        return {
+          id: gp.id,
+          type: "group",
+          position: { x: p.x || 0, y: p.y || 0 },
+          ...gp.parent ? { parentId: gp.parent, extent: "parent" } : {},
+          data: {
+            id: gp.id,
+            label: gp.label,
+            variant: gp.variant,
+            icon: gp.icon,
+            pill: gp.pill,
+            pillOverlay: gp.pillOverlay,
+            __src: src
+          },
+          style: groupStyle(variant, w, h, 0)
+        };
+      });
+      const placed = svcNodes.map((n) => {
+        const s = svcSrc.find((x) => x.id === n.id);
+        const node = { ...n, position: { x: s.pos.x, y: s.pos.y } };
+        if (membership[n.id]) {
+          node.parentId = membership[n.id];
+          node.extent = "parent";
+        }
+        return node;
+      });
+      setNodes([...groupNodes, ...placed].map(decorateGroup));
+      setEdges(baseEdges);
+      loadedRef.current = true;
+      setTimeout(() => fitView({ padding: 0.12, maxZoom: 1 }), 60);
+      return () => {
+        alive = false;
+      };
+    }
     layoutWithFallback(svcNodes, baseEdges, membership, { direction, geometry: geom, groups }).then(({ nodes: laid }) => {
       if (!alive) return;
       const withParent = laid.map((n) => n.type === "aws" && membership[n.id] ? { ...n, parentId: membership[n.id], extent: "parent" } : n);
@@ -1666,17 +1829,47 @@ function EditorCanvas({
   const onNodeDragStop = useCallback2((_evt, node) => {
     if (!node) return;
     snapshot();
-    if (node.type !== "aws") return;
     setNodes((ns) => {
-      const groups = ns.filter((n) => n.type === "group");
-      const cx = node.position.x + (node.width || 0) / 2;
-      const cy = node.position.y + (node.height || 0) / 2;
-      const inside = groups.find((g) => {
-        const w = g.style?.width || 0, h = g.style?.height || 0;
-        return cx >= g.position.x && cx <= g.position.x + w && cy >= g.position.y && cy <= g.position.y + h;
-      });
+      const byId = Object.fromEntries(ns.map((n) => [n.id, n]));
+      const absPos = (n) => {
+        let x = n.position.x, y = n.position.y, p = n.parentId;
+        const guard = /* @__PURE__ */ new Set();
+        while (p && byId[p] && !guard.has(p)) {
+          guard.add(p);
+          x += byId[p].position.x;
+          y += byId[p].position.y;
+          p = byId[p].parentId;
+        }
+        return { x, y };
+      };
+      const sizeOf = (n) => n.type === "group" ? { w: n.style?.width || 0, h: n.style?.height || 0 } : { w: n.width || 0, h: n.height || 0 };
+      const descendants = /* @__PURE__ */ new Set([node.id]);
+      let grew = true;
+      while (grew) {
+        grew = false;
+        for (const n of ns) if (n.parentId && descendants.has(n.parentId) && !descendants.has(n.id)) {
+          descendants.add(n.id);
+          grew = true;
+        }
+      }
+      const a = absPos(node), s = sizeOf(node);
+      const cx = a.x + s.w / 2, cy = a.y + s.h / 2;
+      let inside = null, insideAbs = null, insideArea = Infinity;
+      for (const g of ns) {
+        if (g.type !== "group" || descendants.has(g.id)) continue;
+        const gp = absPos(g), gs = sizeOf(g);
+        if (cx >= gp.x && cx <= gp.x + gs.w && cy >= gp.y && cy <= gp.y + gs.h) {
+          const area = gs.w * gs.h;
+          if (area < insideArea) {
+            inside = g;
+            insideAbs = gp;
+            insideArea = area;
+          }
+        }
+      }
       const parentId = inside ? inside.id : void 0;
-      return ns.map((n) => n.id === node.id ? { ...n, parentId, extent: parentId ? "parent" : void 0 } : n);
+      const rel = inside ? { x: a.x - insideAbs.x, y: a.y - insideAbs.y } : a;
+      return ns.map((n) => n.id === node.id ? { ...n, parentId, extent: parentId ? "parent" : void 0, position: rel } : n);
     });
   }, [setNodes, snapshot]);
   const renameNode = useCallback2((_e, node) => {
@@ -1719,6 +1912,7 @@ function EditorCanvas({
           if (data.__src) {
             if (patch.label !== void 0) data.__src.label = patch.label;
             if (patch.variant !== void 0) data.__src.variant = patch.variant;
+            if (patch.icon !== void 0) data.__src.icon = patch.icon;
             if (patch.pill !== void 0) data.__src.pill = patch.pill;
             if (patch.pillOverlay !== void 0) data.__src.pillOverlay = patch.pillOverlay;
           }
@@ -1733,8 +1927,57 @@ function EditorCanvas({
         if (patch.role !== void 0 && data.__src) data.__src.role = patch.role;
         if (patch.pill !== void 0 && data.__src) data.__src.pill = patch.pill;
         if (patch.pillOverlay !== void 0 && data.__src) data.__src.pillOverlay = patch.pillOverlay;
+        if (patch.config !== void 0) {
+          const cfg = patch.config && Object.keys(patch.config).length ? patch.config : void 0;
+          data.config = cfg;
+          if (data.__src) {
+            if (cfg) data.__src.config = cfg;
+            else delete data.__src.config;
+          }
+        }
         return { ...n, data };
       }));
+    },
+    // Explicitly (re)assign a node to a container — the discoverable path for
+    // "nós dentro de nós" (the FormatPanel exposes this as a dropdown). Passing
+    // parentId=null detaches. React Flow child positions are RELATIVE to the
+    // parent, so we convert the node's absolute position on (de)attach to keep
+    // it visually in place.
+    setNodeParent(id, parentId) {
+      snapshot();
+      setNodes((ns) => {
+        const node = ns.find((n) => n.id === id);
+        if (!node) return ns;
+        const byId = Object.fromEntries(ns.map((n) => [n.id, n]));
+        const absOf = (n) => {
+          let x = n.position.x, y = n.position.y, p = n.parentId;
+          const guard = /* @__PURE__ */ new Set();
+          while (p && byId[p] && !guard.has(p)) {
+            guard.add(p);
+            x += byId[p].position.x;
+            y += byId[p].position.y;
+            p = byId[p].parentId;
+          }
+          return { x, y };
+        };
+        if (parentId) {
+          const descendants = /* @__PURE__ */ new Set([id]);
+          let grew = true;
+          while (grew) {
+            grew = false;
+            for (const n of ns) if (n.parentId && descendants.has(n.parentId) && !descendants.has(n.id)) {
+              descendants.add(n.id);
+              grew = true;
+            }
+          }
+          if (descendants.has(parentId)) return ns;
+        }
+        const abs = absOf(node);
+        const newParent = parentId ? byId[parentId] : null;
+        const pAbs = newParent ? absOf(newParent) : { x: 0, y: 0 };
+        const rel = newParent ? { x: abs.x - pAbs.x, y: abs.y - pAbs.y } : abs;
+        return ns.map((n) => n.id === id ? { ...n, parentId: parentId || void 0, extent: parentId ? "parent" : void 0, position: rel } : n);
+      });
     },
     // Patch an edge's editable data (label/type/dashed).
     updateEdgeData(id, patch) {
@@ -1782,8 +2025,9 @@ function EditorCanvas({
       return future.current.length > 0;
     },
     // Add a group/container box. `screenPos` (from a drop) places it at the
-    // pointer; otherwise it's staggered so repeated adds don't stack exactly.
-    addGroup(variantName = "group", label = "Group", screenPos) {
+    // pointer; otherwise it's staggered. `opts.icon` overrides the variant glyph
+    // (for a "custom container" where the user picks any AWS icon).
+    addGroup(variantName = "group", label = "Group", screenPos, opts = {}) {
       snapshot();
       const variant = resolveVariant(variantName);
       const gid = uid("g");
@@ -1792,7 +2036,7 @@ function EditorCanvas({
         id: gid,
         type: "group",
         position,
-        data: { id: gid, label, variant: variantName, IconComponent: Icon2, scale: nodeLayout === "horizontal" ? "lg" : "sm", vars, resizable: true },
+        data: { id: gid, label, variant: variantName, icon: opts.icon, IconComponent: Icon2, scale: nodeLayout === "horizontal" ? "lg" : "sm", vars, resizable: true },
         style: groupStyle(variant, 360, 240, 0)
       };
       setNodes((ns) => [node, ...ns]);
@@ -1822,6 +2066,12 @@ function EditorCanvas({
     },
     zoomOut() {
       zoomOut({ duration: 200 });
+    },
+    zoomTo(z) {
+      zoomTo(z, { duration: 200 });
+    },
+    getZoom() {
+      return getZoom();
     },
     getDiagram() {
       return serializeDiagram(nodes, edges);
@@ -1963,7 +2213,7 @@ function EditorCanvas({
         id: gid,
         type: "group",
         position: position2,
-        data: { id: gid, label: g.label || g.variant, variant: g.variant, IconComponent: Icon2, scale: nodeLayout === "horizontal" ? "lg" : "sm", vars, resizable: true },
+        data: { id: gid, label: g.label || g.variant, variant: g.variant, icon: g.icon, IconComponent: Icon2, scale: nodeLayout === "horizontal" ? "lg" : "sm", vars, resizable: true },
         style: groupStyle(variant, 360, 240, 0)
       }, ...ns]);
       return;

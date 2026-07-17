@@ -16,7 +16,7 @@ function resolveBullets(items, lang) {
     : { ...b, text: tr(b.text, lang), strong: b.strong != null ? tr(b.strong, lang) : undefined });
 }
 
-export default function StepCard({ steps, activeStep, lang = "en", Icon, onPick }) {
+export default function StepCard({ steps, activeStep, lang = "en", Icon, onPick, expanded = false, onToggleExpand, expandLabel = "Expandir", collapseLabel = "Recolher" }) {
   const idx = Math.min(Math.max(activeStep, 0), steps.length - 1);
   const step = steps[idx] || {};
   const tone = step.tone || "accent";
@@ -26,7 +26,9 @@ export default function StepCard({ steps, activeStep, lang = "en", Icon, onPick 
   // (Architecture walkthroughs use the eyebrow, so the tone badge is off by default.)
   const badgeLabel = step.badge && step.badge !== true ? tr(step.badge, lang) : false;
   const showBadge = badgeLabel !== false && badgeLabel !== "";
-  const isFull = step.cardSide === "full";
+  // `full` sizing is used both by author-pinned full-page steps AND by the
+  // viewer-driven expand toggle (onToggleExpand present).
+  const isFull = step.cardSide === "full" || expanded;
   const chips = step.chips?.map((c) => ({ ...c, label: tr(c.label, lang) }));
 
   // Step-flow rail — same aesthetic as the (now-removed) external pill, but
@@ -66,6 +68,18 @@ export default function StepCard({ steps, activeStep, lang = "en", Icon, onPick 
         })}
       </div>
       <span className="font-mono text-[11px] shrink-0" style={{ color: "var(--txt-muted, #94a3b8)" }}>{idx + 1}/{steps.length}</span>
+      {onToggleExpand && (
+        <button type="button" onClick={onToggleExpand}
+          title={expanded ? collapseLabel : expandLabel} aria-label={expanded ? collapseLabel : expandLabel}
+          style={{ display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+            width: 24, height: 24, marginLeft: 2, borderRadius: 7, cursor: "pointer",
+            border: "1px solid var(--border, rgba(148,163,184,0.4))", background: "transparent",
+            color: "var(--txt-muted, #94a3b8)", pointerEvents: "auto" }}>
+          {expanded
+            ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 9 4 4m0 0v5m0-5h5m6 6 5 5m0 0v-5m0 5h-5M9 15l-5 5m0 0v-5m0 5h5m6-6 5-5m0 0v5m0-5h-5"/></svg>
+            : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>}
+        </button>
+      )}
     </div>
   );
 

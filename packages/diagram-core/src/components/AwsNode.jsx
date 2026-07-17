@@ -45,18 +45,25 @@ function AwsNode({ data, selected }) {
     ? <Icon src={data.icon ? String(data.icon) : undefined} size={iconInner} alt={label} color={color} />
     : <span style={{ fontSize: isH ? 26 : 30, fontWeight: 700, color }}>{initial}</span>;
 
+  // In editor (resizable) mode the React Flow node owns the box size (NodeResizer
+  // writes node.style width/height), so the frame must FILL it (100%). In render
+  // mode the frame sizes itself from geometry (width + min-height for wrap).
+  const sizing = resizable
+    ? { width: "100%", height: "100%" }
+    : (isH ? { width: data.nodeW || 272, minHeight: data.nodeH || 84 }
+           : { width: data.nodeW || 180, minHeight: data.nodeH });
   const frame = {
     position: "relative",
     border: `3px solid ${color}`, background: `var(${vars.nodeBg}, #fff)`,
     boxShadow: active && toneCol ? `0 0 0 4px ${toneCol}33, 0 8px 28px ${toneCol}55` : (isH ? "0 4px 16px rgba(0,0,0,0.2)" : "0 2px 10px rgba(0,0,0,0.18)"),
     opacity: dimmed ? 0.28 : 1,
     transform: active ? "scale(1.04)" : "scale(1)",
-    transition: "opacity .35s, transform .35s, box-shadow .35s, border-color .35s",
-    // Height is a MINIMUM (not fixed) so the card grows to fit a wrapped label
-    // instead of clipping long service names. Width defaults keep a sane box.
+    transition: "opacity .35s, box-shadow .35s, border-color .35s",
+    boxSizing: "border-box",
+    ...sizing,
     ...(isH
-      ? { width: data.nodeW || 272, minHeight: data.nodeH || 84, padding: "12px 18px", borderRadius: 12, display: "flex", alignItems: "center", gap: 14 }
-      : { width: data.nodeW || 180, minHeight: data.nodeH, padding: "16px 14px 12px", borderRadius: 14, textAlign: "center" }),
+      ? { padding: "12px 18px", borderRadius: 12, display: "flex", alignItems: "center", gap: 14 }
+      : { padding: "16px 14px 12px", borderRadius: 14, textAlign: "center" }),
   };
 
   const overlayPill = pill && pillOverlay && (

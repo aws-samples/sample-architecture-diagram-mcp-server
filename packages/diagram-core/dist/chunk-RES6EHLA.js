@@ -167,10 +167,10 @@ function radialLayout(serviceNodes, edges, geom = DEFAULT_GEOMETRY) {
     const countInRing = Math.min(PER_RING, spokes.length - (ring - 1) * PER_RING);
     const posInRing = idx % PER_RING;
     const angle = 2 * Math.PI * posInRing / countInRing - Math.PI / 2;
-    const r = RING * ring;
+    const r2 = RING * ring;
     out.push({
       ...n,
-      position: { x: CX + r * Math.cos(angle) - nodeW / 2, y: CY + r * Math.sin(angle) - nodeH / 2 }
+      position: { x: CX + r2 * Math.cos(angle) - nodeW / 2, y: CY + r2 * Math.sin(angle) - nodeH / 2 }
     });
   });
   return out;
@@ -239,41 +239,44 @@ function groupStyle(variant, w, h, depth = 0) {
     zIndex: -10 + depth
   };
 }
+var r = (v) => typeof v === "number" && isFinite(v) ? Math.round(v) : void 0;
 function serviceFromNode(n) {
   const d = n.data || {};
   const src = d.__src;
-  if (src) {
-    const out2 = { ...src };
-    if (n.parentId) out2.parentId = n.parentId;
-    else delete out2.parentId;
-    return out2;
+  const out = src ? { ...src } : { id: n.id, service: d.label || n.id };
+  if (!src) {
+    if (d.icon) out.icon = d.icon;
+    if (d.sub) out.category = d.sub;
+    if (d.role) out.role = d.role;
+    if (d.staticTone) out.tone = d.staticTone;
+    if (d.pill) out.pill = d.pill;
+    if (d.pillOverlay) out.pillOverlay = d.pillOverlay;
+    if (d.config && Object.keys(d.config).length) out.config = d.config;
   }
-  const out = { id: n.id, service: d.label || n.id };
-  if (d.icon) out.icon = d.icon;
-  if (d.sub) out.category = d.sub;
-  if (d.role) out.role = d.role;
-  if (d.staticTone) out.tone = d.staticTone;
-  if (d.pill) out.pill = d.pill;
-  if (d.pillOverlay) out.pillOverlay = d.pillOverlay;
   if (n.parentId) out.parentId = n.parentId;
+  else delete out.parentId;
+  const x = r(n.position?.x), y = r(n.position?.y);
+  if (x !== void 0 && y !== void 0) out.pos = { x, y };
+  else delete out.pos;
   return out;
 }
 function groupFromNode(n) {
   const d = n.data || {};
   const src = d.__src;
-  if (src) {
-    const out2 = { ...src };
-    if (n.parentId) out2.parent = n.parentId;
-    else delete out2.parent;
-    return out2;
+  const out = src ? { ...src } : { id: n.id };
+  if (!src) {
+    if (d.label) out.label = d.label;
+    if (d.variant) out.variant = d.variant;
+    if (d.icon) out.icon = d.icon;
+    if (d.pill) out.pill = d.pill;
+    if (d.pillOverlay) out.pillOverlay = d.pillOverlay;
   }
-  const out = { id: n.id };
-  if (d.label) out.label = d.label;
   if (n.parentId) out.parent = n.parentId;
-  if (d.variant) out.variant = d.variant;
-  if (d.icon) out.icon = d.icon;
-  if (d.pill) out.pill = d.pill;
-  if (d.pillOverlay) out.pillOverlay = d.pillOverlay;
+  else delete out.parent;
+  const x = r(n.position?.x), y = r(n.position?.y);
+  const w = r(n.style?.width), h = r(n.style?.height);
+  if (x !== void 0 && y !== void 0) out.pos = { x, y, ...w && h ? { w, h } : {} };
+  else delete out.pos;
   return out;
 }
 function connectionFromEdge(e) {

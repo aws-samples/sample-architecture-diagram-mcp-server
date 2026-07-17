@@ -242,19 +242,30 @@ function StepFlow({ steps, activeStep, dark, lang, onPick }) {
 }
 
 // Overlay card positioning (drawer/panel/overlay/full) — wraps the shared StepCard.
-function StepOverlay({ steps, activeStep, lang, Icon, stepLayout, dark, onPick }) {
+// `expanded` forces the centered full-page layout regardless of the step's own
+// cardSide; `cardScale` scales the card content (viewer text-size control) via a
+// CSS transform anchored to the pinned corner so positioning is unaffected.
+function StepOverlay({ steps, activeStep, lang, Icon, stepLayout, dark, onPick,
+  expanded = false, cardScale = 1, onToggleExpand, expandLabel, collapseLabel }) {
   if (!(Array.isArray(steps) && steps.length > 0 && activeStep >= 0)) return null;
   const step = steps[Math.min(activeStep, steps.length - 1)] || {};
-  const cardSide = step.cardSide || "right";
-  const card = <StepCard steps={steps} activeStep={activeStep} lang={lang} Icon={Icon} onPick={onPick} />;
+  // Expand forces the full-page overlay; otherwise honour the step's own side.
+  const cardSide = expanded ? "full" : (step.cardSide || "right");
+  const card = <StepCard steps={steps} activeStep={activeStep} lang={lang} Icon={Icon}
+    onPick={onPick} expanded={expanded} onToggleExpand={onToggleExpand}
+    expandLabel={expandLabel} collapseLabel={collapseLabel} />;
+
+  // Text-size scale (pinned layouts only — the full/expanded card is already large).
+  const scale = expanded ? 1 : cardScale;
 
   if (stepLayout === "drawer") {
     return <motion.div initial={{ x: 40, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.3 }}
-      style={{ position: "absolute", top: 16, right: 16, bottom: 16, width: "min(34%, 460px)", zIndex: 30, pointerEvents: "none" }}>{card}</motion.div>;
+      style={{ position: "absolute", top: 16, right: 16, bottom: 16, width: "min(34%, 460px)", zIndex: 30, pointerEvents: "none",
+        transform: scale !== 1 ? `scale(${scale})` : undefined, transformOrigin: "top right" }}>{card}</motion.div>;
   }
   if (stepLayout === "top") {
     return <motion.div initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.25 }}
-      style={{ position: "absolute", top: 16, left: "50%", transform: "translateX(-50%)", width: "min(80%, 760px)", zIndex: 30, pointerEvents: "none" }}>{card}</motion.div>;
+      style={{ position: "absolute", top: 16, left: "50%", transform: `translateX(-50%)${scale !== 1 ? ` scale(${scale})` : ""}`, transformOrigin: "top center", width: "min(80%, 760px)", zIndex: 30, pointerEvents: "none" }}>{card}</motion.div>;
   }
   // overlay (default): pin by cardSide, incl. full-page modal.
   if (cardSide === "full") {
@@ -265,9 +276,9 @@ function StepOverlay({ steps, activeStep, lang, Icon, stepLayout, dark, onPick }
     );
   }
   const pos = cardSide === "top"
-    ? { top: 16, left: "50%", transform: "translateX(-50%)", width: "min(88%, 900px)" }
-    : cardSide === "left" ? { top: 16, left: 16, width: "min(40%, 520px)" }
-    : { top: 16, right: 16, width: "min(40%, 520px)" };
+    ? { top: 16, left: "50%", transform: `translateX(-50%)${scale !== 1 ? ` scale(${scale})` : ""}`, transformOrigin: "top center", width: "min(88%, 900px)" }
+    : cardSide === "left" ? { top: 16, left: 16, width: "min(40%, 520px)", transform: scale !== 1 ? `scale(${scale})` : undefined, transformOrigin: "top left" }
+    : { top: 16, right: 16, width: "min(40%, 520px)", transform: scale !== 1 ? `scale(${scale})` : undefined, transformOrigin: "top right" };
   return <div style={{ position: "absolute", zIndex: 30, pointerEvents: "none", ...pos }}>{card}</div>;
 }
 
@@ -332,8 +343,19 @@ export function LiveDiagram({
   const [detailNode, setDetailNode] = useState(null);
   const [dockVisible, setDockVisible] = useState(true);
 
+  // ── Step-card viewer controls: expand-to-full toggle + text-size scale ──
+  const CARD_SCALES = [1, 1.15, 1.3, 1.45];
+  const [cardExpanded, setCardExpanded] = useState(false);
+  const [cardScaleIdx, setCardScaleIdx] = useState(0);
+  const cardScale = CARD_SCALES[cardScaleIdx] ?? 1;
+  // Reset both when the walkthrough leaves the active state, so a dismissed tour
+  // reopens at defaults.
+  useEffect(() => {
+    if (step < 0) { setCardExpanded(false); setCardScaleIdx(0); }
+  }, [step]);
+
   const cardSide = hasWalk && step >= 0 ? (steps[Math.min(step, steps.length - 1)]?.cardSide) : null;
-  const effectiveStepLayout = cardSide === "full" ? "overlay" : stepLayout;
+  const effectiveStepLayout = (cardSide === "full" || cardExpanded) ? "overlay" : stepLayout;
 
   return (
     <ReactFlowProvider>
@@ -350,7 +372,10 @@ export function LiveDiagram({
         />
         <StepOverlay steps={steps} activeStep={step} lang={lang} Icon={Icon}
           stepLayout={effectiveStepLayout} dark={theme === "self" ? selfDark : false}
-          onPick={chrome && control === "auto" ? (i) => { setPlaying(false); setInternalStep(i); } : undefined} />
+          onPick={chrome && control === "auto" ? (i) => { setPlaying(false); setInternalStep(i); } : undefined}
+          expanded={cardExpanded} cardScale={cardScale}
+          onToggleExpand={chrome ? () => setCardExpanded(v => !v) : undefined}
+          expandLabel={ui ? ui("expand", lang) : undefined} collapseLabel={ui ? ui("collapse", lang) : undefined} />
         {/* External StepFlow pill removed — the navigation rail now lives inside
             the card (see StepCard), so the two elements read as one. */}
         {chrome && (
@@ -365,6 +390,11 @@ export function LiveDiagram({
               costUrl={costUrl} costLabel={costLabel != null ? tr(costLabel, lang) : undefined}
               onPlay={() => { setPlaying(p => { if (!p) setInternalStep(s => (s < 0 || s >= steps.length - 1 ? 0 : s)); return !p; }); }}
               onReset={() => { setPlaying(false); setInternalStep(-1); }}
+              hasCard={hasWalk && step >= 0}
+              onTextBigger={() => setCardScaleIdx(i => Math.min(i + 1, CARD_SCALES.length - 1))}
+              onTextSmaller={() => setCardScaleIdx(i => Math.max(i - 1, 0))}
+              canTextBigger={hasWalk && step >= 0 && !cardExpanded && cardScaleIdx < CARD_SCALES.length - 1}
+              canTextSmaller={hasWalk && step >= 0 && !cardExpanded && cardScaleIdx > 0}
               lang={lang} languages={languages} onLang={onLangChange} ui={ui} langLabel={langLabel}
             />
           </>

@@ -83,26 +83,30 @@ export function groupStyle(variant, w, h, depth = 0) {
 // attrs) survive round-trips untouched. Nodes the user ADDED have no __src, so
 // we synthesize a minimal entry from the render data.
 
+// Round a coordinate to 1px — keeps saved JSON compact and diff-friendly.
+const r = (v) => (typeof v === "number" && isFinite(v) ? Math.round(v) : undefined);
+
 /** A service node → a `services[]` entry (faithful to the source). */
 function serviceFromNode(n) {
   const d = n.data || {};
   const src = d.__src;
-  if (src) {
-    const out = { ...src };
-    // Membership is authored on the node (parentId), reflect it back.
-    if (n.parentId) out.parentId = n.parentId; else delete out.parentId;
-    return out;
+  const out = src ? { ...src } : { id: n.id, service: d.label || n.id };
+  if (!src) {
+    // Added node (no source): synthesize the authoring fields from render data.
+    if (d.icon) out.icon = d.icon;
+    if (d.sub) out.category = d.sub;
+    if (d.role) out.role = d.role;
+    if (d.staticTone) out.tone = d.staticTone;
+    if (d.pill) out.pill = d.pill;
+    if (d.pillOverlay) out.pillOverlay = d.pillOverlay;
+    if (d.config && Object.keys(d.config).length) out.config = d.config;
   }
-  // Added node (no source): synthesize. `service` is the semantic type; here
-  // the label doubles as it since an added node has no separate type yet.
-  const out = { id: n.id, service: d.label || n.id };
-  if (d.icon) out.icon = d.icon;
-  if (d.sub) out.category = d.sub;
-  if (d.role) out.role = d.role;
-  if (d.staticTone) out.tone = d.staticTone;
-  if (d.pill) out.pill = d.pill;
-  if (d.pillOverlay) out.pillOverlay = d.pillOverlay;
-  if (n.parentId) out.parentId = n.parentId;
+  // Membership is authored on the node (parentId), reflect it back.
+  if (n.parentId) out.parentId = n.parentId; else delete out.parentId;
+  // Persist the editor-set position so a reload restores the SAME arrangement
+  // instead of re-running auto-layout. Omit when unknown (0,0 render fallback).
+  const x = r(n.position?.x), y = r(n.position?.y);
+  if (x !== undefined && y !== undefined) out.pos = { x, y }; else delete out.pos;
   return out;
 }
 
@@ -110,18 +114,20 @@ function serviceFromNode(n) {
 function groupFromNode(n) {
   const d = n.data || {};
   const src = d.__src;
-  if (src) {
-    const out = { ...src };
-    if (n.parentId) out.parent = n.parentId; else delete out.parent;
-    return out;
+  const out = src ? { ...src } : { id: n.id };
+  if (!src) {
+    if (d.label) out.label = d.label;
+    if (d.variant) out.variant = d.variant;
+    if (d.icon) out.icon = d.icon;
+    if (d.pill) out.pill = d.pill;
+    if (d.pillOverlay) out.pillOverlay = d.pillOverlay;
   }
-  const out = { id: n.id };
-  if (d.label) out.label = d.label;
-  if (n.parentId) out.parent = n.parentId;
-  if (d.variant) out.variant = d.variant;
-  if (d.icon) out.icon = d.icon;
-  if (d.pill) out.pill = d.pill;
-  if (d.pillOverlay) out.pillOverlay = d.pillOverlay;
+  if (n.parentId) out.parent = n.parentId; else delete out.parent;
+  // Persist position AND box size (a container is resizable) for faithful reload.
+  const x = r(n.position?.x), y = r(n.position?.y);
+  const w = r(n.style?.width), h = r(n.style?.height);
+  if (x !== undefined && y !== undefined) out.pos = { x, y, ...(w && h ? { w, h } : {}) };
+  else delete out.pos;
   return out;
 }
 

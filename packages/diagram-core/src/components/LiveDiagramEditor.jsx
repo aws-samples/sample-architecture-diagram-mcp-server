@@ -34,11 +34,11 @@ let _seq = 0;
 const uid = (p) => `${p}-${Date.now().toString(36)}-${(_seq++).toString(36)}`;
 
 function EditorCanvas({
-  value, onChange, onSelectionChange, onHistoryChange, onContextMenu, lang = "en", direction = "TB", geometry, nodeLayout = "horizontal",
+  value, onChange, onSelectionChange, onHistoryChange, onContextMenu, onZoomChange, lang = "en", direction = "TB", geometry, nodeLayout = "horizontal",
   vars = {}, Icon, markerId = "ld-arrow", editorRef, controls = true, minimap = true,
   bg = "dots", snap = false, snapSize = 16,
 }) {
-  const { fitView, screenToFlowPosition, zoomIn, zoomOut } = useReactFlow();
+  const { fitView, screenToFlowPosition, zoomIn, zoomOut, zoomTo, getZoom } = useReactFlow();
   const geom = { ...DEFAULT_GEOMETRY, ...(geometry || {}) };
 
   // Decorate a group node built by the layout engine so GroupNode can render it
@@ -92,6 +92,49 @@ function EditorCanvas({
       return buildBaseEdge(c, { direction, lang, animate: true, markerId, edgeIndex: seen });
     });
     const { groups, membership } = resolveGroupsAndMembership(value?.services || [], value?.groups);
+
+    // If EVERY service carries a saved editor position (`pos`), the diagram was
+    // arranged in the editor — restore that arrangement verbatim instead of
+    // re-running auto-layout (which would discard the user's placement). Groups
+    // likewise restore their saved position + box size. A hand-authored diagram
+    // (no `pos`) still auto-layouts as before.
+    const svcSrc = value?.services || [];
+    const hasSavedLayout = svcSrc.length > 0 && svcSrc.every(s => s.pos && typeof s.pos.x === "number");
+    if (hasSavedLayout) {
+      // React Flow requires a parent node to precede its children in the array;
+      // order groups so a nested group's parent comes first. `pos` lives on the
+      // original authoring object (the resolver drops unknown fields), so look
+      // it up from value.groups by id.
+      const srcById = {};
+      for (const g of (value?.groups || [])) if (g.id) srcById[g.id] = g;
+      const orderedGroups = [...groups].sort((a, b) => (a.parent === b.id ? 1 : b.parent === a.id ? -1 : 0));
+      const groupNodes = orderedGroups.map(gp => {
+        const src = srcById[gp.id] || gp;
+        const p = src.pos || {};
+        const variant = resolveVariant(gp.variant);
+        const w = p.w || 360, h = p.h || 240;
+        return {
+          id: gp.id, type: "group",
+          position: { x: p.x || 0, y: p.y || 0 },
+          ...(gp.parent ? { parentId: gp.parent, extent: "parent" } : {}),
+          data: { id: gp.id, label: gp.label, variant: gp.variant, icon: gp.icon,
+                  pill: gp.pill, pillOverlay: gp.pillOverlay, __src: src },
+          style: groupStyle(variant, w, h, 0),
+        };
+      });
+      const placed = svcNodes.map(n => {
+        const s = svcSrc.find(x => x.id === n.id);
+        const node = { ...n, position: { x: s.pos.x, y: s.pos.y } };
+        if (membership[n.id]) { node.parentId = membership[n.id]; node.extent = "parent"; }
+        return node;
+      });
+      setNodes([...groupNodes, ...placed].map(decorateGroup));
+      setEdges(baseEdges);
+      loadedRef.current = true;
+      setTimeout(() => fitView({ padding: 0.12, maxZoom: 1 }), 60);
+      return () => { alive = false; };
+    }
+
     layoutWithFallback(svcNodes, baseEdges, membership, { direction, geometry: geom, groups })
       .then(({ nodes: laid }) => {
         if (!alive) return;
@@ -129,25 +172,51 @@ function EditorCanvas({
     }, eds));
   }, [setEdges, markerId, snapshot]);
 
-  // Membership by drop: when a service is dropped with its center inside a group
-  // box, set its parentId so the association persists (serializeDiagram reads it).
-  // Dropped outside every group → clear parentId. Group boxes carry width/height
-  // in node.style; we hit-test the pointer-agnostic node center against them.
+  // Membership by drop: when a node (service OR container) is dropped with its
+  // center inside a group box, set its parentId so the association persists
+  // (serializeDiagram reads it). Dropped outside every group → clear parentId.
+  //
+  // React Flow child positions are RELATIVE to the parent, so we resolve every
+  // node to an ABSOLUTE position (walking the parent chain) before hit-testing,
+  // and convert back to relative on (re)parent. A container can nest in another
+  // container, but never in itself or one of its own descendants (cycle guard);
+  // among candidates the INNERMOST (smallest area) box wins.
   const onNodeDragStop = useCallback((_evt, node) => {
     if (!node) return;
     snapshot();
-    if (node.type !== "aws") return;
     setNodes(ns => {
-      const groups = ns.filter(n => n.type === "group");
-      const cx = node.position.x + (node.width || 0) / 2;
-      const cy = node.position.y + (node.height || 0) / 2;
-      const inside = groups.find(g => {
-        const w = g.style?.width || 0, h = g.style?.height || 0;
-        return cx >= g.position.x && cx <= g.position.x + w && cy >= g.position.y && cy <= g.position.y + h;
-      });
+      const byId = Object.fromEntries(ns.map(n => [n.id, n]));
+      const absPos = (n) => {
+        let x = n.position.x, y = n.position.y, p = n.parentId;
+        const guard = new Set();
+        while (p && byId[p] && !guard.has(p)) { guard.add(p); x += byId[p].position.x; y += byId[p].position.y; p = byId[p].parentId; }
+        return { x, y };
+      };
+      const sizeOf = (n) => n.type === "group"
+        ? { w: n.style?.width || 0, h: n.style?.height || 0 }
+        : { w: n.width || 0, h: n.height || 0 };
+      // Descendants of the dragged node — invalid parents (would form a cycle).
+      const descendants = new Set([node.id]);
+      let grew = true;
+      while (grew) { grew = false; for (const n of ns) if (n.parentId && descendants.has(n.parentId) && !descendants.has(n.id)) { descendants.add(n.id); grew = true; } }
+
+      const a = absPos(node), s = sizeOf(node);
+      const cx = a.x + s.w / 2, cy = a.y + s.h / 2;
+      let inside = null, insideAbs = null, insideArea = Infinity;
+      for (const g of ns) {
+        if (g.type !== "group" || descendants.has(g.id)) continue;
+        const gp = absPos(g), gs = sizeOf(g);
+        if (cx >= gp.x && cx <= gp.x + gs.w && cy >= gp.y && cy <= gp.y + gs.h) {
+          const area = gs.w * gs.h;
+          if (area < insideArea) { inside = g; insideAbs = gp; insideArea = area; }
+        }
+      }
       const parentId = inside ? inside.id : undefined;
+      // Keep the node visually put: convert its absolute pos to relative to the
+      // new parent (or leave absolute when detaching to top level).
+      const rel = inside ? { x: a.x - insideAbs.x, y: a.y - insideAbs.y } : a;
       return ns.map(n => n.id === node.id
-        ? { ...n, parentId, extent: parentId ? "parent" : undefined }
+        ? { ...n, parentId, extent: parentId ? "parent" : undefined, position: rel }
         : n);
     });
   }, [setNodes, snapshot]);
@@ -205,6 +274,7 @@ function EditorCanvas({
           if (data.__src) {
             if (patch.label !== undefined) data.__src.label = patch.label;
             if (patch.variant !== undefined) data.__src.variant = patch.variant;
+            if (patch.icon !== undefined) data.__src.icon = patch.icon;
             if (patch.pill !== undefined) data.__src.pill = patch.pill;
             if (patch.pillOverlay !== undefined) data.__src.pillOverlay = patch.pillOverlay;
           }
@@ -217,8 +287,48 @@ function EditorCanvas({
         if (patch.role !== undefined && data.__src) data.__src.role = patch.role;
         if (patch.pill !== undefined && data.__src) data.__src.pill = patch.pill;
         if (patch.pillOverlay !== undefined && data.__src) data.__src.pillOverlay = patch.pillOverlay;
+        // `config` drives the detail card (sublabel + NodeModal IaC/pricing).
+        // An empty object is normalized to undefined so it isn't serialized.
+        if (patch.config !== undefined) {
+          const cfg = patch.config && Object.keys(patch.config).length ? patch.config : undefined;
+          data.config = cfg;
+          if (data.__src) { if (cfg) data.__src.config = cfg; else delete data.__src.config; }
+        }
         return { ...n, data };
       }));
+    },
+    // Explicitly (re)assign a node to a container — the discoverable path for
+    // "nós dentro de nós" (the FormatPanel exposes this as a dropdown). Passing
+    // parentId=null detaches. React Flow child positions are RELATIVE to the
+    // parent, so we convert the node's absolute position on (de)attach to keep
+    // it visually in place.
+    setNodeParent(id, parentId) {
+      snapshot();
+      setNodes(ns => {
+        const node = ns.find(n => n.id === id);
+        if (!node) return ns;
+        const byId = Object.fromEntries(ns.map(n => [n.id, n]));
+        const absOf = (n) => {
+          let x = n.position.x, y = n.position.y, p = n.parentId;
+          const guard = new Set();
+          while (p && byId[p] && !guard.has(p)) { guard.add(p); x += byId[p].position.x; y += byId[p].position.y; p = byId[p].parentId; }
+          return { x, y };
+        };
+        // Reject a parent that is the node itself or one of its descendants.
+        if (parentId) {
+          const descendants = new Set([id]);
+          let grew = true;
+          while (grew) { grew = false; for (const n of ns) if (n.parentId && descendants.has(n.parentId) && !descendants.has(n.id)) { descendants.add(n.id); grew = true; } }
+          if (descendants.has(parentId)) return ns;
+        }
+        const abs = absOf(node);
+        const newParent = parentId ? byId[parentId] : null;
+        const pAbs = newParent ? absOf(newParent) : { x: 0, y: 0 };
+        const rel = newParent ? { x: abs.x - pAbs.x, y: abs.y - pAbs.y } : abs;
+        return ns.map(n => n.id === id
+          ? { ...n, parentId: parentId || undefined, extent: parentId ? "parent" : undefined, position: rel }
+          : n);
+      });
     },
     // Patch an edge's editable data (label/type/dashed).
     updateEdgeData(id, patch) {
@@ -256,8 +366,9 @@ function EditorCanvas({
     canUndo() { return past.current.length > 0; },
     canRedo() { return future.current.length > 0; },
     // Add a group/container box. `screenPos` (from a drop) places it at the
-    // pointer; otherwise it's staggered so repeated adds don't stack exactly.
-    addGroup(variantName = "group", label = "Group", screenPos) {
+    // pointer; otherwise it's staggered. `opts.icon` overrides the variant glyph
+    // (for a "custom container" where the user picks any AWS icon).
+    addGroup(variantName = "group", label = "Group", screenPos, opts = {}) {
       snapshot();
       const variant = resolveVariant(variantName);
       const gid = uid("g");
@@ -266,7 +377,7 @@ function EditorCanvas({
         : { x: 120 + (_seq % 6) * 32, y: 120 + (_seq % 6) * 32 };
       const node = {
         id: gid, type: "group", position,
-        data: { id: gid, label, variant: variantName, IconComponent: Icon, scale: nodeLayout === "horizontal" ? "lg" : "sm", vars, resizable: true },
+        data: { id: gid, label, variant: variantName, icon: opts.icon, IconComponent: Icon, scale: nodeLayout === "horizontal" ? "lg" : "sm", vars, resizable: true },
         style: groupStyle(variant, 360, 240, 0),
       };
       setNodes(ns => [node, ...ns]); // groups behind services
@@ -288,6 +399,8 @@ function EditorCanvas({
     fit() { fitView({ padding: 0.12, maxZoom: 1, duration: 300 }); },
     zoomIn() { zoomIn({ duration: 200 }); },
     zoomOut() { zoomOut({ duration: 200 }); },
+    zoomTo(z) { zoomTo(z, { duration: 200 }); },
+    getZoom() { return getZoom(); },
     getDiagram() { return serializeDiagram(nodes, edges); },
     setDiagram(next) { setNodes([]); setEdges([]); /* host re-mounts via value key */ void next; },
 
@@ -394,7 +507,7 @@ function EditorCanvas({
       const position = screenToFlowPosition(pos);
       setNodes(ns => [{
         id: gid, type: "group", position,
-        data: { id: gid, label: g.label || g.variant, variant: g.variant, IconComponent: Icon, scale: nodeLayout === "horizontal" ? "lg" : "sm", vars, resizable: true },
+        data: { id: gid, label: g.label || g.variant, variant: g.variant, icon: g.icon, IconComponent: Icon, scale: nodeLayout === "horizontal" ? "lg" : "sm", vars, resizable: true },
         style: groupStyle(variant, 360, 240, 0),
       }, ...ns]);
       return;
