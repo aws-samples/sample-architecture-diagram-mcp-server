@@ -107,20 +107,8 @@ contain `icons/`, and optionally `aws-icons/` and `tech-icons/`).
 
 ## Register the MCP server
 
-**Via npx (no clone):**
-
-```json
-{
-  "mcpServers": {
-    "aws-architecture-diagram": {
-      "command": "npx",
-      "args": ["-y", "sample-architecture-diagram-mcp-server@latest"]
-    }
-  }
-}
-```
-
-**From a local clone** (needed if you want the icons pre-installed):
+Clone this repo, run `npm install`, then point your MCP client at
+`mcp-server.js` with an absolute path:
 
 ```json
 {
@@ -134,10 +122,10 @@ contain `icons/`, and optionally `aws-icons/` and `tech-icons/`).
 ```
 
 > Icons are not bundled (AWS Terms of Use). On first run without them, diagrams
-> render category-colored initials and the server prints how to add them:
-> `npx --package sample-architecture-diagram-mcp-server fetch-icons <Asset-Package.zip>`
-> (download from https://aws.amazon.com/architecture/icons/), or set
-> `AWS_DIAGRAM_ICON_ROOT` to a folder containing `icons/`.
+> render category-colored initials; add them by running
+> `./scripts/fetch-icons.sh <Asset-Package.zip>` (download from
+> https://aws.amazon.com/architecture/icons/), or set `AWS_DIAGRAM_ICON_ROOT`
+> to a folder containing `icons/`.
 
 ## Tools
 
