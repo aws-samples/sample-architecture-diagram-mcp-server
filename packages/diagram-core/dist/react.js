@@ -1295,7 +1295,17 @@ function DiagramCanvas({
   collapsible,
   collapsed,
   onToggleCollapse,
-  zoomOnScroll
+  zoomOnScroll,
+  // Zoom controls (all overridable; defaults preserve prior hardcoded values):
+  //   minZoom/maxZoom  — React Flow's absolute zoom bounds.
+  //   fitMaxZoom       — cap applied to fit-all (fitView) so a small diagram
+  //                      isn't left tiny; undefined lets RF pick.
+  //   stepMaxZoom      — default per-step focus zoom cap (a step may still set
+  //                      its own step.maxZoom, which wins).
+  minZoom = 0.1,
+  maxZoom = 3,
+  fitMaxZoom,
+  stepMaxZoom = 2.2
 }) {
   const { fitView } = useReactFlow2();
   const direction = dirOverride || data.direction || "TB";
@@ -1391,24 +1401,24 @@ function DiagramCanvas({
     return { ...e, hidden, data: { ...e.data, active, tone: edgeTone[e.id], anyActive, routed: edgePaths[e.id] } };
   }), [baseEdges, edgeTone, anyActive, edgePaths, visibleIds, presentIds]);
   useEffect2(() => {
-    const t = setTimeout(() => fitView({ padding: fitPadding }), 60);
+    const t = setTimeout(() => fitView({ padding: fitPadding, ...fitMaxZoom != null ? { maxZoom: fitMaxZoom } : {} }), 60);
     return () => clearTimeout(t);
-  }, [baseNodes, fitView, fitPadding, stepFocus ? activeStep : 0]);
+  }, [baseNodes, fitView, fitPadding, fitMaxZoom, stepFocus ? activeStep : 0]);
   useEffect2(() => {
     if (!stepZoom || !anyActive) return;
     const step = steps?.[Math.min(activeStep, (steps?.length || 1) - 1)];
     const focusIds = step?.zoom || step?.nodes || [];
-    const maxZoom = step?.maxZoom ?? 2.2;
+    const maxZoom2 = step?.maxZoom ?? stepMaxZoom;
     const laidOut = new Set(baseNodes.map((n) => n.id));
     const present = focusIds.filter((id) => laidOut.has(id));
     const cardSide = step?.cardSide;
     const sidePad = cardSide === "top" ? { top: "40%", bottom: "8%", left: "8%", right: "8%" } : cardSide === "left" ? { left: "38%", right: "6%", top: "10%", bottom: "10%" } : cardSide === "right" ? { right: "38%", left: "6%", top: "10%", bottom: "10%" } : 0.35;
     const t = setTimeout(() => {
-      if (present.length) fitView({ nodes: present.map((id) => ({ id })), padding: sidePad, duration: 700, maxZoom });
-      else fitView({ padding: fitPadding, duration: 700 });
+      if (present.length) fitView({ nodes: present.map((id) => ({ id })), padding: sidePad, duration: 700, maxZoom: maxZoom2 });
+      else fitView({ padding: fitPadding, duration: 700, ...fitMaxZoom != null ? { maxZoom: fitMaxZoom } : {} });
     }, 120);
     return () => clearTimeout(t);
-  }, [stepZoom, anyActive, activeStep, steps, fitView, fitPadding, baseNodes]);
+  }, [stepZoom, anyActive, activeStep, steps, fitView, fitPadding, fitMaxZoom, stepMaxZoom, baseNodes]);
   return /* @__PURE__ */ jsxs9(
     ReactFlow,
     {
@@ -1417,10 +1427,10 @@ function DiagramCanvas({
       nodeTypes: NODE_TYPES,
       edgeTypes: EDGE_TYPES,
       fitView: true,
-      fitViewOptions: { padding: fitPadding },
+      fitViewOptions: { padding: fitPadding, ...fitMaxZoom != null ? { maxZoom: fitMaxZoom } : {} },
       proOptions: { hideAttribution: true },
-      minZoom: 0.1,
-      maxZoom: 3,
+      minZoom,
+      maxZoom,
       nodesDraggable: groupsInteractive,
       nodesConnectable: false,
       elementsSelectable: !!onNodeClick,
@@ -1429,7 +1439,7 @@ function DiagramCanvas({
       zoomOnPinch: true,
       panOnScroll: false,
       zoomOnDoubleClick: false,
-      onDoubleClick: () => fitView({ padding: fitPadding, duration: 400 }),
+      onDoubleClick: () => fitView({ padding: fitPadding, duration: 400, ...fitMaxZoom != null ? { maxZoom: fitMaxZoom } : {} }),
       preventScrolling: !!zoomOnScroll,
       onNodeClick: onNodeClick ? (_e, n) => {
         if (n.type === "aws") onNodeClick(n);
@@ -1564,7 +1574,12 @@ function LiveDiagram({
   zoomOnScroll = false,
   nodeModal = true,
   startStep = -1,
-  startCardScale = 0
+  startCardScale = 0,
+  // Zoom bounds/caps — forwarded to the canvas (see DiagramCanvas jsdoc).
+  minZoom = 0.1,
+  maxZoom = 3,
+  fitMaxZoom,
+  stepMaxZoom = 2.2
 }) {
   const resolvedEdgeTuning = flowDots === false ? { dots: false, ...edgeTuning } : edgeTuning;
   const hasWalk = Array.isArray(steps) && steps.length > 0;
@@ -1659,7 +1674,11 @@ function LiveDiagram({
         collapsible,
         collapsed,
         onToggleCollapse,
-        zoomOnScroll
+        zoomOnScroll,
+        minZoom,
+        maxZoom,
+        fitMaxZoom,
+        stepMaxZoom
       }
     ),
     /* @__PURE__ */ jsx9(

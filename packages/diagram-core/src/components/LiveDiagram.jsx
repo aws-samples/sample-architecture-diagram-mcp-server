@@ -44,6 +44,13 @@ function DiagramCanvas({
   fitPadding, stepFocus, spacing, stepZoom, geometry, nodeLayout, vars, Icon,
   markerId, reanchorEdges, groupsInteractive, edgeTuning, onNodeClick,
   collapsible, collapsed, onToggleCollapse, zoomOnScroll,
+  // Zoom controls (all overridable; defaults preserve prior hardcoded values):
+  //   minZoom/maxZoom  — React Flow's absolute zoom bounds.
+  //   fitMaxZoom       — cap applied to fit-all (fitView) so a small diagram
+  //                      isn't left tiny; undefined lets RF pick.
+  //   stepMaxZoom      — default per-step focus zoom cap (a step may still set
+  //                      its own step.maxZoom, which wins).
+  minZoom = 0.1, maxZoom = 3, fitMaxZoom, stepMaxZoom = 2.2,
 }) {
   const { fitView } = useReactFlow();
   const direction = dirOverride || data.direction || "TB";
@@ -140,15 +147,15 @@ function DiagramCanvas({
   }), [baseEdges, edgeTone, anyActive, edgePaths, visibleIds, presentIds]);
 
   useEffect(() => {
-    const t = setTimeout(() => fitView({ padding: fitPadding }), 60);
+    const t = setTimeout(() => fitView({ padding: fitPadding, ...(fitMaxZoom != null ? { maxZoom: fitMaxZoom } : {}) }), 60);
     return () => clearTimeout(t);
-  }, [baseNodes, fitView, fitPadding, stepFocus ? activeStep : 0]);
+  }, [baseNodes, fitView, fitPadding, fitMaxZoom, stepFocus ? activeStep : 0]);
 
   useEffect(() => {
     if (!stepZoom || !anyActive) return;
     const step = steps?.[Math.min(activeStep, (steps?.length || 1) - 1)];
     const focusIds = step?.zoom || step?.nodes || [];
-    const maxZoom = step?.maxZoom ?? 2.2;
+    const maxZoom = step?.maxZoom ?? stepMaxZoom;
     const laidOut = new Set(baseNodes.map(n => n.id));
     const present = focusIds.filter(id => laidOut.has(id));
     // Reserve room for the overlay card so the zoomed nodes (and the animated
@@ -164,19 +171,19 @@ function DiagramCanvas({
       : 0.35;
     const t = setTimeout(() => {
       if (present.length) fitView({ nodes: present.map(id => ({ id })), padding: sidePad, duration: 700, maxZoom });
-      else fitView({ padding: fitPadding, duration: 700 });
+      else fitView({ padding: fitPadding, duration: 700, ...(fitMaxZoom != null ? { maxZoom: fitMaxZoom } : {}) });
     }, 120);
     return () => clearTimeout(t);
-  }, [stepZoom, anyActive, activeStep, steps, fitView, fitPadding, baseNodes]);
+  }, [stepZoom, anyActive, activeStep, steps, fitView, fitPadding, fitMaxZoom, stepMaxZoom, baseNodes]);
 
   return (
     <ReactFlow
       nodes={nodes} edges={edges} nodeTypes={NODE_TYPES} edgeTypes={EDGE_TYPES}
-      fitView fitViewOptions={{ padding: fitPadding }} proOptions={{ hideAttribution: true }}
-      minZoom={0.1} maxZoom={3}
+      fitView fitViewOptions={{ padding: fitPadding, ...(fitMaxZoom != null ? { maxZoom: fitMaxZoom } : {}) }} proOptions={{ hideAttribution: true }}
+      minZoom={minZoom} maxZoom={maxZoom}
       nodesDraggable={groupsInteractive} nodesConnectable={false} elementsSelectable={!!onNodeClick}
       panOnDrag zoomOnScroll={!!zoomOnScroll} zoomOnPinch panOnScroll={false} zoomOnDoubleClick={false}
-      onDoubleClick={() => fitView({ padding: fitPadding, duration: 400 })} preventScrolling={!!zoomOnScroll}
+      onDoubleClick={() => fitView({ padding: fitPadding, duration: 400, ...(fitMaxZoom != null ? { maxZoom: fitMaxZoom } : {}) })} preventScrolling={!!zoomOnScroll}
       onNodeClick={onNodeClick ? (_e, n) => { if (n.type === "aws") onNodeClick(n); } : undefined}
     >
       <Background variant={BackgroundVariant.Dots} gap={20} size={1} color={`var(${vars.dot || "--dot"}, rgba(0,0,0,0.05))`} />
@@ -301,6 +308,8 @@ export function LiveDiagram({
   languages = [], onLangChange, ui, langLabel, title, subtitle,
   collapsible = false, defaultCollapsed = [], zoomOnScroll = false,
   nodeModal = true, startStep = -1, startCardScale = 0,
+  // Zoom bounds/caps — forwarded to the canvas (see DiagramCanvas jsdoc).
+  minZoom = 0.1, maxZoom = 3, fitMaxZoom, stepMaxZoom = 2.2,
 }) {
   // flowDots=false turns off the animated dot travelling along every edge, for a
   // static-arrow look. Merged into edgeTuning (spread onto each edge's data), so
@@ -384,6 +393,7 @@ export function LiveDiagram({
           onNodeClick={chrome && nodeModal ? setDetailNode : undefined}
           collapsible={collapsible} collapsed={collapsed} onToggleCollapse={onToggleCollapse}
           zoomOnScroll={zoomOnScroll}
+          minZoom={minZoom} maxZoom={maxZoom} fitMaxZoom={fitMaxZoom} stepMaxZoom={stepMaxZoom}
         />
         <StepOverlay steps={steps} activeStep={step} lang={lang} Icon={Icon}
           stepLayout={effectiveStepLayout} dark={theme === "self" ? selfDark : false}
