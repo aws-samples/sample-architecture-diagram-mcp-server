@@ -23,7 +23,7 @@ function iconWarning(services) {
   const lines = unresolved.map(u => `  • "${u.id}" (service: ${JSON.stringify(u.service)})`).join("\n");
   return `\n\n⚠️ ${unresolved.length} node(s) had NO icon and render as a plain initial:\n${lines}\n`
     + `To fix: give each a canonical AWS service name (call resolve_icon to confirm, e.g. "Amazon SageMaker", "NAT Gateway") `
-    + `or pass an explicit \`icon\` (e.g. "aws-icons/kiro.svg"). Keep your human-readable text in \`label\`/\`role\`, not \`service\`, `
+    + `or pass an explicit \`icon\` (e.g. "aws-icons/custom.svg"). Keep your human-readable text in \`label\`/\`role\`, not \`service\`, `
     + `since \`service\` is what drives icon resolution.`;
 }
 

@@ -12,7 +12,7 @@
 // this component.
 //
 // Reference forms accepted:
-//   "/aws-icons/kiro.svg", "/aws-logo.svg", "/photo.jpg"  → served path (as-is)
+//   "/aws-icons/custom.svg", "/logo.svg", "/photo.jpg"  → served path (as-is)
 //   "Arch_*.png" / "Res_*.png" / "Region_32.png"          → flat diagram icon (→ iconBase)
 import { useState } from "react";
 import { DARK_VARIANT_BASES } from "./darkVariants.js";

@@ -6,8 +6,8 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
 // service-configs.json drives the list_service_configs tool. Adapted from the
-// original ArcFlow app's service-configs coverage test (which depended on app
-// internals the MCP doesn't have).
+// original app's service-configs coverage test (which depended on app internals
+// the MCP doesn't have).
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const CONFIGS = JSON.parse(readFileSync(join(__dirname, '..', 'lib', 'service-configs.json'), 'utf-8'));
 
