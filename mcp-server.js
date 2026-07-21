@@ -11,7 +11,7 @@ import { computeLayout } from "./lib/layout.js";
 import { generateDrawio } from "./lib/drawio-xml.js";
 import { generateHtml, SERVICE_ICONS, iconForService, iconResolutionReport } from "./lib/html-generator.js";
 
-const server = new McpServer({ name: "sample-aws-architecture-diagram-mcp", version: "2.0.0" });
+const server = new McpServer({ name: "sample-architecture-diagram-mcp-server", version: "2.0.0" });
 
 // Build a model-facing note listing nodes that resolved to NO icon (bare initial).
 // Returned in the tool result so the model can fix them in a follow-up call —
@@ -512,7 +512,7 @@ try {
       "[aws-architecture-diagram] AWS Architecture Icons not found — diagrams will render " +
       "category-colored initials until you add them.\n" +
       "  Fix: download the Asset Package from https://aws.amazon.com/architecture/icons/ then run\n" +
-      "       npx --package sample-aws-architecture-diagram-mcp fetch-icons <Asset-Package.zip>\n" +
+      "       npx --package sample-architecture-diagram-mcp-server fetch-icons <Asset-Package.zip>\n" +
       "  or set AWS_DIAGRAM_ICON_ROOT to a folder containing icons/ (icons are not bundled — AWS Terms of Use)."
     );
   }

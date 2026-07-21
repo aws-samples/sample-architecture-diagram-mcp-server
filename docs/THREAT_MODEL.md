@@ -1,4 +1,4 @@
-# Threat Model — sample-aws-architecture-diagram-mcp
+# Threat Model — sample-architecture-diagram-mcp-server
 
 Prepared for the Public Content Security Review (PCSR). Simplified STRIDE.
 
