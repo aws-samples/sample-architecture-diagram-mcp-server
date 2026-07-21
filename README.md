@@ -156,6 +156,7 @@ contain `icons/`, and optionally `aws-icons/` and `tech-icons/`).
 | `resolve_icon` | Resolve a service name to its icon filename (or list all) |
 | `list_shapes` | AWS4 drawio shape names (for the `.drawio` path) |
 | `list_service_configs` | IaC + pricing config fields per service |
+| `export_iac_json` | Extract an AWS IaC MCP handoff payload (resources + dependencies) from a diagram |
 | `export_pricing_json` | Extract an AWS Pricing Calculator MCP handoff payload from a diagram |
 
 For a diagram built up in stages (e.g. as an agent reasons through an

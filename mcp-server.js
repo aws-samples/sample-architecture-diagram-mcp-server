@@ -370,6 +370,51 @@ server.tool(
   }
 );
 
+// IaC handoff: turn a generated diagram into a structured spec + instruction so
+// an agent can generate production IaC via the official AWS IaC MCP, instead of
+// this server re-implementing infrastructure generation itself.
+server.tool(
+  "export_iac_json",
+  "Extract an Infrastructure-as-Code handoff payload from a generated diagram's services and connections, for the official AWS IaC MCP (awslabs.aws-iac-mcp-server). This server does NOT generate IaC itself; it returns the architecture (resources + dependencies + any per-node config.iac) plus an instruction telling the agent to use the AWS IaC MCP's cdk_best_practices / search_cdk_samples_and_constructs and validate before deploy.",
+  {
+    diagramPath: z.string().describe("Path to the .html diagram file to extract the architecture from"),
+    region: z.string().optional().default("us-east-1").describe("AWS region for the target IaC (e.g. us-east-1, sa-east-1)"),
+  },
+  async ({ diagramPath, region }) => {
+    if (!existsSync(diagramPath)) return { content: [{ type: "text", text: `Error: file not found: ${diagramPath}` }], isError: true };
+    const html = readFileSync(diagramPath, "utf-8");
+    const m = html.match(/id="arch-data"[^>]*>(.*?)<\/script/);
+    if (!m) return { content: [{ type: "text", text: "Error: No arch-data found in file" }], isError: true };
+    const data = JSON.parse(m[1]);
+    const txt = (v) => typeof v === "string" ? v : (v?.en || v?.pt || (v && Object.values(v)[0]) || undefined);
+    const isExternal = (s) => s.external || s.id === "users";
+    const resources = (data.services || [])
+      .filter(s => !isExternal(s))
+      .map(s => ({
+        id: s.id,
+        service: txt(s.service),
+        category: s.category || "general",
+        ...(txt(s.role) ? { role: txt(s.role) } : {}),
+        config: s.config?.iac || {},
+      }));
+    if (!resources.length) return { content: [{ type: "text", text: "No resources found in diagram services." }] };
+    const extIds = new Set((data.services || []).filter(isExternal).map(s => s.id));
+    const dependencies = (data.connections || [])
+      .filter(c => !extIds.has(c.source) && !extIds.has(c.target))
+      .map(c => ({ from: c.source, to: c.target, ...(c.type ? { type: c.type } : {}), ...(txt(c.label) ? { via: txt(c.label) } : {}) }));
+    return { content: [{ type: "text", text: JSON.stringify({
+      target: { iac_mcp: "awslabs.aws-iac-mcp-server", region },
+      architecture: { name: txt(data.title), region, resources, dependencies },
+      instruction:
+        "Generate production-ready IaC for this architecture using the AWS IaC MCP (awslabs.aws-iac-mcp-server). Do NOT hand-write resources from scratch. Recommended flow: " +
+        "1) call cdk_best_practices (or search_cdk_samples_and_constructs) to get correct constructs/patterns for each resource; " +
+        "2) wire resources using the 'dependencies' list — connection 'type' tells you the relationship (network/iam/event/data); " +
+        "3) fill required properties not present in each resource's 'config' (credentials, networking, IAM) following best practices; " +
+        "4) validate with validate_cloudformation_template / check_cloudformation_template_compliance before deploy.",
+    }, null, 2) }] };
+  }
+);
+
 // Shapes reference
 server.tool("list_shapes", "List common AWS4 drawio shape names for the .drawio path (auto_generate_diagram/generate_diagram, field `shape`). For the interactive HTML path use service display names + resolve_icon instead.", { category: z.string().optional() },
   async ({ category }) => {
