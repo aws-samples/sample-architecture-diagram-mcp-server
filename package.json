@@ -23,7 +23,8 @@
     "lib/",
     "dist/index.html",
     "scripts/fetch-icons.sh",
-    "AGENTS.md"
+    "AGENTS.md",
+    "THIRD_PARTY"
   ],
   "engines": {
     "node": ">=18"
