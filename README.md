@@ -319,7 +319,7 @@ run `resolve_icon` to check coverage).
 ## License
 
 Licensed under MIT-0. See [LICENSE](LICENSE). Third-party dependency notices and
-attributions (including `elkjs`, under EPL-2.0) are in [THIRD_PARTY](THIRD_PARTY).
+attributions (including `elkjs`, under EPL-2.0) are in [THIRD-PARTY-LICENSES](THIRD-PARTY-LICENSES).
 The AWS Architecture Icons are subject to their own
 [Terms of Use](https://aws.amazon.com/architecture/icons/) and are not
 distributed with this project.
