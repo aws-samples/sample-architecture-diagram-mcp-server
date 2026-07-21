@@ -24,7 +24,7 @@
     "dist/index.html",
     "scripts/fetch-icons.sh",
     "AGENTS.md",
-    "THIRD_PARTY"
+    "THIRD-PARTY-LICENSES"
   ],
   "engines": {
     "node": ">=18"
