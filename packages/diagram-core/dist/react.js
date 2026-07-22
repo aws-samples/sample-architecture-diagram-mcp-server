@@ -6,10 +6,9 @@ import {
 } from "./chunk-2EKNJYAS.js";
 import {
   layoutWithFallback
-} from "./chunk-UMT5OKXZ.js";
+} from "./chunk-BZTZ2EKO.js";
 import {
   DEFAULT_GEOMETRY,
-  __export,
   buildBaseEdge,
   buildServiceNode,
   groupStyle,
@@ -17,7 +16,10 @@ import {
   resolveVariant,
   serializeDiagram,
   tr
-} from "./chunk-RES6EHLA.js";
+} from "./chunk-KX5KXHJB.js";
+import {
+  __export
+} from "./chunk-MLKGABMK.js";
 
 // src/Icon.jsx
 import { useState } from "react";
@@ -1029,11 +1031,31 @@ function NodeModal({ node, onClose, Icon: Icon2, strings }) {
 }
 
 // src/components/ZoomBar.jsx
-import { useReactFlow } from "@xyflow/react";
+import { useReactFlow, getNodesBounds, getViewportForBounds } from "@xyflow/react";
 import { useState as useState3, useEffect, useRef } from "react";
 import { Fragment as Fragment5, jsx as jsx8, jsxs as jsxs8 } from "react/jsx-runtime";
 var noopUi = (k) => k;
 var defLangLabel = (l) => (l || "").toUpperCase();
+async function exportDiagramPng(nodes, dark) {
+  const el = document.querySelector(".react-flow__viewport");
+  if (!el || !nodes.length) return;
+  const { toPng } = await import("./es-XEWTSNWI.js");
+  const W = 1920, H = 1200;
+  const vp = getViewportForBounds(getNodesBounds(nodes), W, H, 0.2, 2, 0.12);
+  const dataUrl = await toPng(el, {
+    backgroundColor: dark ? "#0f1117" : "#f8fafc",
+    width: W,
+    height: H,
+    pixelRatio: 2,
+    style: { width: `${W}px`, height: `${H}px`, transform: `translate(${vp.x}px, ${vp.y}px) scale(${vp.zoom})` }
+  });
+  const a = document.createElement("a");
+  a.href = dataUrl;
+  a.download = "architecture.png";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
 function LangMenu({ lang, languages, onLang, langLabel, ui, btn, dark }) {
   const [open, setOpen] = useState3(false);
   const ref = useRef(null);
@@ -1136,7 +1158,7 @@ function ZoomBar({
   ui = noopUi,
   langLabel = defLangLabel
 }) {
-  const { zoomIn, zoomOut, fitView } = useReactFlow();
+  const { zoomIn, zoomOut, fitView, getNodes } = useReactFlow();
   if (!visible) {
     return /* @__PURE__ */ jsx8("button", { onClick: onToggle, style: {
       position: "absolute",
@@ -1204,6 +1226,7 @@ function ZoomBar({
       /* @__PURE__ */ jsx8("circle", { cx: "11", cy: "11", r: "8" }),
       /* @__PURE__ */ jsx8("path", { d: "m21 21-4.3-4.3M11 8v6m-3-3h6" })
     ] }) }),
+    /* @__PURE__ */ jsx8("button", { style: btn, title: ui("exportPng", lang), onClick: () => exportDiagramPng(getNodes(), dark), children: /* @__PURE__ */ jsx8("svg", { width: "16", height: "16", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", viewBox: "0 0 24 24", children: /* @__PURE__ */ jsx8("path", { d: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" }) }) }),
     sep,
     hasWalk && /* @__PURE__ */ jsxs8(Fragment5, { children: [
       /* @__PURE__ */ jsx8("button", { style: btn, onClick: onReset, title: ui("restart", lang), children: /* @__PURE__ */ jsxs8("svg", { width: "15", height: "15", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", viewBox: "0 0 24 24", children: [

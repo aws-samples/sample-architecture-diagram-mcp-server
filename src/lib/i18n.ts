@@ -22,7 +22,7 @@ export { tr } from "@aws-live-diagram/core";
 
 // UI chrome strings. Add a language by adding a column; unknown languages fall
 // back to English. Keep keys stable — components look them up by key.
-type UIKey = "iac" | "pricing" | "architecture" | "restart" | "play" | "pause" | "theme" | "collapse" | "expand" | "language" | "cost" | "textLarger" | "textSmaller";
+type UIKey = "iac" | "pricing" | "architecture" | "restart" | "play" | "pause" | "theme" | "collapse" | "expand" | "language" | "cost" | "textLarger" | "textSmaller" | "exportPng";
 const UI: Record<UIKey, Record<string, string>> = {
   cost:         { en: "Cost estimate",       pt: "Estimativa de custo", es: "Estimación de costo" },
   textLarger:   { en: "Larger card text",    pt: "Aumentar texto do cartão", es: "Agrandar texto de la tarjeta" },
@@ -34,6 +34,7 @@ const UI: Record<UIKey, Record<string, string>> = {
   play:         { en: "Play walkthrough",    pt: "Reproduzir apresentação", es: "Reproducir recorrido" },
   pause:        { en: "Pause walkthrough",   pt: "Pausar apresentação", es: "Pausar recorrido" },
   theme:        { en: "Toggle theme",        pt: "Alternar tema",     es: "Cambiar tema" },
+  exportPng:    { en: "Download PNG",         pt: "Baixar PNG",        es: "Descargar PNG" },
   collapse:     { en: "Collapse",            pt: "Recolher",          es: "Contraer" },
   expand:       { en: "Expand",              pt: "Expandir",          es: "Expandir" },
   language:     { en: "Language",            pt: "Idioma",            es: "Idioma" },

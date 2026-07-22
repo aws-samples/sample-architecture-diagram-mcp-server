@@ -3,11 +3,30 @@
 // Floating dock: title/subtitle, zoom controls, guided-walkthrough play/restart,
 // language switch, theme toggle, collapse. UI-chrome strings are injected via
 // `ui(key)` and `langLabel(code)` so the host owns the chrome i18n table.
-import { useReactFlow } from "@xyflow/react";
+import { useReactFlow, getNodesBounds, getViewportForBounds } from "@xyflow/react";
 import { useState, useEffect, useRef } from "react";
 
 const noopUi = (k) => k;
 const defLangLabel = (l) => (l || "").toUpperCase();
+
+// Export the current diagram as a PNG, framed to fit ALL nodes (independent of
+// the on-screen zoom/pan), at 2x for crisp output. Icons are inlined in the
+// diagram, so it works under file://. html-to-image is imported lazily so the
+// dock has no cost until the user actually exports.
+async function exportDiagramPng(nodes, dark) {
+  const el = document.querySelector(".react-flow__viewport");
+  if (!el || !nodes.length) return;
+  const { toPng } = await import("html-to-image");
+  const W = 1920, H = 1200;
+  const vp = getViewportForBounds(getNodesBounds(nodes), W, H, 0.2, 2, 0.12);
+  const dataUrl = await toPng(el, {
+    backgroundColor: dark ? "#0f1117" : "#f8fafc", width: W, height: H, pixelRatio: 2,
+    style: { width: `${W}px`, height: `${H}px`, transform: `translate(${vp.x}px, ${vp.y}px) scale(${vp.zoom})` },
+  });
+  const a = document.createElement("a");
+  a.href = dataUrl; a.download = "architecture.png";
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
 
 // Language picker: a single button showing the active language that opens a popup
 // menu of all offered languages. Scales to any number of languages (a flat button
@@ -68,7 +87,7 @@ export default function ZoomBar({
   lang = "en", languages = [], onLang,
   ui = noopUi, langLabel = defLangLabel,
 }) {
-  const { zoomIn, zoomOut, fitView } = useReactFlow();
+  const { zoomIn, zoomOut, fitView, getNodes } = useReactFlow();
 
   if (!visible) {
     return (
@@ -110,6 +129,10 @@ export default function ZoomBar({
       </button>
       <button style={btn} onClick={() => zoomIn({ duration: 300 })}>
         <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3M11 8v6m-3-3h6"/></svg>
+      </button>
+      <button style={btn} title={ui("exportPng", lang)} onClick={() => exportDiagramPng(getNodes(), dark)}>
+        {/* download / save-as-image glyph */}
+        <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
       </button>
       {sep}
       {hasWalk && <>

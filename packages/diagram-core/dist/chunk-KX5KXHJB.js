@@ -1,9 +1,3 @@
-var __defProp = Object.defineProperty;
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-
 // src/groupVariants.js
 var GROUP_VARIANTS = {
   // ---- AWS networking ----
@@ -256,7 +250,7 @@ function serviceFromNode(n) {
   if (n.parentId) out.parentId = n.parentId;
   else delete out.parentId;
   const x = r(n.position?.x), y = r(n.position?.y);
-  if (x !== void 0 && y !== void 0) out.pos = { x, y };
+  if (x !== void 0 && y !== void 0 && !(x === 0 && y === 0)) out.pos = { x, y };
   else delete out.pos;
   return out;
 }
@@ -275,7 +269,7 @@ function groupFromNode(n) {
   else delete out.parent;
   const x = r(n.position?.x), y = r(n.position?.y);
   const w = r(n.style?.width), h = r(n.style?.height);
-  if (x !== void 0 && y !== void 0) out.pos = { x, y, ...w && h ? { w, h } : {} };
+  if (x !== void 0 && y !== void 0 && !(x === 0 && y === 0 && !(w && h))) out.pos = { x, y, ...w && h ? { w, h } : {} };
   else delete out.pos;
   return out;
 }
@@ -314,7 +308,6 @@ function membershipFromNodes(nodes) {
 }
 
 export {
-  __export,
   GROUP_VARIANTS,
   DEFAULT_VARIANT,
   VARIANT_ALIASES,
