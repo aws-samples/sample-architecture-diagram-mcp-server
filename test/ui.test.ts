@@ -1,6 +1,9 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
-// @vitest-environment jsdom
+// resolveIcon only reads a global `window.__ICONS__` map — it never touches the
+// DOM — so we run in the plain `node` environment and stub `window` in
+// beforeEach. Avoids pulling jsdom (whose transitive html-encoding-sniffer is
+// ESM-only and fails under `require()` on Node 18).
 import { describe, it, expect, beforeEach } from 'vitest';
 import { resolveIcon, iconFilter } from '@/lib/icons';
 

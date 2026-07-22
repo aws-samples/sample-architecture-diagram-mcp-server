@@ -61,7 +61,6 @@
     "framer-motion": "^12.42.2",
     "highlight.js": "^11.11.1",
     "html-to-image": "^1.11.13",
-    "jsdom": "^29.1.1",
     "lucide-react": "^1.7.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
