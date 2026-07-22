@@ -21,6 +21,11 @@ async function exportDiagramPng(nodes, dark) {
   const vp = getViewportForBounds(getNodesBounds(nodes), W, H, 0.2, 2, 0.12);
   const dataUrl = await toPng(el, {
     backgroundColor: dark ? "#0f1117" : "#f8fafc", width: W, height: H, pixelRatio: 2,
+    // A node whose icon wasn't inlined (e.g. a fallback initial) keeps an <img>
+    // pointing at a served /icons/… path. Under file:// that fetch throws and
+    // would abort the whole export; imagePlaceholder swaps in a transparent 1x1
+    // so the export succeeds and the initial fallback shows through instead.
+    imagePlaceholder: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
     style: { width: `${W}px`, height: `${H}px`, transform: `translate(${vp.x}px, ${vp.y}px) scale(${vp.zoom})` },
   });
   const a = document.createElement("a");
