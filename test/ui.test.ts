@@ -20,6 +20,14 @@ describe('resolveIcon (browser)', () => {
     expect(resolveIcon('aws-icons/user.svg')).toBe('/aws-icons/user.svg');
   });
 
+  it('returns null for a ref absent from an inline map (initials fallback, not a broken /icons/ path)', () => {
+    // In standalone mode the map exists but a ref that could not be inlined must
+    // resolve to null — a served "/icons/…" path would 404 and break PNG export.
+    (globalThis as any).__ICONS__ = { 'Arch_AWS-Lambda_48.png': 'data:image/png;base64,AAA' };
+    expect(resolveIcon('Res_User_48.png')).toBeNull();
+    expect(resolveIcon('Arch_AWS-Lambda_48.png')).toBe('data:image/png;base64,AAA');
+  });
+
   it('returns null for empty input', () => {
     expect(resolveIcon(undefined)).toBeNull();
     expect(resolveIcon('')).toBeNull();

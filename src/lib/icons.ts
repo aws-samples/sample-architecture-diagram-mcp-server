@@ -8,8 +8,15 @@
 export function resolveIcon(ref?: string): string | null {
   if (!ref) return null;
   const map = (typeof window !== 'undefined' ? (window as any).__ICONS__ : null) as Record<string, string> | null;
-  if (map && map[ref]) return map[ref];
-  // Dev/served fallback: "aws-icons/x.svg" keeps its prefix, bare names go under /icons/.
+  if (map) {
+    // Inlined (standalone) mode: the map holds every icon that could be inlined
+    // at generation time. A ref that's absent couldn't be resolved on disk, so
+    // render the initials fallback (null) — NOT a served "/icons/…" path, which
+    // would 404 as a broken <img> and, under file://, abort PNG export.
+    return map[ref] ?? null;
+  }
+  // Dev/served fallback (no inlined map): "aws-icons/x.svg" keeps its prefix,
+  // bare names go under /icons/.
   return ref.includes('/') ? '/' + ref : '/icons/' + ref;
 }
 

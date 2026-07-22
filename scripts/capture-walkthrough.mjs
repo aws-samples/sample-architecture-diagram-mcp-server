@@ -31,8 +31,9 @@ const shot = async (hold = 1) => {
 const click = async (sel) => { await page.click(sel); };
 
 if (scenario === 'walkthrough') {
+  const steps = Number(process.env.STEPS || 4);   // number of ArrowRight advances
   await shot(3);
-  for (let s = 0; s < 4; s++) {
+  for (let s = 0; s < steps; s++) {
     await page.keyboard.press('ArrowRight');
     await page.waitForTimeout(1100);
     await shot(4);
