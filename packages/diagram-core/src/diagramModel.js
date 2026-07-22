@@ -104,9 +104,11 @@ function serviceFromNode(n) {
   // Membership is authored on the node (parentId), reflect it back.
   if (n.parentId) out.parentId = n.parentId; else delete out.parentId;
   // Persist the editor-set position so a reload restores the SAME arrangement
-  // instead of re-running auto-layout. Omit when unknown (0,0 render fallback).
+  // instead of re-running auto-layout. Omit the trivial (0,0) fallback — a node
+  // the editor never placed — so a never-moved diagram round-trips unchanged.
   const x = r(n.position?.x), y = r(n.position?.y);
-  if (x !== undefined && y !== undefined) out.pos = { x, y }; else delete out.pos;
+  if (x !== undefined && y !== undefined && !(x === 0 && y === 0)) out.pos = { x, y };
+  else delete out.pos;
   return out;
 }
 
@@ -124,9 +126,11 @@ function groupFromNode(n) {
   }
   if (n.parentId) out.parent = n.parentId; else delete out.parent;
   // Persist position AND box size (a container is resizable) for faithful reload.
+  // Omit the trivial (0,0) fallback with no size — a container the editor never
+  // placed/sized — so a never-moved diagram round-trips unchanged.
   const x = r(n.position?.x), y = r(n.position?.y);
   const w = r(n.style?.width), h = r(n.style?.height);
-  if (x !== undefined && y !== undefined) out.pos = { x, y, ...(w && h ? { w, h } : {}) };
+  if (x !== undefined && y !== undefined && !(x === 0 && y === 0 && !(w && h))) out.pos = { x, y, ...(w && h ? { w, h } : {}) };
   else delete out.pos;
   return out;
 }
