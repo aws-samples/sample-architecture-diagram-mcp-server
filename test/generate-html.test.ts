@@ -1,12 +1,27 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
 import { describe, it, expect } from 'vitest';
-import { generateHtml } from '../lib/html-generator.js';
+import { existsSync, readdirSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+// @ts-expect-error — plain JS module, no types
+import { generateHtml, iconForService, iconForShape } from '../lib/html-generator.js';
 
 function archDataOf(html: string): any {
   const m = html.match(/id="arch-data"[^>]*>([\s\S]*?)<\/script>/);
   return m ? JSON.parse(m[1]) : {};
 }
+function iconDataOf(html: string): Record<string, string> {
+  const m = html.match(/id="icon-data"[^>]*>([\s\S]*?)<\/script>/);
+  return m ? JSON.parse(m[1]) : {};
+}
+// The AWS Architecture Icons aren't redistributed (their Terms of Use), so a
+// fresh clone / CI has an empty assets/icons/. Tests that assert base64 INLINING
+// only make sense when the icons are actually present; gate them so the suite is
+// green with or without `fetch-icons.sh` having run.
+const __dir = dirname(fileURLToPath(import.meta.url));
+const ICON_DIR = join(__dir, '..', 'assets', 'icons');
+const ICONS_PRESENT = existsSync(ICON_DIR) && readdirSync(ICON_DIR).some(f => f.endsWith('.png'));
 
 describe('generateHtml — arch data wiring', () => {
   const services = [
@@ -42,9 +57,8 @@ describe('generateHtml — arch data wiring', () => {
     expect(d.wellArchitected).toBeUndefined();
   });
 
-  it('always inlines all group/container icons (incl. account, ASG, data center)', () => {
-    const m = generateHtml('T', '', services, connections, {}).match(/id="icon-data"[^>]*>([\s\S]*?)<\/script>/);
-    const map = JSON.parse(m![1]);
+  it.runIf(ICONS_PRESENT)('inlines all group/container icons as data-URIs (incl. account, ASG, data center)', () => {
+    const map = iconDataOf(generateHtml('T', '', services, connections, {}));
     for (const g of ['AWS-Cloud_32.png', 'Virtual-private-cloud-VPC_32.png', 'Public-subnet_32.png', 'Private-subnet_32.png', 'Region_32.png', 'AWS-Account_32.png', 'Auto-Scaling-group_32.png', 'Corporate-data-center_32.png']) {
       expect(map[g], `group icon ${g} not inlined`).toMatch(/^data:image\//);
     }
@@ -67,17 +81,26 @@ describe('generateHtml — arch data wiring', () => {
   it('falls back to the AWS4 shape when the display name is not in the service catalog', () => {
     // "On-prem client"/"Local Gateway" are free text absent from SERVICE_ICONS,
     // but their shapes (users/endpoint) must still resolve to a real icon so the
-    // node renders an image instead of a fallback initial.
+    // node renders an image instead of a fallback initial. This resolution is
+    // pure (name → filename) and does not depend on the icons being on disk.
     const svc = [
       { id: 'client', service: 'On-prem client', shape: 'users', category: 'general' },
       { id: 'lgw', service: 'Local Gateway', shape: 'endpoint', category: 'networking' },
     ];
-    const html = generateHtml('T', '', svc, [], {});
-    const d = archDataOf(html);
+    const d = archDataOf(generateHtml('T', '', svc, [], {}));
     expect(d.services.find((s: any) => s.id === 'client').icon).toBe('Res_Users_48_Light.png');
     expect(d.services.find((s: any) => s.id === 'lgw').icon).toBe('Res_Amazon-VPC_Endpoints_48.png');
-    // and both are inlined as data-URIs
-    const map = JSON.parse(html.match(/id="icon-data"[^>]*>([\s\S]*?)<\/script>/)![1]);
+    // same resolution via the pure resolver used by the generator
+    expect(iconForShape('users')).toBe('Res_Users_48_Light.png');
+    expect(iconForShape('endpoint')).toBe('Res_Amazon-VPC_Endpoints_48.png');
+  });
+
+  it.runIf(ICONS_PRESENT)('inlines the shape-fallback icons as data-URIs', () => {
+    const svc = [
+      { id: 'client', service: 'On-prem client', shape: 'users', category: 'general' },
+      { id: 'lgw', service: 'Local Gateway', shape: 'endpoint', category: 'networking' },
+    ];
+    const map = iconDataOf(generateHtml('T', '', svc, [], {}));
     expect(map['Res_Users_48_Light.png']).toMatch(/^data:image\//);
     expect(map['Res_Amazon-VPC_Endpoints_48.png']).toMatch(/^data:image\//);
   });
@@ -89,7 +112,7 @@ describe('generateHtml — arch data wiring', () => {
     expect(d.services[0].icon).toMatch(/Simple-Storage-Service/);
   });
 
-  it('inlines guided-walkthrough step and chip icons so the overlay card renders offline', () => {
+  it.runIf(ICONS_PRESENT)('inlines guided-walkthrough step and chip icons so the overlay card renders offline', () => {
     const steps = [{
       tone: 'survive', nodes: ['fn'], title: 'Runs locally',
       icon: 'Arch_Amazon-Elastic-Kubernetes-Service_48.png',
@@ -98,8 +121,7 @@ describe('generateHtml — arch data wiring', () => {
         { label: 'S3', ok: true, icon: 'Arch_Amazon-Simple-Storage-Service_48.png' },
       ],
     }];
-    const html = generateHtml('T', '', services, connections, { steps });
-    const map = JSON.parse(html.match(/id="icon-data"[^>]*>([\s\S]*?)<\/script>/)![1]);
+    const map = iconDataOf(generateHtml('T', '', services, connections, { steps }));
     for (const ref of [
       'Arch_Amazon-Elastic-Kubernetes-Service_48.png',
       'Arch_Amazon-Elastic-Block-Store_48.png',
