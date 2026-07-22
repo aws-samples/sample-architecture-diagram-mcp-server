@@ -30,7 +30,8 @@ import {
   serializeDiagram,
   tr,
   variantKey
-} from "./chunk-RES6EHLA.js";
+} from "./chunk-KX5KXHJB.js";
+import "./chunk-MLKGABMK.js";
 export {
   ALL_GROUP_ICONS,
   DEFAULT_GEOMETRY,
