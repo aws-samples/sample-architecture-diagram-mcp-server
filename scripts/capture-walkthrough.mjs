@@ -73,6 +73,19 @@ if (scenario === 'walkthrough') {
   await page.waitForTimeout(700); await shot(6);   // dark
   await click('[title="Toggle theme"]');
   await page.waitForTimeout(700); await shot(4);   // light again
+} else if (scenario === 'zoom') {
+  // Dock buttons, identified by a unique fingerprint of their SVG path so we're
+  // not tied to positional order: zoom-out, fit-to-view, zoom-in, download PNG.
+  const zout = page.locator('button:has(svg path[d="m21 21-4.3-4.3M8 11h6"])').first();
+  const fit  = page.locator('button:has(svg path[d*="M3.75 3.75v4.5"])').first();
+  const zin  = page.locator('button:has(svg path[d="m21 21-4.3-4.3M11 8v6m-3-3h6"])').first();
+  const png  = page.locator(`button[title="${process.env.PNG_TITLE || 'Download PNG'}"]`).first();
+  await shot(4);                                                       // full view
+  await zin.click(); await page.waitForTimeout(500);
+  await zin.click(); await page.waitForTimeout(650); await shot(6);    // zoomed in
+  await zout.click(); await page.waitForTimeout(550); await shot(4);   // zoomed back out
+  await fit.click(); await page.waitForTimeout(750); await shot(7);    // fit to view
+  await png.click(); await page.waitForTimeout(950); await shot(6);    // trigger PNG download
 }
 
 await browser.close();
