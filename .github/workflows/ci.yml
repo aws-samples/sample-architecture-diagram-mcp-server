@@ -29,4 +29,9 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
-      - run: npm run build:standalone
+      # Note: `npm run build:standalone` is intentionally NOT run here. The built
+      # dist/index.html is committed (a versioned artifact), and the Tailwind v4
+      # build pulls a native binary (@tailwindcss/oxide) that npm ci doesn't
+      # install on Linux CI (npm optionalDependencies bug, npm/cli#4828). CI
+      # validates the test suite; rebuild the bundle locally with
+      # `npm run build:standalone` when changing the standalone app.
