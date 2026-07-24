@@ -17,7 +17,7 @@
 //
 // It renders through the shared AwsNode/GroupNode/CustomEdge and drives the
 // shared StepCard for the walkthrough overlay.
-import { useMemo, useEffect, useState, useCallback } from "react";
+import { useMemo, useEffect, useState, useCallback, useRef } from "react";
 import {
   ReactFlow, ReactFlowProvider, Background, BackgroundVariant, useReactFlow,
 } from "@xyflow/react";
@@ -387,6 +387,108 @@ export function LiveDiagram({
 
   const cardSide = hasWalk && step >= 0 ? (steps[Math.min(step, steps.length - 1)]?.cardSide) : null;
   const effectiveStepLayout = (cardSide === "full" || cardExpanded) ? "overlay" : stepLayout;
+
+  // ── Attached layout ──
+  // Instead of floating the step card OVER the canvas, `stepLayout="attached"`
+  // splits the frame into two columns — the diagram canvas on the left and the
+  // step card in its OWN column on the right (a real sibling, not an overlay),
+  // so the card never covers the graph and the graph gets the full left column.
+  // A full-page expand still takes over via the overlay path. Below a narrow
+  // breakpoint the two columns stack (card under the diagram) for small screens.
+  // The card column is skipped entirely when there's no active beat, so the
+  // diagram uses the whole width until the walkthrough starts.
+  const attached = effectiveStepLayout === "attached" && !cardExpanded;
+  const showAttachedCard = attached && hasWalk && step >= 0;
+
+  // Attached layout is container-responsive: below ~640px of frame width the two
+  // columns stack (card UNDER the diagram) so neither gets squeezed. Measured off
+  // the frame itself (not the viewport) so it's correct inside any column width.
+  const attachedFrameRef = useRef(null);
+  const [attachedNarrow, setAttachedNarrow] = useState(false);
+  useEffect(() => {
+    if (!attached || typeof ResizeObserver === "undefined") return;
+    const el = attachedFrameRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver((entries) => {
+      const w = entries[0]?.contentRect?.width ?? el.clientWidth;
+      // Stack below ~720px of frame width: with a 340px card column, a narrower
+      // frame would leave the diagram column too cramped to be legible.
+      setAttachedNarrow(w < 720);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [attached]);
+
+  const canvas = (
+    <DiagramCanvas
+      data={data} lang={lang} animate={animate} direction={direction} edgeStyle={edgeStyle}
+      steps={steps} activeStep={step} fitPadding={fitPadding} stepFocus={stepFocus}
+      spacing={spacing} stepZoom={attached ? false : stepZoom} geometry={geometry} nodeLayout={nodeLayout}
+      vars={vars || {}} Icon={Icon} markerId={markerId} reanchorEdges={reanchorEdges}
+      groupsInteractive={groupsInteractive} edgeTuning={resolvedEdgeTuning}
+      onNodeClick={chrome && nodeModal ? setDetailNode : undefined}
+      collapsible={collapsible} collapsed={collapsed} onToggleCollapse={onToggleCollapse}
+      zoomOnScroll={zoomOnScroll}
+      minZoom={minZoom} maxZoom={maxZoom} fitMaxZoom={fitMaxZoom} stepMaxZoom={stepMaxZoom}
+    />
+  );
+
+  if (attached) {
+    // Two-column grid. The card column collapses to 0fr (with a fade) when no
+    // beat is active, so the diagram reclaims the full width on the overview.
+    return (
+      <ReactFlowProvider>
+        <div ref={attachedFrameRef} className={`ld-frame ld-attached ${themeClass} ${className}`.trim()}
+          style={attachedNarrow
+            ? { width: "100%", height: "100%", display: "grid",
+                gridTemplateRows: showAttachedCard ? "minmax(0,1fr) minmax(0,45%)" : "minmax(0,1fr) 0px",
+                gap: showAttachedCard ? "var(--ld-attached-gap, 12px)" : 0,
+                transition: "grid-template-rows .35s cubic-bezier(.22,.61,.36,1), gap .35s" }
+            : { width: "100%", height: "100%", display: "grid",
+                gridTemplateColumns: showAttachedCard ? "minmax(0,1fr) var(--ld-attached-card-w, 340px)" : "minmax(0,1fr) 0px",
+                gap: showAttachedCard ? "var(--ld-attached-gap, 16px)" : 0,
+                transition: "grid-template-columns .35s cubic-bezier(.22,.61,.36,1), gap .35s" }}>
+          <div style={{ position: "relative", minWidth: 0, minHeight: 0, height: "100%" }}>{canvas}</div>
+          <div style={{ position: "relative", minWidth: 0, minHeight: 0, height: "100%",
+            maxHeight: attachedNarrow ? "45%" : undefined, overflow: "hidden" }}>
+            <AnimatePresence>
+              {showAttachedCard && (
+                <motion.div key="attached-card"
+                  initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 24 }}
+                  transition={{ duration: 0.3 }}
+                  style={{ height: "100%", overflowY: "auto", pointerEvents: "auto" }}>
+                  <StepCard steps={steps} activeStep={step} lang={lang} Icon={Icon}
+                    onPick={control === "auto" ? (i) => { setPlaying(false); setInternalStep(i); } : undefined}
+                    onToggleExpand={chrome ? () => setCardExpanded(v => !v) : undefined}
+                    expandLabel={ui ? ui("expand", lang) : undefined} collapseLabel={ui ? ui("collapse", lang) : undefined}
+                    onTextBigger={chrome ? () => setCardScaleIdx(i => Math.min(i + 1, CARD_SCALES.length - 1)) : undefined}
+                    onTextSmaller={chrome ? () => setCardScaleIdx(i => Math.max(i - 1, 0)) : undefined}
+                    canTextBigger={chrome && cardScaleIdx < CARD_SCALES.length - 1}
+                    canTextSmaller={chrome && cardScaleIdx > 0}
+                    textSmallerLabel={ui ? ui("textSmaller", lang) : undefined} textLargerLabel={ui ? ui("textLarger", lang) : undefined} />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+          {chrome && (
+            <>
+              {nodeModal && <NodeModal node={detailNode} onClose={() => setDetailNode(null)} Icon={Icon} strings={ui ? { iac: ui("iac", lang), pricing: ui("pricing", lang) } : undefined} />}
+              <ZoomBar
+                title={tr(title, lang)} subtitle={tr(subtitle, lang)}
+                dark={selfDark} visible={dockVisible} onToggle={() => setDockVisible(v => !v)}
+                onTheme={() => setSelfDark(d => !d)}
+                hasWalk={hasWalk} playing={playing}
+                attention={hasWalk && !playing && step <= 0}
+                onPlay={() => { setPlaying(p => { if (!p) setInternalStep(s => (s < 0 || s >= steps.length - 1 ? 0 : s)); return !p; }); }}
+                onReset={() => { setPlaying(false); setInternalStep(-1); }}
+                lang={lang} languages={languages} onLang={onLangChange} ui={ui} langLabel={langLabel}
+              />
+            </>
+          )}
+        </div>
+      </ReactFlowProvider>
+    );
+  }
 
   return (
     <ReactFlowProvider>
