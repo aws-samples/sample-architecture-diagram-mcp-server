@@ -88,7 +88,6 @@ function LangMenu({ lang, languages, onLang, langLabel, ui, btn, dark }) {
 export default function ZoomBar({
   title, subtitle, dark, visible, onToggle, onTheme,
   hasWalk, playing, onPlay, onReset, attention = false,
-  costUrl, costLabel,
   lang = "en", languages = [], onLang,
   ui = noopUi, langLabel = defLangLabel,
 }) {
@@ -156,16 +155,6 @@ export default function ZoomBar({
             ? <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/></svg>
             : <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>}
         </button>
-        {sep}
-      </>}
-      {costUrl && <>
-        <a href={costUrl} target="_blank" rel="noopener noreferrer" title={costLabel || ui("cost", lang)}
-          style={{ ...btn, textDecoration: "none", gap: 6, borderColor: "#FF990066", color: "#FF9900", background: "rgba(255,153,0,0.1)", fontWeight: 700 }}>
-          {/* AWS Cost Explorer-style glyph: bar chart in a frame (matches the
-              official AWS cost/billing icon language). */}
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="8" y1="17" x2="8" y2="12"/><line x1="12" y1="17" x2="12" y2="8"/><line x1="16" y1="17" x2="16" y2="14"/></svg>
-          {costLabel || ui("cost", lang)}
-        </a>
         {sep}
       </>}
       {languages.length > 1 && <>

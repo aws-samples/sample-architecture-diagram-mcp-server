@@ -125,7 +125,11 @@ function CustomEdge({ id, sourceX, sourceY, targetX, targetY, sourcePosition, ta
       />
       {showDot && (
         <circle r={active ? dotActive : dotIdle} fill={active ? activeColor : "#FF9900"} opacity={opacity}>
-          <animateMotion dur={`${(active ? 1 : 1.5 + (idx % 5) * 0.16) / speed}s`} repeatCount="indefinite" path={edgePath} />
+          {/* Per-edge period gives a lively, staggered look on screen. When
+              data.flowPeriod is set (e.g. by the GIF rasterizer), EVERY edge
+              shares that exact period so a captured loop closes seamlessly —
+              a GIF of `flowPeriod` seconds repeats with no visible jump. */}
+          <animateMotion dur={`${data?.flowPeriod || ((active ? 1 : 1.5 + (idx % 5) * 0.16) / speed)}s`} repeatCount="indefinite" path={edgePath} />
         </circle>
       )}
       {severed && mid && (

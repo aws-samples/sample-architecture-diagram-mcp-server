@@ -6,7 +6,7 @@ import {
 } from "./chunk-2EKNJYAS.js";
 import {
   layoutWithFallback
-} from "./chunk-BZTZ2EKO.js";
+} from "./chunk-FRY5YIPL.js";
 import {
   DEFAULT_GEOMETRY,
   buildBaseEdge,
@@ -16,7 +16,7 @@ import {
   resolveVariant,
   serializeDiagram,
   tr
-} from "./chunk-KX5KXHJB.js";
+} from "./chunk-LRTBSKVX.js";
 import {
   __export
 } from "./chunk-MLKGABMK.js";
@@ -470,7 +470,7 @@ function CustomEdge({ id, sourceX, sourceY, targetX, targetY, sourcePosition, ta
         markerStart: data?.bidirectional ? `url(#${markerId})` : void 0
       }
     ),
-    showDot && /* @__PURE__ */ jsx4("circle", { r: active ? dotActive : dotIdle, fill: active ? activeColor : "#FF9900", opacity, children: /* @__PURE__ */ jsx4("animateMotion", { dur: `${(active ? 1 : 1.5 + idx % 5 * 0.16) / speed}s`, repeatCount: "indefinite", path: edgePath }) }),
+    showDot && /* @__PURE__ */ jsx4("circle", { r: active ? dotActive : dotIdle, fill: active ? activeColor : "#FF9900", opacity, children: /* @__PURE__ */ jsx4("animateMotion", { dur: `${data?.flowPeriod || (active ? 1 : 1.5 + idx % 5 * 0.16) / speed}s`, repeatCount: "indefinite", path: edgePath }) }),
     severed && mid && /* @__PURE__ */ jsx4(EdgeLabelRenderer, { children: /* @__PURE__ */ jsx4("div", { className: "nodrag nopan", style: {
       position: "absolute",
       zIndex: 40,
@@ -530,7 +530,6 @@ __export(cardKit_exports, {
   CardShell: () => CardShell,
   Chips: () => Chips,
   CodeBlock: () => CodeBlock,
-  CostLink: () => CostLink,
   IconTile: () => IconTile,
   KeyValues: () => KeyValues,
   NumberedSteps: () => NumberedSteps,
@@ -653,34 +652,6 @@ function CardHeader({ icon, eyebrow, title, color, big, trailing, Icon: Icon2 })
 }
 function Body({ children, big }) {
   return /* @__PURE__ */ jsx5("p", { className: `${big ? "text-[15px]" : "text-[13.5px]"} leading-relaxed m-0 text-[color:var(--txt,#e2e8f0)] opacity-90`, children: typeof children === "string" ? mdInline(children) : children });
-}
-function CostLink({ url, label, color }) {
-  if (!url) return null;
-  return /* @__PURE__ */ jsxs5(
-    "a",
-    {
-      href: url,
-      target: "_blank",
-      rel: "noopener noreferrer",
-      className: "inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-[12.5px] font-bold no-underline transition-opacity hover:opacity-80",
-      style: { color: "#fff", background: color || "#FF9900", boxShadow: `0 2px 10px ${color || "#FF9900"}55` },
-      children: [
-        /* @__PURE__ */ jsxs5("svg", { width: "15", height: "15", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true, children: [
-          /* @__PURE__ */ jsx5("rect", { x: "4", y: "2", width: "16", height: "20", rx: "2" }),
-          /* @__PURE__ */ jsx5("line", { x1: "8", y1: "6", x2: "16", y2: "6" }),
-          /* @__PURE__ */ jsx5("line", { x1: "8", y1: "10", x2: "8", y2: "10" }),
-          /* @__PURE__ */ jsx5("line", { x1: "12", y1: "10", x2: "12", y2: "10" }),
-          /* @__PURE__ */ jsx5("line", { x1: "16", y1: "10", x2: "16", y2: "10" }),
-          /* @__PURE__ */ jsx5("line", { x1: "8", y1: "14", x2: "8", y2: "14" }),
-          /* @__PURE__ */ jsx5("line", { x1: "12", y1: "14", x2: "12", y2: "14" }),
-          /* @__PURE__ */ jsx5("line", { x1: "16", y1: "14", x2: "16", y2: "18" }),
-          /* @__PURE__ */ jsx5("line", { x1: "8", y1: "18", x2: "12", y2: "18" })
-        ] }),
-        label || "Ver estimativa de custo",
-        /* @__PURE__ */ jsx5("svg", { width: "12", height: "12", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2.5", strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true, style: { opacity: 0.85 }, children: /* @__PURE__ */ jsx5("path", { d: "M7 17 17 7M9 7h8v8" }) })
-      ]
-    }
-  );
 }
 function NumberedSteps({ items, color, Icon: Icon2 }) {
   if (!items?.length) return null;
@@ -1047,6 +1018,11 @@ async function exportDiagramPng(nodes, dark) {
     width: W,
     height: H,
     pixelRatio: 2,
+    // A node whose icon wasn't inlined (e.g. a fallback initial) keeps an <img>
+    // pointing at a served /icons/… path. Under file:// that fetch throws and
+    // would abort the whole export; imagePlaceholder swaps in a transparent 1x1
+    // so the export succeeds and the initial fallback shows through instead.
+    imagePlaceholder: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
     style: { width: `${W}px`, height: `${H}px`, transform: `translate(${vp.x}px, ${vp.y}px) scale(${vp.zoom})` }
   });
   const a = document.createElement("a");
@@ -1150,8 +1126,6 @@ function ZoomBar({
   onPlay,
   onReset,
   attention = false,
-  costUrl,
-  costLabel,
   lang = "en",
   languages = [],
   onLang,
@@ -1244,28 +1218,6 @@ function ZoomBar({
             /* @__PURE__ */ jsx8("rect", { x: "6", y: "5", width: "4", height: "14" }),
             /* @__PURE__ */ jsx8("rect", { x: "14", y: "5", width: "4", height: "14" })
           ] }) : /* @__PURE__ */ jsx8("svg", { width: "14", height: "14", fill: "currentColor", viewBox: "0 0 24 24", children: /* @__PURE__ */ jsx8("path", { d: "M8 5v14l11-7z" }) })
-        }
-      ),
-      sep
-    ] }),
-    costUrl && /* @__PURE__ */ jsxs8(Fragment5, { children: [
-      /* @__PURE__ */ jsxs8(
-        "a",
-        {
-          href: costUrl,
-          target: "_blank",
-          rel: "noopener noreferrer",
-          title: costLabel || ui("cost", lang),
-          style: { ...btn, textDecoration: "none", gap: 6, borderColor: "#FF990066", color: "#FF9900", background: "rgba(255,153,0,0.1)", fontWeight: 700 },
-          children: [
-            /* @__PURE__ */ jsxs8("svg", { width: "15", height: "15", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: [
-              /* @__PURE__ */ jsx8("rect", { x: "3", y: "3", width: "18", height: "18", rx: "2" }),
-              /* @__PURE__ */ jsx8("line", { x1: "8", y1: "17", x2: "8", y2: "12" }),
-              /* @__PURE__ */ jsx8("line", { x1: "12", y1: "17", x2: "12", y2: "8" }),
-              /* @__PURE__ */ jsx8("line", { x1: "16", y1: "17", x2: "16", y2: "14" })
-            ] }),
-            costLabel || ui("cost", lang)
-          ]
         }
       ),
       sep
@@ -1363,7 +1315,7 @@ function DiagramCanvas({
     return (data.connections || []).map((c) => {
       const seen = targetCount[c.target] || 0;
       targetCount[c.target] = seen + 1;
-      return buildBaseEdge(c, { direction, lang, animate, straight, markerId, edgeTuning, edgeIndex: seen });
+      return buildBaseEdge(c, { direction, lang, animate, straight, markerId, edgeTuning, edgeIndex: seen, flowPeriod: data.flowPeriod });
     });
   }, [data, direction, animate, straight, lang, markerId, edgeTuning]);
   const [baseNodes, setBaseNodes] = useState4([]);
@@ -1606,8 +1558,6 @@ function LiveDiagram({
 }) {
   const resolvedEdgeTuning = flowDots === false ? { dots: false, ...edgeTuning } : edgeTuning;
   const hasWalk = Array.isArray(steps) && steps.length > 0;
-  const costUrl = data?.costUrl || (hasWalk ? steps.find((s) => s?.costUrl)?.costUrl : void 0);
-  const costLabel = data?.costLabel || (hasWalk ? steps.find((s) => s?.costUrl)?.costLabel : void 0);
   const [internalStep, setInternalStep] = useState4(() => Number.isInteger(startStep) ? Math.max(-1, Math.min(startStep, (steps?.length ?? 0) - 1)) : -1);
   const [playing, setPlaying] = useState4(false);
   const step = control === "auto" ? internalStep : activeStep ?? -1;
@@ -1643,6 +1593,18 @@ function LiveDiagram({
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
+  }, [control, hasWalk, steps]);
+  useEffect2(() => {
+    if (control !== "auto" || !hasWalk || typeof window === "undefined") return;
+    window.__diagramStepCount = steps.length;
+    window.__diagramGoToStep = (i) => {
+      setPlaying(false);
+      setInternalStep(Math.max(-1, Math.min(i, steps.length - 1)));
+    };
+    return () => {
+      delete window.__diagramGoToStep;
+      delete window.__diagramStepCount;
+    };
   }, [control, hasWalk, steps]);
   useEffect2(() => {
     if (control !== "auto" || !playing || !hasWalk) return;
@@ -1744,8 +1706,6 @@ function LiveDiagram({
           hasWalk,
           playing,
           attention: hasWalk && !playing && step <= 0,
-          costUrl,
-          costLabel: costLabel != null ? tr(costLabel, lang) : void 0,
           onPlay: () => {
             setPlaying((p) => {
               if (!p) setInternalStep((s) => s < 0 || s >= steps.length - 1 ? 0 : s);
@@ -1897,7 +1857,16 @@ function EditorCanvas({
     }
     layoutWithFallback(svcNodes, baseEdges, membership, { direction, geometry: geom, groups }).then(({ nodes: laid }) => {
       if (!alive) return;
-      const withParent = laid.map((n) => n.type === "aws" && membership[n.id] ? { ...n, parentId: membership[n.id], extent: "parent" } : n);
+      const absPos = {};
+      for (const n of laid) absPos[n.id] = { x: n.position?.x || 0, y: n.position?.y || 0 };
+      const groupParent = {};
+      for (const g of groups) if (g.parent) groupParent[g.id] = g.parent;
+      const withParent = laid.map((n) => {
+        const pid = n.type === "aws" ? membership[n.id] : n.type === "group" ? groupParent[n.id] : null;
+        if (!pid) return n;
+        const p = absPos[pid] || { x: 0, y: 0 };
+        return { ...n, parentId: pid, extent: "parent", position: { x: (n.position?.x || 0) - p.x, y: (n.position?.y || 0) - p.y } };
+      });
       setNodes(withParent.map(decorateGroup));
       setEdges(baseEdges);
       loadedRef.current = true;

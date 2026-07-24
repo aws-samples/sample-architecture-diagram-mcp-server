@@ -5,10 +5,11 @@ services and connections into a **self-contained, interactive architecture
 diagram** — a single HTML file you can open in any browser or attach to an
 email. No server, no internet, no build step for the consumer.
 
-It also generates `.drawio` files and produces handoff payloads for the official
-[AWS IaC MCP](https://github.com/awslabs/mcp) and the
-[AWS Pricing Calculator MCP](https://github.com/aws-samples/sample-aws-pricing-calculator-mcp)
-(the latter needs no AWS credentials).
+It also generates `.drawio` files and exports the diagram's elements as neutral
+JSON — a machine-readable handoff (sidecar `.json` + `export_diagram_json`) that
+downstream apps consume: the official [AWS IaC MCP](https://github.com/awslabs/mcp)
+for infrastructure, or a cost app such as `aws-cost-app-mcp` (a separate MCP) to
+price it. This server draws the diagram; it does not price or deploy.
 
 ![Architecture diagram example](docs/example.png)
 
@@ -45,8 +46,6 @@ containers, and flip the theme, all offline:
   as a `{ en, ja, … }` map; the toolbar shows a language dropdown and the whole diagram
   (labels, roles, walkthrough) re-renders in place. Not limited to EN/PT — localize
   the UI chrome for any language with `uiStrings` + `langLabels`.
-- **Cost estimate button** — pass `costUrl` to add a toolbar button linking to an
-  AWS Pricing Calculator estimate (or any URL).
 - **Collapsible containers** — every group header has a fold toggle; collapse a VPC
   or account to a small box and the layout re-flows (start dense diagrams pre-collapsed
   with `defaultCollapsed`).
@@ -61,10 +60,11 @@ containers, and flip the theme, all offline:
   `export_diagram` converts it to PNG/SVG/PDF (needs the `drawio` CLI).
 - **IaC handoff** — exports a structured spec + instruction so an agent can
   generate production IaC via the official AWS IaC MCP (no re-implementation).
-- **Pricing handoff** — exports a payload for the AWS Pricing Calculator MCP
-  (`sample-aws-pricing-calculator-mcp`): per-service config + calculator keys. This
-  server makes no pricing calls itself; the agent runs `create_estimate` /
-  `add_service` in the calculator MCP, which needs no AWS credentials.
+- **Elements JSON handoff** — every generated diagram writes a sidecar `.json`
+  next to the HTML, and `export_diagram_json` extracts the same neutral payload
+  (`title`, `services[]`, `connections[]`, `groups[]`, per-node `config`) from an
+  existing file. This is the contract a downstream cost app (e.g. `aws-cost-app-mcp`)
+  or inventory/docs tool consumes. This server makes no pricing calls itself.
 
 ## AWS diagram guidelines
 
@@ -143,9 +143,9 @@ Clone this repo, run `npm install`, then point your MCP client at
 | `export_diagram` | Convert `.drawio` → PNG/SVG/PDF (needs `drawio` CLI) |
 | `resolve_icon` | Resolve a service name to its icon filename (or list all) |
 | `list_shapes` | AWS4 drawio shape names (for the `.drawio` path) |
-| `list_service_configs` | IaC + pricing config fields per service |
+| `list_service_configs` | IaC config fields per service |
 | `export_iac_json` | Extract an AWS IaC MCP handoff payload (resources + dependencies) from a diagram |
-| `export_pricing_json` | Extract an AWS Pricing Calculator MCP handoff payload from a diagram |
+| `export_diagram_json` | Extract the diagram's elements as neutral JSON (title, services, connections, groups) for downstream apps |
 
 For a diagram built up in stages (e.g. as an agent reasons through an
 architecture), use the **incremental builder**: `diagram_create` →
@@ -177,9 +177,7 @@ shape.
       "body": "**Lambda** validates the request and writes to **DynamoDB**.",
       "nodes": ["fn", "db"], "zoom": ["fn", "db"], "badge": false }
   ],
-  "stepZoom": true,
-  "costUrl": "https://calculator.aws/#/estimate?id=…",
-  "costLabel": "Cost estimate"
+  "stepZoom": true
 }
 ```
 
@@ -197,7 +195,8 @@ Each service needs `id`, `service`, `shape`, and `category`. Everything below is
 - **`external: true`** (+ **`isApi`**) — place a third-party/on-prem actor outside the AWS Cloud boundary.
 - **`pill` / `pillOverlay`** — a short qualifier badge on the node (e.g. `"On-premises"`, `"GPU"`).
 - **`config.iac` / `config.pricing`** — key/value rows shown in the node's detail modal and
-  fed to the IaC / pricing handoffs (e.g. `{ "iac": { "runtime": "nodejs22.x" } }`).
+  carried into the elements JSON handoff (e.g. `{ "iac": { "runtime": "nodejs22.x" } }`);
+  a downstream cost/IaC app reads them from there.
 
 **Per connection:**
 
@@ -211,7 +210,6 @@ Each service needs `id`, `service`, `shape`, and `category`. Everything below is
 - **`steps` (+ `stepZoom` / `stepFocus`)** — guided walkthrough beats (see [Guided walkthrough](#guided-walkthrough)).
 - **`languages` + `lang`** (+ **`uiStrings`** / **`langLabels`**) — offer a toolbar language
   switch; any text field may then be a `{ en, ja, … }` map instead of a plain string.
-- **`costUrl` / `costLabel`** — add a toolbar button linking to a cost estimate.
 - **`collapsible` / `defaultCollapsed`** — fold/expand containers.
 - **`direction`** — `LR` (default) or `TB` layout flow.
 
@@ -270,7 +268,7 @@ app in `standalone/` + `src/`. The MCP server and Node-side generators live in
 input shape (imported by both the tools and the local example generators).
 `lib/html-generator.js` injects the diagram data and base64-inlined icons into
 the built `dist/index.html`. Tests (`test/`) cover the pure generators — icon
-resolution, IaC/pricing handoff, draw.io XML, and service-config integrity.
+resolution, IaC handoff, draw.io XML, and service-config integrity.
 
 ## Containers & nesting
 

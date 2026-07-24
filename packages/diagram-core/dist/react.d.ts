@@ -56,7 +56,7 @@ declare function NodeModal({ node, onClose, Icon, strings }: {
     strings: any;
 }): react.JSX.Element;
 
-declare function ZoomBar({ title, subtitle, dark, visible, onToggle, onTheme, hasWalk, playing, onPlay, onReset, attention, costUrl, costLabel, lang, languages, onLang, ui, langLabel, }: {
+declare function ZoomBar({ title, subtitle, dark, visible, onToggle, onTheme, hasWalk, playing, onPlay, onReset, attention, lang, languages, onLang, ui, langLabel, }: {
     title: any;
     subtitle: any;
     dark: any;
@@ -68,8 +68,6 @@ declare function ZoomBar({ title, subtitle, dark, visible, onToggle, onTheme, ha
     onPlay: any;
     onReset: any;
     attention?: boolean;
-    costUrl: any;
-    costLabel: any;
     lang?: string;
     languages?: any[];
     onLang: any;
@@ -108,11 +106,6 @@ declare function Body({ children, big }: {
     children: any;
     big: any;
 }): react.JSX.Element;
-declare function CostLink({ url, label, color }: {
-    url: any;
-    label: any;
-    color: any;
-}): react.JSX.Element;
 declare function NumberedSteps({ items, color, Icon }: {
     items: any;
     color: any;
@@ -143,7 +136,6 @@ declare const cardKit_CardHeader: typeof CardHeader;
 declare const cardKit_CardShell: typeof CardShell;
 declare const cardKit_Chips: typeof Chips;
 declare const cardKit_CodeBlock: typeof CodeBlock;
-declare const cardKit_CostLink: typeof CostLink;
 declare const cardKit_IconTile: typeof IconTile;
 declare const cardKit_KeyValues: typeof KeyValues;
 declare const cardKit_NumberedSteps: typeof NumberedSteps;
@@ -151,7 +143,7 @@ declare const cardKit_Section: typeof Section;
 declare const cardKit_mdInline: typeof mdInline;
 declare const cardKit_resolveVariant: typeof resolveVariant;
 declare namespace cardKit {
-  export { cardKit_Body as Body, cardKit_Bullets as Bullets, cardKit_CardHeader as CardHeader, cardKit_CardShell as CardShell, cardKit_Chips as Chips, cardKit_CodeBlock as CodeBlock, cardKit_CostLink as CostLink, cardKit_IconTile as IconTile, cardKit_KeyValues as KeyValues, cardKit_NumberedSteps as NumberedSteps, cardKit_Section as Section, cardKit_mdInline as mdInline, cardKit_resolveVariant as resolveVariant };
+  export { cardKit_Body as Body, cardKit_Bullets as Bullets, cardKit_CardHeader as CardHeader, cardKit_CardShell as CardShell, cardKit_Chips as Chips, cardKit_CodeBlock as CodeBlock, cardKit_IconTile as IconTile, cardKit_KeyValues as KeyValues, cardKit_NumberedSteps as NumberedSteps, cardKit_Section as Section, cardKit_mdInline as mdInline, cardKit_resolveVariant as resolveVariant };
 }
 
 declare const LiveDiagramEditor: react.ForwardRefExoticComponent<react.RefAttributes<any>>;
