@@ -1,7 +1,7 @@
 {
   "name": "sample-architecture-diagram-mcp-server",
   "version": "2.0.0",
-  "description": "MCP server that generates self-contained interactive AWS architecture diagrams (HTML + draw.io), with IaC and pricing handoff.",
+  "description": "MCP server that generates self-contained interactive AWS architecture diagrams (HTML + draw.io), with IaC and neutral element-JSON handoff for downstream apps.",
   "type": "module",
   "license": "MIT-0",
   "keywords": [
@@ -17,6 +17,13 @@
   "bin": {
     "sample-architecture-diagram-mcp-server": "mcp-server.js",
     "fetch-icons": "scripts/fetch-icons.sh"
+  },
+  "main": "lib/html-generator.js",
+  "exports": {
+    ".": "./lib/html-generator.js",
+    "./render": "./lib/html-generator.js",
+    "./service-registry.json": "./lib/service-registry.json",
+    "./package.json": "./package.json"
   },
   "files": [
     "mcp-server.js",

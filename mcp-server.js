@@ -10,6 +10,7 @@ import { execFileSync } from "child_process";
 import { computeLayout } from "./lib/layout.js";
 import { generateDrawio } from "./lib/drawio-xml.js";
 import { generateHtml, SERVICE_ICONS, iconForService, iconResolutionReport } from "./lib/html-generator.js";
+import { rasterizeDiagram } from "./lib/rasterize.js";
 
 const server = new McpServer({ name: "sample-architecture-diagram-mcp-server", version: "2.0.0" });
 
@@ -25,6 +26,50 @@ function iconWarning(services) {
     + `To fix: give each a canonical AWS service name (call resolve_icon to confirm, e.g. "Amazon SageMaker", "NAT Gateway") `
     + `or pass an explicit \`icon\` (e.g. "aws-icons/custom.svg"). Keep your human-readable text in \`label\`/\`role\`, not \`service\`, `
     + `since \`service\` is what drives icon resolution.`;
+}
+
+// Neutral element JSON — the machine-readable diagram contract that downstream
+// apps consume (cost estimation, inventory, docs). Built from the same arch-data
+// the HTML embeds, so the sidecar `.json` and export_diagram_json agree. Language
+// maps (e.g. { en, pt }) are preserved as-is; consumers pick their locale.
+function diagramElementsJson(data, region = "us-east-1") {
+  return {
+    title: data.title,
+    ...(data.subtitle ? { subtitle: data.subtitle } : {}),
+    region,
+    direction: data.direction || "LR",
+    services: (data.services || []).map(s => ({
+      id: s.id,
+      service: s.service,
+      ...(s.label ? { label: s.label } : {}),
+      ...(s.role ? { role: s.role } : {}),
+      category: s.category || "general",
+      ...(s.external ? { external: true } : {}),
+      ...(s.parentId ? { parentId: s.parentId } : {}),
+      ...(s.subnet ? { subnet: s.subnet } : {}),
+      ...(s.config ? { config: s.config } : {}),
+    })),
+    connections: (data.connections || []).map(c => ({
+      id: c.id, source: c.source, target: c.target,
+      ...(c.type ? { type: c.type } : {}),
+      ...(c.label ? { label: c.label } : {}),
+    })),
+    groups: data.groups || [],
+  };
+}
+
+// Write the neutral element JSON next to a generated .html (same basename, .json).
+// Best-effort: a sidecar failure never fails the diagram write.
+function writeSidecarJson(outputPath, title, subtitle, services, connections, options) {
+  try {
+    const jsonPath = outputPath.replace(/\.html?$/i, "") + ".json";
+    const payload = diagramElementsJson(
+      { title, subtitle, services, connections, direction: options.direction, groups: options.groups },
+      options.region || "us-east-1"
+    );
+    writeFileSync(jsonPath, JSON.stringify(payload, null, 2), "utf-8");
+    return jsonPath;
+  } catch { return null; }
 }
 
 // v2.0: Full auto-layout — just pass services + connections, positions computed automatically
@@ -134,7 +179,7 @@ server.tool(
     direction: z.enum(["LR", "TB"]).optional().describe("Layout flow direction: LR (left→right, default) or TB (top→bottom)."),
     lang: z.string().optional().describe("Language the content is authored in (ISO 639-1, e.g. 'en', 'pt', 'es'). Default 'en'. The UI chrome (modal headings, tooltips) adapts to it."),
     languages: z.array(z.string()).optional().describe("Offer a language switch in the toolbar. List every language you provide text for — ANY ISO 639-1 code works, not just en/pt (e.g. ['en','es','ja','fr']). When set with >1 entry, ALL author text fields (title, subtitle, service/role, group label, step title/eyebrow/body/badge, bullets, chips, sections) may be a per-language map { en: '…', ja: '…' } instead of a plain string, and the toolbar lets the viewer switch. Omit for single-language diagrams."),
-    uiStrings: z.record(z.record(z.string())).optional().describe("Localize the built-in UI chrome (toolbar tooltips + node-modal headings) for languages beyond the built-in en/pt/es — keyed by UI key then language, e.g. { cost: { ja: '料金見積もり' }, restart: { ja: 'ウォークスルーを再開' } }. Keys: iac, pricing, architecture, restart, play, pause, theme, collapse, expand, language, cost. Omitted (key,lang) falls back to the built-in table, then English."),
+    uiStrings: z.record(z.record(z.string())).optional().describe("Localize the built-in UI chrome (toolbar tooltips + node-modal headings) for languages beyond the built-in en/pt/es — keyed by UI key then language, e.g. { restart: { ja: 'ウォークスルーを再開' }, theme: { ja: 'テーマ切替' } }. Keys: iac, pricing, architecture, restart, play, pause, theme, collapse, expand, language. Omitted (key,lang) falls back to the built-in table, then English."),
     langLabels: z.record(z.string()).optional().describe("Display label per language for its toolbar switch button, e.g. { en: 'EN', ja: '日本語', 'zh-CN': '中文' }. Defaults to a built-in for en/pt/es/fr/de, else the uppercased code."),
     steps: z.array(stepSchema).optional().describe("Guided walkthrough beats. Arrow keys / the dock's play button step through them; each shows an overlay card and can tint+zoom a subset of the diagram."),
     startStep: z.number().int().optional().describe("Which beat the diagram opens on: -1 (default) shows the whole-diagram overview first; 0+ opens directly on that beat, so a wide/dense diagram lands already zoomed into a legible region (requires stepZoom to frame it)."),
@@ -142,16 +187,16 @@ server.tool(
     stepZoom: z.boolean().optional().describe("When steps are present, glide the camera onto each beat's `zoom` (or `nodes`). Default off."),
     stepFocus: z.boolean().optional().describe("When steps are present, hide non-active nodes each beat to isolate it. Default off (dim instead of hide)."),
     flowDots: z.boolean().optional().describe("Animate a dot travelling along each connection to convey flow direction. Default true. Set false for a static, print-friendly look (arrowheads only, no motion)."),
+    flowPeriod: z.number().optional().describe("Uniform flow-dot period in seconds: make EVERY edge's dot share this exact period (instead of the default staggered per-edge timing) so a GIF captured over `flowPeriod` seconds via render_diagram_media loops seamlessly. Set this when the HTML will be turned into a looping GIF."),
     collapsible: z.boolean().optional().describe("Show a fold toggle (▸/▾) on every group header so the viewer can collapse/expand containers (d3-zoomable-treemap style); collapsing a group hides its children, shrinks it to a small box, and re-runs the layout. Default true."),
     defaultCollapsed: z.array(z.string()).optional().describe("Group ids that start COLLAPSED on load — good for a dense diagram whose overview should read clean, letting the viewer expand only what they need (e.g. ['vpcdados'])."),
-    costUrl: z.string().optional().describe("If set, the toolbar dock shows a 'Cost estimate' button that opens this URL in a new tab (e.g. an AWS Pricing Calculator estimate)."),
-    costLabel: z.string().optional().describe("Label for the cost button (default: localized 'Cost estimate')."),
   },
-  async ({ title, subtitle, outputPath, services, connections, groups, direction, steps, startStep, startCardScale, stepZoom, stepFocus, lang, languages, uiStrings, langLabels, flowDots, collapsible, defaultCollapsed, costUrl, costLabel }) => {
-    const html = generateHtml(title, subtitle || "", services, connections, { groups, direction, steps, startStep, startCardScale, stepZoom, stepFocus, lang, languages, uiStrings, langLabels, flowDots, collapsible, defaultCollapsed, costUrl, costLabel });
+  async ({ title, subtitle, outputPath, services, connections, groups, direction, steps, startStep, startCardScale, stepZoom, stepFocus, lang, languages, uiStrings, langLabels, flowDots, flowPeriod, collapsible, defaultCollapsed }) => {
+    const html = generateHtml(title, subtitle || "", services, connections, { groups, direction, steps, startStep, startCardScale, stepZoom, stepFocus, lang, languages, uiStrings, langLabels, flowDots, flowPeriod, collapsible, defaultCollapsed });
     writeFileSync(outputPath, html, "utf-8");
+    const jsonPath = writeSidecarJson(outputPath, title, subtitle, services, connections, { groups, direction });
     const extras = [groups?.length ? `${groups.length} group(s)` : null, steps?.length ? `${steps.length}-step walkthrough` : null].filter(Boolean);
-    return { content: [{ type: "text", text: `Interactive diagram saved: ${outputPath}${extras.length ? "\nIncluded: " + extras.join(", ") : ""}\nOpen in browser for animated data flow visualization.${iconWarning(services)}` }] };
+    return { content: [{ type: "text", text: `Interactive diagram saved: ${outputPath}${extras.length ? "\nIncluded: " + extras.join(", ") : ""}${jsonPath ? `\nElements JSON: ${jsonPath}` : ""}\nOpen in browser for animated data flow visualization.${iconWarning(services)}` }] };
   }
 );
 
@@ -216,135 +261,76 @@ server.tool(
   }
 );
 
+server.tool(
+  "render_diagram_media",
+  "Rasterize an interactive diagram HTML (from generate_html_diagram / diagram_render) into publishable assets: a PNG @2x figure, an animated GIF, and/or an animated SVG. GIF has two modes: 'flow' (the dots travelling the edges, one seamless loop) and 'walkthrough' (one animated segment PER guided beat/step, concatenated into a looping tour). The SVG is vector + STILL ANIMATED (the flow-dot SMIL is preserved) — sharp at any size and tiny to serve, but many CMSs incl. the AWS Blog/WordPress BLOCK svg upload, so use SVG for your OWN site/embed and GIF for WordPress. Use this to embed a diagram where JS can't run — blog post, PDF, email, slide. Needs headless Chromium (Playwright) and, for GIF, a full ffmpeg on PATH.",
+  {
+    htmlPath: z.string().describe("Path to the interactive diagram .html produced by generate_html_diagram or diagram_render."),
+    pngPath: z.string().optional().describe("If set, write a static PNG figure here (motion frozen)."),
+    gifPath: z.string().optional().describe("If set, write an animated GIF here."),
+    svgPath: z.string().optional().describe("If set, write a self-contained ANIMATED SVG here (vector, flow-dot animation preserved). For your own site/embed — NOT the AWS Blog/WordPress, which blocks SVG upload."),
+    mode: z.enum(["flow", "walkthrough"]).optional().default("flow").describe("GIF content: 'flow' = one looping segment of the animated data flow; 'walkthrough' = one animated segment per guided beat (requires the HTML to have `steps`), concatenated into a looping tour. PNG/SVG are unaffected."),
+    theme: z.enum(["light", "dark"]).optional().default("light").describe("Render theme."),
+    width: z.number().int().optional().default(1200).describe("Capture width in px."),
+    height: z.number().int().optional().default(675).describe("Capture height in px."),
+    scale: z.number().optional().default(2).describe("Device scale factor (PNG @Nx)."),
+    period: z.number().optional().default(4).describe("flow mode: GIF loop length in seconds; every edge's flow dot shares this exact period so the loop closes seamlessly. (For the sharpest loop, also pass the SAME value as flowPeriod to generate_html_diagram.)"),
+    frames: z.number().int().optional().default(24).describe("flow mode: frames captured across one period (GIF smoothness)."),
+    beatDuration: z.number().optional().default(2.5).describe("walkthrough mode: seconds held on each beat."),
+    beatFrames: z.number().int().optional().default(15).describe("walkthrough mode: frames captured per beat."),
+  },
+  async ({ htmlPath, pngPath, gifPath, svgPath, mode, theme, width, height, scale, period, frames, beatDuration, beatFrames }) => {
+    if (!pngPath && !gifPath && !svgPath) {
+      return { content: [{ type: "text", text: "Nothing to render: set pngPath, gifPath and/or svgPath." }], isError: true };
+    }
+    try {
+      const r = await rasterizeDiagram({ htmlPath, pngPath, gifPath, svgPath, mode, theme, width, height, scale, period, frames, beatDuration, beatFrames });
+      const gifDesc = r.gif && (r.mode === "walkthrough"
+        ? `GIF: ${r.gif} (walkthrough · ${r.beats || 0} beats × ${beatDuration}s)`
+        : `GIF: ${r.gif} (flow · ${period}s loop, ${frames} frames)`);
+      const made = [r.png && `PNG: ${r.png}`, gifDesc, r.svg && `SVG: ${r.svg} (animated vector)`].filter(Boolean);
+      return { content: [{ type: "text", text: `Rendered:\n  ${made.join("\n  ")}` + (r.warnings.length ? `\n\n${r.warnings.join("\n")}` : "") }] };
+    } catch (e) {
+      return { content: [{ type: "text", text:
+        `Render failed: ${e.message}\n` +
+        "Requirements: headless Chromium via Playwright (`npx playwright install chromium`) and, for GIF, a full ffmpeg on PATH (`brew install ffmpeg`)." }], isError: true };
+    }
+  }
+);
+
 // Service configs reference - tells the agent what config fields each AWS service accepts
 const SERVICE_CONFIGS = JSON.parse(readFileSync(new URL("./lib/service-configs.json", import.meta.url), "utf-8"));
-
-// Maps IaC/display service names to AWS Pricing Calculator MCP service keys
-// (sample-aws-pricing-calculator-mcp). The agent calls add_service(calculatorKey)
-// there — no AWS credentials needed. Also used as the "priceable services" set so
-// export_pricing_json surfaces services even without explicit pricing config.
-const CALCULATOR_MAP = {
-  // AI/ML
-  "Amazon Bedrock": "amazonBedrock", "Amazon SageMaker AI": "amazonSageMaker", "Amazon SageMaker": "amazonSageMaker",
-  "Amazon Kendra": "amazonKendra", "Amazon Lex": "amazonLex", "Amazon Polly": "amazonPolly",
-  "Amazon Rekognition": "amazonRekognition", "Amazon Textract": "amazonTextract", "Amazon Transcribe": "amazonTranscribe",
-  "Amazon Translate": "amazonTranslate", "Amazon Comprehend": "amazonComprehend", "Amazon Personalize": "amazonPersonalize",
-  "Amazon Q": "amazonQ",
-  // Analytics
-  "Amazon Athena": "amazonAthena", "AWS Glue": "aWSGlue", "Amazon EMR": "amazonEMR",
-  "Amazon MSK": "amazonMSK", "Amazon Managed Streaming for Apache Kafka": "amazonMSK",
-  "Amazon OpenSearch Service": "amazonOpenSearchService", "Amazon QuickSight": "amazonQuickSight",
-  "Amazon Data Firehose": "amazonKinesisDataFirehose", "AWS Lake Formation": "aWSLakeFormation",
-  // Compute
-  "Amazon EC2": "ec2Enhancement", "AWS Lambda": "aWSLambda", "Amazon ECS": "awsFargate",
-  "Amazon EKS": "amazonEKS", "AWS Fargate": "awsFargate", "AWS Batch": "aWSBatch",
-  "Amazon Lightsail": "amazonLightsail", "AWS App Runner": "aWSAppRunner",
-  "Amazon ECR": "amazonECR", "Amazon Elastic Container Registry": "amazonECR",
-  // Database
-  "Amazon RDS": "amazonRDS", "Amazon Aurora": "amazonAurora", "Amazon DynamoDB": "amazonDynamoDB",
-  "Amazon Redshift": "amazonRedshift", "Amazon Neptune": "amazonNeptune", "Amazon DocumentDB": "amazonDocumentDB",
-  "Amazon ElastiCache": "amazonElastiCache", "Amazon Keyspaces": "amazonKeyspaces",
-  "Amazon Timestream": "amazonTimestream", "Amazon MemoryDB": "amazonMemoryDBForRedis",
-  "Amazon QLDB": "amazonQLDB", "Amazon Quantum Ledger Database": "amazonQLDB",
-  // Integration
-  "Amazon SQS": "amazonSQS", "Amazon Simple Queue Service": "amazonSQS",
-  "Amazon SNS": "amazonSNS", "Amazon Simple Notification Service": "amazonSNS",
-  "Amazon EventBridge": "amazonEventBridge", "EventBridge": "amazonEventBridge",
-  "AWS Step Functions": "aWSStepFunctions", "Step Functions": "aWSStepFunctions",
-  "Amazon MQ": "amazonMQ", "Amazon Simple Email Service": "amazonSES",
-  // Networking
-  "Amazon CloudFront": "amazonCloudFront", "CloudFront": "amazonCloudFront",
-  "Amazon Route 53": "amazonRoute53", "Route 53": "amazonRoute53",
-  "Elastic Load Balancing": "elasticLoadBalancing", "ELB": "elasticLoadBalancing",
-  "Amazon API Gateway": "amazonApiGateway", "API Gateway": "amazonApiGateway",
-  "NAT Gateway": "amazonVPC", "Amazon VPC": "amazonVPC",
-  "AWS Direct Connect": "aWSDirectConnect", "AWS Transit Gateway": "aWSTransitGateway",
-  "AWS Global Accelerator": "aWSGlobalAccelerator",
-  "AWS Site-to-Site VPN": "aWSVPN", "AWS Client VPN": "aWSClientVPN",
-  // Security
-  "Amazon Cognito": "amazonCognito", "Cognito": "amazonCognito",
-  "AWS WAF": "aWSWAF", "Amazon GuardDuty": "amazonGuardDuty", "Amazon Inspector": "amazonInspector",
-  "AWS Secrets Manager": "aWSSecretsManager", "AWS KMS": "aWSKeyManagementService",
-  "AWS Key Management Service": "aWSKeyManagementService", "AWS Certificate Manager": "aWSCertificateManager",
-  "AWS Shield": "aWSShield", "Amazon Macie": "amazonMacie", "AWS Security Hub": "aWSSecurityHub",
-  // Storage
-  "Amazon S3": "amazonS3Standard", "Amazon EFS": "amazonEFS", "Amazon Elastic File System": "amazonEFS",
-  "Amazon EBS": "amazonEBS", "Amazon Elastic Block Store": "amazonEBS", "Amazon FSx": "amazonFSx",
-  "AWS Backup": "aWSBackup", "AWS Storage Gateway": "aWSStorageGateway",
-  "Amazon S3 Glacier": "amazonS3GlacierFlexibleRetrieval", "Amazon Simple Storage Service Glacier": "amazonS3GlacierFlexibleRetrieval",
-  // Management
-  "Amazon CloudWatch": "amazonCloudWatch", "CloudWatch": "amazonCloudWatch",
-  "AWS CloudTrail": "aWSCloudTrail", "AWS Config": "aWSConfig",
-  "Amazon Kinesis": "amazonKinesisDataStreams",
-  // Developer
-  "AWS CodeBuild": "aWSCodeBuild", "AWS CodePipeline": "aWSCodePipeline",
-  // Other
-  "AWS Amplify": "aWSAmplify", "AWS AppSync": "aWSAppSync", "AWS DataSync": "aWSDataSync",
-  "AWS Transfer Family": "aWSTransferFamily", "AWS Database Migration Service": "aWSDatabaseMigrationService",
-  "Amazon Managed Grafana": "amazonManagedGrafana", "Amazon Managed Service for Prometheus": "amazonManagedServiceForPrometheus",
-  // New (14 validated active services)
-  "AWS Network Firewall": "aWSNetworkFirewall", "Amazon Detective": "amazonDetective",
-  "Amazon Security Lake": "amazonSecurityLake", "Amazon Verified Permissions": "amazonVerifiedPermissions",
-  "AWS Verified Access": "aWSVerifiedAccess", "AWS Application Migration Service": "aWSApplicationMigrationService",
-  "AWS IoT Core": "aWSIoTCore", "Amazon WorkSpaces": "amazonWorkSpaces",
-  "AWS Elemental MediaConvert": "aWSElementalMediaConvert", "Amazon DataZone": "amazonDataZone",
-  "Amazon Location Service": "amazonLocationService", "Amazon Braket": "amazonBraket",
-  "AWS CodeArtifact": "aWSCodeArtifact", "AWS Firewall Manager": "aWSFirewallManager",
-  // Additional active services
-  "Amazon Connect": "amazonConnect", "Amazon Pinpoint": "amazonPinpoint",
-  "AWS IoT Greengrass": "aWSIoTGreengrass", "Amazon IVS": "amazonIVS",
-  "AWS Outposts": "aWSOutposts", "Amazon GameLift": "amazonGameLift",
-  "Amazon FinSpace": "amazonFinSpace", "AWS Clean Rooms": "aWSCleanRooms",
-  "AWS Glue DataBrew": "aWSGlueDataBrew", "Amazon CloudSearch": "amazonCloudSearch",
-  "AWS AppConfig": "aWSAppConfig", "AWS RoboMaker": "aWSRoboMaker",
-  "AWS Ground Station": "aWSGroundStation", "AWS Mainframe Modernization": "aWSMainframeModernization",
-  "Amazon Managed Blockchain": "amazonManagedBlockchain", "Amazon Entity Resolution": "amazonEntityResolution",
-  "AWS Resilience Hub": "aWSResilienceHub",
-  // Batch 3
-  "Amazon MWAA": "amazonMWAA", "AWS CloudHSM": "aWSCloudHSM",
-  "AWS Elemental MediaLive": "aWSElementalMediaLive", "AWS Elemental MediaPackage": "aWSElementalMediaPackage",
-  "AWS Elemental MediaTailor": "aWSElementalMediaTailor", "Amazon Bedrock AgentCore": "amazonBedrockAgentCore",
-  "AWS B2B Data Interchange": "aWSB2BDataInterchange", "AWS Payment Cryptography": "aWSPaymentCryptography",
-  "Amazon Chime SDK": "amazonChimeSDK", "Amazon Route 53 Resolver": "amazonRoute53Resolver",
-  "AWS Network Manager": "aWSNetworkManager", "Amazon Data Lifecycle Manager": "amazonDLM",
-  "AWS RAM": "aWSRAM", "AWS Audit Manager": "aWSAuditManager",
-  "Amazon AppStream 2.0": "amazonAppStream", "AWS Parallel Computing Service": "aWSParallelComputingService",
-  "AWS Cloud WAN": "aWSCloudWAN",
-};
 
 // Derive a regex seed for the AWS Price List service_code from a display name.
 server.tool(
   "list_service_configs",
-  "List service configuration in two scopes: 'iac' (CDK/TF properties) and a calculator service key for the AWS Pricing Calculator MCP (sample-aws-pricing-calculator-mcp). Use add_service(calculatorKey) — or search_services by display name — in the calculator MCP to price it.",
+  "List a service's IaC config fields (CDK/TF properties) — useful when authoring a node's config.iac. For pricing, hand the diagram off (export_diagram_json) to a pricing app such as aws-cost-app-mcp.",
   { service: z.string().optional().describe("Filter by service name (partial match). Omit to list all.") },
   async ({ service }) => {
     if (!service) {
       const names = SERVICE_CONFIGS.map(s => s.service).sort();
-      return { content: [{ type: "text", text: "Available services (" + names.length + "):\n" + names.join("\n") + "\n\nConfig schema: { iac: [...], calculatorKey: \"...\", label: \"...\" }\nFor pricing: use the AWS Pricing Calculator MCP — add_service(calculatorKey) or search_services by display name." }] };
+      return { content: [{ type: "text", text: "Available services (" + names.length + "):\n" + names.join("\n") + "\n\nConfig schema: { iac: [...], label: \"...\" }" }] };
     }
     const matches = SERVICE_CONFIGS.filter(s => s.service.toLowerCase().includes(service.toLowerCase()));
     if (!matches.length) return { content: [{ type: "text", text: `No config found for "${service}".` }] };
     const result = matches.map(m => ({
       service: m.service,
       iac: m.fields,
-      calculatorKey: CALCULATOR_MAP[m.service] || null,
-      note: CALCULATOR_MAP[m.service]
-        ? `In the AWS Pricing Calculator MCP: add_service("${CALCULATOR_MAP[m.service]}", config) to price it.`
-        : "No calculator key mapped — use search_services by display name in the calculator MCP.",
     }));
     return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
   }
 );
 
-// Export pricing data for the AWS Pricing Calculator MCP (sample-aws-pricing-calculator-mcp).
-// Handoff only — this server prices nothing itself; the agent drives create_estimate /
-// add_service in the calculator MCP, which needs no AWS credentials.
+// Export the diagram's elements as neutral JSON — the machine-readable contract
+// for downstream tools/apps (cost estimation, inventory, docs). This server owns
+// the diagram; it does not price or deploy. Mirrors the sidecar `.json` that the
+// generate_* tools write next to each .html, but extracts it from an existing file.
 server.tool(
-  "export_pricing_json",
-  "Extract a pricing handoff payload from a diagram's services for the AWS Pricing Calculator MCP (sample-aws-pricing-calculator-mcp). This server does NOT price anything itself; it returns per-service config ready for the calculator, which needs NO AWS credentials. The agent should, in the calculator MCP: 1) create_estimate, 2) add_service for each entry (calculatorKey as the service, or the display name; pricing values as config), 3) build_estimate / export_estimate.",
+  "export_diagram_json",
+  "Extract the diagram's elements as neutral JSON from a generated .html: { title, subtitle, region, direction, services[], connections[], groups[] }. This is the machine-readable handoff any downstream app consumes (e.g. aws-cost-app-mcp to price it, an inventory or docs generator). Each service carries its display name, role, category, and any authored config (iac/pricing metadata). No pricing or IaC is performed here — this server only draws the diagram and hands off its structure.",
   {
-    diagramPath: z.string().describe("Path to the .html diagram file to extract pricing from"),
-    region: z.string().optional().default("us-east-1").describe("AWS region applied to each estimate line (e.g. us-east-1, sa-east-1)"),
+    diagramPath: z.string().describe("Path to the .html diagram file to extract elements from"),
+    region: z.string().optional().default("us-east-1").describe("AWS region annotation carried into the payload (e.g. us-east-1, sa-east-1)"),
   },
   async ({ diagramPath, region }) => {
     if (!existsSync(diagramPath)) return { content: [{ type: "text", text: `Error: file not found: ${diagramPath}` }], isError: true };
@@ -352,21 +338,7 @@ server.tool(
     const m = html.match(/id="arch-data"[^>]*>(.*?)<\/script/);
     if (!m) return { content: [{ type: "text", text: "Error: No arch-data found in file" }], isError: true };
     const data = JSON.parse(m[1]);
-    const services = (data.services || [])
-      .filter(s => s.config?.pricing || CALCULATOR_MAP[s.service])
-      .map(s => ({
-        service: s.service,
-        calculatorKey: CALCULATOR_MAP[s.service] || null,
-        config: { region, ...(s.config?.pricing || {}) },
-        description: s.config?.label || s.service,
-      }));
-    if (!services.length) return { content: [{ type: "text", text: "No pricing data found in diagram services." }] };
-    return { content: [{ type: "text", text: JSON.stringify({
-      title: data.title,
-      region,
-      services,
-      instruction: "Use the AWS Pricing Calculator MCP (sample-aws-pricing-calculator-mcp — no AWS credentials required). 1) create_estimate(name=title); 2) for each service call add_service using calculatorKey as the service (or search_services by display name if calculatorKey is null), passing config; 3) build_estimate then export_estimate for the shareable URL and totals.",
-    }, null, 2) }] };
+    return { content: [{ type: "text", text: JSON.stringify(diagramElementsJson(data, region), null, 2) }] };
   }
 );
 
@@ -406,11 +378,12 @@ server.tool(
       target: { iac_mcp: "awslabs.aws-iac-mcp-server", region },
       architecture: { name: txt(data.title), region, resources, dependencies },
       instruction:
-        "Generate production-ready IaC for this architecture using the AWS IaC MCP (awslabs.aws-iac-mcp-server). Do NOT hand-write resources from scratch. Recommended flow: " +
-        "1) call cdk_best_practices (or search_cdk_samples_and_constructs) to get correct constructs/patterns for each resource; " +
-        "2) wire resources using the 'dependencies' list — connection 'type' tells you the relationship (network/iam/event/data); " +
-        "3) fill required properties not present in each resource's 'config' (credentials, networking, IAM) following best practices; " +
-        "4) validate with validate_cloudformation_template / check_cloudformation_template_compliance before deploy.",
+        "Generate production-ready IaC for this architecture using the AWS IaC MCP (awslabs.aws-iac-mcp-server). That server provides GUIDANCE + VALIDATION only — none of its tools take an architecture graph, so YOU (the agent) translate this payload into a template. Do NOT hand-write resources from scratch. Recommended flow: " +
+        "1) call cdk_best_practices() ONCE (it takes no arguments) and follow the guidelines it returns; " +
+        "2) for each resource (or integration), formulate a TEXT query for search_cdk_samples_and_constructs(query, language) — e.g. \"aws-lambda.Function\", \"API Gateway AND Lambda\", \"aws-s3.Bucket\" — to get the right constructs/patterns; pass your target `language` (typescript|python|java|csharp|go); " +
+        "3) wire resources using the 'dependencies' list — connection 'type' tells you the relationship (network/iam/event/data); " +
+        "4) fill required properties not present in each resource's 'config' (credentials, networking, IAM) following best practices; " +
+        "5) before deploy: call get_cloudformation_pre_deploy_validation_instructions(), then validate the synthesized/CloudFormation template with validate_cloudformation_template(template_content) and check_cloudformation_template_compliance(template_content). Use troubleshoot_cloudformation_deployment if a deploy fails.",
     }, null, 2) }] };
   }
 );
@@ -490,10 +463,10 @@ const draftSummary = (id, d) => `draft ${id}: ${d.services.length} service(s), $
 
 server.tool("diagram_create",
   "Start an incremental diagram draft. Returns a draftId; feed it to diagram_add_services / diagram_add_connections / diagram_add_groups / diagram_add_steps in any order, then diagram_render to write the HTML. Use this when building a diagram in stages; use generate_html_diagram for a single-shot build.",
-  { title: z.string(), subtitle: z.string().optional(), direction: z.enum(["LR", "TB"]).optional(), stepZoom: z.boolean().optional(), stepFocus: z.boolean().optional(), startStep: z.number().int().optional().describe("Beat to open on: -1 (default) overview first; 0+ opens zoomed on that beat."), startCardScale: z.number().int().min(0).max(3).optional().describe("Initial walkthrough-card text size (0–3, default 0); 1–3 opens a larger card."), flowDots: z.boolean().optional().describe("Animate a dot travelling along each connection. Default true. Set false for a static, print-friendly look."), lang: z.string().optional(), languages: z.array(z.string()).optional().describe("Offer a toolbar language switch; ANY language works (en, es, ja, …). When >1, author text fields may be per-language maps { en, ja, … }."), uiStrings: z.record(z.record(z.string())).optional().describe("Localize the UI chrome (tooltips/modal headings) for languages beyond built-in en/pt/es: { <uiKey>: { <lang>: text } }. Keys: iac, pricing, architecture, restart, play, pause, theme, collapse, expand, language, cost."), langLabels: z.record(z.string()).optional().describe("Toolbar switch label per language, e.g. { ja: '日本語' }."), costUrl: z.string().optional().describe("If set, the toolbar shows a 'Cost estimate' button opening this URL (e.g. AWS Pricing Calculator)."), costLabel: z.string().optional().describe("Label for the cost button.") },
-  async ({ title, subtitle, direction, stepZoom, stepFocus, startStep, startCardScale, flowDots, lang, languages, uiStrings, langLabels, costUrl, costLabel }) => {
+  { title: z.string(), subtitle: z.string().optional(), direction: z.enum(["LR", "TB"]).optional(), stepZoom: z.boolean().optional(), stepFocus: z.boolean().optional(), startStep: z.number().int().optional().describe("Beat to open on: -1 (default) overview first; 0+ opens zoomed on that beat."), startCardScale: z.number().int().min(0).max(3).optional().describe("Initial walkthrough-card text size (0–3, default 0); 1–3 opens a larger card."), flowDots: z.boolean().optional().describe("Animate a dot travelling along each connection. Default true. Set false for a static, print-friendly look."), lang: z.string().optional(), languages: z.array(z.string()).optional().describe("Offer a toolbar language switch; ANY language works (en, es, ja, …). When >1, author text fields may be per-language maps { en, ja, … }."), uiStrings: z.record(z.record(z.string())).optional().describe("Localize the UI chrome (tooltips/modal headings) for languages beyond built-in en/pt/es: { <uiKey>: { <lang>: text } }. Keys: iac, pricing, architecture, restart, play, pause, theme, collapse, expand, language."), langLabels: z.record(z.string()).optional().describe("Toolbar switch label per language, e.g. { ja: '日本語' }.") },
+  async ({ title, subtitle, direction, stepZoom, stepFocus, startStep, startCardScale, flowDots, lang, languages, uiStrings, langLabels }) => {
     const id = `d${++draftSeq}`;
-    drafts.set(id, { title, subtitle: subtitle || "", direction: direction || "LR", services: [], connections: [], groups: [], steps: [], stepZoom: !!stepZoom, stepFocus: !!stepFocus, startStep, startCardScale, flowDots, lang, languages, uiStrings, langLabels, costUrl, costLabel });
+    drafts.set(id, { title, subtitle: subtitle || "", direction: direction || "LR", services: [], connections: [], groups: [], steps: [], stepZoom: !!stepZoom, stepFocus: !!stepFocus, startStep, startCardScale, flowDots, lang, languages, uiStrings, langLabels });
     return { content: [{ type: "text", text: `Created ${id}. Add pieces with diagram_add_* (draftId="${id}"), then diagram_render.` }] };
   }
 );
@@ -539,10 +512,11 @@ server.tool("diagram_render",
   { draftId: z.string(), outputPath: z.string(), keep: z.boolean().optional() },
   async ({ draftId, outputPath, keep }) => {
     const d = getDraft(draftId);
-    const html = generateHtml(d.title, d.subtitle, d.services, d.connections, { groups: d.groups, direction: d.direction, steps: d.steps, stepZoom: d.stepZoom, stepFocus: d.stepFocus, startStep: d.startStep, startCardScale: d.startCardScale, flowDots: d.flowDots, lang: d.lang, languages: d.languages, uiStrings: d.uiStrings, langLabels: d.langLabels, costUrl: d.costUrl, costLabel: d.costLabel });
+    const html = generateHtml(d.title, d.subtitle, d.services, d.connections, { groups: d.groups, direction: d.direction, steps: d.steps, stepZoom: d.stepZoom, stepFocus: d.stepFocus, startStep: d.startStep, startCardScale: d.startCardScale, flowDots: d.flowDots, lang: d.lang, languages: d.languages, uiStrings: d.uiStrings, langLabels: d.langLabels });
     writeFileSync(outputPath, html, "utf-8");
+    const jsonPath = writeSidecarJson(outputPath, d.title, d.subtitle, d.services, d.connections, { groups: d.groups, direction: d.direction });
     if (!keep) drafts.delete(draftId);
-    return { content: [{ type: "text", text: `Rendered ${draftSummary(draftId, d)} → ${outputPath}${keep ? " (draft kept)" : " (draft cleared)"}${iconWarning(d.services)}` }] };
+    return { content: [{ type: "text", text: `Rendered ${draftSummary(draftId, d)} → ${outputPath}${jsonPath ? `\nElements JSON: ${jsonPath}` : ""}${keep ? " (draft kept)" : " (draft cleared)"}${iconWarning(d.services)}` }] };
   }
 );
 

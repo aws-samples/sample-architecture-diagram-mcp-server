@@ -33,6 +33,7 @@ interface Props {
     stepFocus?: boolean;
     stepZoom?: boolean;
     flowDots?: boolean;
+    flowPeriod?: number;
   };
 }
 
@@ -57,6 +58,42 @@ const CHROME_STYLE = `
     50%     { box-shadow: 0 0 0 7px rgba(255,153,0,0); }
   }
   .ld-frame .ld-play-attention { animation: ld-play-pulse 1.6s ease-in-out infinite; }
+
+  /* ── Embedded cost panel (AWS-only) ── */
+  .ld-frame .ld-cost-panel {
+    position: absolute; top: 16px; right: 16px; z-index: 45; width: 300px; max-width: calc(100vw - 32px);
+    max-height: calc(100% - 32px); overflow: auto;
+    background: var(--card-bg); backdrop-filter: blur(12px);
+    border: 1px solid var(--border); border-radius: 14px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    padding: 16px 16px 14px; font-size: 13px; color: var(--txt);
+  }
+  .ld-frame .ld-cost-hero { border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 10px; }
+  .ld-frame .ld-cost-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--txt-muted); }
+  .ld-frame .ld-cost-total { font-size: 30px; font-weight: 800; line-height: 1.1; margin-top: 4px; color: var(--txt); }
+  .ld-frame .ld-cost-per { font-size: 14px; font-weight: 600; color: var(--txt-muted); margin-left: 2px; }
+  .ld-frame .ld-cost-annual { font-size: 13px; color: var(--txt-muted); margin-top: 2px; }
+  .ld-frame .ld-cost-note { font-size: 11.5px; color: var(--txt-muted); margin-top: 6px; font-style: italic; }
+  .ld-frame .ld-cost-rows { display: flex; flex-direction: column; gap: 2px; }
+  .ld-frame .ld-cost-row { border-top: 1px solid var(--border); }
+  .ld-frame .ld-cost-row:first-child { border-top: none; }
+  .ld-frame .ld-cost-row-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 7px 0; cursor: pointer; list-style: none; }
+  .ld-frame .ld-cost-row-head::-webkit-details-marker { display: none; }
+  .ld-frame .ld-cost-row-label { display: flex; flex-direction: column; min-width: 0; }
+  .ld-frame .ld-cost-row-svc { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ld-frame .ld-cost-caret { display: inline-block; font-size: 9px; color: var(--txt-muted); margin-right: 5px; transition: transform .15s; }
+  .ld-frame details[open] .ld-cost-caret { transform: rotate(90deg); }
+  .ld-frame .ld-cost-row-desc { font-size: 11px; color: var(--txt-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ld-frame .ld-cost-row-val { font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+  .ld-frame .ld-cost-config { margin: 0 0 8px; padding: 4px 0 4px 14px; list-style: none; display: flex; flex-direction: column; gap: 3px; }
+  .ld-frame .ld-cost-config li { font-size: 11px; color: var(--txt-muted); position: relative; padding-left: 10px; line-height: 1.35; }
+  .ld-frame .ld-cost-config li::before { content: "·"; position: absolute; left: 0; }
+  .ld-frame .ld-cost-cta {
+    display: block; margin-top: 12px; padding: 9px 12px; border-radius: 9px; text-align: center;
+    background: #FF9900; color: #111; font-weight: 700; font-size: 12.5px; text-decoration: none;
+  }
+  .ld-frame .ld-cost-cta:hover { filter: brightness(1.05); }
+  .ld-frame .ld-cost-disclaimer { font-size: 10.5px; color: var(--txt-muted); margin: 8px 0 0; line-height: 1.35; }
 `;
 
 export function StandaloneApp({ data }: Props) {

@@ -88,7 +88,7 @@ function DiagramCanvas({
     return (data.connections || []).map((c) => {
       const seen = targetCount[c.target] || 0;
       targetCount[c.target] = seen + 1;
-      return buildBaseEdge(c, { direction, lang, animate, straight, markerId, edgeTuning, edgeIndex: seen });
+      return buildBaseEdge(c, { direction, lang, animate, straight, markerId, edgeTuning, edgeIndex: seen, flowPeriod: data.flowPeriod });
     });
   }, [data, direction, animate, straight, lang, markerId, edgeTuning]);
 
@@ -319,10 +319,6 @@ export function LiveDiagram({
     : edgeTuning;
   // ── Walkthrough control: controlled (host activeStep) vs auto (internal) ──
   const hasWalk = Array.isArray(steps) && steps.length > 0;
-  // A cost CTA (AWS Pricing Calculator link) surfaces as a ZoomBar button.
-  // Taken from data.costUrl, or the first step that declares one.
-  const costUrl = data?.costUrl || (hasWalk ? steps.find(s => s?.costUrl)?.costUrl : undefined);
-  const costLabel = data?.costLabel || (hasWalk ? steps.find(s => s?.costUrl)?.costLabel : undefined);
   // startStep: which beat to open on. -1 (default) = show the whole-diagram
   // overview first; 0+ opens directly on that beat (so a wide diagram lands
   // already zoomed into a legible region instead of a tiny fit-all view).
@@ -348,6 +344,17 @@ export function LiveDiagram({
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
+  }, [control, hasWalk, steps]);
+
+  // Deterministic beat control for headless rasterization (render_diagram_media
+  // walkthrough mode): a screenshot driver calls window.__diagramGoToStep(i) to
+  // jump to a beat and reads window.__diagramStepCount. No-op for normal viewers
+  // (the global is simply never called); only wired in auto+walkthrough mode.
+  useEffect(() => {
+    if (control !== "auto" || !hasWalk || typeof window === "undefined") return;
+    window.__diagramStepCount = steps.length;
+    window.__diagramGoToStep = (i) => { setPlaying(false); setInternalStep(Math.max(-1, Math.min(i, steps.length - 1))); };
+    return () => { delete window.__diagramGoToStep; delete window.__diagramStepCount; };
   }, [control, hasWalk, steps]);
 
   useEffect(() => {
@@ -417,7 +424,6 @@ export function LiveDiagram({
               onTheme={() => setSelfDark(d => !d)}
               hasWalk={hasWalk} playing={playing}
               attention={hasWalk && !playing && step <= 0}
-              costUrl={costUrl} costLabel={costLabel != null ? tr(costLabel, lang) : undefined}
               onPlay={() => { setPlaying(p => { if (!p) setInternalStep(s => (s < 0 || s >= steps.length - 1 ? 0 : s)); return !p; }); }}
               onReset={() => { setPlaying(false); setInternalStep(-1); }}
               lang={lang} languages={languages} onLang={onLangChange} ui={ui} langLabel={langLabel}

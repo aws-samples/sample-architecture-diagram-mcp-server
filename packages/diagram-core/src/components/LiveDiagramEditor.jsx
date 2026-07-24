@@ -138,9 +138,25 @@ function EditorCanvas({
     layoutWithFallback(svcNodes, baseEdges, membership, { direction, geometry: geom, groups })
       .then(({ nodes: laid }) => {
         if (!alive) return;
-        // Reflect membership as parentId on service nodes so it serializes back.
-        const withParent = laid.map(n =>
-          n.type === "aws" && membership[n.id] ? { ...n, parentId: membership[n.id], extent: "parent" } : n);
+        // The layout engine returns ABSOLUTE canvas positions for every node
+        // (the ELK walk accumulates offsets down the tree). React Flow stores a
+        // node's position RELATIVE to its DIRECT parent only. So when we attach a
+        // node to a group via parentId, its position must become
+        //   pos = abs(node) − abs(directParent)
+        // Subtracting only the direct parent's absolute is correct because that
+        // absolute ALREADY includes the whole ancestor chain — subtracting the
+        // full chain (as an earlier version did) over-corrects and throws deeply
+        // nested children far outside their container.
+        const absPos = {}
+        for (const n of laid) absPos[n.id] = { x: n.position?.x || 0, y: n.position?.y || 0 }
+        const groupParent = {}
+        for (const g of groups) if (g.parent) groupParent[g.id] = g.parent
+        const withParent = laid.map(n => {
+          const pid = n.type === "aws" ? membership[n.id] : (n.type === "group" ? groupParent[n.id] : null)
+          if (!pid) return n
+          const p = absPos[pid] || { x: 0, y: 0 }
+          return { ...n, parentId: pid, extent: "parent", position: { x: (n.position?.x || 0) - p.x, y: (n.position?.y || 0) - p.y } }
+        })
         setNodes(withParent.map(decorateGroup));
         setEdges(baseEdges);
         loadedRef.current = true;

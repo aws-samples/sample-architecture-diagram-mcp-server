@@ -250,7 +250,7 @@ declare function buildServiceNode(s: any, ctx: any): {
     };
 };
 /** Build the `custom` edge for a connection. `edgeIndex` disambiguates parallels. */
-declare function buildBaseEdge(c: any, { direction, lang, animate, straight, markerId, edgeTuning, edgeIndex }?: {
+declare function buildBaseEdge(c: any, { direction, lang, animate, straight, markerId, edgeTuning, edgeIndex, flowPeriod }?: {
     direction?: string;
     lang?: string;
     animate?: boolean;

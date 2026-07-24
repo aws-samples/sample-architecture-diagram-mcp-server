@@ -8,7 +8,7 @@ An MCP (Model Context Protocol) server, run locally by a developer's MCP client
 (Claude Code / Kiro / Cursor). It receives a structured description of AWS
 services and connections and writes a self-contained HTML diagram (and,
 optionally, a `.drawio` file) to a local path. It also returns JSON "handoff"
-payloads for other MCP servers (AWS IaC, Pricing Calculator).
+payloads (neutral element JSON + an AWS IaC MCP spec) for downstream apps.
 
 ### Trust boundaries & data flow
 1. **MCP client ⇄ server** — local process, stdio transport (no network socket,

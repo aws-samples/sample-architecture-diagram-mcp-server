@@ -195,7 +195,7 @@ function buildServiceNodeData(s, { lang = "en", vars = {}, Icon, geom = {}, node
 function buildServiceNode(s, ctx) {
   return { id: s.id, type: "aws", position: { x: 0, y: 0 }, data: buildServiceNodeData(s, ctx) };
 }
-function buildBaseEdge(c, { direction = "TB", lang = "en", animate = true, straight = false, markerId = "ld-arrow", edgeTuning, edgeIndex = 0 } = {}) {
+function buildBaseEdge(c, { direction = "TB", lang = "en", animate = true, straight = false, markerId = "ld-arrow", edgeTuning, edgeIndex = 0, flowPeriod } = {}) {
   return {
     id: c.id,
     source: c.source,
@@ -216,6 +216,9 @@ function buildBaseEdge(c, { direction = "TB", lang = "en", animate = true, strai
       speed: 1,
       straight,
       markerId,
+      // Uniform flow-dot period (seconds) for seamless GIF capture; undefined =
+      // the default staggered per-edge timing. edgeTuning may override.
+      ...flowPeriod ? { flowPeriod } : {},
       ...edgeTuning,
       __src: c
       // original connection, for faithful serialize-back

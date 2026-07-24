@@ -45,7 +45,7 @@ export function buildServiceNode(s, ctx) {
 }
 
 /** Build the `custom` edge for a connection. `edgeIndex` disambiguates parallels. */
-export function buildBaseEdge(c, { direction = "TB", lang = "en", animate = true, straight = false, markerId = "ld-arrow", edgeTuning, edgeIndex = 0 } = {}) {
+export function buildBaseEdge(c, { direction = "TB", lang = "en", animate = true, straight = false, markerId = "ld-arrow", edgeTuning, edgeIndex = 0, flowPeriod } = {}) {
   return {
     id: c.id, source: c.source, target: c.target, type: "custom",
     sourceHandle: direction === "RADIAL" ? undefined : (direction === "TB" ? "bottom" : "right"),
@@ -53,7 +53,11 @@ export function buildBaseEdge(c, { direction = "TB", lang = "en", animate = true
     data: {
       label: tr(c.label, lang), showLabel: c.showLabel, edgeIndex,
       bidirectional: c.bidirectional, connType: c.type, dashed: c.dashed, severed: c.severed,
-      active: false, anyActive: false, speed: 1, straight, markerId, ...edgeTuning,
+      active: false, anyActive: false, speed: 1, straight, markerId,
+      // Uniform flow-dot period (seconds) for seamless GIF capture; undefined =
+      // the default staggered per-edge timing. edgeTuning may override.
+      ...(flowPeriod ? { flowPeriod } : {}),
+      ...edgeTuning,
       __src: c,   // original connection, for faithful serialize-back
     },
     animated: animate,
