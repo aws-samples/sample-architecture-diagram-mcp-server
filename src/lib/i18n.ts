@@ -22,7 +22,7 @@ export { tr } from "@aws-live-diagram/core";
 
 // UI chrome strings. Add a language by adding a column; unknown languages fall
 // back to English. Keep keys stable — components look them up by key.
-type UIKey = "iac" | "pricing" | "architecture" | "restart" | "play" | "pause" | "theme" | "collapse" | "expand" | "language" | "cost" | "textLarger" | "textSmaller" | "exportPng";
+type UIKey = "iac" | "pricing" | "architecture" | "restart" | "play" | "pause" | "theme" | "collapse" | "expand" | "language" | "cost" | "textLarger" | "textSmaller" | "exportPng" | "shareCard";
 const UI: Record<UIKey, Record<string, string>> = {
   cost:         { en: "Cost estimate",       pt: "Estimativa de custo", es: "Estimación de costo" },
   textLarger:   { en: "Larger card text",    pt: "Aumentar texto do cartão", es: "Agrandar texto de la tarjeta" },
@@ -35,6 +35,7 @@ const UI: Record<UIKey, Record<string, string>> = {
   pause:        { en: "Pause walkthrough",   pt: "Pausar apresentação", es: "Pausar recorrido" },
   theme:        { en: "Toggle theme",        pt: "Alternar tema",     es: "Cambiar tema" },
   exportPng:    { en: "Download PNG",         pt: "Baixar PNG",        es: "Descargar PNG" },
+  shareCard:    { en: "Share card (1200×630)", pt: "Cartão de compartilhamento (1200×630)", es: "Tarjeta para compartir (1200×630)" },
   collapse:     { en: "Collapse",            pt: "Recolher",          es: "Contraer" },
   expand:       { en: "Expand",              pt: "Expandir",          es: "Expandir" },
   language:     { en: "Language",            pt: "Idioma",            es: "Idioma" },

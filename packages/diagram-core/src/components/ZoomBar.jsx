@@ -33,6 +33,79 @@ async function exportDiagramPng(nodes, dark) {
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
 }
 
+// Export a fixed 1200×630 "share card" PNG (the Open Graph / link-preview size):
+// the diagram framed to fit all nodes as the background, with a bottom gradient
+// scrim carrying the title + subtitle. Suitable for slides, wikis, and link
+// unfurls. Same file:// safety as exportDiagramPng (icons inlined, placeholder
+// for any un-inlined <img>).
+async function exportShareCard(nodes, dark, title, subtitle) {
+  const el = document.querySelector(".react-flow__viewport");
+  if (!el || !nodes.length) return;
+  const { toPng } = await import("html-to-image");
+  const W = 1200, H = 630;
+  const vp = getViewportForBounds(getNodesBounds(nodes), W, H, 0.2, 2, 0.14);
+  const bg = dark ? "#0f1117" : "#f8fafc";
+  const diagramUrl = await toPng(el, {
+    backgroundColor: bg, width: W, height: H, pixelRatio: 2,
+    imagePlaceholder: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+    style: { width: `${W}px`, height: `${H}px`, transform: `translate(${vp.x}px, ${vp.y}px) scale(${vp.zoom})` },
+  });
+  const img = new Image();
+  await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = diagramUrl; });
+
+  const canvas = document.createElement("canvas");
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+  ctx.drawImage(img, 0, 0, W, H);
+
+  // Bottom scrim so the title stays legible over the diagram.
+  const scrimH = 200;
+  const grad = ctx.createLinearGradient(0, H - scrimH, 0, H);
+  grad.addColorStop(0, dark ? "rgba(15,17,23,0)" : "rgba(248,250,252,0)");
+  grad.addColorStop(1, dark ? "rgba(15,17,23,0.96)" : "rgba(248,250,252,0.97)");
+  ctx.fillStyle = grad; ctx.fillRect(0, H - scrimH, W, scrimH);
+
+  // AWS-orange accent bar + title/subtitle text.
+  const PAD = 56;
+  ctx.fillStyle = "#FF9900";
+  ctx.fillRect(PAD, H - 118, 48, 6);
+  const txt = dark ? "#f8fafc" : "#0f1117";
+  const muted = dark ? "rgba(248,250,252,0.72)" : "rgba(15,17,23,0.66)";
+  const wrap = (s, font, maxW, maxLines) => {
+    ctx.font = font;
+    const words = String(s || "").split(/\s+/);
+    const lines = []; let line = "";
+    for (const w of words) {
+      const test = line ? `${line} ${w}` : w;
+      if (ctx.measureText(test).width > maxW && line) { lines.push(line); line = w; if (lines.length === maxLines) break; }
+      else line = test;
+    }
+    if (line && lines.length < maxLines) lines.push(line);
+    if (lines.length === maxLines && ctx.measureText(line).width > maxW) {
+      while (line && ctx.measureText(line + "…").width > maxW) line = line.slice(0, -1);
+      lines[maxLines - 1] = line + "…";
+    }
+    return lines;
+  };
+  const titleFont = "700 44px 'Amazon Ember', 'Helvetica Neue', Helvetica, Arial, sans-serif";
+  const titleLines = wrap(title, titleFont, W - PAD * 2, 2);
+  ctx.fillStyle = txt; ctx.font = titleFont; ctx.textBaseline = "alphabetic";
+  let y = H - 92 + 44;
+  for (const l of titleLines) { ctx.fillText(l, PAD, y); y += 50; }
+  if (subtitle) {
+    const subFont = "400 24px 'Amazon Ember', 'Helvetica Neue', Helvetica, Arial, sans-serif";
+    const subLines = wrap(subtitle, subFont, W - PAD * 2, 1);
+    ctx.fillStyle = muted; ctx.font = subFont;
+    if (subLines[0]) ctx.fillText(subLines[0], PAD, y + 4);
+  }
+
+  const url = canvas.toDataURL("image/png");
+  const a = document.createElement("a");
+  a.href = url; a.download = "share-card.png";
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+
 // Language picker: a single button showing the active language that opens a popup
 // menu of all offered languages. Scales to any number of languages (a flat button
 // row does not), and keeps the dock compact.
@@ -88,6 +161,7 @@ function LangMenu({ lang, languages, onLang, langLabel, ui, btn, dark }) {
 export default function ZoomBar({
   title, subtitle, dark, visible, onToggle, onTheme,
   hasWalk, playing, onPlay, onReset, attention = false,
+  onRecord, recording = false, canRecord = false,
   lang = "en", languages = [], onLang,
   ui = noopUi, langLabel = defLangLabel,
 }) {
@@ -138,6 +212,11 @@ export default function ZoomBar({
         {/* download / save-as-image glyph */}
         <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
       </button>
+      <button style={btn} title={ui("shareCard", lang) === "shareCard" ? "Share card (1200×630 PNG)" : ui("shareCard", lang)}
+        onClick={() => exportShareCard(getNodes(), dark, title, subtitle)}>
+        {/* share-card glyph: framed image with a title bar */}
+        <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 15l4-4 4 4M14 13l2-2 5 5"/><line x1="7" y1="8" x2="7.01" y2="8"/></svg>
+      </button>
       {sep}
       {hasWalk && <>
         <button style={btn} onClick={onReset} title={ui("restart", lang)}>
@@ -155,6 +234,22 @@ export default function ZoomBar({
             ? <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/></svg>
             : <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>}
         </button>
+        {canRecord && (
+          <button
+            style={recording
+              ? { ...btn, borderColor: "#DD344C", color: "#DD344C", background: "rgba(221,52,76,0.12)", gap: 6 }
+              : btn}
+            onClick={onRecord} disabled={recording}
+            title={recording
+              ? (ui("recording", lang) === "recording" ? "Recording walkthrough…" : ui("recording", lang))
+              : (ui("recordWebm", lang) === "recordWebm" ? "Record walkthrough (WebM)" : ui("recordWebm", lang))}>
+            {/* record-dot glyph; pulses while recording */}
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="12" cy="12" r="7">{recording && <animate attributeName="opacity" values="1;0.3;1" dur="1.1s" repeatCount="indefinite" />}</circle>
+            </svg>
+            {recording && <span style={{ fontSize: 11, fontWeight: 800 }}>REC</span>}
+          </button>
+        )}
         {sep}
       </>}
       {languages.length > 1 && <>

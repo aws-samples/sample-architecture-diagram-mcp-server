@@ -13,3 +13,15 @@
 /* Dark mode keys off the `.dark` class on the root (StandaloneApp toggles it),
    not the OS media query — mirrors the deck so shared components behave the same. */
 @custom-variant dark (&:where(.dark, .dark *));
+
+/* Accessibility: when the OS requests reduced motion, neutralize CSS
+   transitions/animations app-wide (React Flow pan/zoom, edge draws, card
+   fades). The diagram stays fully navigable — only the motion is removed. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

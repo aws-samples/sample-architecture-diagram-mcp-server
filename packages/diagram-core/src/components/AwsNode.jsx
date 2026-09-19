@@ -36,8 +36,24 @@ function AwsNode({ data, selected }) {
   const tone = data.tone || data.staticTone;
   const toneCol = tone ? TONE_COLORS[tone] : undefined;
   const active = !!data.active || (!data.anyActive && !!data.staticTone);
-  const dimmed = !!data.anyActive && !data.active;
-  const color = (active && toneCol) ? toneCol : baseColor;
+  // Search ('/'): when a query is active, matching nodes get a ring and the
+  // rest dim — same dim treatment as the walkthrough's non-active nodes.
+  const searchActive = !!data.searchActive;
+  const searchHit = !!data.searchHit;
+  const dimmed = (!!data.anyActive && !data.active) || (searchActive && !searchHit);
+  // Semantic lens ('L'): recolor the frame/icon by the active dimension. The lens
+  // color wins over the category base but yields to an active walkthrough tone.
+  const lensColor = data.lensColor;
+  const color = (active && toneCol) ? toneCol : (lensColor || baseColor);
+  // Architecture delta ('diagram_delta'): when delta mode is on, tint the frame
+  // by change status and show a corner badge. added=green, removed=red (dashed +
+  // faded), changed=amber. In the combined "delta" view, unchanged nodes dim so
+  // the changes pop; in before/after they render normally.
+  const deltaStatus = data.deltaActive ? data.delta : undefined;
+  const DELTA_COL = { added: "#2E9E5B", removed: "#DD344C", changed: "#F59E0B" };
+  const deltaCol = deltaStatus ? DELTA_COL[deltaStatus] : undefined;
+  const deltaBadge = { added: "+", removed: "−", changed: "~" }[deltaStatus];
+  const deltaDim = data.deltaActive && data.deltaView === "delta" && (!deltaStatus || deltaStatus === "unchanged");
 
   const iconSize = isH ? 56 : 64;
   const iconInner = isH ? 52 : 56;
@@ -54,9 +70,9 @@ function AwsNode({ data, selected }) {
            : { width: data.nodeW || 180, minHeight: data.nodeH });
   const frame = {
     position: "relative",
-    border: `3px solid ${color}`, background: `var(${vars.nodeBg}, #fff)`,
-    boxShadow: active && toneCol ? `0 0 0 4px ${toneCol}33, 0 8px 28px ${toneCol}55` : (isH ? "0 4px 16px rgba(0,0,0,0.2)" : "0 2px 10px rgba(0,0,0,0.18)"),
-    opacity: dimmed ? 0.28 : 1,
+    border: `3px ${deltaStatus === "removed" ? "dashed" : "solid"} ${deltaCol || color}`, background: `var(${vars.nodeBg}, #fff)`,
+    boxShadow: deltaCol ? `0 0 0 3px ${deltaCol}33, 0 6px 20px ${deltaCol}44` : (searchHit ? "0 0 0 4px #4a90d9aa, 0 8px 28px rgba(74,144,217,.4)" : (active && toneCol ? `0 0 0 4px ${toneCol}33, 0 8px 28px ${toneCol}55` : (isH ? "0 4px 16px rgba(0,0,0,0.2)" : "0 2px 10px rgba(0,0,0,0.18)"))),
+    opacity: dimmed ? 0.28 : (deltaStatus === "removed" ? 0.5 : (deltaDim ? 0.5 : 1)),
     transform: active ? "scale(1.04)" : "scale(1)",
     transition: "opacity .35s, box-shadow .35s, border-color .35s",
     boxSizing: "border-box",
@@ -66,6 +82,16 @@ function AwsNode({ data, selected }) {
       : { padding: "16px 14px 12px", borderRadius: 14, textAlign: "center" }),
   };
 
+  const deltaBadgeEl = deltaBadge && (
+    <span style={{
+      position: "absolute", top: -11, right: -11, zIndex: 6,
+      width: 22, height: 22, borderRadius: "50%",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      fontSize: 15, fontWeight: 800, lineHeight: 1,
+      color: "#fff", background: deltaCol, border: "2px solid #fff",
+      boxShadow: `0 2px 6px ${deltaCol}88`,
+    }}>{deltaBadge}</span>
+  );
   const overlayPill = pill && pillOverlay && (
     <span style={{
       position: "absolute", top: isH ? -14 : -13, left: isH ? 16 : 14, zIndex: 5,
@@ -98,6 +124,7 @@ function AwsNode({ data, selected }) {
         lineStyle={{ borderColor: color }} handleStyle={{ width: 7, height: 7, background: color }} />}
       <Handle type="target" position={Position.Top} id="top" style={{ width: hs, height: hs, background: color, border: "none" }} />
       <Handle type="target" position={Position.Left} id="left" style={{ width: hs, height: hs, background: color, border: "none" }} />
+      {deltaBadgeEl}
       {overlayPill}
       {isH ? (
         <>

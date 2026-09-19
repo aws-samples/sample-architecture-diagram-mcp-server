@@ -167,24 +167,51 @@ function AwsNode({ data, selected }) {
   const tone = data.tone || data.staticTone;
   const toneCol = tone ? TONE_COLORS[tone] : void 0;
   const active = !!data.active || !data.anyActive && !!data.staticTone;
-  const dimmed = !!data.anyActive && !data.active;
-  const color = active && toneCol ? toneCol : baseColor;
+  const searchActive = !!data.searchActive;
+  const searchHit = !!data.searchHit;
+  const dimmed = !!data.anyActive && !data.active || searchActive && !searchHit;
+  const lensColor = data.lensColor;
+  const color = active && toneCol ? toneCol : lensColor || baseColor;
+  const deltaStatus = data.deltaActive ? data.delta : void 0;
+  const DELTA_COL = { added: "#2E9E5B", removed: "#DD344C", changed: "#F59E0B" };
+  const deltaCol = deltaStatus ? DELTA_COL[deltaStatus] : void 0;
+  const deltaBadge = { added: "+", removed: "\u2212", changed: "~" }[deltaStatus];
+  const deltaDim = data.deltaActive && data.deltaView === "delta" && (!deltaStatus || deltaStatus === "unchanged");
   const iconSize = isH ? 56 : 64;
   const iconInner = isH ? 52 : 56;
   const iconEl = Icon2 ? /* @__PURE__ */ jsx2(Icon2, { src: data.icon ? String(data.icon) : void 0, size: iconInner, alt: label, color }) : /* @__PURE__ */ jsx2("span", { style: { fontSize: isH ? 26 : 30, fontWeight: 700, color }, children: initial });
   const sizing = resizable ? { width: "100%", height: "100%" } : isH ? { width: data.nodeW || 272, minHeight: data.nodeH || 84 } : { width: data.nodeW || 180, minHeight: data.nodeH };
   const frame = {
     position: "relative",
-    border: `3px solid ${color}`,
+    border: `3px ${deltaStatus === "removed" ? "dashed" : "solid"} ${deltaCol || color}`,
     background: `var(${vars.nodeBg}, #fff)`,
-    boxShadow: active && toneCol ? `0 0 0 4px ${toneCol}33, 0 8px 28px ${toneCol}55` : isH ? "0 4px 16px rgba(0,0,0,0.2)" : "0 2px 10px rgba(0,0,0,0.18)",
-    opacity: dimmed ? 0.28 : 1,
+    boxShadow: deltaCol ? `0 0 0 3px ${deltaCol}33, 0 6px 20px ${deltaCol}44` : searchHit ? "0 0 0 4px #4a90d9aa, 0 8px 28px rgba(74,144,217,.4)" : active && toneCol ? `0 0 0 4px ${toneCol}33, 0 8px 28px ${toneCol}55` : isH ? "0 4px 16px rgba(0,0,0,0.2)" : "0 2px 10px rgba(0,0,0,0.18)",
+    opacity: dimmed ? 0.28 : deltaStatus === "removed" ? 0.5 : deltaDim ? 0.5 : 1,
     transform: active ? "scale(1.04)" : "scale(1)",
     transition: "opacity .35s, box-shadow .35s, border-color .35s",
     boxSizing: "border-box",
     ...sizing,
     ...isH ? { padding: "12px 18px", borderRadius: 12, display: "flex", alignItems: "center", gap: 14 } : { padding: "16px 14px 12px", borderRadius: 14, textAlign: "center" }
   };
+  const deltaBadgeEl = deltaBadge && /* @__PURE__ */ jsx2("span", { style: {
+    position: "absolute",
+    top: -11,
+    right: -11,
+    zIndex: 6,
+    width: 22,
+    height: 22,
+    borderRadius: "50%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: 15,
+    fontWeight: 800,
+    lineHeight: 1,
+    color: "#fff",
+    background: deltaCol,
+    border: "2px solid #fff",
+    boxShadow: `0 2px 6px ${deltaCol}88`
+  }, children: deltaBadge });
   const overlayPill = pill && pillOverlay && /* @__PURE__ */ jsx2("span", { style: {
     position: "absolute",
     top: isH ? -14 : -13,
@@ -245,6 +272,7 @@ function AwsNode({ data, selected }) {
     ),
     /* @__PURE__ */ jsx2(Handle, { type: "target", position: Position.Top, id: "top", style: { width: hs, height: hs, background: color, border: "none" } }),
     /* @__PURE__ */ jsx2(Handle, { type: "target", position: Position.Left, id: "left", style: { width: hs, height: hs, background: color, border: "none" } }),
+    deltaBadgeEl,
     overlayPill,
     isH ? /* @__PURE__ */ jsxs2(Fragment2, { children: [
       /* @__PURE__ */ jsx2("div", { style: { width: iconSize, height: iconSize, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }, children: iconEl }),
@@ -442,7 +470,7 @@ function CustomEdge({ id, sourceX, sourceY, targetX, targetY, sourcePosition, ta
   const severed = !!data?.severed || tone === "severed";
   const activeDash = tone === "severed" ? "10 6" : void 0;
   const dotsEnabled = data?.dots !== false;
-  const showDot = dotsEnabled && !severed && (active && tone !== "severed" || !anyActive);
+  const showDot = dotsEnabled && !severed && (active && tone !== "severed" || !anyActive) && !(data?.deltaActive && (data?.delta === "removed" || data?.deltaView === "delta" && (!data?.delta || data?.delta === "unchanged")));
   const strokeActive = data?.strokeActive ?? 3.5;
   const strokeIdle = data?.strokeIdle ?? 2;
   const dotActive = data?.dotActive ?? 6;
@@ -454,8 +482,13 @@ function CustomEdge({ id, sourceX, sourceY, targetX, targetY, sourcePosition, ta
   const label = data?.label;
   const labelVisible = label && !severed && (labelMode === "opt-in" ? data?.showLabel && (active || !anyActive) : true);
   const SEVERED_COLOR = "#EF4444";
-  const strokeColor = severed ? SEVERED_COLOR : active ? activeColor : ts.stroke;
-  const strokeDash = severed ? "10 6" : active ? activeDash : ts.dash;
+  const DELTA_COL = { added: "#2E9E5B", removed: "#DD344C", changed: "#F59E0B" };
+  const deltaStatus = data?.deltaActive ? data?.delta : void 0;
+  const deltaCol = deltaStatus && DELTA_COL[deltaStatus];
+  const deltaDim = data?.deltaActive && data?.deltaView === "delta" && (!deltaStatus || deltaStatus === "unchanged");
+  const strokeColor = deltaCol || (severed ? SEVERED_COLOR : active ? activeColor : ts.stroke);
+  const strokeDash = deltaStatus === "removed" ? "8 5" : severed ? "10 6" : active ? activeDash : ts.dash;
+  const edgeOpacity = deltaStatus === "removed" ? Math.min(opacity, 0.45) : deltaDim ? Math.min(opacity, 0.4) : opacity;
   const needMid = labelVisible || severed;
   const mid = needMid ? midpointAlong(routed, { x: labelX, y: labelY }) : null;
   const labelColor = severed ? SEVERED_COLOR : active ? activeColor : ts.stroke;
@@ -465,7 +498,7 @@ function CustomEdge({ id, sourceX, sourceY, targetX, targetY, sourcePosition, ta
       {
         id,
         path: edgePath,
-        style: { ...style, strokeWidth: active ? strokeActive : strokeIdle, stroke: strokeColor, strokeDasharray: strokeDash, opacity, transition: "opacity .2s, stroke .2s, stroke-width .2s" },
+        style: { ...style, strokeWidth: active ? strokeActive : strokeIdle, stroke: strokeColor, strokeDasharray: strokeDash, opacity: edgeOpacity, transition: "opacity .2s, stroke .2s, stroke-width .2s" },
         markerEnd: `url(#${markerId})`,
         markerStart: data?.bidirectional ? `url(#${markerId})` : void 0
       }
@@ -1032,6 +1065,90 @@ async function exportDiagramPng(nodes, dark) {
   a.click();
   document.body.removeChild(a);
 }
+async function exportShareCard(nodes, dark, title, subtitle) {
+  const el = document.querySelector(".react-flow__viewport");
+  if (!el || !nodes.length) return;
+  const { toPng } = await import("./es-XEWTSNWI.js");
+  const W = 1200, H = 630;
+  const vp = getViewportForBounds(getNodesBounds(nodes), W, H, 0.2, 2, 0.14);
+  const bg = dark ? "#0f1117" : "#f8fafc";
+  const diagramUrl = await toPng(el, {
+    backgroundColor: bg,
+    width: W,
+    height: H,
+    pixelRatio: 2,
+    imagePlaceholder: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+    style: { width: `${W}px`, height: `${H}px`, transform: `translate(${vp.x}px, ${vp.y}px) scale(${vp.zoom})` }
+  });
+  const img = new Image();
+  await new Promise((res, rej) => {
+    img.onload = res;
+    img.onerror = rej;
+    img.src = diagramUrl;
+  });
+  const canvas = document.createElement("canvas");
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+  ctx.drawImage(img, 0, 0, W, H);
+  const scrimH = 200;
+  const grad = ctx.createLinearGradient(0, H - scrimH, 0, H);
+  grad.addColorStop(0, dark ? "rgba(15,17,23,0)" : "rgba(248,250,252,0)");
+  grad.addColorStop(1, dark ? "rgba(15,17,23,0.96)" : "rgba(248,250,252,0.97)");
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, H - scrimH, W, scrimH);
+  const PAD = 56;
+  ctx.fillStyle = "#FF9900";
+  ctx.fillRect(PAD, H - 118, 48, 6);
+  const txt = dark ? "#f8fafc" : "#0f1117";
+  const muted = dark ? "rgba(248,250,252,0.72)" : "rgba(15,17,23,0.66)";
+  const wrap = (s, font, maxW, maxLines) => {
+    ctx.font = font;
+    const words = String(s || "").split(/\s+/);
+    const lines = [];
+    let line = "";
+    for (const w of words) {
+      const test = line ? `${line} ${w}` : w;
+      if (ctx.measureText(test).width > maxW && line) {
+        lines.push(line);
+        line = w;
+        if (lines.length === maxLines) break;
+      } else line = test;
+    }
+    if (line && lines.length < maxLines) lines.push(line);
+    if (lines.length === maxLines && ctx.measureText(line).width > maxW) {
+      while (line && ctx.measureText(line + "\u2026").width > maxW) line = line.slice(0, -1);
+      lines[maxLines - 1] = line + "\u2026";
+    }
+    return lines;
+  };
+  const titleFont = "700 44px 'Amazon Ember', 'Helvetica Neue', Helvetica, Arial, sans-serif";
+  const titleLines = wrap(title, titleFont, W - PAD * 2, 2);
+  ctx.fillStyle = txt;
+  ctx.font = titleFont;
+  ctx.textBaseline = "alphabetic";
+  let y = H - 92 + 44;
+  for (const l of titleLines) {
+    ctx.fillText(l, PAD, y);
+    y += 50;
+  }
+  if (subtitle) {
+    const subFont = "400 24px 'Amazon Ember', 'Helvetica Neue', Helvetica, Arial, sans-serif";
+    const subLines = wrap(subtitle, subFont, W - PAD * 2, 1);
+    ctx.fillStyle = muted;
+    ctx.font = subFont;
+    if (subLines[0]) ctx.fillText(subLines[0], PAD, y + 4);
+  }
+  const url = canvas.toDataURL("image/png");
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "share-card.png";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
 function LangMenu({ lang, languages, onLang, langLabel, ui, btn, dark }) {
   const [open, setOpen] = useState3(false);
   const ref = useRef(null);
@@ -1126,6 +1243,9 @@ function ZoomBar({
   onPlay,
   onReset,
   attention = false,
+  onRecord,
+  recording = false,
+  canRecord = false,
   lang = "en",
   languages = [],
   onLang,
@@ -1201,6 +1321,19 @@ function ZoomBar({
       /* @__PURE__ */ jsx8("path", { d: "m21 21-4.3-4.3M11 8v6m-3-3h6" })
     ] }) }),
     /* @__PURE__ */ jsx8("button", { style: btn, title: ui("exportPng", lang), onClick: () => exportDiagramPng(getNodes(), dark), children: /* @__PURE__ */ jsx8("svg", { width: "16", height: "16", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", viewBox: "0 0 24 24", children: /* @__PURE__ */ jsx8("path", { d: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" }) }) }),
+    /* @__PURE__ */ jsx8(
+      "button",
+      {
+        style: btn,
+        title: ui("shareCard", lang) === "shareCard" ? "Share card (1200\xD7630 PNG)" : ui("shareCard", lang),
+        onClick: () => exportShareCard(getNodes(), dark, title, subtitle),
+        children: /* @__PURE__ */ jsxs8("svg", { width: "16", height: "16", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", viewBox: "0 0 24 24", children: [
+          /* @__PURE__ */ jsx8("rect", { x: "3", y: "4", width: "18", height: "16", rx: "2" }),
+          /* @__PURE__ */ jsx8("path", { d: "M3 15l4-4 4 4M14 13l2-2 5 5" }),
+          /* @__PURE__ */ jsx8("line", { x1: "7", y1: "8", x2: "7.01", y2: "8" })
+        ] })
+      }
+    ),
     sep,
     hasWalk && /* @__PURE__ */ jsxs8(Fragment5, { children: [
       /* @__PURE__ */ jsx8("button", { style: btn, onClick: onReset, title: ui("restart", lang), children: /* @__PURE__ */ jsxs8("svg", { width: "15", height: "15", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", viewBox: "0 0 24 24", children: [
@@ -1220,6 +1353,19 @@ function ZoomBar({
           ] }) : /* @__PURE__ */ jsx8("svg", { width: "14", height: "14", fill: "currentColor", viewBox: "0 0 24 24", children: /* @__PURE__ */ jsx8("path", { d: "M8 5v14l11-7z" }) })
         }
       ),
+      canRecord && /* @__PURE__ */ jsxs8(
+        "button",
+        {
+          style: recording ? { ...btn, borderColor: "#DD344C", color: "#DD344C", background: "rgba(221,52,76,0.12)", gap: 6 } : btn,
+          onClick: onRecord,
+          disabled: recording,
+          title: recording ? ui("recording", lang) === "recording" ? "Recording walkthrough\u2026" : ui("recording", lang) : ui("recordWebm", lang) === "recordWebm" ? "Record walkthrough (WebM)" : ui("recordWebm", lang),
+          children: [
+            /* @__PURE__ */ jsx8("svg", { width: "14", height: "14", viewBox: "0 0 24 24", fill: "currentColor", children: /* @__PURE__ */ jsx8("circle", { cx: "12", cy: "12", r: "7", children: recording && /* @__PURE__ */ jsx8("animate", { attributeName: "opacity", values: "1;0.3;1", dur: "1.1s", repeatCount: "indefinite" }) }) }),
+            recording && /* @__PURE__ */ jsx8("span", { style: { fontSize: 11, fontWeight: 800 }, children: "REC" })
+          ]
+        }
+      ),
       sep
     ] }),
     languages.length > 1 && /* @__PURE__ */ jsxs8(Fragment5, { children: [
@@ -1233,19 +1379,54 @@ function ZoomBar({
 }
 
 // src/components/LiveDiagram.jsx
-import { useMemo, useEffect as useEffect2, useState as useState4, useCallback } from "react";
+import { useMemo, useEffect as useEffect2, useState as useState4, useCallback, useRef as useRef2 } from "react";
 import {
   ReactFlow,
   ReactFlowProvider,
   Background,
   BackgroundVariant,
+  MiniMap,
   useReactFlow as useReactFlow2
 } from "@xyflow/react";
-import { motion as motion3, AnimatePresence as AnimatePresence3 } from "framer-motion";
+import { motion as motion3, AnimatePresence as AnimatePresence3, MotionConfig } from "framer-motion";
 import "@xyflow/react/dist/style.css";
 import { Fragment as Fragment6, jsx as jsx9, jsxs as jsxs9 } from "react/jsx-runtime";
 var NODE_TYPES = { aws: AwsNode_default, group: GroupNode_default };
 var EDGE_TYPES = { custom: CustomEdge_default };
+var LENS_CATEGORY_COLORS = {
+  compute: "#ED7100",
+  storage: "#7AA116",
+  database: "#C925D1",
+  networking: "#8C4FFF",
+  security: "#DD344C",
+  integration: "#E7157B",
+  management: "#E7157B",
+  general: "#545B64"
+};
+var LENS_DOMAIN = {
+  compute: "Compute",
+  storage: "Data",
+  database: "Data",
+  networking: "Network",
+  security: "Security & Identity",
+  integration: "Integration",
+  management: "Management",
+  general: "Management"
+};
+var LENS_DOMAIN_COLORS = {
+  Compute: "#ED7100",
+  Data: "#C925D1",
+  Network: "#8C4FFF",
+  "Security & Identity": "#DD344C",
+  Integration: "#E7157B",
+  Management: "#545B64"
+};
+var catOf = (n) => String(n.data?.sub || n.data?.category || "general").toLowerCase();
+var LENSES = [
+  null,
+  { id: "category", label: "Service category", keyOf: (n) => catOf(n), colorOf: (k) => LENS_CATEGORY_COLORS[k] || LENS_CATEGORY_COLORS.general, labelOf: (k) => k.charAt(0).toUpperCase() + k.slice(1) },
+  { id: "domain", label: "Architecture domain", keyOf: (n) => LENS_DOMAIN[catOf(n)] || "Management", colorOf: (k) => LENS_DOMAIN_COLORS[k] || "#545B64", labelOf: (k) => k }
+];
 function DiagramCanvas({
   data,
   lang,
@@ -1280,7 +1461,12 @@ function DiagramCanvas({
   minZoom = 0.1,
   maxZoom = 3,
   fitMaxZoom,
-  stepMaxZoom = 2.2
+  stepMaxZoom = 2.2,
+  search = "",
+  showMap = false,
+  reachMode = false,
+  lens = 0,
+  deltaView = null
 }) {
   const { fitView } = useReactFlow2();
   const direction = dirOverride || data.direction || "TB";
@@ -1358,27 +1544,152 @@ function DiagramCanvas({
     }
     return vis;
   }, [stepFocus, anyActive, nodeTone, membership, groups]);
+  const searchQ = (search || "").trim().toLowerCase();
+  const searchHits = useMemo(() => {
+    if (!searchQ) return null;
+    const hits = /* @__PURE__ */ new Set();
+    for (const n of baseNodes) {
+      if (n.type !== "aws") continue;
+      const d = n.data || {};
+      const hay = `${d.label || ""} ${d.sub || ""} ${d.category || ""} ${d.service || ""}`.toLowerCase();
+      if (hay.includes(searchQ)) hits.add(n.id);
+    }
+    return hits;
+  }, [searchQ, baseNodes]);
+  const graph = useMemo(() => {
+    const fwd = /* @__PURE__ */ new Map(), rev = /* @__PURE__ */ new Map(), undir = /* @__PURE__ */ new Map();
+    const link = (m, a, b) => {
+      if (!m.has(a)) m.set(a, /* @__PURE__ */ new Set());
+      m.get(a).add(b);
+    };
+    for (const e of baseEdges) {
+      link(fwd, e.source, e.target);
+      link(rev, e.target, e.source);
+      link(undir, e.source, e.target);
+      link(undir, e.target, e.source);
+    }
+    return { fwd, rev, undir };
+  }, [baseEdges]);
+  const [sel, setSel] = useState4([]);
+  useEffect2(() => {
+    if (!reachMode) setSel([]);
+  }, [reachMode]);
+  const pickReach = useCallback((id) => setSel((prev) => {
+    if (prev.length === 1) return prev[0] === id ? [] : [prev[0], id];
+    return [id];
+  }), []);
+  const reach = useMemo(() => {
+    if (!reachMode || !sel.length) return null;
+    const closure = (roots, m) => {
+      const seen2 = new Set(roots);
+      const q2 = [...roots];
+      while (q2.length) {
+        const c2 = q2.shift();
+        for (const nb of m.get(c2) || []) if (!seen2.has(nb)) {
+          seen2.add(nb);
+          q2.push(nb);
+        }
+      }
+      return seen2;
+    };
+    if (sel.length === 1) {
+      const nodes3 = /* @__PURE__ */ new Set([...closure([sel[0]], graph.fwd), ...closure([sel[0]], graph.rev)]);
+      const edges3 = /* @__PURE__ */ new Set();
+      for (const e of baseEdges) if (nodes3.has(e.source) && nodes3.has(e.target)) edges3.add(e.id);
+      return { mode: "reach", nodes: nodes3, edges: edges3, roots: new Set(sel), found: true };
+    }
+    const [a, b] = sel;
+    const prev = /* @__PURE__ */ new Map();
+    const seen = /* @__PURE__ */ new Set([a]);
+    const q = [a];
+    while (q.length) {
+      const c2 = q.shift();
+      if (c2 === b) break;
+      for (const nb of graph.undir.get(c2) || []) if (!seen.has(nb)) {
+        seen.add(nb);
+        prev.set(nb, c2);
+        q.push(nb);
+      }
+    }
+    if (!seen.has(b)) return { mode: "probe", nodes: new Set(sel), edges: /* @__PURE__ */ new Set(), roots: new Set(sel), found: false };
+    const pathNodes = [b];
+    let c = b;
+    while (c !== a) {
+      c = prev.get(c);
+      pathNodes.unshift(c);
+    }
+    const nodes2 = new Set(pathNodes);
+    const edges2 = /* @__PURE__ */ new Set();
+    for (let i = 0; i < pathNodes.length - 1; i++) {
+      const u = pathNodes[i], v = pathNodes[i + 1];
+      const hit = baseEdges.find((e) => e.source === u && e.target === v || e.source === v && e.target === u);
+      if (hit) edges2.add(hit.id);
+    }
+    return { mode: "probe", nodes: nodes2, edges: edges2, roots: new Set(sel), found: true };
+  }, [reachMode, sel, graph, baseEdges]);
+  const reachNodes = reach?.found ? reach.nodes : null;
+  const reachEdges = reach?.found ? reach.edges : null;
+  useEffect2(() => {
+    if (!reachNodes || !reachNodes.size) return;
+    const ids = [...reachNodes];
+    const t = setTimeout(() => fitView({ nodes: ids.map((id) => ({ id })), padding: 0.3, duration: 500, maxZoom: 1.6 }), 80);
+    return () => clearTimeout(t);
+  }, [reachNodes, fitView]);
+  const lensDef = LENSES[lens] || null;
+  const lensLegend = useMemo(() => {
+    if (!lensDef) return null;
+    const map = /* @__PURE__ */ new Map();
+    for (const n of baseNodes) {
+      if (n.type !== "aws") continue;
+      const k = lensDef.keyOf(n);
+      if (!map.has(k)) map.set(k, { label: lensDef.labelOf(k), color: lensDef.colorOf(k) });
+    }
+    return { title: lensDef.label, entries: [...map.values()].sort((a, b) => a.label.localeCompare(b.label)) };
+  }, [lensDef, baseNodes]);
+  const deltaHidden = useMemo(() => {
+    if (!deltaView || deltaView === "delta") return null;
+    const hide = /* @__PURE__ */ new Set();
+    for (const n of baseNodes) {
+      if (n.type !== "aws") continue;
+      const st = n.data?.__src?.delta;
+      if (deltaView === "before" && st === "added" || deltaView === "after" && st === "removed") hide.add(n.id);
+    }
+    return hide;
+  }, [deltaView, baseNodes]);
+  const lit = searchHits || reachNodes;
   const nodes = useMemo(() => baseNodes.map((n) => {
-    const hidden = visibleIds ? !visibleIds.has(n.id) : false;
-    if (n.type === "aws") return { ...n, hidden, data: { ...n.data, active: !!nodeTone[n.id], tone: nodeTone[n.id], anyActive } };
+    const dHidden = deltaHidden ? deltaHidden.has(n.id) : false;
+    const hidden = (visibleIds ? !visibleIds.has(n.id) : false) || dHidden;
+    if (n.type === "aws") return { ...n, hidden, data: { ...n.data, active: !!nodeTone[n.id], tone: nodeTone[n.id], anyActive, searchActive: !!lit, searchHit: lit ? lit.has(n.id) : false, lensColor: lensDef ? lensDef.colorOf(lensDef.keyOf(n)) : void 0, deltaActive: !!deltaView, delta: n.data?.__src?.delta, deltaView } };
     const gt = groupTone[n.id];
     if (gt) {
       const gc = TONE_COLORS[gt] || TONE_COLORS.accent;
       return { ...n, hidden, style: { ...n.style, border: `2.5px solid ${gc}`, background: `${gc}14`, boxShadow: `0 0 0 3px ${gc}33` } };
     }
     return { ...n, hidden };
-  }), [baseNodes, nodeTone, groupTone, anyActive, visibleIds]);
+  }), [baseNodes, nodeTone, groupTone, anyActive, visibleIds, lit, lensDef, deltaHidden, deltaView]);
+  useEffect2(() => {
+    if (!searchHits || !searchHits.size) return;
+    const ids = [...searchHits];
+    const t = setTimeout(() => fitView({ nodes: ids.map((id) => ({ id })), padding: 0.3, duration: 500, maxZoom: 1.6 }), 80);
+    return () => clearTimeout(t);
+  }, [searchHits, fitView]);
   const presentIds = useMemo(() => new Set(baseNodes.map((n) => n.id)), [baseNodes]);
   const edges = useMemo(() => baseEdges.map((e) => {
-    const active = !!edgeTone[e.id];
+    const reachLit = reachEdges ? reachEdges.has(e.id) : false;
+    const active = !!edgeTone[e.id] || reachLit;
+    const anyEdgeActive = anyActive || !!reachEdges;
+    const tone = edgeTone[e.id] || (reachLit ? "info" : void 0);
     const endpointHidden = !presentIds.has(e.source) || !presentIds.has(e.target);
-    const hidden = endpointHidden || (visibleIds ? !active : false);
-    return { ...e, hidden, data: { ...e.data, active, tone: edgeTone[e.id], anyActive, routed: edgePaths[e.id] } };
-  }), [baseEdges, edgeTone, anyActive, edgePaths, visibleIds, presentIds]);
+    const est = e.data?.__src?.delta;
+    const deltaEdgeHidden = deltaHidden ? deltaHidden.has(e.source) || deltaHidden.has(e.target) || deltaView === "before" && est === "added" || deltaView === "after" && est === "removed" : false;
+    const hidden = endpointHidden || (visibleIds ? !active : false) || deltaEdgeHidden;
+    return { ...e, hidden, data: { ...e.data, active, tone, anyActive: anyEdgeActive, routed: edgePaths[e.id], deltaActive: !!deltaView, delta: est, deltaView } };
+  }), [baseEdges, edgeTone, anyActive, edgePaths, visibleIds, presentIds, reachEdges, deltaHidden, deltaView]);
   useEffect2(() => {
     const t = setTimeout(() => fitView({ padding: fitPadding, ...fitMaxZoom != null ? { maxZoom: fitMaxZoom } : {} }), 60);
     return () => clearTimeout(t);
-  }, [baseNodes, fitView, fitPadding, fitMaxZoom, stepFocus ? activeStep : 0]);
+  }, [baseNodes, fitView, fitPadding, fitMaxZoom, stepFocus ? activeStep : 0, deltaView]);
   useEffect2(() => {
     if (!stepZoom || !anyActive) return;
     const step = steps?.[Math.min(activeStep, (steps?.length || 1) - 1)];
@@ -1408,7 +1719,7 @@ function DiagramCanvas({
       maxZoom,
       nodesDraggable: groupsInteractive,
       nodesConnectable: false,
-      elementsSelectable: !!onNodeClick,
+      elementsSelectable: !!onNodeClick || reachMode,
       panOnDrag: true,
       zoomOnScroll: !!zoomOnScroll,
       zoomOnPinch: true,
@@ -1416,11 +1727,88 @@ function DiagramCanvas({
       zoomOnDoubleClick: false,
       onDoubleClick: () => fitView({ padding: fitPadding, duration: 400, ...fitMaxZoom != null ? { maxZoom: fitMaxZoom } : {} }),
       preventScrolling: !!zoomOnScroll,
-      onNodeClick: onNodeClick ? (_e, n) => {
-        if (n.type === "aws") onNodeClick(n);
+      onNodeClick: reachMode || onNodeClick ? (_e, n) => {
+        if (n.type !== "aws") return;
+        if (reachMode) pickReach(n.id);
+        else onNodeClick(n);
       } : void 0,
       children: [
         /* @__PURE__ */ jsx9(Background, { variant: BackgroundVariant.Dots, gap: 20, size: 1, color: `var(${vars.dot || "--dot"}, rgba(0,0,0,0.05))` }),
+        showMap && /* @__PURE__ */ jsx9(
+          MiniMap,
+          {
+            pannable: true,
+            zoomable: true,
+            position: "bottom-right",
+            nodeColor: (n) => n.type === "aws" ? "#4a90d9" : "#94a3b8",
+            nodeStrokeColor: "transparent",
+            maskColor: "rgba(0,0,0,0.14)",
+            style: { borderRadius: 10, overflow: "hidden" }
+          }
+        ),
+        reachMode && /* @__PURE__ */ jsxs9("div", { style: {
+          position: "absolute",
+          top: 14,
+          left: 14,
+          zIndex: 45,
+          maxWidth: 340,
+          padding: "7px 12px",
+          borderRadius: 11,
+          fontSize: 12.5,
+          lineHeight: 1.4,
+          border: `1px solid var(${vars.border || "--border"}, rgba(0,0,0,.14))`,
+          background: reach && reach.mode === "probe" && !reach.found ? "rgba(221,52,76,.92)" : `var(${vars.pillBg || "--pill-bg"}, rgba(255,255,255,.95))`,
+          color: reach && reach.mode === "probe" && !reach.found ? "#fff" : `var(${vars.txt || "--txt"}, inherit)`,
+          backdropFilter: "blur(12px)",
+          boxShadow: "0 8px 24px rgba(0,0,0,.28)"
+        }, children: [
+          !sel.length && /* @__PURE__ */ jsxs9("span", { children: [
+            /* @__PURE__ */ jsx9("b", { children: "Reach mode" }),
+            " \u2014 click a node to light its upstream + downstream; click a second to probe a path. Esc exits."
+          ] }),
+          reach && reach.mode === "reach" && /* @__PURE__ */ jsxs9("span", { children: [
+            /* @__PURE__ */ jsx9("b", { children: "Reachable set" }),
+            " \u2014 ",
+            reach.nodes.size,
+            " node",
+            reach.nodes.size === 1 ? "" : "s",
+            " connected. Click another node to probe a path."
+          ] }),
+          reach && reach.mode === "probe" && reach.found && /* @__PURE__ */ jsxs9("span", { children: [
+            /* @__PURE__ */ jsx9("b", { children: "Path found" }),
+            " \u2014 ",
+            reach.nodes.size,
+            " hops highlighted."
+          ] }),
+          reach && reach.mode === "probe" && !reach.found && /* @__PURE__ */ jsxs9("span", { children: [
+            /* @__PURE__ */ jsx9("b", { children: "No path" }),
+            " \u2014 the two nodes are not connected."
+          ] })
+        ] }),
+        lensLegend && /* @__PURE__ */ jsxs9("div", { style: {
+          position: "absolute",
+          bottom: 14,
+          left: 14,
+          zIndex: 45,
+          padding: "9px 12px",
+          borderRadius: 11,
+          fontSize: 12,
+          border: `1px solid var(${vars.border || "--border"}, rgba(0,0,0,.14))`,
+          background: `var(${vars.pillBg || "--pill-bg"}, rgba(255,255,255,.95))`,
+          color: `var(${vars.txt || "--txt"}, inherit)`,
+          backdropFilter: "blur(12px)",
+          boxShadow: "0 8px 24px rgba(0,0,0,.28)",
+          maxWidth: 240
+        }, children: [
+          /* @__PURE__ */ jsxs9("div", { style: { fontWeight: 700, marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.4, fontSize: 10.5, opacity: 0.7 }, children: [
+            "Lens \xB7 ",
+            lensLegend.title
+          ] }),
+          /* @__PURE__ */ jsx9("div", { style: { display: "flex", flexDirection: "column", gap: 4 }, children: lensLegend.entries.map((e) => /* @__PURE__ */ jsxs9("div", { style: { display: "flex", alignItems: "center", gap: 8 }, children: [
+            /* @__PURE__ */ jsx9("span", { style: { width: 12, height: 12, borderRadius: 3, background: e.color, flexShrink: 0 } }),
+            /* @__PURE__ */ jsx9("span", { children: e.label })
+          ] }, e.label)) })
+        ] }),
         /* @__PURE__ */ jsx9("svg", { style: { position: "absolute", width: 0, height: 0 }, children: /* @__PURE__ */ jsx9("defs", { children: /* @__PURE__ */ jsx9("marker", { id: markerId, viewBox: "0 0 10 10", refX: "8", refY: "5", markerWidth: "7", markerHeight: "7", orient: "auto-start-reverse", children: /* @__PURE__ */ jsx9("path", { d: "M 0 0 L 10 5 L 0 10 z", fill: "#4a90d9" }) }) }) })
       ]
     }
@@ -1510,6 +1898,104 @@ function StepOverlay({
   const sideMaxH = "calc(100vh - 32px)";
   const pos = cardSide === "top" ? { top: 16, left: "50%", transform: `translateX(-50%)${scale !== 1 ? ` scale(${scale})` : ""}`, transformOrigin: "top center", width: "min(88%, 900px)" } : cardSide === "left" ? { top: 16, left: 16, width: "min(46%, 640px)", maxHeight: sideMaxH, transform: scale !== 1 ? `scale(${scale})` : void 0, transformOrigin: "top left" } : { top: 16, right: 16, width: "min(46%, 640px)", maxHeight: sideMaxH, transform: scale !== 1 ? `scale(${scale})` : void 0, transformOrigin: "top right" };
   return /* @__PURE__ */ jsx9("div", { style: { position: "absolute", zIndex: 30, pointerEvents: "none", ...pos }, children: card });
+}
+var DELTA_LEGEND = [
+  { key: "added", color: "#2E9E5B", sym: "+", label: "Added" },
+  { key: "removed", color: "#DD344C", sym: "\u2212", label: "Removed" },
+  { key: "changed", color: "#F59E0B", sym: "~", label: "Changed" }
+];
+function DeltaControls({ view, onView, summary, vars }) {
+  const t = summary?.total;
+  const surface = `var(${vars.pillBg || "--pill-bg"}, rgba(255,255,255,.95))`;
+  const border = `1px solid var(${vars.border || "--border"}, rgba(0,0,0,.14))`;
+  const txt = `var(${vars.txt || "--txt"}, inherit)`;
+  const VIEWS = [
+    { id: "before", label: "Before" },
+    { id: "delta", label: "Delta" },
+    { id: "after", label: "After" }
+  ];
+  return /* @__PURE__ */ jsxs9("div", { style: {
+    position: "absolute",
+    top: 16,
+    left: "50%",
+    transform: "translateX(-50%)",
+    zIndex: 44,
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 8,
+    pointerEvents: "none"
+  }, children: [
+    /* @__PURE__ */ jsx9("div", { role: "tablist", "aria-label": "Architecture delta view", style: {
+      display: "flex",
+      gap: 3,
+      padding: 3,
+      borderRadius: 999,
+      border,
+      background: surface,
+      backdropFilter: "blur(12px)",
+      boxShadow: "0 8px 24px rgba(0,0,0,.28)",
+      pointerEvents: "auto"
+    }, children: VIEWS.map((v) => {
+      const on = view === v.id;
+      return /* @__PURE__ */ jsx9(
+        "button",
+        {
+          type: "button",
+          role: "tab",
+          "aria-selected": on,
+          onClick: () => onView(v.id),
+          title: `${v.label} (D cycles)`,
+          style: {
+            cursor: "pointer",
+            padding: "5px 15px",
+            borderRadius: 999,
+            border: "none",
+            font: "inherit",
+            fontSize: 12.5,
+            fontWeight: 700,
+            letterSpacing: 0.2,
+            background: on ? "#FF9900" : "transparent",
+            color: on ? "#111" : txt,
+            transition: "background .2s, color .2s"
+          },
+          children: v.label
+        },
+        v.id
+      );
+    }) }),
+    /* @__PURE__ */ jsx9("div", { style: {
+      display: "flex",
+      gap: 10,
+      padding: "6px 12px",
+      borderRadius: 11,
+      border,
+      background: surface,
+      backdropFilter: "blur(12px)",
+      boxShadow: "0 8px 24px rgba(0,0,0,.28)",
+      fontSize: 11.5,
+      color: txt,
+      pointerEvents: "auto"
+    }, children: DELTA_LEGEND.map((l) => /* @__PURE__ */ jsxs9("span", { style: { display: "flex", alignItems: "center", gap: 5 }, children: [
+      /* @__PURE__ */ jsx9("span", { style: {
+        width: 16,
+        height: 16,
+        borderRadius: "50%",
+        background: l.color,
+        color: "#fff",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: 12,
+        fontWeight: 800,
+        lineHeight: 1
+      }, children: l.sym }),
+      /* @__PURE__ */ jsxs9("span", { children: [
+        l.label,
+        t ? ` ${t[l.key]}` : ""
+      ] })
+    ] }, l.key)) })
+  ] });
 }
 function LiveDiagram({
   data,
@@ -1632,111 +2118,374 @@ function LiveDiagram({
   }, [step, initScaleIdx]);
   const cardSide = hasWalk && step >= 0 ? steps[Math.min(step, steps.length - 1)]?.cardSide : null;
   const effectiveStepLayout = cardSide === "full" || cardExpanded ? "overlay" : stepLayout;
-  return /* @__PURE__ */ jsx9(ReactFlowProvider, { children: /* @__PURE__ */ jsxs9("div", { className: `ld-frame ${themeClass} ${className}`.trim(), style: { width: "100%", height: "100%", position: "relative" }, children: [
-    /* @__PURE__ */ jsx9(
-      DiagramCanvas,
-      {
-        data,
-        lang,
-        animate,
-        direction,
-        edgeStyle,
-        steps,
-        activeStep: step,
-        fitPadding,
-        stepFocus,
-        spacing,
-        stepZoom,
-        geometry,
-        nodeLayout,
-        vars: vars || {},
-        Icon: Icon2,
-        markerId,
-        reanchorEdges,
-        groupsInteractive,
-        edgeTuning: resolvedEdgeTuning,
-        onNodeClick: chrome && nodeModal ? setDetailNode : void 0,
-        collapsible,
-        collapsed,
-        onToggleCollapse,
-        zoomOnScroll,
-        minZoom,
-        maxZoom,
-        fitMaxZoom,
-        stepMaxZoom
+  const [searchOpen, setSearchOpen] = useState4(false);
+  const [search, setSearch] = useState4("");
+  const searchRef = useRef2(null);
+  const [showMap, setShowMap] = useState4(false);
+  const [reachMode, setReachMode] = useState4(false);
+  const [lens, setLens] = useState4(0);
+  const deltaMode = !!data?.delta;
+  const [deltaView, setDeltaView] = useState4(() => ["before", "delta", "after"].includes(data?.deltaView) ? data.deltaView : "delta");
+  const [presenting, setPresenting] = useState4(false);
+  const frameRef = useRef2(null);
+  const togglePresent = useCallback(() => {
+    const el = frameRef.current;
+    const doc = typeof document !== "undefined" ? document : null;
+    if (!el || !doc) {
+      setPresenting((v) => !v);
+      return;
+    }
+    if (doc.fullscreenElement) {
+      doc.exitFullscreen?.();
+    } else {
+      (el.requestFullscreen?.() ?? Promise.resolve()).then(() => setPresenting(true)).catch(() => setPresenting((v) => !v));
+    }
+  }, []);
+  useEffect2(() => {
+    if (typeof document === "undefined") return;
+    const onFs = () => setPresenting(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", onFs);
+    return () => document.removeEventListener("fullscreenchange", onFs);
+  }, []);
+  const pickWebmMime = () => {
+    if (typeof MediaRecorder === "undefined") return "";
+    for (const m of ["video/webm;codecs=vp9", "video/webm;codecs=vp8", "video/webm"]) {
+      try {
+        if (MediaRecorder.isTypeSupported(m)) return m;
+      } catch {
       }
-    ),
-    /* @__PURE__ */ jsx9(
-      StepOverlay,
-      {
-        steps,
-        activeStep: step,
-        lang,
-        Icon: Icon2,
-        stepLayout: effectiveStepLayout,
-        dark: theme === "self" ? selfDark : false,
-        onPick: chrome && control === "auto" ? (i) => {
-          setPlaying(false);
-          setInternalStep(i);
-        } : void 0,
-        expanded: cardExpanded,
-        cardScale,
-        onToggleExpand: chrome ? () => setCardExpanded((v) => !v) : void 0,
-        expandLabel: ui ? ui("expand", lang) : void 0,
-        collapseLabel: ui ? ui("collapse", lang) : void 0,
-        onTextBigger: chrome ? () => setCardScaleIdx((i) => Math.min(i + 1, CARD_SCALES.length - 1)) : void 0,
-        onTextSmaller: chrome ? () => setCardScaleIdx((i) => Math.max(i - 1, 0)) : void 0,
-        canTextBigger: chrome && !cardExpanded && cardScaleIdx < CARD_SCALES.length - 1,
-        canTextSmaller: chrome && !cardExpanded && cardScaleIdx > 0,
-        textSmallerLabel: ui ? ui("textSmaller", lang) : void 0,
-        textLargerLabel: ui ? ui("textLarger", lang) : void 0
-      }
-    ),
-    chrome && /* @__PURE__ */ jsxs9(Fragment6, { children: [
-      nodeModal && /* @__PURE__ */ jsx9(NodeModal, { node: detailNode, onClose: () => setDetailNode(null), Icon: Icon2, strings: ui ? { iac: ui("iac", lang), pricing: ui("pricing", lang) } : void 0 }),
-      /* @__PURE__ */ jsx9(
-        ZoomBar,
-        {
-          title: tr(title, lang),
-          subtitle: tr(subtitle, lang),
-          dark: selfDark,
-          visible: dockVisible,
-          onToggle: () => setDockVisible((v) => !v),
-          onTheme: () => setSelfDark((d) => !d),
-          hasWalk,
-          playing,
-          attention: hasWalk && !playing && step <= 0,
-          onPlay: () => {
-            setPlaying((p) => {
-              if (!p) setInternalStep((s) => s < 0 || s >= steps.length - 1 ? 0 : s);
-              return !p;
-            });
-          },
-          onReset: () => {
-            setPlaying(false);
-            setInternalStep(-1);
-          },
-          lang,
-          languages,
-          onLang: onLangChange,
-          ui,
-          langLabel
+    }
+    return "";
+  };
+  const canRecord = typeof MediaRecorder !== "undefined" && typeof HTMLCanvasElement !== "undefined" && !!HTMLCanvasElement.prototype.captureStream && !!pickWebmMime();
+  const [recording, setRecording] = useState4(false);
+  const recordWalkthrough = useCallback(async () => {
+    if (!hasWalk || recording) return;
+    const mime = pickWebmMime();
+    const frame = frameRef.current;
+    if (!mime || !frame) return;
+    setPlaying(false);
+    setRecording(true);
+    const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+    let stream, cleanupTracks = () => {
+    };
+    try {
+      const { toPng } = await import("./es-XEWTSNWI.js");
+      const w = Math.max(2, frame.clientWidth), h = Math.max(2, frame.clientHeight);
+      const bg = selfDark ? "#0f1117" : "#f8fafc";
+      const cv = document.createElement("canvas");
+      cv.width = w;
+      cv.height = h;
+      const ctx = cv.getContext("2d");
+      stream = cv.captureStream(30);
+      cleanupTracks = () => stream.getTracks().forEach((t) => t.stop());
+      const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 8e6 });
+      const chunks = [];
+      rec.ondataavailable = (e) => {
+        if (e.data && e.data.size) chunks.push(e.data);
+      };
+      const stopped = new Promise((res) => {
+        rec.onstop = res;
+      });
+      let img = null;
+      const snapshot = async () => {
+        const url = await toPng(frame, {
+          backgroundColor: bg,
+          width: w,
+          height: h,
+          pixelRatio: 1,
+          imagePlaceholder: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+          filter: (node) => !(node && node.dataset && node.dataset.norecord)
+        });
+        await new Promise((res) => {
+          const im = new Image();
+          im.onload = () => {
+            img = im;
+            res();
+          };
+          im.onerror = () => res();
+          im.src = url;
+        });
+      };
+      const paint = () => {
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, w, h);
+        if (img) ctx.drawImage(img, 0, 0, w, h);
+      };
+      const hold = async (ms) => {
+        const end = performance.now() + ms;
+        while (performance.now() < end) {
+          paint();
+          await wait(1e3 / 30);
         }
-      )
-    ] })
-  ] }) });
+      };
+      rec.start();
+      try {
+        setInternalStep(0);
+        await wait(950);
+        await snapshot();
+        await hold(500);
+        for (let i = 0; i < steps.length; i++) {
+          setInternalStep(i);
+          await wait(950);
+          await snapshot();
+          await hold(2200);
+        }
+        await wait(350);
+      } finally {
+        rec.stop();
+        await stopped;
+        const blob = new Blob(chunks, { type: mime });
+        const u = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = u;
+        a.download = "architecture-walkthrough.webm";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(u), 1e3);
+      }
+    } catch {
+    } finally {
+      cleanupTracks();
+      setRecording(false);
+      setInternalStep(-1);
+    }
+  }, [hasWalk, recording, steps, selfDark]);
+  useEffect2(() => {
+    if (!chrome) return;
+    const onKey = (e) => {
+      const tag = e.target?.tagName;
+      if (e.key === "Escape" && searchOpen) {
+        setSearchOpen(false);
+        setSearch("");
+        return;
+      }
+      if (e.key === "Escape" && reachMode) {
+        setReachMode(false);
+        return;
+      }
+      if (tag === "INPUT" || tag === "TEXTAREA") return;
+      if (e.key === "/") {
+        e.preventDefault();
+        setSearchOpen(true);
+        setTimeout(() => searchRef.current?.focus(), 0);
+      }
+      if (e.key === "m" || e.key === "M") {
+        e.preventDefault();
+        setShowMap((v) => !v);
+      }
+      if (e.key === "f" || e.key === "F") {
+        e.preventDefault();
+        togglePresent();
+      }
+      if (e.key === "r" || e.key === "R") {
+        e.preventDefault();
+        setReachMode((v) => !v);
+      }
+      if (e.key === "l" || e.key === "L") {
+        e.preventDefault();
+        setLens((v) => (v + 1) % LENSES.length);
+      }
+      if ((e.key === "d" || e.key === "D") && deltaMode) {
+        e.preventDefault();
+        const order = ["before", "delta", "after"];
+        setDeltaView((v) => order[(order.indexOf(v) + 1) % order.length]);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [chrome, searchOpen, reachMode, togglePresent, deltaMode]);
+  return (
+    // reducedMotion="user" makes every descendant framer-motion animation honor
+    // the OS "reduce motion" setting (transforms/layout are skipped, opacity
+    // kept) — pairs with the CSS media override that neutralizes plain CSS
+    // transitions. The diagram stays fully navigable; only motion is removed.
+    /* @__PURE__ */ jsx9(MotionConfig, { reducedMotion: "user", children: /* @__PURE__ */ jsx9(ReactFlowProvider, { children: /* @__PURE__ */ jsxs9("div", { ref: frameRef, className: `ld-frame ${themeClass} ${className}`.trim(), style: { width: "100%", height: "100%", position: "relative", background: presenting ? `var(${vars.bg || "--bg"}, #fff)` : void 0 }, children: [
+      /* @__PURE__ */ jsx9(
+        DiagramCanvas,
+        {
+          data,
+          lang,
+          animate,
+          direction,
+          edgeStyle,
+          steps,
+          activeStep: step,
+          fitPadding,
+          stepFocus,
+          spacing,
+          stepZoom,
+          geometry,
+          nodeLayout,
+          vars: vars || {},
+          Icon: Icon2,
+          markerId,
+          reanchorEdges,
+          groupsInteractive,
+          edgeTuning: resolvedEdgeTuning,
+          onNodeClick: chrome && nodeModal ? setDetailNode : void 0,
+          collapsible,
+          collapsed,
+          onToggleCollapse,
+          zoomOnScroll,
+          minZoom,
+          maxZoom,
+          fitMaxZoom,
+          stepMaxZoom,
+          search,
+          showMap: chrome && showMap,
+          reachMode: chrome && reachMode,
+          lens: chrome ? lens : 0,
+          deltaView: deltaMode ? deltaView : null
+        }
+      ),
+      /* @__PURE__ */ jsx9(
+        StepOverlay,
+        {
+          steps,
+          activeStep: step,
+          lang,
+          Icon: Icon2,
+          stepLayout: effectiveStepLayout,
+          dark: theme === "self" ? selfDark : false,
+          onPick: chrome && control === "auto" ? (i) => {
+            setPlaying(false);
+            setInternalStep(i);
+          } : void 0,
+          expanded: cardExpanded,
+          cardScale,
+          onToggleExpand: chrome ? () => setCardExpanded((v) => !v) : void 0,
+          expandLabel: ui ? ui("expand", lang) : void 0,
+          collapseLabel: ui ? ui("collapse", lang) : void 0,
+          onTextBigger: chrome ? () => setCardScaleIdx((i) => Math.min(i + 1, CARD_SCALES.length - 1)) : void 0,
+          onTextSmaller: chrome ? () => setCardScaleIdx((i) => Math.max(i - 1, 0)) : void 0,
+          canTextBigger: chrome && !cardExpanded && cardScaleIdx < CARD_SCALES.length - 1,
+          canTextSmaller: chrome && !cardExpanded && cardScaleIdx > 0,
+          textSmallerLabel: ui ? ui("textSmaller", lang) : void 0,
+          textLargerLabel: ui ? ui("textLarger", lang) : void 0
+        }
+      ),
+      chrome && searchOpen && /* @__PURE__ */ jsxs9("div", { "data-norecord": "1", style: {
+        position: "absolute",
+        top: 14,
+        left: "50%",
+        transform: "translateX(-50%)",
+        zIndex: 45,
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+        padding: "7px 10px",
+        borderRadius: 11,
+        border: `1px solid var(${vars.border || "--border"}, rgba(0,0,0,.14))`,
+        background: `var(${vars.pillBg || "--pill-bg"}, rgba(255,255,255,.95))`,
+        backdropFilter: "blur(12px)",
+        boxShadow: "0 8px 24px rgba(0,0,0,.28)"
+      }, children: [
+        /* @__PURE__ */ jsx9("span", { style: { opacity: 0.6 }, children: "\u{1F50D}" }),
+        /* @__PURE__ */ jsx9(
+          "input",
+          {
+            ref: searchRef,
+            type: "text",
+            value: search,
+            onChange: (e) => setSearch(e.target.value),
+            onKeyDown: (e) => {
+              if (e.key === "Escape") {
+                setSearchOpen(false);
+                setSearch("");
+              }
+            },
+            placeholder: "search nodes\u2026",
+            "aria-label": "search nodes",
+            style: { background: "transparent", border: "none", outline: "none", font: "inherit", fontSize: 13, width: 190, color: `var(${vars.txt || "--txt"}, inherit)` }
+          }
+        )
+      ] }),
+      chrome && deltaMode && !presenting && /* @__PURE__ */ jsx9("div", { "data-norecord": "1", style: { display: "contents" }, children: /* @__PURE__ */ jsx9(DeltaControls, { view: deltaView, onView: setDeltaView, summary: data?.deltaSummary, vars: vars || {} }) }),
+      chrome && presenting && /* @__PURE__ */ jsx9(
+        "button",
+        {
+          "data-norecord": "1",
+          onClick: togglePresent,
+          "aria-label": "exit presentation (Esc)",
+          title: "Exit presentation (Esc)",
+          style: {
+            position: "absolute",
+            top: 14,
+            right: 14,
+            zIndex: 46,
+            cursor: "pointer",
+            padding: "6px 12px",
+            borderRadius: 999,
+            font: "inherit",
+            fontSize: 12,
+            fontWeight: 600,
+            border: `1px solid var(${vars.border || "--border"}, rgba(0,0,0,.14))`,
+            background: `var(${vars.pillBg || "--pill-bg"}, rgba(255,255,255,.85))`,
+            color: `var(${vars.txt || "--txt"}, inherit)`,
+            backdropFilter: "blur(12px)",
+            opacity: 0.55,
+            transition: "opacity .2s"
+          },
+          onMouseEnter: (e) => {
+            e.currentTarget.style.opacity = "1";
+          },
+          onMouseLeave: (e) => {
+            e.currentTarget.style.opacity = ".55";
+          },
+          children: "Esc"
+        }
+      ),
+      chrome && !presenting && /* @__PURE__ */ jsxs9(Fragment6, { children: [
+        nodeModal && /* @__PURE__ */ jsx9(NodeModal, { node: detailNode, onClose: () => setDetailNode(null), Icon: Icon2, strings: ui ? { iac: ui("iac", lang), pricing: ui("pricing", lang) } : void 0 }),
+        /* @__PURE__ */ jsx9("div", { "data-norecord": "1", style: { display: "contents" }, children: /* @__PURE__ */ jsx9(
+          ZoomBar,
+          {
+            title: tr(title, lang),
+            subtitle: tr(subtitle, lang),
+            dark: selfDark,
+            visible: dockVisible,
+            onToggle: () => setDockVisible((v) => !v),
+            onTheme: () => setSelfDark((d) => !d),
+            hasWalk,
+            playing,
+            attention: hasWalk && !playing && step <= 0,
+            onRecord: recordWalkthrough,
+            recording,
+            canRecord,
+            onPlay: () => {
+              setPlaying((p) => {
+                if (!p) setInternalStep((s) => s < 0 || s >= steps.length - 1 ? 0 : s);
+                return !p;
+              });
+            },
+            onReset: () => {
+              setPlaying(false);
+              setInternalStep(-1);
+            },
+            lang,
+            languages,
+            onLang: onLangChange,
+            ui,
+            langLabel
+          }
+        ) })
+      ] })
+    ] }) }) })
+  );
 }
 var LiveDiagram_default = LiveDiagram;
 
 // src/components/LiveDiagramEditor.jsx
-import { useEffect as useEffect3, useState as useState5, useCallback as useCallback2, useRef as useRef2, useImperativeHandle, forwardRef } from "react";
+import { useEffect as useEffect3, useState as useState5, useCallback as useCallback2, useRef as useRef3, useImperativeHandle, forwardRef } from "react";
 import {
   ReactFlow as ReactFlow2,
   ReactFlowProvider as ReactFlowProvider2,
   Background as Background2,
   BackgroundVariant as BackgroundVariant2,
   Controls,
-  MiniMap,
+  MiniMap as MiniMap2,
   useReactFlow as useReactFlow3,
   useNodesState,
   useEdgesState,
@@ -1783,11 +2532,11 @@ function EditorCanvas({
   } } : { ...n, data: { ...n.data, resizable: true } }, [Icon2, nodeLayout, vars, lang]);
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-  const loadedRef = useRef2(false);
-  const past = useRef2([]);
-  const future = useRef2([]);
-  const restoring = useRef2(false);
-  const clipboard = useRef2(null);
+  const loadedRef = useRef3(false);
+  const past = useRef3([]);
+  const future = useRef3([]);
+  const restoring = useRef3(false);
+  const clipboard = useRef3(null);
   const [histTick, setHistTick] = useState5(0);
   const snapshot = useCallback2(() => {
     past.current.push({ nodes, edges });
@@ -1950,7 +2699,7 @@ function EditorCanvas({
     setEdges((es) => es.map((e) => ({ ...e, selected: e.id === edge.id })));
     setNodes((ns) => ns.map((n) => ({ ...n, selected: false })));
   }, [setNodes, setEdges]);
-  const editorApi = useRef2(null);
+  const editorApi = useRef3(null);
   const api = {
     // Add a service node at a SCREEN point (click-to-add or drop) or centered.
     addService(svc, screenPos) {
@@ -2354,7 +3103,7 @@ function EditorCanvas({
           }
         ),
         controls && /* @__PURE__ */ jsx10(Controls, {}),
-        minimap && /* @__PURE__ */ jsx10(MiniMap, { pannable: true, zoomable: true, nodeStrokeWidth: 2, style: { background: `var(${vars.nodeBg || "--nodeBg"}, #fff)` } }),
+        minimap && /* @__PURE__ */ jsx10(MiniMap2, { pannable: true, zoomable: true, nodeStrokeWidth: 2, style: { background: `var(${vars.nodeBg || "--nodeBg"}, #fff)` } }),
         /* @__PURE__ */ jsx10("svg", { style: { position: "absolute", width: 0, height: 0 }, children: /* @__PURE__ */ jsx10("defs", { children: /* @__PURE__ */ jsx10("marker", { id: markerId, viewBox: "0 0 10 10", refX: "8", refY: "5", markerWidth: "7", markerHeight: "7", orient: "auto-start-reverse", children: /* @__PURE__ */ jsx10("path", { d: "M 0 0 L 10 5 L 0 10 z", fill: "#4a90d9" }) }) }) })
       ]
     }

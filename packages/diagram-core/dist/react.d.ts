@@ -56,7 +56,7 @@ declare function NodeModal({ node, onClose, Icon, strings }: {
     strings: any;
 }): react.JSX.Element;
 
-declare function ZoomBar({ title, subtitle, dark, visible, onToggle, onTheme, hasWalk, playing, onPlay, onReset, attention, lang, languages, onLang, ui, langLabel, }: {
+declare function ZoomBar({ title, subtitle, dark, visible, onToggle, onTheme, hasWalk, playing, onPlay, onReset, attention, onRecord, recording, canRecord, lang, languages, onLang, ui, langLabel, }: {
     title: any;
     subtitle: any;
     dark: any;
@@ -68,6 +68,9 @@ declare function ZoomBar({ title, subtitle, dark, visible, onToggle, onTheme, ha
     onPlay: any;
     onReset: any;
     attention?: boolean;
+    onRecord: any;
+    recording?: boolean;
+    canRecord?: boolean;
     lang?: string;
     languages?: any[];
     onLang: any;
