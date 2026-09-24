@@ -172,7 +172,7 @@ export default function ZoomBar({
       <button onClick={onToggle} style={{
         position: "absolute", bottom: 24, left: "50%", transform: "translateX(-50%)", zIndex: 30,
         width: 40, height: 40, borderRadius: "50%", border: "1px solid var(--border)",
-        background: dark ? "rgba(26,29,39,0.95)" : "rgba(255,255,255,0.95)",
+        background: `var(--ld-dock-bg, ${dark ? "rgba(26,29,39,0.95)" : "rgba(255,255,255,0.95)"})`,
         color: "var(--txt)", fontSize: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
         backdropFilter: "blur(12px)", boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
       }}>▲</button>
@@ -190,15 +190,15 @@ export default function ZoomBar({
     <div style={{
       position: "absolute", bottom: 24, left: "50%", transform: "translateX(-50%)", zIndex: 30,
       display: "flex", alignItems: "center", gap: 6, padding: "10px 20px",
-      background: dark ? "rgba(26,29,39,0.95)" : "rgba(255,255,255,0.95)",
+      background: `var(--ld-dock-bg, ${dark ? "rgba(26,29,39,0.95)" : "rgba(255,255,255,0.95)"})`,
       border: "1px solid var(--border)", borderRadius: 16, backdropFilter: "blur(12px)",
       boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
     }}>
-      <div style={{ marginRight: 12, minWidth: 0, maxWidth: 320 }}>
+      {title && <div style={{ marginRight: 12, minWidth: 0, maxWidth: 320 }}>
         <div style={{ fontSize: 13, fontWeight: 700, color: "var(--txt)", lineHeight: 1.2, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{title}</div>
         {subtitle && <div style={{ fontSize: 10, color: "var(--txt-muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 320, marginTop: 2 }}>{subtitle}</div>}
-      </div>
-      {sep}
+      </div>}
+      {title && sep}
       <button style={btn} onClick={() => zoomOut({ duration: 300 })}>
         <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3M8 11h6"/></svg>
       </button>

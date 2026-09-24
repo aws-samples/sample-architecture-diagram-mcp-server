@@ -9,7 +9,7 @@ import { join } from "path";
 import { execFileSync } from "child_process";
 import { computeLayout } from "./lib/layout.js";
 import { generateDrawio } from "./lib/drawio-xml.js";
-import { generateHtml, SERVICE_ICONS, iconForService } from "./lib/html-generator.js";
+import { generateHtml, SERVICE_ICONS, iconForService, resolveTabs } from "./lib/html-generator.js";
 import { rasterizeDiagram } from "./lib/rasterize.js";
 import { validateDiagram, formatValidationReport } from "./lib/validate.js";
 import { computeDelta, formatDeltaSummary } from "./lib/delta.js";
@@ -155,7 +155,7 @@ server.tool(
 
 // Input schemas live in lib/schemas.js so the local example generators
 // (gen-*.mjs) validate against the SAME contract these tools expose.
-import { serviceSchema, connectionSchema, groupSchema, stepSchema } from "./lib/schemas.js";
+import { serviceSchema, connectionSchema, groupSchema, stepSchema, tabSchema, sequenceSchema } from "./lib/schemas.js";
 
 // Interactive animated HTML diagram (an interactive canvas)
 server.tool(
@@ -182,15 +182,26 @@ server.tool(
     flowPeriod: z.number().optional().describe("Uniform flow-dot period in seconds: make EVERY edge's dot share this exact period (instead of the default staggered per-edge timing) so a GIF captured over `flowPeriod` seconds via render_diagram_media loops seamlessly. Set this when the HTML will be turned into a looping GIF."),
     collapsible: z.boolean().optional().describe("Show a fold toggle (▸/▾) on every group header so the viewer can collapse/expand containers (d3-zoomable-treemap style); collapsing a group hides its children, shrinks it to a small box, and re-runs the layout. Default true."),
     defaultCollapsed: z.array(z.string()).optional().describe("Group ids that start COLLAPSED on load — good for a dense diagram whose overview should read clean, letting the viewer expand only what they need (e.g. ['vpcdados'])."),
+    sequence: sequenceSchema.optional().describe("Add a SECOND VIEW of the same system: an animated UML sequence diagram (participants + ordered messages, alt/opt/loop fragments, notes). Passing it turns the output into a two-tab document (Architecture + Sequence) with a tab rail — no `tabs` needed. Play/→ walks the flow beat by beat."),
+    tabs: z.array(tabSchema).optional().describe("Full control over the MULTI-TAB document: one tab per view — kind 'architecture' (the live canvas), 'sequence' (animated UML sequence, needs `sequence`), or 'doc' (prose sections). Use this instead of `sequence` when you want custom labels/order or extra prose tabs. Each tab is deep-linkable via the URL hash."),
   },
-  async ({ title, subtitle, outputPath, services, connections, groups, direction, steps, startStep, startCardScale, stepZoom, stepFocus, lang, languages, uiStrings, langLabels, flowDots, flowPeriod, collapsible, defaultCollapsed }) => {
+  async ({ title, subtitle, outputPath, services, connections, groups, direction, steps, startStep, startCardScale, stepZoom, stepFocus, lang, languages, uiStrings, langLabels, flowDots, flowPeriod, collapsible, defaultCollapsed, sequence, tabs }) => {
     // Validate + auto-repair the IR before rendering; the repaired model is what
     // reaches the generator (dangling edges dropped, missing refs cleaned, etc.).
     const { report, repaired } = validateDiagram({ services, connections, groups, steps });
-    const html = generateHtml(title, subtitle || "", repaired.services, repaired.connections, { groups: repaired.groups, direction, steps: repaired.steps, startStep, startCardScale, stepZoom, stepFocus, lang, languages, uiStrings, langLabels, flowDots, flowPeriod, collapsible, defaultCollapsed });
+    const html = generateHtml(title, subtitle || "", repaired.services, repaired.connections, { groups: repaired.groups, direction, steps: repaired.steps, startStep, startCardScale, stepZoom, stepFocus, lang, languages, uiStrings, langLabels, flowDots, flowPeriod, collapsible, defaultCollapsed, sequence, tabs });
     writeFileSync(outputPath, html, "utf-8");
     const jsonPath = writeSidecarJson(outputPath, title, subtitle, repaired.services, repaired.connections, { groups: repaired.groups, direction });
-    const extras = [repaired.groups?.length ? `${repaired.groups.length} group(s)` : null, repaired.steps?.length ? `${repaired.steps.length}-step walkthrough` : null].filter(Boolean);
+    // When `sequence`/`tabs` is present the output is a multi-tab document; report
+    // the resolved rail so the agent sees what the viewer will actually get.
+    const resolvedTabs = resolveTabs({ sequence, tabs });
+    const seqTabs = (resolvedTabs || []).filter(t => t.kind === "sequence");
+    const extras = [
+      repaired.groups?.length ? `${repaired.groups.length} group(s)` : null,
+      repaired.steps?.length ? `${repaired.steps.length}-step walkthrough` : null,
+      resolvedTabs?.length ? `${resolvedTabs.length} tabs (${resolvedTabs.map(t => t.kind).join(", ")})` : null,
+      seqTabs.length ? `sequence: ${seqTabs.reduce((n, t) => n + (t.sequence?.participants?.length || 0), 0)} participants / ${seqTabs.reduce((n, t) => n + (t.sequence?.events?.length || 0), 0)} events` : null,
+    ].filter(Boolean);
     return { content: [{ type: "text", text: `Interactive diagram saved: ${outputPath}${extras.length ? "\nIncluded: " + extras.join(", ") : ""}${jsonPath ? `\nElements JSON: ${jsonPath}` : ""}\nOpen in browser for animated data flow visualization.${formatValidationReport(report)}` }] };
   }
 );
@@ -519,7 +530,7 @@ const getDraft = (id) => {
   if (!d) throw new Error(`Unknown draftId "${id}". Call diagram_create first.`);
   return d;
 };
-const draftSummary = (id, d) => `draft ${id}: ${d.services.length} service(s), ${d.connections.length} connection(s), ${d.groups.length} group(s), ${d.steps.length} step(s)`;
+const draftSummary = (id, d) => `draft ${id}: ${d.services.length} service(s), ${d.connections.length} connection(s), ${d.groups.length} group(s), ${d.steps.length} step(s)${d.tabs?.length ? `, ${d.tabs.length} tab(s)` : ""}`;
 
 server.tool("diagram_create",
   "Start an incremental diagram draft. Returns a draftId; feed it to diagram_add_services / diagram_add_connections / diagram_add_groups / diagram_add_steps in any order, then diagram_render to write the HTML. Use this when building a diagram in stages; use generate_html_diagram for a single-shot build.",
@@ -567,13 +578,37 @@ server.tool("diagram_add_steps",
   }
 );
 
+server.tool("diagram_add_sequence",
+  "Attach an animated UML SEQUENCE view to a draft (participants + ordered messages, alt/opt/loop fragments, notes). The rendered HTML becomes a two-tab document: Architecture + Sequence. Call once per sequence tab; pass `tabLabel` to name the tab.",
+  { draftId: z.string(), sequence: sequenceSchema, tabLabel: z.union([z.string(), z.record(z.string())]).optional(), tabId: z.string().optional() },
+  async ({ draftId, sequence, tabLabel, tabId }) => {
+    const d = getDraft(draftId);
+    d.tabs = d.tabs || [{ id: "arch", kind: "architecture" }];
+    const id = tabId || `seq${d.tabs.filter(t => t.kind === "sequence").length + 1}`;
+    d.tabs.push({ id, kind: "sequence", ...(tabLabel ? { label: tabLabel } : {}), sequence });
+    return { content: [{ type: "text", text: `Added sequence tab "${id}": ${sequence.participants?.length || 0} participant(s), ${sequence.events?.length || 0} event(s). ${draftSummary(draftId, d)}` }] };
+  }
+);
+
+server.tool("diagram_add_doc_tab",
+  "Attach a prose tab (readable sections: title + body + bullets + code) to a draft — the written companion to the architecture and sequence tabs in the same self-contained file.",
+  { draftId: z.string(), tab: tabSchema.omit({ kind: true, sequence: true }).extend({ id: z.string().optional() }) },
+  async ({ draftId, tab }) => {
+    const d = getDraft(draftId);
+    d.tabs = d.tabs || [{ id: "arch", kind: "architecture" }];
+    const id = tab.id || `doc${d.tabs.filter(t => t.kind === "doc").length + 1}`;
+    d.tabs.push({ ...tab, id, kind: "doc" });
+    return { content: [{ type: "text", text: `Added doc tab "${id}" (${tab.sections?.length || 0} section(s)). ${draftSummary(draftId, d)}` }] };
+  }
+);
+
 server.tool("diagram_render",
   "Render an incremental draft to a self-contained HTML file, then discard the draft. Pass keep:true to keep the draft for further edits.",
   { draftId: z.string(), outputPath: z.string(), keep: z.boolean().optional() },
   async ({ draftId, outputPath, keep }) => {
     const d = getDraft(draftId);
     const { report, repaired } = validateDiagram({ services: d.services, connections: d.connections, groups: d.groups, steps: d.steps });
-    const html = generateHtml(d.title, d.subtitle, repaired.services, repaired.connections, { groups: repaired.groups, direction: d.direction, steps: repaired.steps, stepZoom: d.stepZoom, stepFocus: d.stepFocus, startStep: d.startStep, startCardScale: d.startCardScale, flowDots: d.flowDots, lang: d.lang, languages: d.languages, uiStrings: d.uiStrings, langLabels: d.langLabels });
+    const html = generateHtml(d.title, d.subtitle, repaired.services, repaired.connections, { groups: repaired.groups, direction: d.direction, steps: repaired.steps, stepZoom: d.stepZoom, stepFocus: d.stepFocus, startStep: d.startStep, startCardScale: d.startCardScale, flowDots: d.flowDots, lang: d.lang, languages: d.languages, uiStrings: d.uiStrings, langLabels: d.langLabels, tabs: d.tabs });
     writeFileSync(outputPath, html, "utf-8");
     const jsonPath = writeSidecarJson(outputPath, d.title, d.subtitle, repaired.services, repaired.connections, { groups: repaired.groups, direction: d.direction });
     if (!keep) drafts.delete(draftId);
