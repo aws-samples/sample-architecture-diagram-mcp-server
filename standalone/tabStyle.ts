@@ -6,31 +6,31 @@
 // depending on Tailwind's content scan.
 export const TAB_STYLE = `
   .ld-shell { height: 100%; display: flex; flex-direction: column; background: var(--bg); color: var(--txt); }
-  .ld-tabs-shell { flex: 1; display: flex; min-height: 0; }
+  /* Column, not row: the views below are full-bleed canvases with their own
+     floating chrome (narration card at the left, dock at the bottom), so a
+     vertical rail would fight them for the same edge. */
+  .ld-tabs-shell { flex: 1; display: flex; flex-direction: column; min-height: 0; }
 
-  /* ── tab rail ── */
+  /* ── tab bar (top, one row of pills) ── */
   .ld-tabs-rail {
-    width: 196px; flex: 0 0 196px; display: flex; flex-direction: column; gap: 4px;
-    padding: 16px 10px; background: var(--surface); border-right: 1px solid var(--border);
+    flex: 0 0 auto; display: flex; flex-direction: row; align-items: center; gap: 3px;
+    padding: 6px 10px; background: var(--surface); border-bottom: 1px solid var(--border);
+    overflow-x: auto; scrollbar-width: none;
   }
+  .ld-tabs-rail::-webkit-scrollbar { display: none; }
   .ld-tab {
-    display: flex; align-items: center; gap: 9px; width: 100%; padding: 9px 11px;
+    display: inline-flex; align-items: center; gap: 7px; flex: 0 0 auto; padding: 7px 12px;
     border: 1px solid transparent; border-radius: 9px; background: transparent;
-    color: var(--txt-muted); font: inherit; font-size: 13px; font-weight: 600;
-    text-align: left; cursor: pointer; transition: background .15s, color .15s, border-color .15s;
+    color: var(--txt-muted); font: inherit; font-size: 12.5px; font-weight: 600;
+    cursor: pointer; transition: background .15s, color .15s, border-color .15s;
   }
   .ld-tab:hover { background: var(--chip-bg); color: var(--txt); }
-  .ld-tab.active { background: var(--chip-bg); color: var(--txt); border-color: var(--border); box-shadow: inset 3px 0 0 #FF9900; }
-  .ld-tab-glyph { font-size: 15px; width: 18px; text-align: center; color: #FF9900; }
+  .ld-tab.active { background: var(--chip-bg); color: var(--txt); border-color: var(--border); box-shadow: inset 0 -2.5px 0 #FF9900; }
+  .ld-tab-glyph { font-size: 14px; width: 16px; text-align: center; color: #FF9900; }
   .ld-tab-lbl { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .ld-tabs-panel { flex: 1; min-width: 0; position: relative; overflow: hidden; display: flex; }
+  .ld-tabs-panel { flex: 1; min-height: 0; min-width: 0; position: relative; overflow: hidden; display: flex; }
   .ld-tabs-panel > * { flex: 1; min-width: 0; }
-  @media (max-width: 720px) {
-    .ld-tabs-shell { flex-direction: column; }
-    .ld-tabs-rail { width: auto; flex: 0 0 auto; flex-direction: row; overflow-x: auto;
-      border-right: none; border-bottom: 1px solid var(--border); padding: 8px; }
-    .ld-tab { width: auto; }
-  }
+  @media (max-width: 560px) { .ld-tab-lbl { display: none; } }
 
   /* ── animated UML sequence panel ──
      Lifted from the published standalone player (lib/sequence-template.html) and
@@ -104,6 +104,7 @@ export const TAB_STYLE = `
   .ld-seqp .frame .elsediv { stroke: var(--txt-muted); stroke-dasharray: 4 3; }
   .ld-seqp .frame .elsetxt { fill: var(--txt-muted); font-size: 10.5px; font-style: italic; }
   .ld-seqp .grp rect { fill: color-mix(in srgb, var(--txt) 3%, transparent); stroke-width: 1.4; }
+  .ld-seqp .grp .gtabbg { stroke: none; }
   .ld-seqp .grp .gtab { font-size: 11px; font-weight: 700; fill: #fff; }
 
   /* narration card */

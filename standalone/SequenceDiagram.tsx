@@ -209,10 +209,11 @@ function buildLayout(seq: Any) {
     const base = { y, cls, marker, drawOn: cls === 'msg' };
 
     if (e?.kind === 'note') {
-      const over = e.over || [];
-      const a = idx[over[0]], b = idx[over[over.length - 1]];
-      if (a == null || b == null) return { ...base, shape: 'none' as const };
-      return { ...base, shape: 'note' as const, x1: cx(a) - 56, x2: cx(b) + 56 };
+      // `over` is a SET of lifelines, not a range: take the leftmost/rightmost
+      // column so a note authored as ['cb','new'] still gets a positive width.
+      const cols = (e.over || []).map((id: string) => idx[id]).filter((v: Any) => v != null);
+      if (!cols.length) return { ...base, shape: 'none' as const };
+      return { ...base, shape: 'note' as const, x1: cx(Math.min(...cols)) - 56, x2: cx(Math.max(...cols)) + 56 };
     }
     if (e?.found || e?.lost) {
       const ai = idx[e.found ? e.to : e.from];
@@ -438,7 +439,10 @@ export function SequenceDiagram({ seq, lang = 'en', active = true, ui }: Any) {
     viewRef.current = {
       zoom,
       tx: g + (availW - bw * zoom) / 2 - x0 * zoom,
-      ty: 20 + (availH - bh * zoom) / 2 - y0 * zoom,
+      // Centre the band vertically, but never push the diagram BELOW its natural
+      // top: on the first steps y0 is 0 and centring would leave a dead band
+      // above the participant headers.
+      ty: Math.min(20, 20 + (availH - bh * zoom) / 2 - y0 * zoom),
     };
     applyView(animate);
   }, [cur, EV, W, H, cx, rowY, L.COL, L.ROW, eventParticipants, applyView]);
@@ -712,7 +716,9 @@ export function SequenceDiagram({ seq, lang = 'en', active = true, ui }: Any) {
           {L.groupBoxes.map((g: Any, i: number) => (
             <g key={`g${i}`} className="grp">
               <rect x={g.x} y={8} width={g.w} height={H - 8 - 14} rx={8} stroke={g.color} />
-              <rect x={g.x} y={8} width={g.tw} height={18} rx={4} fill={g.color} />
+              {/* inline style, not a `fill` attribute: the `.grp rect` rule would
+                  otherwise win over it and leave white label text on a pale box. */}
+              <rect className="gtabbg" x={g.x} y={8} width={g.tw} height={18} rx={4} style={{ fill: g.color }} />
               <text className="gtab" x={g.x + 8} y={21}>{g.label}</text>
             </g>
           ))}
@@ -746,7 +752,7 @@ export function SequenceDiagram({ seq, lang = 'en', active = true, ui }: Any) {
           {L.frames.map((f: Any, i: number) => (
             <g key={`f${i}`} className="frame" style={{ opacity: cur >= f.start ? 1 : 0 }}>
               <rect x={f.xmin} y={f.y1} width={f.xmax - f.xmin} height={f.y2 - f.y1} rx={6} stroke={f.color} />
-              <rect className="flabelbg" x={f.xmin} y={f.y1} height={17} fill={f.color}
+              <rect className="flabelbg" x={f.xmin} y={f.y1} height={17} style={{ fill: f.color }}
                 width={Math.max(70, (String(f.fr.kind).length + String(f.fr.label || '').length) * 6 + 24)} />
               <text className="flabel" x={f.xmin + 7} y={f.y1 + 13}>{`${f.fr.kind}  ${f.fr.label || ''}`}</text>
               {f.dividers.map((d: Any, k: number) => (

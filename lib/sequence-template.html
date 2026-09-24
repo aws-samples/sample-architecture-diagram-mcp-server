@@ -97,6 +97,7 @@
 
   /* ── group (aggregation) container ── */
   .grp rect{fill:color-mix(in srgb,var(--txt) 3%,transparent);stroke-width:1.4}
+  .grp .gtabbg{stroke:none}
   .grp .gtab{font-size:11px;font-weight:700;fill:#fff}
   /* lifelines + headers */
   .phead,.actor,.lifeline{transition:opacity .35s ease}
@@ -289,7 +290,9 @@ GROUPS.forEach(gr=>{
   const g=el('g',{class:'grp'});
   g.appendChild(el('rect',{x,y:8,width:w,height:H-8-14,rx:8,stroke:col}));
   const tw=Math.max(60,(gr.label.length)*6.6+16);
-  g.appendChild(el('rect',{x,y:8,width:tw,height:18,rx:4,fill:col}));
+  // inline style, not a `fill` attribute: `.grp rect` would otherwise win over it
+  // and leave the white label text sitting on a pale box.
+  g.appendChild(el('rect',{class:'gtabbg',x,y:8,width:tw,height:18,rx:4,style:`fill:${col}`}));
   const t=el('text',{class:'gtab',x:x+8,y:21}); t.textContent=gr.label; g.appendChild(t);
   svg.appendChild(g);
 });
@@ -369,7 +372,7 @@ const fragEls=[];
   const fg=el('g',{class:'frame'}); fg.style.opacity=0; fg.dataset.start=start;
   fg.appendChild(el('rect',{x:xmin,y:y1,width:xmax-xmin,height:y2-y1,rx:6,stroke:col}));
   const tabw=Math.max(70, (fr.kind.length+fr.label.length)*6+24);
-  fg.appendChild(el('rect',{class:'flabelbg',x:xmin,y:y1,width:tabw,height:17,fill:col}));
+  fg.appendChild(el('rect',{class:'flabelbg',x:xmin,y:y1,width:tabw,height:17,style:`fill:${col}`}));
   const ft=el('text',{class:'flabel',x:xmin+7,y:y1+13}); ft.textContent=fr.kind+'  '+fr.label; fg.appendChild(ft);
   (fr.dividers||[]).forEach(d=>{
     const at=evIndexById[d.beforeId]; if(at==null) return;
@@ -394,8 +397,10 @@ EV.forEach((e,n)=>{
   const marker = (isReply||isCreate) ? 'aor' : (kind==='async' ? 'ao' : 'ah');
   const g=el('g',{class:'evt '+cls,'data-step':n});
   if(e.kind==='note'){
-    const a=idx[e.over[0]], b=idx[e.over[e.over.length-1]];
-    const x1=cx(a)-56, x2=cx(b)+56;
+    // `over` is a SET of lifelines, not a range: leftmost/rightmost column, so a
+    // note authored back-to-front still gets a positive width.
+    const cols=(e.over||[]).map(o=>idx[o]).filter(v=>v!=null);
+    const x1=cx(Math.min(...cols))-56, x2=cx(Math.max(...cols))+56;
     g.appendChild(el('rect',{x:x1,y:y-15,width:x2-x1,height:26,rx:5}));
     const t=el('text',{x:(x1+x2)/2,y:y+2,'text-anchor':'middle'}); t.textContent=e.label; g.appendChild(t);
   } else if(e.found || e.lost){
@@ -665,7 +670,9 @@ function frameStep(animate){
   const bw=Math.max(1, x1-x0), bh=Math.max(1, y1-y0);
   zoom=clampZoom(Math.min(1.8, Math.min(availW/bw, availH/bh)));   // cap so a 2-lane step isn't over-magnified
   tx=g + (availW - bw*zoom)/2 - x0*zoom;
-  ty=20 + (availH - bh*zoom)/2 - y0*zoom;
+  // Centre the band, but never push the diagram BELOW its natural top: on the
+  // first steps y0 is 0 and centring would leave a dead band above the headers.
+  ty=Math.min(20, 20 + (availH - bh*zoom)/2 - y0*zoom);
   applyZoom(animate);
 }
 // Whole-diagram fit (zfit button).

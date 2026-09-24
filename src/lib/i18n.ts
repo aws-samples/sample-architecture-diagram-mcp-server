@@ -22,7 +22,9 @@ export { tr } from "@aws-live-diagram/core";
 
 // UI chrome strings. Add a language by adding a column; unknown languages fall
 // back to English. Keep keys stable — components look them up by key.
-type UIKey = "iac" | "pricing" | "architecture" | "restart" | "play" | "pause" | "theme" | "collapse" | "expand" | "language" | "cost" | "textLarger" | "textSmaller" | "exportPng" | "shareCard";
+type UIKey = "iac" | "pricing" | "architecture" | "restart" | "play" | "pause" | "theme" | "collapse" | "expand" | "language" | "cost" | "textLarger" | "textSmaller" | "exportPng" | "shareCard"
+  // sequence-player chrome (standalone/SequenceDiagram.tsx)
+  | "prev" | "next" | "fit" | "zoomIn" | "zoomOut" | "searchPlaceholder" | "hideControls" | "showControls";
 const UI: Record<UIKey, Record<string, string>> = {
   cost:         { en: "Cost estimate",       pt: "Estimativa de custo", es: "Estimación de costo" },
   textLarger:   { en: "Larger card text",    pt: "Aumentar texto do cartão", es: "Agrandar texto de la tarjeta" },
@@ -39,6 +41,14 @@ const UI: Record<UIKey, Record<string, string>> = {
   collapse:     { en: "Collapse",            pt: "Recolher",          es: "Contraer" },
   expand:       { en: "Expand",              pt: "Expandir",          es: "Expandir" },
   language:     { en: "Language",            pt: "Idioma",            es: "Idioma" },
+  prev:         { en: "Previous step",       pt: "Passo anterior",    es: "Paso anterior" },
+  next:         { en: "Next step",           pt: "Próximo passo",     es: "Paso siguiente" },
+  fit:          { en: "Fit to view",         pt: "Ajustar à tela",    es: "Ajustar a la vista" },
+  zoomIn:       { en: "Zoom in",             pt: "Aproximar",         es: "Acercar" },
+  zoomOut:      { en: "Zoom out",            pt: "Afastar",           es: "Alejar" },
+  searchPlaceholder: { en: "search participants…", pt: "buscar participantes…", es: "buscar participantes…" },
+  hideControls: { en: "Hide controls",       pt: "Ocultar controles", es: "Ocultar controles" },
+  showControls: { en: "Show controls",       pt: "Mostrar controles", es: "Mostrar controles" },
 };
 
 /** Native display name for a language chip (built-ins; any other code upper-cases). */
@@ -54,14 +64,16 @@ export function makeUi(overrides?: UIStrings): (key: UIKey, lang: Lang) => strin
   return (key, lang) => {
     const o = overrides?.[key];
     if (o && o[lang] != null) return o[lang];
-    const row = UI[key];
-    return row[lang] ?? row.en;
+    return ui(key, lang);
   };
 }
 
-/** Default resolver (no author overrides) — built-in table with English fallback. */
+/** Default resolver (no author overrides) — built-in table with English fallback.
+ *  An UNKNOWN key returns "" instead of throwing, so a component that asks for a
+ *  key this table does not carry falls back to its own inline literal. */
 export function ui(key: UIKey, lang: Lang): string {
   const row = UI[key];
+  if (!row) return "";
   return row[lang] ?? row.en;
 }
 
