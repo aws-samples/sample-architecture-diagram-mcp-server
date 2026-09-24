@@ -73,6 +73,30 @@ agent that turns a described architecture into a diagram.
 7. **Do NOT ask this server to generate IaC.** The IaC button emits a spec for
    the official `awslabs.aws-iac-mcp-server`; hand off to that.
 
+## When the flow matters: add a sequence tab
+
+If the user's ask is about an **order of operations** (a vend/provisioning flow, an
+auth handshake, a CI/CD pipeline, a saga), the architecture alone under-serves it.
+Pass `sequence` to `generate_html_diagram` (or `diagram_add_sequence` on a draft)
+and the SAME file gains a tab rail: Architecture + an animated UML sequence view.
+
+- `participants[]`: `{ id, label, kind?: 'actor', service?, icon?, pill? }` — give
+  `service` (canonical AWS name) and the icon resolves itself; use `icon:
+  'tech-icons/<x>.svg'` for non-AWS actors; `kind: 'actor'` for a human.
+- `events[]` in order:
+  - message: `{ from, to, label, dashed?, async?, tone?, gate? }` — `dashed` for a
+    return, `async` for fire-and-forget, `gate: true` to mark a blocking check.
+  - `{ kind: 'note', over: [a, b], label }` for a band of explanation.
+  - `{ kind: 'fragment', fragment: 'alt'|'opt'|'loop'|'par'|'critical',
+    condition, over: [a, b] }` … `{ kind: 'else', condition }` …
+    `{ kind: 'end' }` — always close a fragment with `end`.
+- Set `autonumber: true` when the user will reference steps by number.
+- Add `tabs[]` yourself only when you need more than the two default tabs (e.g. a
+  `kind: 'doc'` tab with `sections[]` for runbook/decision prose). Tab labels
+  default per kind, so `{ id, kind }` is enough.
+- Keep the two views CONSISTENT: every sequence participant should exist as a node
+  (or group) in the architecture, using the same wording.
+
 ## Group variants
 
 `aws-cloud`, `region`, `vpc`, `public-subnet`, `private-subnet`,

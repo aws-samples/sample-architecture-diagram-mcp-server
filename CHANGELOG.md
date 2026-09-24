@@ -4,6 +4,17 @@ All notable changes to the AWS Architecture Diagram MCP server are documented he
 
 ## [Unreleased]
 
+- **Multi-tab documents** — `generate_html_diagram` accepts `sequence` (shortcut) or
+  an explicit `tabs[]`, turning the single self-contained HTML into a small document
+  with a tab rail (Architecture / Sequence / free-form doc tabs), modeled on the
+  cost-calculator app chrome. Tabs deep-link through the URL hash; with fewer than
+  two tabs the output is byte-for-byte the previous single-canvas diagram.
+- **Animated UML sequence view** — participants with auto-resolved AWS (or
+  `tech-icons/`) icons and actor glyphs, typed messages (reply/async/tone/gate
+  badge), notes, `alt`/`opt`/`loop`/`par`/`critical` fragments with `else`, optional
+  autonumber, and play/step/keyboard/speed controls with a per-beat caption.
+- New draft tools `diagram_add_sequence` and `diagram_add_doc_tab`; participant and
+  tab icons are inlined as data-URIs like every other icon.
 - **Fix** — `export_pricing_json` referenced an out-of-scope `readFileSync` and threw
   on every call; the import is consolidated and the tool now works end to end. It also
   guards a missing file and passes `region` into each estimate line.

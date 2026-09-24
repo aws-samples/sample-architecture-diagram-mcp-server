@@ -173,7 +173,7 @@ declare namespace Icon {
     let displayName: string;
 }
 
-declare function LiveDiagram({ data, lang, animate, direction, edgeStyle, steps, activeStep, stepLayout, fitPadding, stepFocus, spacing, stepZoom, className, geometry, nodeLayout, vars, Icon, markerId, reanchorEdges, groupsInteractive, edgeTuning, flowDots, control, chrome, theme, languages, onLangChange, ui, langLabel, title, subtitle, collapsible, defaultCollapsed, zoomOnScroll, nodeModal, startStep, startCardScale, minZoom, maxZoom, fitMaxZoom, stepMaxZoom, }: {
+declare function LiveDiagram({ data, lang, animate, direction, edgeStyle, steps, activeStep, stepLayout, fitPadding, stepFocus, spacing, stepZoom, className, geometry, nodeLayout, vars, Icon, markerId, reanchorEdges, groupsInteractive, edgeTuning, flowDots, control, chrome, theme, dark: darkProp, onThemeChange, languages, onLangChange, ui, langLabel, title, subtitle, collapsible, defaultCollapsed, zoomOnScroll, nodeModal, startStep, startCardScale, minZoom, maxZoom, fitMaxZoom, stepMaxZoom, }: {
     data: any;
     lang?: string;
     animate?: boolean;
@@ -199,6 +199,8 @@ declare function LiveDiagram({ data, lang, animate, direction, edgeStyle, steps,
     control?: string;
     chrome?: boolean;
     theme?: string;
+    dark: any;
+    onThemeChange: any;
     languages?: any[];
     onLangChange: any;
     ui: any;

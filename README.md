@@ -46,6 +46,12 @@ containers, and flip the theme, all offline:
   as a `{ en, ja, … }` map; the toolbar shows a language dropdown and the whole diagram
   (labels, roles, walkthrough) re-renders in place. Not limited to EN/PT — localize
   the UI chrome for any language with `uiStrings` + `langLabels`.
+- **Multi-tab documents** — pass `sequence` (or an explicit `tabs[]`) and the same
+  single HTML file becomes a small document with a tab rail: the architecture canvas,
+  an **animated UML sequence diagram** (play/step/keyboard, `alt`/`opt`/`loop`
+  fragments, notes, gate badges, autonumber), and free-form `doc` tabs (sections,
+  bullets, code). Tabs deep-link via the URL hash. See
+  [Multi-tab documents](#multi-tab-documents-sequence--doc-tabs).
 - **Collapsible containers** — every group header has a fold toggle; collapse a VPC
   or account to a small box and the layout re-flows (start dense diagrams pre-collapsed
   with `defaultCollapsed`).
@@ -137,6 +143,8 @@ Clone this repo, run `npm install`, then point your MCP client at
 | `diagram_add_connections` | Append connections (edges) to a draft |
 | `diagram_add_groups` | Append container groups to a draft |
 | `diagram_add_steps` | Append guided-walkthrough beats to a draft |
+| `diagram_add_sequence` | Add an animated UML sequence diagram as a second tab of a draft |
+| `diagram_add_doc_tab` | Add a prose tab (sections / bullets / code) to a draft |
 | `diagram_render` | Render an incremental draft to a self-contained HTML file |
 | `auto_generate_diagram` | Fully auto-laid-out `.drawio` file |
 | `generate_diagram` | `.drawio` with manual x/y positioning |
@@ -250,6 +258,54 @@ Card content: `eyebrow`, `title`, `body` (markdown), `bullets`, `chips`, `code`,
     "nodes": ["fn", "db"], "zoom": ["fn", "db"], "badge": false }
 ]
 ```
+
+## Multi-tab documents (sequence + doc tabs)
+
+A diagram is often only half the story: the other half is *the order in which
+things happen*. Pass a `sequence` and the generated HTML grows a tab rail —
+**Architecture** (the canvas, unchanged) plus **Sequence** (an animated UML
+sequence diagram) — in the same self-contained file.
+
+```jsonc
+"sequence": {
+  "title": { "en": "Account vend", "pt": "Vending da conta" },
+  "autonumber": true,
+  "participants": [
+    { "id": "dev", "label": "Developer", "kind": "actor" },
+    { "id": "hub", "label": "Developer Hub", "icon": "tech-icons/rhdh.svg" },
+    { "id": "sfn", "label": "Step Functions", "service": "AWS Step Functions" }
+  ],
+  "events": [
+    { "from": "dev", "to": "hub", "label": "fill the **template** form" },
+    { "kind": "fragment", "fragment": "alt", "condition": "dryRun = false",
+      "over": ["hub", "sfn"] },
+    { "from": "hub", "to": "sfn", "label": "start execution", "tone": "ok" },
+    { "kind": "else", "condition": "dryRun = true" },
+    { "from": "hub", "to": "dev", "label": "render HCL only", "dashed": true },
+    { "kind": "end" },
+    { "kind": "note", "over": ["hub", "sfn"], "label": "keyless (IRSA → STS)" }
+  ]
+}
+```
+
+- **Participants** get an icon automatically from `service` (any AWS name), or an
+  explicit `icon` (`tech-icons/vault.svg`); `kind: "actor"` renders a stick-figure
+  glyph. `pill` adds a small uppercase tag, `\n` in `label` wraps to two lines.
+- **Events**: `message` (default — `dashed` for a reply, `async` for an open
+  arrowhead, `tone` for the accent color, `gate: true` for a GATE badge),
+  `note` (`over: [a, b]`), and the fragment trio `fragment` / `else` / `end`
+  (`alt`, `opt`, `loop`, `par`, `critical` with a `condition`).
+- The view **animates**: play/pause, step, ←/→/space, a speed toggle and
+  "show all". Each beat reveals one message and captions it below.
+- For full control pass `tabs[]` instead, mixing `kind: "architecture"`,
+  `"sequence"` and `"doc"` (prose `sections[]` with `title`, `body`, `bullets`,
+  `code`). Labels default per kind (Architecture / Arquitetura / …); `slug` sets
+  the URL hash so a tab is linkable.
+- Incrementally, the draft tools do the same: `diagram_add_sequence` and
+  `diagram_add_doc_tab` before `diagram_render`.
+
+With fewer than two tabs nothing changes — the output stays the classic
+single-canvas diagram.
 
 ## Development
 

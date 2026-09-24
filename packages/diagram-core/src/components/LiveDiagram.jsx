@@ -305,6 +305,11 @@ export function LiveDiagram({
   geometry, nodeLayout = "horizontal", vars, Icon,
   markerId = "ld-arrow", reanchorEdges = false, groupsInteractive = false,
   edgeTuning, flowDots = true, control = "controlled", chrome = false, theme = "host",
+  // Controlled theme (host-driven): when `dark` is a boolean the diagram uses it
+  // instead of its internal selfDark, and the ZoomBar's ☾/☀ button calls
+  // onThemeChange(nextDark) so the HOST can flip its own theme too (two-way sync
+  // without a store). Leave undefined for the legacy self/host behavior.
+  dark: darkProp, onThemeChange,
   languages = [], onLangChange, ui, langLabel, title, subtitle,
   collapsible = false, defaultCollapsed = [], zoomOnScroll = false,
   nodeModal = true, startStep = -1, startCardScale = 0,
@@ -364,9 +369,21 @@ export function LiveDiagram({
     return () => clearTimeout(id);
   }, [control, playing, hasWalk, internalStep, steps]);
 
-  // ── Theme: self-owned toggle (MCP) or inherited from an ancestor .dark (slides) ──
+  // ── Theme ──
+  // Three modes:
+  //   • controlled — host passes `dark` (+ optional onThemeChange): the diagram
+  //     reflects it and the ZoomBar toggle asks the host to flip.
+  //   • self — the diagram owns a dark toggle (legacy MCP standalone).
+  //   • host — inherits an ancestor `.dark` (slides deck), no own toggle.
+  const controlledTheme = typeof darkProp === "boolean";
   const [selfDark, setSelfDark] = useState(false);
-  const themeClass = theme === "self" ? (selfDark ? "dark" : "light") : "";
+  const effectiveDark = controlledTheme ? darkProp : selfDark;
+  const toggleTheme = () => {
+    if (controlledTheme) { onThemeChange && onThemeChange(!darkProp); }
+    else setSelfDark(d => !d);
+  };
+  const themeClass = controlledTheme ? (effectiveDark ? "dark" : "light")
+    : theme === "self" ? (selfDark ? "dark" : "light") : "";
 
   const [detailNode, setDetailNode] = useState(null);
   const [dockVisible, setDockVisible] = useState(true);
@@ -475,8 +492,8 @@ export function LiveDiagram({
               {nodeModal && <NodeModal node={detailNode} onClose={() => setDetailNode(null)} Icon={Icon} strings={ui ? { iac: ui("iac", lang), pricing: ui("pricing", lang) } : undefined} />}
               <ZoomBar
                 title={tr(title, lang)} subtitle={tr(subtitle, lang)}
-                dark={selfDark} visible={dockVisible} onToggle={() => setDockVisible(v => !v)}
-                onTheme={() => setSelfDark(d => !d)}
+                dark={effectiveDark} visible={dockVisible} onToggle={() => setDockVisible(v => !v)}
+                onTheme={toggleTheme}
                 hasWalk={hasWalk} playing={playing}
                 attention={hasWalk && !playing && step <= 0}
                 onPlay={() => { setPlaying(p => { if (!p) setInternalStep(s => (s < 0 || s >= steps.length - 1 ? 0 : s)); return !p; }); }}
@@ -505,7 +522,7 @@ export function LiveDiagram({
           minZoom={minZoom} maxZoom={maxZoom} fitMaxZoom={fitMaxZoom} stepMaxZoom={stepMaxZoom}
         />
         <StepOverlay steps={steps} activeStep={step} lang={lang} Icon={Icon}
-          stepLayout={effectiveStepLayout} dark={theme === "self" ? selfDark : false}
+          stepLayout={effectiveStepLayout} dark={effectiveDark}
           onPick={chrome && control === "auto" ? (i) => { setPlaying(false); setInternalStep(i); } : undefined}
           expanded={cardExpanded} cardScale={cardScale}
           onToggleExpand={chrome ? () => setCardExpanded(v => !v) : undefined}
@@ -522,8 +539,8 @@ export function LiveDiagram({
             {nodeModal && <NodeModal node={detailNode} onClose={() => setDetailNode(null)} Icon={Icon} strings={ui ? { iac: ui("iac", lang), pricing: ui("pricing", lang) } : undefined} />}
             <ZoomBar
               title={tr(title, lang)} subtitle={tr(subtitle, lang)}
-              dark={selfDark} visible={dockVisible} onToggle={() => setDockVisible(v => !v)}
-              onTheme={() => setSelfDark(d => !d)}
+              dark={effectiveDark} visible={dockVisible} onToggle={() => setDockVisible(v => !v)}
+              onTheme={toggleTheme}
               hasWalk={hasWalk} playing={playing}
               attention={hasWalk && !playing && step <= 0}
               onPlay={() => { setPlaying(p => { if (!p) setInternalStep(s => (s < 0 || s >= steps.length - 1 ? 0 : s)); return !p; }); }}
