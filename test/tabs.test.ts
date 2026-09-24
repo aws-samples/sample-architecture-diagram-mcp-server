@@ -31,24 +31,28 @@ const services = [
 ];
 const connections = [{ id: 'e1', source: 'api', target: 'fn', type: 'event' }];
 
+// The sequence shape is the published player's own contract
+// (lib/sequence-schemas.js): a discriminated event list (message | note) with
+// fragments anchored by event id, not inline begin/else/end markers.
 const sequence = {
   title: 'Request flow',
   participants: [
-    { id: 'u', label: 'Client', kind: 'actor' },
+    { id: 'u', label: 'Client', actor: true },
     { id: 'api', label: 'API Gateway', service: 'Amazon API Gateway' },
     { id: 'fn', label: 'Lambda', service: 'AWS Lambda' },
-    { id: 'va', label: 'Vault', icon: 'tech-icons/vault.svg' },
+    { id: 'va', label: 'Vault', icon: 'tech-icons/vault.svg', stereotype: 'on-prem' },
   ],
   events: [
-    { from: 'u', to: 'api', label: 'POST /orders' },
-    { kind: 'fragment', fragment: 'alt', condition: 'token válido', over: ['api', 'fn'] },
-    { from: 'api', to: 'fn', label: 'invoke' },
-    { from: 'fn', to: 'va', label: 'read secret', gate: true, tone: 'warn' },
-    { kind: 'else', condition: 'token inválido' },
-    { from: 'api', to: 'u', label: '401', dashed: true, tone: 'danger' },
-    { kind: 'end' },
-    { kind: 'note', over: ['fn', 'va'], label: 'keyless (IRSA)' },
+    { kind: 'message', id: 'm1', from: 'u', to: 'api', label: 'POST /orders' },
+    { kind: 'message', id: 'm2', from: 'api', to: 'fn', label: 'invoke', arrow: 'async' },
+    { kind: 'message', id: 'm3', from: 'fn', to: 'va', label: 'read secret', badge: 'gate', tone: 'warn' },
+    { kind: 'message', id: 'm4', from: 'api', to: 'u', label: '401', arrow: 'reply', tone: 'danger' },
+    { kind: 'note', id: 'n1', over: ['fn', 'va'], label: 'keyless (IRSA)', badge: 'keyless' },
   ],
+  fragments: [
+    { kind: 'alt', label: 'token válido', startId: 'm2', endId: 'm4', dividers: [{ beforeId: 'm4', label: 'token inválido' }] },
+  ],
+  groups: [{ label: 'AWS', participants: ['api', 'fn'], tone: 'info' }],
 };
 
 describe('resolveTabs', () => {
@@ -96,7 +100,8 @@ describe('generateHtml — tabs payload', () => {
     expect(d.tabs).toHaveLength(2);
     const seq = d.tabs[1].sequence;
     expect(seq.participants).toHaveLength(4);
-    expect(seq.events.filter((e: any) => e.kind === 'fragment')).toHaveLength(1);
+    expect(seq.fragments).toHaveLength(1);
+    expect(seq.fragments[0]).toMatchObject({ kind: 'alt', startId: 'm2', endId: 'm4' });
     expect(seq.events.at(-1).kind).toBe('note');
   });
 

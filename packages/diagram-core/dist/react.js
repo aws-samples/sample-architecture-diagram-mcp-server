@@ -1264,7 +1264,7 @@ function ZoomBar({
       height: 40,
       borderRadius: "50%",
       border: "1px solid var(--border)",
-      background: dark ? "rgba(26,29,39,0.95)" : "rgba(255,255,255,0.95)",
+      background: `var(--ld-dock-bg, ${dark ? "rgba(26,29,39,0.95)" : "rgba(255,255,255,0.95)"})`,
       color: "var(--txt)",
       fontSize: 16,
       cursor: "pointer",
@@ -1300,17 +1300,17 @@ function ZoomBar({
     alignItems: "center",
     gap: 6,
     padding: "10px 20px",
-    background: dark ? "rgba(26,29,39,0.95)" : "rgba(255,255,255,0.95)",
+    background: `var(--ld-dock-bg, ${dark ? "rgba(26,29,39,0.95)" : "rgba(255,255,255,0.95)"})`,
     border: "1px solid var(--border)",
     borderRadius: 16,
     backdropFilter: "blur(12px)",
     boxShadow: "0 4px 20px rgba(0,0,0,0.3)"
   }, children: [
-    /* @__PURE__ */ jsxs8("div", { style: { marginRight: 12, minWidth: 0, maxWidth: 320 }, children: [
+    title && /* @__PURE__ */ jsxs8("div", { style: { marginRight: 12, minWidth: 0, maxWidth: 320 }, children: [
       /* @__PURE__ */ jsx8("div", { style: { fontSize: 13, fontWeight: 700, color: "var(--txt)", lineHeight: 1.2, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }, children: title }),
       subtitle && /* @__PURE__ */ jsx8("div", { style: { fontSize: 10, color: "var(--txt-muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 320, marginTop: 2 }, children: subtitle })
     ] }),
-    sep,
+    title && sep,
     /* @__PURE__ */ jsx8("button", { style: btn, onClick: () => zoomOut({ duration: 300 }), children: /* @__PURE__ */ jsxs8("svg", { width: "16", height: "16", fill: "none", stroke: "currentColor", strokeWidth: "2", viewBox: "0 0 24 24", children: [
       /* @__PURE__ */ jsx8("circle", { cx: "11", cy: "11", r: "8" }),
       /* @__PURE__ */ jsx8("path", { d: "m21 21-4.3-4.3M8 11h6" })
@@ -2024,6 +2024,12 @@ function LiveDiagram({
   control = "controlled",
   chrome = false,
   theme = "host",
+  // Controlled theme (host-driven): when `dark` is a boolean the diagram uses it
+  // instead of its internal selfDark, and the ZoomBar's ☾/☀ button calls
+  // onThemeChange(nextDark) so the HOST can flip its own theme too (two-way sync
+  // without a store). Leave undefined for the legacy self/host behavior.
+  dark: darkProp,
+  onThemeChange,
   languages = [],
   onLangChange,
   ui,
@@ -2101,8 +2107,15 @@ function LiveDiagram({
     const id = setTimeout(() => setInternalStep((s) => Math.min(s + 1, steps.length - 1)), 2600);
     return () => clearTimeout(id);
   }, [control, playing, hasWalk, internalStep, steps]);
+  const controlledTheme = typeof darkProp === "boolean";
   const [selfDark, setSelfDark] = useState4(false);
-  const themeClass = theme === "self" ? selfDark ? "dark" : "light" : "";
+  const effectiveDark = controlledTheme ? darkProp : selfDark;
+  const toggleTheme = () => {
+    if (controlledTheme) {
+      onThemeChange && onThemeChange(!darkProp);
+    } else setSelfDark((d) => !d);
+  };
+  const themeClass = controlledTheme ? effectiveDark ? "dark" : "light" : theme === "self" ? selfDark ? "dark" : "light" : "";
   const [detailNode, setDetailNode] = useState4(null);
   const [dockVisible, setDockVisible] = useState4(true);
   const CARD_SCALES = [1, 1.15, 1.3, 1.45];
@@ -2172,7 +2185,7 @@ function LiveDiagram({
     try {
       const { toPng } = await import("./es-XEWTSNWI.js");
       const w = Math.max(2, frame.clientWidth), h = Math.max(2, frame.clientHeight);
-      const bg = selfDark ? "#0f1117" : "#f8fafc";
+      const bg = effectiveDark ? "#0f1117" : "#f8fafc";
       const cv = document.createElement("canvas");
       cv.width = w;
       cv.height = h;
@@ -2251,7 +2264,7 @@ function LiveDiagram({
       setRecording(false);
       setInternalStep(-1);
     }
-  }, [hasWalk, recording, steps, selfDark]);
+  }, [hasWalk, recording, steps, effectiveDark]);
   useEffect2(() => {
     if (!chrome) return;
     const onKey = (e) => {
@@ -2422,10 +2435,10 @@ function LiveDiagram({
               {
                 title: tr(title, lang),
                 subtitle: tr(subtitle, lang),
-                dark: selfDark,
+                dark: effectiveDark,
                 visible: dockVisible,
                 onToggle: () => setDockVisible((v) => !v),
-                onTheme: () => setSelfDark((d) => !d),
+                onTheme: toggleTheme,
                 hasWalk,
                 playing,
                 attention: hasWalk && !playing && step <= 0,
@@ -2506,7 +2519,7 @@ function LiveDiagram({
           lang,
           Icon: Icon2,
           stepLayout: effectiveStepLayout,
-          dark: theme === "self" ? selfDark : false,
+          dark: effectiveDark,
           onPick: chrome && control === "auto" ? (i) => {
             setPlaying(false);
             setInternalStep(i);
@@ -2602,10 +2615,10 @@ function LiveDiagram({
           {
             title: tr(title, lang),
             subtitle: tr(subtitle, lang),
-            dark: selfDark,
+            dark: effectiveDark,
             visible: dockVisible,
             onToggle: () => setDockVisible((v) => !v),
-            onTheme: () => setSelfDark((d) => !d),
+            onTheme: toggleTheme,
             hasWalk,
             playing,
             attention: hasWalk && !playing && step <= 0,

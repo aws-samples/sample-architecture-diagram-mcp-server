@@ -48,9 +48,11 @@ containers, and flip the theme, all offline:
   the UI chrome for any language with `uiStrings` + `langLabels`.
 - **Multi-tab documents** — pass `sequence` (or an explicit `tabs[]`) and the same
   single HTML file becomes a small document with a tab rail: the architecture canvas,
-  an **animated UML sequence diagram** (play/step/keyboard, `alt`/`opt`/`loop`
-  fragments, notes, gate badges, autonumber), and free-form `doc` tabs (sections,
-  bullets, code). Tabs deep-link via the URL hash. See
+  the **animated UML sequence player** (the same renderer as the standalone
+  `render_diagram_media` sequence output — play/step/keyboard, activation bars,
+  `alt`/`opt`/`loop`/`par` fragments, participant groups, notes, tone/badge
+  narration cards with source `proof` links, PNG/SVG/WebM export), and free-form
+  `doc` tabs (sections, bullets, code). Tabs deep-link via the URL hash. See
   [Multi-tab documents](#multi-tab-documents-sequence--doc-tabs).
 - **Collapsible containers** — every group header has a fold toggle; collapse a VPC
   or account to a small box and the layout re-flows (start dense diagrams pre-collapsed
@@ -263,40 +265,63 @@ Card content: `eyebrow`, `title`, `body` (markdown), `bullets`, `chips`, `code`,
 
 A diagram is often only half the story: the other half is *the order in which
 things happen*. Pass a `sequence` and the generated HTML grows a tab rail —
-**Architecture** (the canvas, unchanged) plus **Sequence** (an animated UML
-sequence diagram) — in the same self-contained file.
+**Architecture** (the canvas, unchanged) plus **Sequence** — in the same
+self-contained file. The sequence tab is the same player `generate_sequence_diagram`
+ships standalone (same schema, same geometry, same narration card), so a flow you
+already authored as its own file drops in unchanged.
 
 ```jsonc
 "sequence": {
-  "title": { "en": "Account vend", "pt": "Vending da conta" },
-  "autonumber": true,
+  "title": "Account vend",
+  "subtitle": "Developer Hub → AFT → Control Tower",
   "participants": [
-    { "id": "dev", "label": "Developer", "kind": "actor" },
-    { "id": "hub", "label": "Developer Hub", "icon": "tech-icons/rhdh.svg" },
-    { "id": "sfn", "label": "Step Functions", "service": "AWS Step Functions" }
+    { "id": "dev", "label": "Developer", "actor": true },
+    { "id": "hub", "label": "Developer Hub", "icon": "tech-icons/rhdh.svg",
+      "stereotype": "boundary" },
+    { "id": "sfn", "label": "Step Functions", "service": "AWS Step Functions",
+      "sub": "aft-account-provisioning" }
+  ],
+  "groups": [
+    { "label": "AWS Control Plane", "participants": ["sfn"], "tone": "info" }
   ],
   "events": [
-    { "from": "dev", "to": "hub", "label": "fill the **template** form" },
-    { "kind": "fragment", "fragment": "alt", "condition": "dryRun = false",
-      "over": ["hub", "sfn"] },
-    { "from": "hub", "to": "sfn", "label": "start execution", "tone": "ok" },
-    { "kind": "else", "condition": "dryRun = true" },
-    { "from": "hub", "to": "dev", "label": "render HCL only", "dashed": true },
-    { "kind": "end" },
-    { "kind": "note", "over": ["hub", "sfn"], "label": "keyless (IRSA → STS)" }
+    { "kind": "message", "id": "m1", "from": "dev", "to": "hub",
+      "label": "fill the template form", "activate": true },
+    { "kind": "message", "id": "m2", "from": "hub", "to": "sfn",
+      "label": "start execution", "arrow": "async", "tone": "success",
+      "title": "Vend starts", "desc": "Writes the `.tf` request and pushes.",
+      "proof": { "repo": "https://github.com/…", "path": "lib/schemas.js", "lines": "40-58" } },
+    { "kind": "message", "id": "m3", "from": "hub", "to": "dev",
+      "label": "render HCL only", "arrow": "reply", "deactivate": true },
+    { "kind": "note", "id": "n1", "over": ["hub", "sfn"],
+      "label": "keyless (IRSA → STS)", "badge": "keyless" }
+  ],
+  "fragments": [
+    { "kind": "alt", "label": "dispararVend = true", "startId": "m2", "endId": "m3",
+      "dividers": [{ "beforeId": "m3", "label": "[else] dry-run" }] }
   ]
 }
 ```
 
 - **Participants** get an icon automatically from `service` (any AWS name), or an
-  explicit `icon` (`tech-icons/vault.svg`); `kind: "actor"` renders a stick-figure
-  glyph. `pill` adds a small uppercase tag, `\n` in `label` wraps to two lines.
-- **Events**: `message` (default — `dashed` for a reply, `async` for an open
-  arrowhead, `tone` for the accent color, `gate: true` for a GATE badge),
-  `note` (`over: [a, b]`), and the fragment trio `fragment` / `else` / `end`
-  (`alt`, `opt`, `loop`, `par`, `critical` with a `condition`).
-- The view **animates**: play/pause, step, ←/→/space, a speed toggle and
-  "show all". Each beat reveals one message and captions it below.
+  explicit `icon` (`tech-icons/vault.svg`); `actor: true` renders a stick-figure
+  glyph, `stereotype` adds a `«…»` line, `sub` a smaller second line.
+- **Events** are a discriminated list — `kind: "message"` or `kind: "note"` — and
+  every event needs a stable `id`. A message carries `arrow`
+  (`sync` | `async` | `reply`), `tone`, `badge` (`gate`/`keyless`/`async`/`sync`/
+  `phase`/`fail`), UML lifecycle flags (`activate`, `deactivate`, `create`,
+  `destroy`, `found`, `lost`) and the narration fields (`title`, `flow`, `desc`,
+  `code`, `codeLabel`, `proof`). A note spans `over: [a, b]`.
+- **Fragments** live in their own `fragments[]` array and are anchored by event id
+  (`startId`/`endId`, plus `dividers[{beforeId,label}]` for the `else` of an `alt`) —
+  `alt`, `opt`, `loop`, `par`, `break`, `critical`, `ref`, `neg`, `assert`.
+  **Groups** (`groups[]`) box a set of participant columns (PlantUML `box`).
+- `proof` is free text *or* a structured `{repo, path, ref, lines, url, text}` ref
+  rendered as a clickable link to the exact file@ref#Lx-Ly.
+- The view **animates**: play/pause, step, ←/→/space/Home/End, a speed slider,
+  "show all", per-step camera framing, participant search, and PNG / SVG / WebM
+  walkthrough export. Activation bars are auto-derived unless a message sets
+  `activate`/`deactivate` (then explicit mode); `autoActivate: false` hides them.
 - For full control pass `tabs[]` instead, mixing `kind: "architecture"`,
   `"sequence"` and `"doc"` (prose `sections[]` with `title`, `body`, `bullets`,
   `code`). Labels default per kind (Architecture / Arquitetura / …); `slug` sets

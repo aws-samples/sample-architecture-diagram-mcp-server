@@ -9,10 +9,19 @@ All notable changes to the AWS Architecture Diagram MCP server are documented he
   with a tab rail (Architecture / Sequence / free-form doc tabs), modeled on the
   cost-calculator app chrome. Tabs deep-link through the URL hash; with fewer than
   two tabs the output is byte-for-byte the previous single-canvas diagram.
-- **Animated UML sequence view** — participants with auto-resolved AWS (or
-  `tech-icons/`) icons and actor glyphs, typed messages (reply/async/tone/gate
-  badge), notes, `alt`/`opt`/`loop`/`par`/`critical` fragments with `else`, optional
-  autonumber, and play/step/keyboard/speed controls with a per-beat caption.
+- **The sequence tab IS the published player** — the multi-tab document reuses the
+  standalone sequence renderer (`lib/sequence-template.html`) as a faithful React
+  port, so `sequence` takes exactly the schema `generate_sequence_diagram` validates
+  (`lib/sequence-schemas.js`): discriminated `events[]` (`message` | `note`, each with
+  a stable `id`), a separate id-anchored `fragments[]`
+  (`alt`/`opt`/`loop`/`par`/`break`/`critical`/`ref`/`neg`/`assert` + `dividers`),
+  participant `groups[]`, auto or explicit activation bars, UML
+  create/destroy/found/lost, and narration cards with `tone`/`badge`/`code` and
+  structured `proof` links. A flow authored as a standalone file embeds unchanged.
+- The embedded player keeps the full standalone chrome: per-step camera framing,
+  pinned headers, participant search, zoom/pan, and PNG / SVG / WebM walkthrough
+  export (the SVG export un-scopes its CSS and pins the theme tokens so the file
+  renders on its own).
 - New draft tools `diagram_add_sequence` and `diagram_add_doc_tab`; participant and
   tab icons are inlined as data-URIs like every other icon.
 - **Fix** — `export_pricing_json` referenced an out-of-scope `readFileSync` and threw
