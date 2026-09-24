@@ -2296,6 +2296,164 @@ function LiveDiagram({
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [chrome, searchOpen, reachMode, togglePresent, deltaMode]);
+  const attached = effectiveStepLayout === "attached" && !cardExpanded;
+  const showAttachedCard = attached && hasWalk && step >= 0;
+  const attachedFrameRef = useRef2(null);
+  const [attachedNarrow, setAttachedNarrow] = useState4(false);
+  useEffect2(() => {
+    if (!attached || typeof ResizeObserver === "undefined") return;
+    const el = attachedFrameRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver((entries) => {
+      const w = entries[0]?.contentRect?.width ?? el.clientWidth;
+      setAttachedNarrow(w < 720);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [attached]);
+  const canvas = /* @__PURE__ */ jsx9(
+    DiagramCanvas,
+    {
+      data,
+      lang,
+      animate,
+      direction,
+      edgeStyle,
+      steps,
+      activeStep: step,
+      fitPadding,
+      stepFocus,
+      spacing,
+      stepZoom: attached ? false : stepZoom,
+      geometry,
+      nodeLayout,
+      vars: vars || {},
+      Icon: Icon2,
+      markerId,
+      reanchorEdges,
+      groupsInteractive,
+      edgeTuning: resolvedEdgeTuning,
+      onNodeClick: chrome && nodeModal ? setDetailNode : void 0,
+      collapsible,
+      collapsed,
+      onToggleCollapse,
+      zoomOnScroll,
+      minZoom,
+      maxZoom,
+      fitMaxZoom,
+      stepMaxZoom,
+      search,
+      showMap: chrome && showMap,
+      reachMode: chrome && reachMode,
+      lens: chrome ? lens : 0,
+      deltaView: deltaMode ? deltaView : null
+    }
+  );
+  if (attached) {
+    return /* @__PURE__ */ jsx9(ReactFlowProvider, { children: /* @__PURE__ */ jsxs9(
+      "div",
+      {
+        ref: (el) => {
+          attachedFrameRef.current = el;
+          frameRef.current = el;
+        },
+        className: `ld-frame ld-attached ${themeClass} ${className}`.trim(),
+        style: attachedNarrow ? {
+          width: "100%",
+          height: "100%",
+          display: "grid",
+          gridTemplateRows: showAttachedCard ? "minmax(0,1fr) minmax(0,45%)" : "minmax(0,1fr) 0px",
+          gap: showAttachedCard ? "var(--ld-attached-gap, 12px)" : 0,
+          transition: "grid-template-rows .35s cubic-bezier(.22,.61,.36,1), gap .35s"
+        } : {
+          width: "100%",
+          height: "100%",
+          display: "grid",
+          gridTemplateColumns: showAttachedCard ? "minmax(0,1fr) var(--ld-attached-card-w, 340px)" : "minmax(0,1fr) 0px",
+          gap: showAttachedCard ? "var(--ld-attached-gap, 16px)" : 0,
+          transition: "grid-template-columns .35s cubic-bezier(.22,.61,.36,1), gap .35s"
+        },
+        children: [
+          /* @__PURE__ */ jsx9("div", { style: { position: "relative", minWidth: 0, minHeight: 0, height: "100%" }, children: canvas }),
+          /* @__PURE__ */ jsx9("div", { style: {
+            position: "relative",
+            minWidth: 0,
+            minHeight: 0,
+            height: "100%",
+            maxHeight: attachedNarrow ? "45%" : void 0,
+            overflow: "hidden"
+          }, children: /* @__PURE__ */ jsx9(AnimatePresence3, { children: showAttachedCard && /* @__PURE__ */ jsx9(
+            motion3.div,
+            {
+              initial: { opacity: 0, x: 24 },
+              animate: { opacity: 1, x: 0 },
+              exit: { opacity: 0, x: 24 },
+              transition: { duration: 0.3 },
+              style: { height: "100%", overflowY: "auto", pointerEvents: "auto" },
+              children: /* @__PURE__ */ jsx9(
+                StepCard,
+                {
+                  steps,
+                  activeStep: step,
+                  lang,
+                  Icon: Icon2,
+                  onPick: control === "auto" ? (i) => {
+                    setPlaying(false);
+                    setInternalStep(i);
+                  } : void 0,
+                  onToggleExpand: chrome ? () => setCardExpanded((v) => !v) : void 0,
+                  expandLabel: ui ? ui("expand", lang) : void 0,
+                  collapseLabel: ui ? ui("collapse", lang) : void 0,
+                  onTextBigger: chrome ? () => setCardScaleIdx((i) => Math.min(i + 1, CARD_SCALES.length - 1)) : void 0,
+                  onTextSmaller: chrome ? () => setCardScaleIdx((i) => Math.max(i - 1, 0)) : void 0,
+                  canTextBigger: chrome && cardScaleIdx < CARD_SCALES.length - 1,
+                  canTextSmaller: chrome && cardScaleIdx > 0,
+                  textSmallerLabel: ui ? ui("textSmaller", lang) : void 0,
+                  textLargerLabel: ui ? ui("textLarger", lang) : void 0
+                }
+              )
+            },
+            "attached-card"
+          ) }) }),
+          chrome && /* @__PURE__ */ jsxs9(Fragment6, { children: [
+            nodeModal && /* @__PURE__ */ jsx9(NodeModal, { node: detailNode, onClose: () => setDetailNode(null), Icon: Icon2, strings: ui ? { iac: ui("iac", lang), pricing: ui("pricing", lang) } : void 0 }),
+            /* @__PURE__ */ jsx9("div", { "data-norecord": "1", style: { display: "contents" }, children: /* @__PURE__ */ jsx9(
+              ZoomBar,
+              {
+                title: tr(title, lang),
+                subtitle: tr(subtitle, lang),
+                dark: selfDark,
+                visible: dockVisible,
+                onToggle: () => setDockVisible((v) => !v),
+                onTheme: () => setSelfDark((d) => !d),
+                hasWalk,
+                playing,
+                attention: hasWalk && !playing && step <= 0,
+                onRecord: recordWalkthrough,
+                recording,
+                canRecord,
+                onPlay: () => {
+                  setPlaying((p) => {
+                    if (!p) setInternalStep((s) => s < 0 || s >= steps.length - 1 ? 0 : s);
+                    return !p;
+                  });
+                },
+                onReset: () => {
+                  setPlaying(false);
+                  setInternalStep(-1);
+                },
+                lang,
+                languages,
+                onLang: onLangChange,
+                ui,
+                langLabel
+              }
+            ) })
+          ] })
+        ]
+      }
+    ) });
+  }
   return (
     // reducedMotion="user" makes every descendant framer-motion animation honor
     // the OS "reduce motion" setting (transforms/layout are skipped, opacity
