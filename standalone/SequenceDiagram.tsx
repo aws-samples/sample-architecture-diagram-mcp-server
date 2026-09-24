@@ -60,6 +60,19 @@ function ProofLine({ proof }: Any) {
   return <a href={url} target="_blank" rel="noopener noreferrer"><code>{label}</code></a>;
 }
 
+// Longest text a value can render, across EVERY offered language: a { en, pt }
+// label must not overlap its neighbour after a language switch either.
+function textLen(v: Any): number {
+  if (v == null) return 0;
+  if (typeof v === 'object') return Math.max(0, ...Object.values(v).map(s => String(s ?? '').length));
+  return String(v).length;
+}
+
+/** Width of a participant's header box — same formula Head() uses to draw it. */
+function headBoxW(p: Any): number {
+  return Math.max(96, textLen(p?.label) * 6.4 + 18, textLen(p?.sub) * 5.6 + 18, textLen(p?.stereotype) * 5.6 + 22);
+}
+
 // ── layout (pure) ───────────────────────────────────────────────────────────
 // Everything the SVG needs, derived once per sequence: column/row geometry,
 // instance create/destroy rows, activation bars, fragment boxes, group boxes and
@@ -77,13 +90,34 @@ function buildLayout(seq: Any) {
 
   const HAS_GROUPS = GROUPS.length > 0;
   const HAS_STEREO = P.some(p => p.stereotype && !p.actor);
-  const COL = Math.max(150, Math.min(190, 1300 / Math.max(P.length, 1)));
+  // Column pitch has to clear the WIDEST header box, or two long labels
+  // ("Developer Hub (ns rhdh)" next to "Keycloak (fonte-da-verdade)") overlap.
+  // Measured over every offered language, so a language switch cannot break the
+  // spacing either — `w` in Head() uses the same formula on the active language.
+  const HEAD_W = Math.max(0, ...P.filter(p => !p?.actor).map(headBoxW));
+  const COL = Math.max(150, Math.min(190, 1300 / Math.max(P.length, 1)), HEAD_W + 16);
   const X0 = 95, TOPPAD = HAS_GROUPS ? 26 : 0, HEAD_Y = 16 + TOPPAD;
   const HEAD_H = P.some(p => p.icon) ? (HAS_STEREO ? 64 : 58) : (HAS_STEREO ? 52 : 46);
   const LIFE_TOP = HEAD_Y + HEAD_H, ROW0 = LIFE_TOP + 52, ROW = 62;
-  const W = X0 + (P.length - 1) * COL + 95;
+
+  // Group gutter: like the architecture containers, two adjacent group boxes get
+  // air between them instead of sharing an edge, so the columns are not a single
+  // undifferentiated strip. Crossing a group boundary (or leaving/entering one)
+  // shifts every column to its right by GUT.
+  const GUT = 34;
+  const groupOf: (number | null)[] = P.map(p => {
+    const gi = GROUPS.findIndex((gr: Any) => (gr?.participants || []).includes(p?.id));
+    return gi < 0 ? null : gi;
+  });
+  const XS: number[] = [];
+  let shift = 0;
+  P.forEach((_, i) => {
+    if (i > 0 && groupOf[i] !== groupOf[i - 1]) shift += GUT;
+    XS.push(X0 + i * COL + shift);
+  });
+  const cx = (i: number) => (XS[i] != null ? XS[i] : X0 + i * COL);
+  const W = (XS.length ? XS[XS.length - 1] : X0) + 95;
   const H = ROW0 + EV.length * ROW + 40;
-  const cx = (i: number) => X0 + i * COL;
   const rowY = (n: number) => ROW0 + n * ROW;
 
   // UML instance creation / destruction rows, per participant id.
@@ -191,7 +225,7 @@ function buildLayout(seq: Any) {
     const label = String(gr.label || '');
     return {
       label, color: TONE[gr.tone] || '#8593a3',
-      x: cx(a) - COL * 0.44, w: (b - a) * COL + COL * 0.88,
+      x: cx(a) - COL * 0.44, w: cx(b) - cx(a) + COL * 0.88,
       tw: Math.max(60, label.length * 6.6 + 16),
     };
   }).filter(Boolean) as Any[];

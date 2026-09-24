@@ -245,13 +245,25 @@ function proofHtml(p){
 
 // ── layout ──────────────────────────────────────────────────────────────────
 const HAS_GROUPS = GROUPS.length>0;
-const COL=Math.max(150, Math.min(190, 1300/Math.max(P.length,1)));
+// Header box width — same formula drawHead() uses, so the column pitch below can
+// clear the WIDEST box: at 150px fixed, "Developer Hub (ns rhdh)" and
+// "Keycloak (fonte-da-verdade)" drew on top of each other.
+const headBoxW = p => Math.max(96, (p.label||'').length*6.4+18, (p.sub||'').length*5.6+18, (p.stereotype||'').length*5.6+22);
+const HEAD_W = Math.max(0, ...P.filter(p=>!p.actor).map(headBoxW));
+const COL=Math.max(150, Math.min(190, 1300/Math.max(P.length,1)), HEAD_W+16);
 const HAS_STEREO=P.some(p=>p.stereotype && !p.actor);
 const X0=95, TOPPAD=HAS_GROUPS?26:0, HEAD_Y=16+TOPPAD, HEAD_H=P.some(p=>p.icon)?(HAS_STEREO?64:58):(HAS_STEREO?52:46);
 const LIFE_TOP=HEAD_Y+HEAD_H, ROW0=LIFE_TOP+52, ROW=62;
-const W = X0 + (P.length-1)*COL + 95;
+// Group gutter: adjacent group boxes get air between them instead of sharing an
+// edge (same reading as the architecture containers). Crossing a group boundary
+// shifts every column to its right by GUT.
+const GUT=34;
+const groupOf = P.map(p => { const i = GROUPS.findIndex(g=>(g.participants||[]).includes(p.id)); return i<0?null:i; });
+const XS=[]; let _shift=0;
+P.forEach((_,i)=>{ if(i>0 && groupOf[i]!==groupOf[i-1]) _shift+=GUT; XS.push(X0 + i*COL + _shift); });
+const W = (XS.length?XS[XS.length-1]:X0) + 95;
 const H = ROW0 + EV.length*ROW + 40;
-const cx = i => X0 + i*COL;
+const cx = i => (XS[i]!=null ? XS[i] : X0 + i*COL);
 const rowY = n => ROW0 + n*ROW;
 const svg = document.getElementById('svg');
 svg.setAttribute('viewBox','0 0 '+W+' '+H); svg.setAttribute('width',W); svg.setAttribute('height',H);
@@ -287,7 +299,7 @@ GROUPS.forEach(gr=>{
   const cols=(gr.participants||[]).map(id=>idx[id]).filter(v=>v!=null);
   if(!cols.length) return;
   const a=Math.min(...cols), b=Math.max(...cols);
-  const x=cx(a)-COL*0.44, w=(b-a)*COL+COL*0.88;
+  const x=cx(a)-COL*0.44, w=cx(b)-cx(a)+COL*0.88;
   const col=TONE[gr.tone]||'#8593a3';
   const g=el('g',{class:'grp'});
   g.appendChild(el('rect',{x,y:8,width:w,height:H-8-14,rx:8,stroke:col}));
