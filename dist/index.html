@@ -211,9 +211,10 @@ ${new XMLSerializer().serializeToString(_t)}`},[]),ai=(it,_t)=>{const Pt=URL.cre
   .ld-seqp .grp .gtabbg { stroke: none; }
   .ld-seqp .grp .gtab { font-size: 11px; font-weight: 700; fill: #fff; }
 
-  /* narration card */
+  /* narration card — starts BELOW the pinned participant headers (they stay put
+     while the band scrolls, so a card at top:14 would sit on top of them). */
   .ld-seqp .sq-card {
-    position: absolute; top: 14px; left: 14px; width: 340px; max-height: calc(100% - 96px);
+    position: absolute; top: 92px; left: 14px; width: 340px; max-height: calc(100% - 174px);
     overflow: auto; padding: 12px 14px 11px; border: 1px solid var(--border); border-radius: 13px;
     background: var(--card-bg); backdrop-filter: blur(9px); box-shadow: 0 8px 26px rgba(0,0,0,.14);
     font-size: 12.5px; z-index: 5;
