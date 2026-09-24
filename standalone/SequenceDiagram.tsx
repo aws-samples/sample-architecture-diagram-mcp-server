@@ -883,7 +883,12 @@ export function SequenceDiagram({ seq, lang = 'en', active = true, ui }: Any) {
           <span>{e?.badge ? <span className={`badge b-${e.badge}`}>{BADGE_TXT[e.badge] || e.badge}</span> : null}</span>
           <span className="counter">{`${cur + 1} / ${EV.length}`}</span>
         </div>
-        <div className="title">{e ? (tr(e.title, lang) || tr(e.label, lang) || '') : ''}</div>
+        {/* Step number BEFORE the step: the reader sees where they are without
+            hunting for the counter in the corner. */}
+        <div className="title">
+          {e && <span className="stepnum">{cur + 1}</span>}
+          {e ? (tr(e.title, lang) || tr(e.label, lang) || '') : ''}
+        </div>
         {e && <div className="parties"><Parties e={e} L={L} involved={involved} lang={lang} /></div>}
         {e?.flow && <div className="flow">{tr(e.flow, lang)}</div>}
         {e?.desc && <div className="desc">{cardKit.mdInline(tr(e.desc, lang) || '')}</div>}

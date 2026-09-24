@@ -50,6 +50,9 @@
   .cardhead{display:flex;align-items:center;gap:8px;margin-bottom:11px;min-height:22px}
   .counter{margin-left:auto;font-size:11px;font-family:'SF Mono',Menlo,Consolas,monospace;color:var(--txt-muted)}
   .card .title{font-size:19px;font-weight:700;line-height:1.25;margin-bottom:6px}
+  .card .title .stepnum{display:inline-block;min-width:22px;margin-right:8px;padding:0 6px;border-radius:7px;
+    background:var(--orange);color:#16191f;font-size:13px;font-weight:800;text-align:center;
+    vertical-align:2px;font-variant-numeric:tabular-nums}
   .card .flow{font-size:12.5px;color:var(--txt-muted);margin-bottom:11px}
   .card .parties{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-bottom:11px}
   .card .parties .pchip{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:2px 8px 2px 5px;border-radius:11px;background:color-mix(in srgb,var(--txt) 7%,transparent);border:1px solid var(--border);color:var(--txt-muted)}
@@ -562,7 +565,9 @@ function render(){
   pparties.style.display='none';
   if(e){
     if(e.badge){ badge.innerHTML='<span class="badge b-'+e.badge+'">'+esc(BADGE_TXT[e.badge]||e.badge)+'</span>'; } else badge.innerHTML='';
-    ptitle.textContent=e.title||e.label||'';
+    // Step number BEFORE the step: the reader sees where they are without
+    // hunting for the counter in the corner.
+    ptitle.innerHTML='<span class="stepnum">'+(cur+1)+'</span>'+esc(e.title||e.label||'');
     pparties.innerHTML=partiesHtml(e,involved); pparties.style.display=pparties.innerHTML?'':'none';
     pflow.textContent=e.flow||''; pflow.style.display=e.flow?'':'none';
     pdesc.innerHTML=e.desc?md(e.desc):''; pdesc.style.display=e.desc?'':'none';

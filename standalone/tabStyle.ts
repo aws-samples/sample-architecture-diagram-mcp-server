@@ -129,6 +129,11 @@ export const TAB_STYLE = `
   .ld-seqp .b-async, .ld-seqp .b-sync, .ld-seqp .b-phase { color: var(--info); background: color-mix(in srgb, var(--info) 15%, transparent); }
   .ld-seqp .b-fail { color: var(--danger); background: color-mix(in srgb, var(--danger) 15%, transparent); }
   .ld-seqp .sq-card .title { margin: 5px 0 6px; font-size: 13.5px; font-weight: 700; line-height: 1.35; }
+  .ld-seqp .sq-card .title .stepnum {
+    display: inline-block; min-width: 19px; margin-right: 7px; padding: 0 5px; border-radius: 6px;
+    background: var(--orange); color: #16191f; font-size: 11px; font-weight: 800; text-align: center;
+    vertical-align: 1px; font-variant-numeric: tabular-nums;
+  }
   .ld-seqp .sq-card .parties { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; margin-bottom: 7px; }
   .ld-seqp .pchip {
     display: inline-flex; align-items: center; gap: 4px; padding: 2px 7px; border-radius: 7px;
