@@ -16,8 +16,35 @@ function resolveBullets(items, lang) {
     : { ...b, text: tr(b.text, lang), strong: b.strong != null ? tr(b.strong, lang) : undefined });
 }
 
+// Small square toggle in the step rail — same 24px chrome as A−/A+, with an
+// `on` state that fills with the beat's accent colour.
+function RailToggle({ on, color, onClick, title, children }) {
+  return (
+    <button type="button" onClick={onClick} title={title} aria-label={title} aria-pressed={!!on}
+      style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 3, flexShrink: 0,
+        height: 24, padding: "0 7px", borderRadius: 7, cursor: "pointer", pointerEvents: "auto",
+        fontSize: 10, fontWeight: 800, letterSpacing: 0.3, textTransform: "uppercase",
+        border: `1px solid ${on ? color : "var(--border, rgba(148,163,184,0.4))"}`,
+        background: on ? color : "transparent",
+        color: on ? "#fff" : "var(--txt-muted, #94a3b8)", transition: "background .2s, color .2s, border-color .2s" }}>
+      {children}
+    </button>
+  );
+}
+
 export default function StepCard({ steps, activeStep, lang = "en", Icon, onPick, expanded = false, onToggleExpand, expandLabel = "Expandir", collapseLabel = "Recolher",
-  onTextBigger, onTextSmaller, canTextBigger = false, canTextSmaller = false, textSmallerLabel = "A−", textLargerLabel = "A+" }) {
+  onTextBigger, onTextSmaller, canTextBigger = false, canTextSmaller = false, textSmallerLabel = "A−", textLargerLabel = "A+",
+  // ── Stage mode (see stage.js) — the walkthrough driving a real shell ──
+  // onSendCmd     types this beat's code block on the live prompt (button next
+  //               to the code block's `copiar`)
+  // playing/onTogglePlay  the autoplay switch, hosted in THIS rail (the step/stack
+  //               bar) rather than in external chrome
+  // terminalOn/onToggleTerminal  show/hide the embedded terminal
+  // stageSlot     the terminal's footer slot (the frame positions the real
+  //               <iframe> over it — it is never re-parented, see LiveDiagram)
+  onSendCmd, sendCmdLabel = "cmd", playing = false, onTogglePlay, autoLabel = "Autoplay",
+  terminalOn = false, onToggleTerminal, terminalLabel = "Terminal", stageOnline = true,
+  stageSlot }) {
   const idx = Math.min(Math.max(activeStep, 0), steps.length - 1);
   const step = steps[idx] || {};
   const tone = step.tone || "accent";
@@ -69,6 +96,21 @@ export default function StepCard({ steps, activeStep, lang = "en", Icon, onPick,
         })}
       </div>
       <span className="font-mono text-[11px] shrink-0" style={{ color: "var(--txt-muted, #94a3b8)" }}>{idx + 1}/{steps.length}</span>
+      {onTogglePlay && (
+        <RailToggle on={playing} color={color} onClick={onTogglePlay} title={autoLabel}>
+          {playing
+            ? <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+            : <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg>}
+          auto
+        </RailToggle>
+      )}
+      {onToggleTerminal && (
+        <RailToggle on={terminalOn} color={stageOnline ? color : "#F59E0B"} onClick={onToggleTerminal}
+          title={stageOnline ? terminalLabel : `${terminalLabel} — stage control offline`}>
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="m5 8 4 4-4 4"/><path d="M13 16h6"/></svg>
+          term
+        </RailToggle>
+      )}
       {(onTextSmaller || onTextBigger) && (
         <div className="flex items-center gap-1 shrink-0" style={{ pointerEvents: "auto" }}>
           <button type="button" disabled={!canTextSmaller}
@@ -103,7 +145,7 @@ export default function StepCard({ steps, activeStep, lang = "en", Icon, onPick,
   );
 
   return (
-    <CardShell color={color} full={isFull} header={flowRail}>
+    <CardShell color={color} full={isFull} header={flowRail} footer={stageSlot}>
       <AnimatePresence mode="wait">
         <motion.div key={idx}
           initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
@@ -122,7 +164,8 @@ export default function StepCard({ steps, activeStep, lang = "en", Icon, onPick,
           {step.body && <Body big={isFull}>{tr(step.body, lang)}</Body>}
           {step.bullets && <Bullets items={resolveBullets(step.bullets, lang)} color={color} Icon={Icon} />}
           {step.process && <NumberedSteps items={step.process.map(p => typeof p === "string" ? { text: tr(p, lang) } : { ...p, label: tr(p.label, lang), text: tr(p.text, lang) })} color={color} Icon={Icon} />}
-          {step.code && <CodeBlock code={tr(step.code, lang)} label={step.codeLabel != null ? tr(step.codeLabel, lang) : undefined} color={color} />}
+          {step.code && <CodeBlock code={tr(step.code, lang)} label={step.codeLabel != null ? tr(step.codeLabel, lang) : undefined} color={color}
+            onSend={onSendCmd} sendLabel={sendCmdLabel} />}
 
           {Array.isArray(step.sections) && step.sections.map((sec, si) => (
             <Section key={si} title={tr(sec.title, lang)} color={color}>

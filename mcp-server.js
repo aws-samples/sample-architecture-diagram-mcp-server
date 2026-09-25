@@ -155,7 +155,7 @@ server.tool(
 
 // Input schemas live in lib/schemas.js so the local example generators
 // (gen-*.mjs) validate against the SAME contract these tools expose.
-import { serviceSchema, connectionSchema, groupSchema, stepSchema, tabSchema, sequenceSchema } from "./lib/schemas.js";
+import { serviceSchema, connectionSchema, groupSchema, stepSchema, tabSchema, sequenceSchema, stageSchema } from "./lib/schemas.js";
 
 // Interactive animated HTML diagram (an interactive canvas)
 server.tool(
@@ -184,12 +184,13 @@ server.tool(
     defaultCollapsed: z.array(z.string()).optional().describe("Group ids that start COLLAPSED on load — good for a dense diagram whose overview should read clean, letting the viewer expand only what they need (e.g. ['vpcdados'])."),
     sequence: sequenceSchema.optional().describe("Add a SECOND VIEW of the same system: an animated UML sequence diagram (participants + ordered messages, alt/opt/loop fragments, notes). Passing it turns the output into a two-tab document (Architecture + Sequence) with a tab rail — no `tabs` needed. Play/→ walks the flow beat by beat."),
     tabs: z.array(tabSchema).optional().describe("Full control over the MULTI-TAB document: one tab per view — kind 'architecture' (the live canvas), 'sequence' (animated UML sequence, needs `sequence`), or 'doc' (prose sections). Use this instead of `sequence` when you want custom labels/order or extra prose tabs. Each tab is deep-linkable via the URL hash."),
+    stage: stageSchema.optional().describe("PRESENTER MODE (opt-in): bridge the walkthrough to a REAL shell for a live demo or a screen recording — a `cmd` button next to the code block's `copiar` types that beat's command on the live prompt (un-executed: the presenter only presses Enter, nothing is pasted on camera), an `auto` switch sits in the step rail, and a browser terminal (ttyd) is embedded in the card. Needs a small loopback control server (SSE /events + /step/<token>); without it the diagram is unaffected. Add only when the user asks for a demo/recording setup."),
   },
-  async ({ title, subtitle, outputPath, services, connections, groups, direction, steps, startStep, startCardScale, stepZoom, stepFocus, lang, languages, uiStrings, langLabels, flowDots, flowPeriod, collapsible, defaultCollapsed, sequence, tabs }) => {
+  async ({ title, subtitle, outputPath, services, connections, groups, direction, steps, startStep, startCardScale, stepZoom, stepFocus, lang, languages, uiStrings, langLabels, flowDots, flowPeriod, collapsible, defaultCollapsed, sequence, tabs, stage }) => {
     // Validate + auto-repair the IR before rendering; the repaired model is what
     // reaches the generator (dangling edges dropped, missing refs cleaned, etc.).
     const { report, repaired } = validateDiagram({ services, connections, groups, steps });
-    const html = generateHtml(title, subtitle || "", repaired.services, repaired.connections, { groups: repaired.groups, direction, steps: repaired.steps, startStep, startCardScale, stepZoom, stepFocus, lang, languages, uiStrings, langLabels, flowDots, flowPeriod, collapsible, defaultCollapsed, sequence, tabs });
+    const html = generateHtml(title, subtitle || "", repaired.services, repaired.connections, { groups: repaired.groups, direction, steps: repaired.steps, startStep, startCardScale, stepZoom, stepFocus, lang, languages, uiStrings, langLabels, flowDots, flowPeriod, collapsible, defaultCollapsed, sequence, tabs, stage });
     writeFileSync(outputPath, html, "utf-8");
     const jsonPath = writeSidecarJson(outputPath, title, subtitle, repaired.services, repaired.connections, { groups: repaired.groups, direction });
     // When `sequence`/`tabs` is present the output is a multi-tab document; report
@@ -534,10 +535,10 @@ const draftSummary = (id, d) => `draft ${id}: ${d.services.length} service(s), $
 
 server.tool("diagram_create",
   "Start an incremental diagram draft. Returns a draftId; feed it to diagram_add_services / diagram_add_connections / diagram_add_groups / diagram_add_steps in any order, then diagram_render to write the HTML. Use this when building a diagram in stages; use generate_html_diagram for a single-shot build.",
-  { title: z.string(), subtitle: z.string().optional(), direction: z.enum(["LR", "TB"]).optional(), stepZoom: z.boolean().optional(), stepFocus: z.boolean().optional(), startStep: z.number().int().optional().describe("Beat to open on: -1 (default) overview first; 0+ opens zoomed on that beat."), startCardScale: z.number().int().min(0).max(3).optional().describe("Initial walkthrough-card text size (0–3, default 0); 1–3 opens a larger card."), flowDots: z.boolean().optional().describe("Animate a dot travelling along each connection. Default true. Set false for a static, print-friendly look."), lang: z.string().optional(), languages: z.array(z.string()).optional().describe("Offer a toolbar language switch; ANY language works (en, es, ja, …). When >1, author text fields may be per-language maps { en, ja, … }."), uiStrings: z.record(z.record(z.string())).optional().describe("Localize the UI chrome (tooltips/modal headings) for languages beyond built-in en/pt/es: { <uiKey>: { <lang>: text } }. Keys: iac, pricing, architecture, restart, play, pause, theme, collapse, expand, language."), langLabels: z.record(z.string()).optional().describe("Toolbar switch label per language, e.g. { ja: '日本語' }.") },
-  async ({ title, subtitle, direction, stepZoom, stepFocus, startStep, startCardScale, flowDots, lang, languages, uiStrings, langLabels }) => {
+  { title: z.string(), subtitle: z.string().optional(), direction: z.enum(["LR", "TB"]).optional(), stepZoom: z.boolean().optional(), stepFocus: z.boolean().optional(), startStep: z.number().int().optional().describe("Beat to open on: -1 (default) overview first; 0+ opens zoomed on that beat."), startCardScale: z.number().int().min(0).max(3).optional().describe("Initial walkthrough-card text size (0–3, default 0); 1–3 opens a larger card."), flowDots: z.boolean().optional().describe("Animate a dot travelling along each connection. Default true. Set false for a static, print-friendly look."), lang: z.string().optional(), languages: z.array(z.string()).optional().describe("Offer a toolbar language switch; ANY language works (en, es, ja, …). When >1, author text fields may be per-language maps { en, ja, … }."), uiStrings: z.record(z.record(z.string())).optional().describe("Localize the UI chrome (tooltips/modal headings) for languages beyond built-in en/pt/es: { <uiKey>: { <lang>: text } }. Keys: iac, pricing, architecture, restart, play, pause, theme, collapse, expand, language."), langLabels: z.record(z.string()).optional().describe("Toolbar switch label per language, e.g. { ja: '日本語' }."), stage: stageSchema.optional().describe("PRESENTER MODE (opt-in): bridge the walkthrough to a real shell — `cmd` button next to `copiar`, `auto` in the step rail, embedded browser terminal. Needs a loopback control server; see generate_html_diagram.") },
+  async ({ title, subtitle, direction, stepZoom, stepFocus, startStep, startCardScale, flowDots, lang, languages, uiStrings, langLabels, stage }) => {
     const id = `d${++draftSeq}`;
-    drafts.set(id, { title, subtitle: subtitle || "", direction: direction || "LR", services: [], connections: [], groups: [], steps: [], stepZoom: !!stepZoom, stepFocus: !!stepFocus, startStep, startCardScale, flowDots, lang, languages, uiStrings, langLabels });
+    drafts.set(id, { title, subtitle: subtitle || "", direction: direction || "LR", services: [], connections: [], groups: [], steps: [], stepZoom: !!stepZoom, stepFocus: !!stepFocus, startStep, startCardScale, flowDots, lang, languages, uiStrings, langLabels, stage });
     return { content: [{ type: "text", text: `Created ${id}. Add pieces with diagram_add_* (draftId="${id}"), then diagram_render.` }] };
   }
 );
@@ -608,7 +609,7 @@ server.tool("diagram_render",
   async ({ draftId, outputPath, keep }) => {
     const d = getDraft(draftId);
     const { report, repaired } = validateDiagram({ services: d.services, connections: d.connections, groups: d.groups, steps: d.steps });
-    const html = generateHtml(d.title, d.subtitle, repaired.services, repaired.connections, { groups: repaired.groups, direction: d.direction, steps: repaired.steps, stepZoom: d.stepZoom, stepFocus: d.stepFocus, startStep: d.startStep, startCardScale: d.startCardScale, flowDots: d.flowDots, lang: d.lang, languages: d.languages, uiStrings: d.uiStrings, langLabels: d.langLabels, tabs: d.tabs });
+    const html = generateHtml(d.title, d.subtitle, repaired.services, repaired.connections, { groups: repaired.groups, direction: d.direction, steps: repaired.steps, stepZoom: d.stepZoom, stepFocus: d.stepFocus, startStep: d.startStep, startCardScale: d.startCardScale, flowDots: d.flowDots, lang: d.lang, languages: d.languages, uiStrings: d.uiStrings, langLabels: d.langLabels, tabs: d.tabs, stage: d.stage });
     writeFileSync(outputPath, html, "utf-8");
     const jsonPath = writeSidecarJson(outputPath, d.title, d.subtitle, repaired.services, repaired.connections, { groups: repaired.groups, direction: d.direction });
     if (!keep) drafts.delete(draftId);

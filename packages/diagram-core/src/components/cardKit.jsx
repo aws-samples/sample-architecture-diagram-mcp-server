@@ -38,36 +38,52 @@ export function mdInline(str) {
 
 // Fenced code block for the card — a labeled request/snippet (e.g. the POST).
 // Pass { code, lang?, label? }. Monospace, scrollable, subtle surface.
-export function CodeBlock({ code, label, color }) {
+// `onSend` (stage mode, see stage.js) adds a second button next to `copiar`
+// that types this snippet on the stage's live prompt, un-executed — so the
+// presenter only presses Enter and nothing is pasted on camera.
+export function CodeBlock({ code, label, color, onSend, sendLabel = "cmd", sendTitle }) {
   if (!code) return null;
   const c = color || "#475569";
   const [copied, setCopied] = useState(false);
+  const [sent, setSent] = useState(false);
   const copy = () => {
     try { navigator.clipboard?.writeText(code); } catch { /* clipboard blocked (file://) — no-op */ }
     setCopied(true); setTimeout(() => setCopied(false), 1400);
   };
+  const send = () => { onSend?.(); setSent(true); setTimeout(() => setSent(false), 1400); };
+  const btn = "flex items-center gap-1 px-1.5 py-0.5 rounded text-white/90 hover:text-white hover:bg-white/20 transition-colors normal-case tracking-normal font-semibold";
   return (
     <div className="rounded-lg overflow-hidden border" style={{ borderColor: `${c}40` }}>
       <div className="flex items-center justify-between px-3 py-1 text-[10.5px] font-bold uppercase tracking-wider text-white" style={{ background: c }}>
         <span>{label || "código"}</span>
-        <button type="button" onClick={copy}
-          className="flex items-center gap-1 px-1.5 py-0.5 rounded text-white/90 hover:text-white hover:bg-white/20 transition-colors normal-case tracking-normal font-semibold"
-          title="Copiar">
-          {copied
-            ? <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>copiado</>
-            : <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>copiar</>}
-        </button>
+        <span className="flex items-center gap-0.5">
+          {onSend && (
+            <button type="button" onClick={send} className={btn}
+              title={sendTitle || "Digitar este comando no prompt (sem executar)"}>
+              {sent
+                ? <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>{sendLabel}</>
+                : <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 10 4 4-4 4"/><path d="M20 4v7a3 3 0 0 1-3 3H13"/></svg>{sendLabel}</>}
+            </button>
+          )}
+          <button type="button" onClick={copy} className={btn} title="Copiar">
+            {copied
+              ? <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>copiado</>
+              : <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>copiar</>}
+          </button>
+        </span>
       </div>
       <pre className="m-0 px-3 py-2.5 text-[12px] leading-relaxed font-mono whitespace-pre overflow-x-auto text-[color:var(--txt,#e2e8f0)] bg-[color:var(--chip-bg,rgba(148,163,184,0.1))]">{code}</pre>
     </div>
   );
 }
 
-export function CardShell({ color, full, header, children }) {
+export function CardShell({ color, full, header, footer, children }) {
   // Optional `header` renders as a full-bleed band (its own surface + divider),
   // OUTSIDE the body padding, so a step-flow rail reads as a distinct header
   // strip. Body keeps the usual padding; when `full`, the body scrolls but the
-  // header stays pinned on top.
+  // header stays pinned on top. Optional `footer` is the mirror band at the
+  // bottom (stage terminal slot) — also outside the scrolling body, so it stays
+  // put while a long beat scrolls.
   const bodyPad = full ? "px-7 py-6" : "px-[22px] py-[18px]";
   return (
     <div
@@ -95,6 +111,12 @@ export function CardShell({ color, full, header, children }) {
       <div className={`${bodyPad} overflow-y-auto min-h-0`}>
         {children}
       </div>
+      {footer && (
+        <div className="shrink-0 px-3 pt-2.5 pb-3 border-t"
+          style={{ borderColor: `${color}33`, background: `${color}0f` }}>
+          {footer}
+        </div>
+      )}
     </div>
   );
 }

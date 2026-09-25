@@ -222,6 +222,8 @@ Each service needs `id`, `service`, `shape`, and `category`. Everything below is
   switch; any text field may then be a `{ en, ja, … }` map instead of a plain string.
 - **`collapsible` / `defaultCollapsed`** — fold/expand containers.
 - **`direction`** — `LR` (default) or `TB` layout flow.
+- **`stage`** — presenter mode: the walkthrough drives a real shell and embeds its
+  terminal in the card (see [Presenter stage](#presenter-stage-live-demo)).
 
 ## Guided walkthrough
 
@@ -260,6 +262,49 @@ Card content: `eyebrow`, `title`, `body` (markdown), `bullets`, `chips`, `code`,
     "nodes": ["fn", "db"], "zoom": ["fn", "db"], "badge": false }
 ]
 ```
+
+## Presenter stage (live demo)
+
+A walkthrough whose beats carry `code` is usually narrating commands someone is
+about to run. `stage` closes that gap: the card gets a **`cmd`** button next to
+`copiar` that *types* the beat's command on a real prompt without executing it
+(the presenter only presses Enter, so nothing is pasted or typed on camera), the
+**auto** / **term** switches join the numbered step rail, and a browser terminal
+(ttyd, or anything served over HTTP) is embedded in the card's footer. It lives
+inside the card only: on the overview, and on any beat with no card, it is hidden
+— so a recording opens on the architecture alone and the shell arrives with the
+first beat.
+
+```jsonc
+"stage": {
+  "terminal": "http://localhost:7681/",  // ttyd --writable, embedded in the card
+  "control":  "",                        // "" = the page's own origin
+  "height":   240                        // terminal panel height in px (default 220)
+}
+```
+
+Both fields are optional, but the feature is off unless at least one is present —
+an authored diagram without `stage` renders byte-for-byte as before.
+
+**The control server** (`control`) is yours to run, on loopback, and it owns the
+cursor — so the shell and the card can never disagree. Two endpoints:
+
+| Endpoint | Contract |
+|---|---|
+| `GET /events` | SSE; each message is `{"step": <1-based beat, 0 = overview>}`. The card follows this stream, so whatever moves the shell moves the card. |
+| `GET /step/<token>` | Move the cursor. Tokens: `1`…`N`, `overview`, `next`, `prev`, and `same` (re-send the current beat's command — this is what `cmd` calls). |
+
+Every navigation the viewer makes (rail click, arrow key, autoplay tick, play,
+reset) goes through `/step/…` when a stage is configured; the SSE echo is the
+single source of truth. With no stage, navigation stays local state as always.
+
+The iframe is rendered once at the frame level and only *moved* over the card's
+footer, never re-parented — re-mounting it would reload the shell and lose its
+session. It also carries `data-norecord="1"`, so media export ignores it.
+
+Because it lets a web page type into a shell, treat `stage` as a
+presenter-machine-only feature: bind the control server to loopback, and don't
+ship a stage-enabled HTML to anyone else.
 
 ## Multi-tab documents (sequence + doc tabs)
 

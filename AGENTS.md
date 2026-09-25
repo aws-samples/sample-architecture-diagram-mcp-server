@@ -102,6 +102,29 @@ output — author it once, embed it either way.
 - Keep the two views CONSISTENT: every sequence participant should exist as a node
   (or group) in the architecture, using the same wording.
 
+## Presenter stage: when the walkthrough IS a live demo
+
+Only when the user is recording a demo or presenting live from a real shell, add
+`stage` to `generate_html_diagram` (or `diagram_create`). The card then gets a
+`cmd` button beside `copiar` that TYPES the beat's `code` on a live prompt without
+running it, `auto`/`term` switches in the step rail, and the terminal embedded in
+the card itself — visible only while a card is on screen, so the overview stays
+just the architecture.
+
+```jsonc
+"stage": { "terminal": "http://localhost:7681/", "control": "", "height": 240 }
+```
+
+- `terminal` — a browser terminal to embed (e.g. `ttyd --writable`). Omit for the
+  bridge without a visible shell.
+- `control` — base URL of the user's own loopback control server: SSE `GET /events`
+  emitting `{"step": <1-based, 0 = overview>}` and `GET /step/<token>` with
+  `1`…`N` / `overview` / `next` / `prev` / `same`. `""` means the page's own origin.
+- The server owns the cursor: every move goes through `/step/…` and the card
+  follows the SSE echo, so the shell and the card can never disagree.
+- Do NOT add `stage` to a diagram meant to be shared — it is a
+  presenter-machine-only feature, and a diagram without it renders exactly as before.
+
 ## Group variants
 
 `aws-cloud`, `region`, `vpc`, `public-subnet`, `private-subnet`,
