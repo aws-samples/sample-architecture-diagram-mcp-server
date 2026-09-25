@@ -39,6 +39,9 @@ interface Props {
     // Multi-view document: a tab rail + one panel per view (architecture / the
     // animated UML sequence / prose). Absent => classic single-canvas diagram.
     tabs?: any[];
+    // Stage bridge: the walkthrough drives a real shell and embeds its browser
+    // terminal in the card (live demo / screen recording). See core stage.js.
+    stage?: { terminal?: string; control?: string; height?: number };
   };
 }
 
@@ -129,6 +132,7 @@ export function StandaloneApp({ data }: Props) {
         steps={data.steps}
         startStep={(data as any).startStep}
         startCardScale={(data as any).startCardScale}
+        stage={data.stage}
         stepFocus={data.stepFocus}
         stepZoom={data.stepZoom}
         flowDots={data.flowDots}

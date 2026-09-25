@@ -31,7 +31,7 @@ declare function CustomEdge({ id, sourceX, sourceY, targetX, targetY, sourcePosi
     style: any;
 }): react.JSX.Element;
 
-declare function StepCard({ steps, activeStep, lang, Icon, onPick, expanded, onToggleExpand, expandLabel, collapseLabel, onTextBigger, onTextSmaller, canTextBigger, canTextSmaller, textSmallerLabel, textLargerLabel }: {
+declare function StepCard({ steps, activeStep, lang, Icon, onPick, expanded, onToggleExpand, expandLabel, collapseLabel, onTextBigger, onTextSmaller, canTextBigger, canTextSmaller, textSmallerLabel, textLargerLabel, onSendCmd, sendCmdLabel, playing, onTogglePlay, autoLabel, terminalOn, onToggleTerminal, terminalLabel, stageOnline, stageSlot }: {
     steps: any;
     activeStep: any;
     lang?: string;
@@ -47,6 +47,16 @@ declare function StepCard({ steps, activeStep, lang, Icon, onPick, expanded, onT
     canTextSmaller?: boolean;
     textSmallerLabel?: string;
     textLargerLabel?: string;
+    onSendCmd: any;
+    sendCmdLabel?: string;
+    playing?: boolean;
+    onTogglePlay: any;
+    autoLabel?: string;
+    terminalOn?: boolean;
+    onToggleTerminal: any;
+    terminalLabel?: string;
+    stageOnline?: boolean;
+    stageSlot: any;
 }): react.JSX.Element;
 
 declare function NodeModal({ node, onClose, Icon, strings }: {
@@ -79,15 +89,19 @@ declare function ZoomBar({ title, subtitle, dark, visible, onToggle, onTheme, ha
 }): react.JSX.Element;
 
 declare function mdInline(str: any): any;
-declare function CodeBlock({ code, label, color }: {
+declare function CodeBlock({ code, label, color, onSend, sendLabel, sendTitle }: {
     code: any;
     label: any;
     color: any;
+    onSend: any;
+    sendLabel?: string;
+    sendTitle: any;
 }): react.JSX.Element;
-declare function CardShell({ color, full, header, children }: {
+declare function CardShell({ color, full, header, footer, children }: {
     color: any;
     full: any;
     header: any;
+    footer: any;
     children: any;
 }): react.JSX.Element;
 declare function IconTile({ icon, color, size, Icon }: {
@@ -176,7 +190,7 @@ declare namespace Icon {
     let displayName: string;
 }
 
-declare function LiveDiagram({ data, lang, animate, direction, edgeStyle, steps, activeStep, stepLayout, fitPadding, stepFocus, spacing, stepZoom, className, geometry, nodeLayout, vars, Icon, markerId, reanchorEdges, groupsInteractive, edgeTuning, flowDots, control, chrome, theme, dark: darkProp, onThemeChange, languages, onLangChange, ui, langLabel, title, subtitle, collapsible, defaultCollapsed, zoomOnScroll, nodeModal, startStep, startCardScale, minZoom, maxZoom, fitMaxZoom, stepMaxZoom, }: {
+declare function LiveDiagram({ data, lang, animate, direction, edgeStyle, steps, activeStep, stepLayout, fitPadding, stepFocus, spacing, stepZoom, className, geometry, nodeLayout, vars, Icon, markerId, reanchorEdges, groupsInteractive, edgeTuning, flowDots, control, chrome, theme, dark: darkProp, onThemeChange, languages, onLangChange, ui, langLabel, title, subtitle, stage, collapsible, defaultCollapsed, zoomOnScroll, nodeModal, startStep, startCardScale, minZoom, maxZoom, fitMaxZoom, stepMaxZoom, }: {
     data: any;
     lang?: string;
     animate?: boolean;
@@ -210,6 +224,7 @@ declare function LiveDiagram({ data, lang, animate, direction, edgeStyle, steps,
     langLabel: any;
     title: any;
     subtitle: any;
+    stage: any;
     collapsible?: boolean;
     defaultCollapsed?: any[];
     zoomOnScroll?: boolean;
@@ -222,4 +237,19 @@ declare function LiveDiagram({ data, lang, animate, direction, edgeStyle, steps,
     stepMaxZoom?: number;
 }): react.JSX.Element;
 
-export { _default$2 as AwsNode, _default as CustomEdge, DARK_VARIANT_BASES, _default$1 as GroupNode, Icon, Icon as IconDefault, LiveDiagram, LiveDiagram as LiveDiagramDefault, LiveDiagramEditor, NodeModal, StepCard, ZoomBar, cardKit };
+/** Normalize the control base: "" (same origin) or a URL without its trailing slash. */
+declare function stageBase(stage: any): string;
+declare function stageEnabled(stage: any): boolean;
+/** Token for a beat index: -1 is the overview, 0+ is the 1-based beat number. */
+declare function stageToken(index: any): string;
+/**
+ * Subscribe to the stage's cursor and expose a way to move it.
+ *
+ * @param stage   the diagram's `stage` block (undefined = feature off)
+ * @param onStep  called with a 0-based beat index (-1 = overview) on every
+ *                server move, including the sync sent on connect
+ * @returns { enabled, online, send, terminal, height }
+ */
+declare function useStage(stage: any, { onStep }?: {}): boolean;
+
+export { _default$2 as AwsNode, _default as CustomEdge, DARK_VARIANT_BASES, _default$1 as GroupNode, Icon, Icon as IconDefault, LiveDiagram, LiveDiagram as LiveDiagramDefault, LiveDiagramEditor, NodeModal, StepCard, ZoomBar, cardKit, stageBase, stageEnabled, stageToken, useStage };

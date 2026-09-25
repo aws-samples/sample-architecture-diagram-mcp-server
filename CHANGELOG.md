@@ -4,6 +4,18 @@ All notable changes to the AWS Architecture Diagram MCP server are documented he
 
 ## [Unreleased]
 
+- **Presenter stage** — new opt-in `stage` option (`terminal` / `control` / `height`)
+  turns a walkthrough into a live demo console: a `cmd` button beside the code
+  block's `copiar` types that beat's command on a real prompt without executing it
+  (the presenter only presses Enter — nothing is typed or pasted on camera), `auto`
+  and `term` switches move into the numbered step rail, and a browser terminal
+  (ttyd) is embedded in the card's footer — inside the card only, hidden on the
+  overview and on any beat with no card. A loopback control server the presenter runs owns the cursor: every
+  navigation goes through `GET /step/<token>` and the card follows the SSE `/events`
+  echo, so the shell and the card can never disagree. The iframe is rendered once at
+  frame level and only re-positioned by CSS (re-parenting would reload the shell),
+  and carries `data-norecord` so media export ignores it. Without `stage` the output
+  and behaviour are byte-for-byte unchanged.
 - **Multi-tab documents** — `generate_html_diagram` accepts `sequence` (shortcut) or
   an explicit `tabs[]`, turning the single self-contained HTML into a small document
   with a tab rail (Architecture / Sequence / free-form doc tabs), modeled on the

@@ -14,3 +14,5 @@ export { default as ZoomBar } from "./components/ZoomBar.jsx";
 export * as cardKit from "./components/cardKit.jsx";
 export { LiveDiagram, default as LiveDiagramDefault } from "./components/LiveDiagram.jsx";
 export { LiveDiagramEditor } from "./components/LiveDiagramEditor.jsx";
+// Stage bridge (walkthrough ↔ a real shell) — see stage.js.
+export { useStage, stageEnabled, stageBase, stageToken } from "./stage.js";

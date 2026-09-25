@@ -602,10 +602,11 @@ function mdInline(str) {
   if (last < str.length) out.push(str.slice(last));
   return out;
 }
-function CodeBlock({ code, label, color }) {
+function CodeBlock({ code, label, color, onSend, sendLabel = "cmd", sendTitle }) {
   if (!code) return null;
   const c = color || "#475569";
   const [copied, setCopied] = useState2(false);
+  const [sent, setSent] = useState2(false);
   const copy = () => {
     try {
       navigator.clipboard?.writeText(code);
@@ -614,33 +615,51 @@ function CodeBlock({ code, label, color }) {
     setCopied(true);
     setTimeout(() => setCopied(false), 1400);
   };
+  const send = () => {
+    onSend?.();
+    setSent(true);
+    setTimeout(() => setSent(false), 1400);
+  };
+  const btn = "flex items-center gap-1 px-1.5 py-0.5 rounded text-white/90 hover:text-white hover:bg-white/20 transition-colors normal-case tracking-normal font-semibold";
   return /* @__PURE__ */ jsxs5("div", { className: "rounded-lg overflow-hidden border", style: { borderColor: `${c}40` }, children: [
     /* @__PURE__ */ jsxs5("div", { className: "flex items-center justify-between px-3 py-1 text-[10.5px] font-bold uppercase tracking-wider text-white", style: { background: c }, children: [
       /* @__PURE__ */ jsx5("span", { children: label || "c\xF3digo" }),
-      /* @__PURE__ */ jsx5(
-        "button",
-        {
-          type: "button",
-          onClick: copy,
-          className: "flex items-center gap-1 px-1.5 py-0.5 rounded text-white/90 hover:text-white hover:bg-white/20 transition-colors normal-case tracking-normal font-semibold",
-          title: "Copiar",
-          children: copied ? /* @__PURE__ */ jsxs5(Fragment4, { children: [
-            /* @__PURE__ */ jsx5("svg", { width: "12", height: "12", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "3", strokeLinecap: "round", strokeLinejoin: "round", children: /* @__PURE__ */ jsx5("path", { d: "M20 6 9 17l-5-5" }) }),
-            "copiado"
-          ] }) : /* @__PURE__ */ jsxs5(Fragment4, { children: [
-            /* @__PURE__ */ jsxs5("svg", { width: "12", height: "12", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: [
-              /* @__PURE__ */ jsx5("rect", { x: "9", y: "9", width: "13", height: "13", rx: "2" }),
-              /* @__PURE__ */ jsx5("path", { d: "M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" })
-            ] }),
-            "copiar"
-          ] })
-        }
-      )
+      /* @__PURE__ */ jsxs5("span", { className: "flex items-center gap-0.5", children: [
+        onSend && /* @__PURE__ */ jsx5(
+          "button",
+          {
+            type: "button",
+            onClick: send,
+            className: btn,
+            title: sendTitle || "Digitar este comando no prompt (sem executar)",
+            children: sent ? /* @__PURE__ */ jsxs5(Fragment4, { children: [
+              /* @__PURE__ */ jsx5("svg", { width: "12", height: "12", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "3", strokeLinecap: "round", strokeLinejoin: "round", children: /* @__PURE__ */ jsx5("path", { d: "M20 6 9 17l-5-5" }) }),
+              sendLabel
+            ] }) : /* @__PURE__ */ jsxs5(Fragment4, { children: [
+              /* @__PURE__ */ jsxs5("svg", { width: "12", height: "12", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: [
+                /* @__PURE__ */ jsx5("path", { d: "m9 10 4 4-4 4" }),
+                /* @__PURE__ */ jsx5("path", { d: "M20 4v7a3 3 0 0 1-3 3H13" })
+              ] }),
+              sendLabel
+            ] })
+          }
+        ),
+        /* @__PURE__ */ jsx5("button", { type: "button", onClick: copy, className: btn, title: "Copiar", children: copied ? /* @__PURE__ */ jsxs5(Fragment4, { children: [
+          /* @__PURE__ */ jsx5("svg", { width: "12", height: "12", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "3", strokeLinecap: "round", strokeLinejoin: "round", children: /* @__PURE__ */ jsx5("path", { d: "M20 6 9 17l-5-5" }) }),
+          "copiado"
+        ] }) : /* @__PURE__ */ jsxs5(Fragment4, { children: [
+          /* @__PURE__ */ jsxs5("svg", { width: "12", height: "12", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: [
+            /* @__PURE__ */ jsx5("rect", { x: "9", y: "9", width: "13", height: "13", rx: "2" }),
+            /* @__PURE__ */ jsx5("path", { d: "M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" })
+          ] }),
+          "copiar"
+        ] }) })
+      ] })
     ] }),
     /* @__PURE__ */ jsx5("pre", { className: "m-0 px-3 py-2.5 text-[12px] leading-relaxed font-mono whitespace-pre overflow-x-auto text-[color:var(--txt,#e2e8f0)] bg-[color:var(--chip-bg,rgba(148,163,184,0.1))]", children: code })
   ] });
 }
-function CardShell({ color, full, header, children }) {
+function CardShell({ color, full, header, footer, children }) {
   const bodyPad = full ? "px-7 py-6" : "px-[22px] py-[18px]";
   return /* @__PURE__ */ jsxs5(
     "div",
@@ -657,7 +676,15 @@ function CardShell({ color, full, header, children }) {
             children: header
           }
         ),
-        /* @__PURE__ */ jsx5("div", { className: `${bodyPad} overflow-y-auto min-h-0`, children })
+        /* @__PURE__ */ jsx5("div", { className: `${bodyPad} overflow-y-auto min-h-0`, children }),
+        footer && /* @__PURE__ */ jsx5(
+          "div",
+          {
+            className: "shrink-0 px-3 pt-2.5 pb-3 border-t",
+            style: { borderColor: `${color}33`, background: `${color}0f` },
+            children: footer
+          }
+        )
       ]
     }
   );
@@ -785,6 +812,39 @@ function resolveBullets(items, lang) {
   if (!items) return void 0;
   return items.map((b) => typeof b === "string" ? tr(b, lang) : { ...b, text: tr(b.text, lang), strong: b.strong != null ? tr(b.strong, lang) : void 0 });
 }
+function RailToggle({ on, color, onClick, title, children }) {
+  return /* @__PURE__ */ jsx6(
+    "button",
+    {
+      type: "button",
+      onClick,
+      title,
+      "aria-label": title,
+      "aria-pressed": !!on,
+      style: {
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 3,
+        flexShrink: 0,
+        height: 24,
+        padding: "0 7px",
+        borderRadius: 7,
+        cursor: "pointer",
+        pointerEvents: "auto",
+        fontSize: 10,
+        fontWeight: 800,
+        letterSpacing: 0.3,
+        textTransform: "uppercase",
+        border: `1px solid ${on ? color : "var(--border, rgba(148,163,184,0.4))"}`,
+        background: on ? color : "transparent",
+        color: on ? "#fff" : "var(--txt-muted, #94a3b8)",
+        transition: "background .2s, color .2s, border-color .2s"
+      },
+      children
+    }
+  );
+}
 function StepCard({
   steps,
   activeStep,
@@ -800,7 +860,25 @@ function StepCard({
   canTextBigger = false,
   canTextSmaller = false,
   textSmallerLabel = "A\u2212",
-  textLargerLabel = "A+"
+  textLargerLabel = "A+",
+  // ── Stage mode (see stage.js) — the walkthrough driving a real shell ──
+  // onSendCmd     types this beat's code block on the live prompt (button next
+  //               to the code block's `copiar`)
+  // playing/onTogglePlay  the autoplay switch, hosted in THIS rail (the step/stack
+  //               bar) rather than in external chrome
+  // terminalOn/onToggleTerminal  show/hide the embedded terminal
+  // stageSlot     the terminal's footer slot (the frame positions the real
+  //               <iframe> over it — it is never re-parented, see LiveDiagram)
+  onSendCmd,
+  sendCmdLabel = "cmd",
+  playing = false,
+  onTogglePlay,
+  autoLabel = "Autoplay",
+  terminalOn = false,
+  onToggleTerminal,
+  terminalLabel = "Terminal",
+  stageOnline = true,
+  stageSlot
 }) {
   const idx = Math.min(Math.max(activeStep, 0), steps.length - 1);
   const step = steps[idx] || {};
@@ -866,6 +944,29 @@ function StepCard({
       "/",
       steps.length
     ] }),
+    onTogglePlay && /* @__PURE__ */ jsxs6(RailToggle, { on: playing, color, onClick: onTogglePlay, title: autoLabel, children: [
+      playing ? /* @__PURE__ */ jsxs6("svg", { width: "9", height: "9", viewBox: "0 0 24 24", fill: "currentColor", children: [
+        /* @__PURE__ */ jsx6("rect", { x: "6", y: "5", width: "4", height: "14", rx: "1" }),
+        /* @__PURE__ */ jsx6("rect", { x: "14", y: "5", width: "4", height: "14", rx: "1" })
+      ] }) : /* @__PURE__ */ jsx6("svg", { width: "9", height: "9", viewBox: "0 0 24 24", fill: "currentColor", children: /* @__PURE__ */ jsx6("path", { d: "M7 4.5v15l13-7.5z" }) }),
+      "auto"
+    ] }),
+    onToggleTerminal && /* @__PURE__ */ jsxs6(
+      RailToggle,
+      {
+        on: terminalOn,
+        color: stageOnline ? color : "#F59E0B",
+        onClick: onToggleTerminal,
+        title: stageOnline ? terminalLabel : `${terminalLabel} \u2014 stage control offline`,
+        children: [
+          /* @__PURE__ */ jsxs6("svg", { width: "10", height: "10", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2.4", strokeLinecap: "round", strokeLinejoin: "round", children: [
+            /* @__PURE__ */ jsx6("path", { d: "m5 8 4 4-4 4" }),
+            /* @__PURE__ */ jsx6("path", { d: "M13 16h6" })
+          ] }),
+          "term"
+        ]
+      }
+    ),
     (onTextSmaller || onTextBigger) && /* @__PURE__ */ jsxs6("div", { className: "flex items-center gap-1 shrink-0", style: { pointerEvents: "auto" }, children: [
       /* @__PURE__ */ jsxs6(
         "button",
@@ -950,7 +1051,7 @@ function StepCard({
       }
     )
   ] });
-  return /* @__PURE__ */ jsx6(CardShell, { color, full: isFull, header: flowRail, children: /* @__PURE__ */ jsx6(AnimatePresence, { mode: "wait", children: /* @__PURE__ */ jsxs6(
+  return /* @__PURE__ */ jsx6(CardShell, { color, full: isFull, header: flowRail, footer: stageSlot, children: /* @__PURE__ */ jsx6(AnimatePresence, { mode: "wait", children: /* @__PURE__ */ jsxs6(
     motion.div,
     {
       initial: { opacity: 0, y: 6 },
@@ -967,7 +1068,16 @@ function StepCard({
         step.body && /* @__PURE__ */ jsx6(Body, { big: isFull, children: tr(step.body, lang) }),
         step.bullets && /* @__PURE__ */ jsx6(Bullets, { items: resolveBullets(step.bullets, lang), color, Icon: Icon2 }),
         step.process && /* @__PURE__ */ jsx6(NumberedSteps, { items: step.process.map((p) => typeof p === "string" ? { text: tr(p, lang) } : { ...p, label: tr(p.label, lang), text: tr(p.text, lang) }), color, Icon: Icon2 }),
-        step.code && /* @__PURE__ */ jsx6(CodeBlock, { code: tr(step.code, lang), label: step.codeLabel != null ? tr(step.codeLabel, lang) : void 0, color }),
+        step.code && /* @__PURE__ */ jsx6(
+          CodeBlock,
+          {
+            code: tr(step.code, lang),
+            label: step.codeLabel != null ? tr(step.codeLabel, lang) : void 0,
+            color,
+            onSend: onSendCmd,
+            sendLabel: sendCmdLabel
+          }
+        ),
         Array.isArray(step.sections) && step.sections.map((sec, si) => /* @__PURE__ */ jsxs6(Section, { title: tr(sec.title, lang), color, children: [
           sec.body && /* @__PURE__ */ jsx6(Body, { children: tr(sec.body, lang) }),
           sec.bullets && /* @__PURE__ */ jsx6(Bullets, { items: resolveBullets(sec.bullets, lang), color, Icon: Icon2 })
@@ -1379,7 +1489,7 @@ function ZoomBar({
 }
 
 // src/components/LiveDiagram.jsx
-import { useMemo, useEffect as useEffect2, useState as useState4, useCallback, useRef as useRef2 } from "react";
+import { useMemo, useEffect as useEffect3, useState as useState5, useCallback as useCallback2, useRef as useRef3 } from "react";
 import {
   ReactFlow,
   ReactFlowProvider,
@@ -1390,6 +1500,66 @@ import {
 } from "@xyflow/react";
 import { motion as motion3, AnimatePresence as AnimatePresence3, MotionConfig } from "framer-motion";
 import "@xyflow/react/dist/style.css";
+
+// src/stage.js
+import { useCallback, useEffect as useEffect2, useRef as useRef2, useState as useState4 } from "react";
+var RETRY_MS = 2e3;
+var DEFAULT_HEIGHT = 220;
+function stageBase(stage) {
+  return String(stage?.control ?? "").replace(/\/+$/, "");
+}
+function stageEnabled(stage) {
+  return !!(stage && (stage.terminal || stage.control != null));
+}
+function stageToken(index) {
+  return index < 0 ? "overview" : String(index + 1);
+}
+function useStage(stage, { onStep } = {}) {
+  const enabled = stageEnabled(stage);
+  const base = stageBase(stage);
+  const [online, setOnline] = useState4(false);
+  const onStepRef = useRef2(onStep);
+  onStepRef.current = onStep;
+  useEffect2(() => {
+    if (!enabled || typeof window === "undefined" || typeof EventSource === "undefined") return;
+    let es = null, retry = null, alive = true;
+    const connect = () => {
+      es = new EventSource(`${base}/events`);
+      es.onmessage = (e) => {
+        setOnline(true);
+        try {
+          const state = JSON.parse(e.data);
+          onStepRef.current?.((state.step || 0) - 1);
+        } catch {
+        }
+      };
+      es.onerror = () => {
+        setOnline(false);
+        es?.close();
+        if (alive) retry = setTimeout(connect, RETRY_MS);
+      };
+    };
+    connect();
+    return () => {
+      alive = false;
+      if (retry) clearTimeout(retry);
+      es?.close();
+    };
+  }, [enabled, base]);
+  const send = useCallback((token) => {
+    if (!enabled) return;
+    fetch(`${base}/step/${token}`).then(() => setOnline(true), () => setOnline(false));
+  }, [enabled, base]);
+  return {
+    enabled,
+    online,
+    send,
+    terminal: stage?.terminal || null,
+    height: Number(stage?.height) > 0 ? Number(stage.height) : DEFAULT_HEIGHT
+  };
+}
+
+// src/components/LiveDiagram.jsx
 import { Fragment as Fragment6, jsx as jsx9, jsxs as jsxs9 } from "react/jsx-runtime";
 var NODE_TYPES = { aws: AwsNode_default, group: GroupNode_default };
 var EDGE_TYPES = { custom: CustomEdge_default };
@@ -1504,12 +1674,12 @@ function DiagramCanvas({
       return buildBaseEdge(c, { direction, lang, animate, straight, markerId, edgeTuning, edgeIndex: seen, flowPeriod: data.flowPeriod });
     });
   }, [data, direction, animate, straight, lang, markerId, edgeTuning]);
-  const [baseNodes, setBaseNodes] = useState4([]);
-  const [edgePaths, setEdgePaths] = useState4({});
-  const decorateBase = useCallback((nodes2) => nodes2.map(
+  const [baseNodes, setBaseNodes] = useState5([]);
+  const [edgePaths, setEdgePaths] = useState5({});
+  const decorateBase = useCallback2((nodes2) => nodes2.map(
     (n) => n.type === "group" ? { ...n, data: { ...n.data, id: n.id, label: tr(n.data?.label, lang), pill: n.data?.pill != null ? tr(n.data.pill, lang) : void 0, IconComponent: Icon2, scale: nodeLayout === "horizontal" ? "lg" : "sm", vars, collapsible: !!collapsible && n.data?.collapsible, onToggleCollapse: collapsible ? onToggleCollapse : void 0 } } : n
   ), [Icon2, nodeLayout, vars, lang, collapsible, onToggleCollapse]);
-  useEffect2(() => {
+  useEffect3(() => {
     let alive = true;
     layoutWithFallback(serviceNodes, baseEdges, membership, {
       direction,
@@ -1570,11 +1740,11 @@ function DiagramCanvas({
     }
     return { fwd, rev, undir };
   }, [baseEdges]);
-  const [sel, setSel] = useState4([]);
-  useEffect2(() => {
+  const [sel, setSel] = useState5([]);
+  useEffect3(() => {
     if (!reachMode) setSel([]);
   }, [reachMode]);
-  const pickReach = useCallback((id) => setSel((prev) => {
+  const pickReach = useCallback2((id) => setSel((prev) => {
     if (prev.length === 1) return prev[0] === id ? [] : [prev[0], id];
     return [id];
   }), []);
@@ -1629,7 +1799,7 @@ function DiagramCanvas({
   }, [reachMode, sel, graph, baseEdges]);
   const reachNodes = reach?.found ? reach.nodes : null;
   const reachEdges = reach?.found ? reach.edges : null;
-  useEffect2(() => {
+  useEffect3(() => {
     if (!reachNodes || !reachNodes.size) return;
     const ids = [...reachNodes];
     const t = setTimeout(() => fitView({ nodes: ids.map((id) => ({ id })), padding: 0.3, duration: 500, maxZoom: 1.6 }), 80);
@@ -1668,7 +1838,7 @@ function DiagramCanvas({
     }
     return { ...n, hidden };
   }), [baseNodes, nodeTone, groupTone, anyActive, visibleIds, lit, lensDef, deltaHidden, deltaView]);
-  useEffect2(() => {
+  useEffect3(() => {
     if (!searchHits || !searchHits.size) return;
     const ids = [...searchHits];
     const t = setTimeout(() => fitView({ nodes: ids.map((id) => ({ id })), padding: 0.3, duration: 500, maxZoom: 1.6 }), 80);
@@ -1686,11 +1856,11 @@ function DiagramCanvas({
     const hidden = endpointHidden || (visibleIds ? !active : false) || deltaEdgeHidden;
     return { ...e, hidden, data: { ...e.data, active, tone, anyActive: anyEdgeActive, routed: edgePaths[e.id], deltaActive: !!deltaView, delta: est, deltaView } };
   }), [baseEdges, edgeTone, anyActive, edgePaths, visibleIds, presentIds, reachEdges, deltaHidden, deltaView]);
-  useEffect2(() => {
+  useEffect3(() => {
     const t = setTimeout(() => fitView({ padding: fitPadding, ...fitMaxZoom != null ? { maxZoom: fitMaxZoom } : {} }), 60);
     return () => clearTimeout(t);
   }, [baseNodes, fitView, fitPadding, fitMaxZoom, stepFocus ? activeStep : 0, deltaView]);
-  useEffect2(() => {
+  useEffect3(() => {
     if (!stepZoom || !anyActive) return;
     const step = steps?.[Math.min(activeStep, (steps?.length || 1) - 1)];
     const focusIds = step?.zoom || step?.nodes || [];
@@ -1832,7 +2002,8 @@ function StepOverlay({
   canTextBigger,
   canTextSmaller,
   textSmallerLabel,
-  textLargerLabel
+  textLargerLabel,
+  stageProps
 }) {
   if (!(Array.isArray(steps) && steps.length > 0 && activeStep >= 0)) return null;
   const step = steps[Math.min(activeStep, steps.length - 1)] || {};
@@ -1854,7 +2025,8 @@ function StepOverlay({
       canTextBigger,
       canTextSmaller,
       textSmallerLabel,
-      textLargerLabel
+      textLargerLabel,
+      ...stageProps || {}
     }
   );
   const scale = expanded ? 1 : cardScale;
@@ -2036,6 +2208,9 @@ function LiveDiagram({
   langLabel,
   title,
   subtitle,
+  // Stage bridge (opt-in): { terminal, control, height } — the walkthrough drives
+  // a real shell and embeds its browser terminal in the card. See stage.js.
+  stage,
   collapsible = false,
   defaultCollapsed = [],
   zoomOnScroll = false,
@@ -2050,43 +2225,54 @@ function LiveDiagram({
 }) {
   const resolvedEdgeTuning = flowDots === false ? { dots: false, ...edgeTuning } : edgeTuning;
   const hasWalk = Array.isArray(steps) && steps.length > 0;
-  const [internalStep, setInternalStep] = useState4(() => Number.isInteger(startStep) ? Math.max(-1, Math.min(startStep, (steps?.length ?? 0) - 1)) : -1);
-  const [playing, setPlaying] = useState4(false);
+  const [internalStep, setInternalStep] = useState5(() => Number.isInteger(startStep) ? Math.max(-1, Math.min(startStep, (steps?.length ?? 0) - 1)) : -1);
+  const [playing, setPlaying] = useState5(false);
   const step = control === "auto" ? internalStep : activeStep ?? -1;
-  const [collapsed, setCollapsed] = useState4(() => new Set(defaultCollapsed || []));
-  const onToggleCollapse = useCallback((gid) => {
+  const stageCfg = control === "auto" && hasWalk && stageEnabled(stage) ? stage : void 0;
+  const stageApi = useStage(stageCfg, {
+    onStep: (i) => setInternalStep(Math.max(-1, Math.min(i, steps.length - 1)))
+  });
+  const stageOn = stageApi.enabled;
+  const [termOpen, setTermOpen] = useState5(true);
+  const goStep = useCallback2((i) => {
+    setPlaying(false);
+    if (stageOn) stageApi.send(stageToken(i));
+    else setInternalStep(Math.max(-1, Math.min(i, (steps?.length ?? 0) - 1)));
+  }, [stageOn, stageApi.send, steps]);
+  const [collapsed, setCollapsed] = useState5(() => new Set(defaultCollapsed || []));
+  const onToggleCollapse = useCallback2((gid) => {
     setCollapsed((prev) => {
       const next = new Set(prev);
       next.has(gid) ? next.delete(gid) : next.add(gid);
       return next;
     });
   }, []);
-  useEffect2(() => {
+  useEffect3(() => {
     if (control !== "auto" || !hasWalk) return;
+    const rel = (token, fallback) => {
+      setPlaying(false);
+      if (stageOn) stageApi.send(token);
+      else setInternalStep(fallback);
+    };
     const onKey = (e) => {
       if (e.key === "ArrowRight" || e.key === " " || e.key === "PageDown") {
         e.preventDefault();
-        setPlaying(false);
-        setInternalStep((s) => Math.min(s + 1, steps.length - 1));
+        rel("next", (s) => Math.min(s + 1, steps.length - 1));
       } else if (e.key === "ArrowLeft" || e.key === "PageUp") {
         e.preventDefault();
-        setPlaying(false);
-        setInternalStep((s) => Math.max(s - 1, -1));
+        rel("prev", (s) => Math.max(s - 1, -1));
       } else if (e.key === "Home") {
-        setPlaying(false);
-        setInternalStep(0);
+        goStep(0);
       } else if (e.key === "End") {
-        setPlaying(false);
-        setInternalStep(steps.length - 1);
+        goStep(steps.length - 1);
       } else if (e.key === "Escape") {
-        setPlaying(false);
-        setInternalStep(-1);
+        goStep(-1);
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [control, hasWalk, steps]);
-  useEffect2(() => {
+  }, [control, hasWalk, steps, stageOn, stageApi.send, goStep]);
+  useEffect3(() => {
     if (control !== "auto" || !hasWalk || typeof window === "undefined") return;
     window.__diagramStepCount = steps.length;
     window.__diagramGoToStep = (i) => {
@@ -2098,17 +2284,20 @@ function LiveDiagram({
       delete window.__diagramStepCount;
     };
   }, [control, hasWalk, steps]);
-  useEffect2(() => {
+  useEffect3(() => {
     if (control !== "auto" || !playing || !hasWalk) return;
     if (internalStep >= steps.length - 1) {
       const d = setTimeout(() => setPlaying(false), 2600);
       return () => clearTimeout(d);
     }
-    const id = setTimeout(() => setInternalStep((s) => Math.min(s + 1, steps.length - 1)), 2600);
+    const id = setTimeout(() => {
+      if (stageOn) stageApi.send("next");
+      else setInternalStep((s) => Math.min(s + 1, steps.length - 1));
+    }, 2600);
     return () => clearTimeout(id);
-  }, [control, playing, hasWalk, internalStep, steps]);
+  }, [control, playing, hasWalk, internalStep, steps, stageOn, stageApi.send]);
   const controlledTheme = typeof darkProp === "boolean";
-  const [selfDark, setSelfDark] = useState4(false);
+  const [selfDark, setSelfDark] = useState5(false);
   const effectiveDark = controlledTheme ? darkProp : selfDark;
   const toggleTheme = () => {
     if (controlledTheme) {
@@ -2116,14 +2305,14 @@ function LiveDiagram({
     } else setSelfDark((d) => !d);
   };
   const themeClass = controlledTheme ? effectiveDark ? "dark" : "light" : theme === "self" ? selfDark ? "dark" : "light" : "";
-  const [detailNode, setDetailNode] = useState4(null);
-  const [dockVisible, setDockVisible] = useState4(true);
+  const [detailNode, setDetailNode] = useState5(null);
+  const [dockVisible, setDockVisible] = useState5(true);
   const CARD_SCALES = [1, 1.15, 1.3, 1.45];
   const initScaleIdx = Math.max(0, Math.min(startCardScale | 0, CARD_SCALES.length - 1));
-  const [cardExpanded, setCardExpanded] = useState4(false);
-  const [cardScaleIdx, setCardScaleIdx] = useState4(initScaleIdx);
+  const [cardExpanded, setCardExpanded] = useState5(false);
+  const [cardScaleIdx, setCardScaleIdx] = useState5(initScaleIdx);
   const cardScale = CARD_SCALES[cardScaleIdx] ?? 1;
-  useEffect2(() => {
+  useEffect3(() => {
     if (step < 0) {
       setCardExpanded(false);
       setCardScaleIdx(initScaleIdx);
@@ -2131,17 +2320,17 @@ function LiveDiagram({
   }, [step, initScaleIdx]);
   const cardSide = hasWalk && step >= 0 ? steps[Math.min(step, steps.length - 1)]?.cardSide : null;
   const effectiveStepLayout = cardSide === "full" || cardExpanded ? "overlay" : stepLayout;
-  const [searchOpen, setSearchOpen] = useState4(false);
-  const [search, setSearch] = useState4("");
-  const searchRef = useRef2(null);
-  const [showMap, setShowMap] = useState4(false);
-  const [reachMode, setReachMode] = useState4(false);
-  const [lens, setLens] = useState4(0);
+  const [searchOpen, setSearchOpen] = useState5(false);
+  const [search, setSearch] = useState5("");
+  const searchRef = useRef3(null);
+  const [showMap, setShowMap] = useState5(false);
+  const [reachMode, setReachMode] = useState5(false);
+  const [lens, setLens] = useState5(0);
   const deltaMode = !!data?.delta;
-  const [deltaView, setDeltaView] = useState4(() => ["before", "delta", "after"].includes(data?.deltaView) ? data.deltaView : "delta");
-  const [presenting, setPresenting] = useState4(false);
-  const frameRef = useRef2(null);
-  const togglePresent = useCallback(() => {
+  const [deltaView, setDeltaView] = useState5(() => ["before", "delta", "after"].includes(data?.deltaView) ? data.deltaView : "delta");
+  const [presenting, setPresenting] = useState5(false);
+  const frameRef = useRef3(null);
+  const togglePresent = useCallback2(() => {
     const el = frameRef.current;
     const doc = typeof document !== "undefined" ? document : null;
     if (!el || !doc) {
@@ -2154,7 +2343,7 @@ function LiveDiagram({
       (el.requestFullscreen?.() ?? Promise.resolve()).then(() => setPresenting(true)).catch(() => setPresenting((v) => !v));
     }
   }, []);
-  useEffect2(() => {
+  useEffect3(() => {
     if (typeof document === "undefined") return;
     const onFs = () => setPresenting(!!document.fullscreenElement);
     document.addEventListener("fullscreenchange", onFs);
@@ -2171,8 +2360,8 @@ function LiveDiagram({
     return "";
   };
   const canRecord = typeof MediaRecorder !== "undefined" && typeof HTMLCanvasElement !== "undefined" && !!HTMLCanvasElement.prototype.captureStream && !!pickWebmMime();
-  const [recording, setRecording] = useState4(false);
-  const recordWalkthrough = useCallback(async () => {
+  const [recording, setRecording] = useState5(false);
+  const recordWalkthrough = useCallback2(async () => {
     if (!hasWalk || recording) return;
     const mime = pickWebmMime();
     const frame = frameRef.current;
@@ -2265,7 +2454,7 @@ function LiveDiagram({
       setInternalStep(-1);
     }
   }, [hasWalk, recording, steps, effectiveDark]);
-  useEffect2(() => {
+  useEffect3(() => {
     if (!chrome) return;
     const onKey = (e) => {
       const tag = e.target?.tagName;
@@ -2311,9 +2500,9 @@ function LiveDiagram({
   }, [chrome, searchOpen, reachMode, togglePresent, deltaMode]);
   const attached = effectiveStepLayout === "attached" && !cardExpanded;
   const showAttachedCard = attached && hasWalk && step >= 0;
-  const attachedFrameRef = useRef2(null);
-  const [attachedNarrow, setAttachedNarrow] = useState4(false);
-  useEffect2(() => {
+  const attachedFrameRef = useRef3(null);
+  const [attachedNarrow, setAttachedNarrow] = useState5(false);
+  useEffect3(() => {
     if (!attached || typeof ResizeObserver === "undefined") return;
     const el = attachedFrameRef.current;
     if (!el) return;
@@ -2324,6 +2513,91 @@ function LiveDiagram({
     ro.observe(el);
     return () => ro.disconnect();
   }, [attached]);
+  const [stageSlotEl, setStageSlotEl] = useState5(null);
+  const [termBox, setTermBox] = useState5(null);
+  const cardOnScreen = hasWalk && step >= 0;
+  const showTerm = stageOn && !!stageApi.terminal && termOpen && cardOnScreen;
+  useEffect3(() => {
+    if (!stageOn || !stageApi.terminal || typeof window === "undefined") return;
+    let raf = 0, last = "";
+    const tick = () => {
+      const frame = frameRef.current;
+      const slot = stageSlotEl && stageSlotEl.isConnected ? stageSlotEl.getBoundingClientRect() : null;
+      if (frame && slot && slot.width > 24 && slot.height > 24) {
+        const fr = frame.getBoundingClientRect();
+        const box = { left: slot.left - fr.left, top: slot.top - fr.top, width: slot.width, height: slot.height };
+        const key = [box.left, box.top, box.width, box.height].map((v) => Math.round(v)).join("|");
+        if (key !== last) {
+          last = key;
+          setTermBox(box);
+        }
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [stageOn, stageApi.terminal, stageApi.height, stageSlotEl]);
+  const stageSlot = showTerm ? /* @__PURE__ */ jsx9("div", { ref: setStageSlotEl, style: { height: stageApi.height, borderRadius: 12, background: "#0b0d10" }, "aria-hidden": true }) : null;
+  const togglePlay = useCallback2(() => {
+    setPlaying((p) => {
+      if (!p) {
+        if (!hasWalk) return p;
+        const restart = step < 0 || step >= steps.length - 1;
+        if (restart) {
+          if (stageOn) stageApi.send("1");
+          else setInternalStep(0);
+        }
+      }
+      return !p;
+    });
+  }, [hasWalk, step, steps, stageOn, stageApi.send]);
+  const resetWalk = useCallback2(() => {
+    goStep(-1);
+  }, [goStep]);
+  const stageProps = stageOn ? {
+    onSendCmd: () => stageApi.send("same"),
+    playing,
+    onTogglePlay: togglePlay,
+    autoLabel: ui ? ui(playing ? "pause" : "play", lang) : void 0,
+    terminalOn: termOpen,
+    onToggleTerminal: () => setTermOpen((v) => !v),
+    stageOnline: stageApi.online,
+    stageSlot
+  } : void 0;
+  const stageTerminal = stageOn && stageApi.terminal ? (
+    // data-norecord keeps the live shell out of the WebM walkthrough frames.
+    /* @__PURE__ */ jsx9(
+      "div",
+      {
+        "data-norecord": "1",
+        "aria-hidden": !showTerm,
+        style: {
+          position: "absolute",
+          zIndex: 41,
+          overflow: "hidden",
+          borderRadius: 12,
+          background: "#11141c",
+          boxShadow: "0 0 0 1px rgba(255,255,255,.10), 0 25px 50px -12px rgba(0,0,0,.65)",
+          left: termBox ? termBox.left : 16,
+          top: termBox ? termBox.top : 16,
+          width: termBox ? termBox.width : 320,
+          height: termBox ? termBox.height : stageApi.height,
+          opacity: showTerm && termBox ? 1 : 0,
+          pointerEvents: showTerm ? "auto" : "none",
+          transition: "opacity .18s ease"
+        },
+        children: /* @__PURE__ */ jsx9("div", { style: { position: "absolute", inset: 0, overflow: "hidden", padding: "8px 0 0 10px" }, children: /* @__PURE__ */ jsx9(
+          "iframe",
+          {
+            src: stageApi.terminal,
+            title: "stage terminal",
+            allow: "clipboard-read; clipboard-write",
+            style: { border: 0, display: "block", width: "calc(100% + 22px)", height: "100%" }
+          }
+        ) })
+      }
+    )
+  ) : null;
   const canvas = /* @__PURE__ */ jsx9(
     DiagramCanvas,
     {
@@ -2374,6 +2648,7 @@ function LiveDiagram({
         style: attachedNarrow ? {
           width: "100%",
           height: "100%",
+          position: "relative",
           display: "grid",
           gridTemplateRows: showAttachedCard ? "minmax(0,1fr) minmax(0,45%)" : "minmax(0,1fr) 0px",
           gap: showAttachedCard ? "var(--ld-attached-gap, 12px)" : 0,
@@ -2381,6 +2656,7 @@ function LiveDiagram({
         } : {
           width: "100%",
           height: "100%",
+          position: "relative",
           display: "grid",
           gridTemplateColumns: showAttachedCard ? "minmax(0,1fr) var(--ld-attached-card-w, 340px)" : "minmax(0,1fr) 0px",
           gap: showAttachedCard ? "var(--ld-attached-gap, 16px)" : 0,
@@ -2388,6 +2664,7 @@ function LiveDiagram({
         },
         children: [
           /* @__PURE__ */ jsx9("div", { style: { position: "relative", minWidth: 0, minHeight: 0, height: "100%" }, children: canvas }),
+          stageTerminal,
           /* @__PURE__ */ jsx9("div", { style: {
             position: "relative",
             minWidth: 0,
@@ -2410,10 +2687,8 @@ function LiveDiagram({
                   activeStep: step,
                   lang,
                   Icon: Icon2,
-                  onPick: control === "auto" ? (i) => {
-                    setPlaying(false);
-                    setInternalStep(i);
-                  } : void 0,
+                  ...stageProps || {},
+                  onPick: control === "auto" ? goStep : void 0,
                   onToggleExpand: chrome ? () => setCardExpanded((v) => !v) : void 0,
                   expandLabel: ui ? ui("expand", lang) : void 0,
                   collapseLabel: ui ? ui("collapse", lang) : void 0,
@@ -2445,16 +2720,8 @@ function LiveDiagram({
                 onRecord: recordWalkthrough,
                 recording,
                 canRecord,
-                onPlay: () => {
-                  setPlaying((p) => {
-                    if (!p) setInternalStep((s) => s < 0 || s >= steps.length - 1 ? 0 : s);
-                    return !p;
-                  });
-                },
-                onReset: () => {
-                  setPlaying(false);
-                  setInternalStep(-1);
-                },
+                onPlay: togglePlay,
+                onReset: resetWalk,
                 lang,
                 languages,
                 onLang: onLangChange,
@@ -2511,6 +2778,7 @@ function LiveDiagram({
           deltaView: deltaMode ? deltaView : null
         }
       ),
+      stageTerminal,
       /* @__PURE__ */ jsx9(
         StepOverlay,
         {
@@ -2520,10 +2788,8 @@ function LiveDiagram({
           Icon: Icon2,
           stepLayout: effectiveStepLayout,
           dark: effectiveDark,
-          onPick: chrome && control === "auto" ? (i) => {
-            setPlaying(false);
-            setInternalStep(i);
-          } : void 0,
+          stageProps,
+          onPick: chrome && control === "auto" ? goStep : void 0,
           expanded: cardExpanded,
           cardScale,
           onToggleExpand: chrome ? () => setCardExpanded((v) => !v) : void 0,
@@ -2625,16 +2891,8 @@ function LiveDiagram({
             onRecord: recordWalkthrough,
             recording,
             canRecord,
-            onPlay: () => {
-              setPlaying((p) => {
-                if (!p) setInternalStep((s) => s < 0 || s >= steps.length - 1 ? 0 : s);
-                return !p;
-              });
-            },
-            onReset: () => {
-              setPlaying(false);
-              setInternalStep(-1);
-            },
+            onPlay: togglePlay,
+            onReset: resetWalk,
             lang,
             languages,
             onLang: onLangChange,
@@ -2649,7 +2907,7 @@ function LiveDiagram({
 var LiveDiagram_default = LiveDiagram;
 
 // src/components/LiveDiagramEditor.jsx
-import { useEffect as useEffect3, useState as useState5, useCallback as useCallback2, useRef as useRef3, useImperativeHandle, forwardRef } from "react";
+import { useEffect as useEffect4, useState as useState6, useCallback as useCallback3, useRef as useRef4, useImperativeHandle, forwardRef } from "react";
 import {
   ReactFlow as ReactFlow2,
   ReactFlowProvider as ReactFlowProvider2,
@@ -2691,7 +2949,7 @@ function EditorCanvas({
 }) {
   const { fitView, screenToFlowPosition, zoomIn, zoomOut, zoomTo, getZoom } = useReactFlow3();
   const geom = { ...DEFAULT_GEOMETRY, ...geometry || {} };
-  const decorateGroup = useCallback2((n) => n.type === "group" ? { ...n, data: {
+  const decorateGroup = useCallback3((n) => n.type === "group" ? { ...n, data: {
     ...n.data,
     id: n.id,
     label: tr(n.data?.label, lang),
@@ -2703,23 +2961,23 @@ function EditorCanvas({
   } } : { ...n, data: { ...n.data, resizable: true } }, [Icon2, nodeLayout, vars, lang]);
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-  const loadedRef = useRef3(false);
-  const past = useRef3([]);
-  const future = useRef3([]);
-  const restoring = useRef3(false);
-  const clipboard = useRef3(null);
-  const [histTick, setHistTick] = useState5(0);
-  const snapshot = useCallback2(() => {
+  const loadedRef = useRef4(false);
+  const past = useRef4([]);
+  const future = useRef4([]);
+  const restoring = useRef4(false);
+  const clipboard = useRef4(null);
+  const [histTick, setHistTick] = useState6(0);
+  const snapshot = useCallback3(() => {
     past.current.push({ nodes, edges });
     if (past.current.length > 100) past.current.shift();
     future.current = [];
     setHistTick((t) => t + 1);
   }, [nodes, edges]);
-  useEffect3(() => {
+  useEffect4(() => {
     if (onHistoryChange) onHistoryChange({ canUndo: past.current.length > 0, canRedo: future.current.length > 0 });
   }, [histTick, onHistoryChange]);
   const valueKey = value?.__key ?? value?.id ?? "";
-  useEffect3(() => {
+  useEffect4(() => {
     let alive = true;
     loadedRef.current = false;
     const svcNodes = (value?.services || []).map((s) => buildServiceNode(s, { lang, vars, Icon: Icon2, geom, nodeLayout }));
@@ -2796,7 +3054,7 @@ function EditorCanvas({
       alive = false;
     };
   }, [valueKey]);
-  useEffect3(() => {
+  useEffect4(() => {
     if (!onChange || !loadedRef.current) return;
     const base = {};
     for (const k of ["title", "subtitle", "direction", "edgeStyle"]) if (value?.[k] != null) base[k] = value[k];
@@ -2804,7 +3062,7 @@ function EditorCanvas({
     if (value?.id != null) base.id = value.id;
     onChange(serializeDiagram(nodes, edges, base));
   }, [nodes, edges]);
-  const onConnect = useCallback2((params) => {
+  const onConnect = useCallback3((params) => {
     snapshot();
     setEdges((eds) => addEdge({
       ...params,
@@ -2814,7 +3072,7 @@ function EditorCanvas({
       animated: true
     }, eds));
   }, [setEdges, markerId, snapshot]);
-  const onNodeDragStop = useCallback2((_evt, node) => {
+  const onNodeDragStop = useCallback3((_evt, node) => {
     if (!node) return;
     snapshot();
     setNodes((ns) => {
@@ -2860,17 +3118,17 @@ function EditorCanvas({
       return ns.map((n) => n.id === node.id ? { ...n, parentId, extent: parentId ? "parent" : void 0, position: rel } : n);
     });
   }, [setNodes, snapshot]);
-  const renameNode = useCallback2((_e, node) => {
+  const renameNode = useCallback3((_e, node) => {
     if (!node) return;
     setNodes((ns) => ns.map((n) => ({ ...n, selected: n.id === node.id })));
     setEdges((es) => es.map((e) => ({ ...e, selected: false })));
   }, [setNodes, setEdges]);
-  const renameEdge = useCallback2((_e, edge) => {
+  const renameEdge = useCallback3((_e, edge) => {
     if (!edge) return;
     setEdges((es) => es.map((e) => ({ ...e, selected: e.id === edge.id })));
     setNodes((ns) => ns.map((n) => ({ ...n, selected: false })));
   }, [setNodes, setEdges]);
-  const editorApi = useRef3(null);
+  const editorApi = useRef4(null);
   const api = {
     // Add a service node at a SCREEN point (click-to-add or drop) or centered.
     addService(svc, screenPos) {
@@ -3152,7 +3410,7 @@ function EditorCanvas({
   };
   editorApi.current = api;
   useImperativeHandle(editorRef, () => api, [nodes, edges, setNodes, setEdges, screenToFlowPosition, fitView, zoomIn, zoomOut, decorateGroup, lang, vars, Icon2, geom, nodeLayout, direction, snapshot]);
-  useEffect3(() => {
+  useEffect4(() => {
     const onKey = (e) => {
       const t = e.target;
       if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
@@ -3178,11 +3436,11 @@ function EditorCanvas({
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
-  const onDragOver = useCallback2((e) => {
+  const onDragOver = useCallback3((e) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = "copy";
   }, []);
-  const onDrop = useCallback2((e) => {
+  const onDrop = useCallback3((e) => {
     e.preventDefault();
     const pos = { x: e.clientX, y: e.clientY };
     const gRaw = e.dataTransfer.getData("application/ld-group");
@@ -3224,10 +3482,10 @@ function EditorCanvas({
     node.data.resizable = true;
     setNodes((ns) => [...ns, node]);
   }, [screenToFlowPosition, setNodes, lang, vars, Icon2, geom, nodeLayout, snapshot]);
-  const handleSelection = useCallback2(({ nodes: sn, edges: se }) => {
+  const handleSelection = useCallback3(({ nodes: sn, edges: se }) => {
     if (onSelectionChange) onSelectionChange({ nodes: sn || [], edges: se || [] });
   }, [onSelectionChange]);
-  const ctx = useCallback2((kind) => (e, obj) => {
+  const ctx = useCallback3((kind) => (e, obj) => {
     if (!onContextMenu) return;
     e.preventDefault();
     onContextMenu({ kind, id: obj?.id, x: e.clientX, y: e.clientY });
@@ -3297,5 +3555,9 @@ export {
   NodeModal,
   StepCard,
   ZoomBar,
-  cardKit_exports as cardKit
+  cardKit_exports as cardKit,
+  stageBase,
+  stageEnabled,
+  stageToken,
+  useStage
 };

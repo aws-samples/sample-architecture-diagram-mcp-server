@@ -35,6 +35,7 @@ import { resolveGroupsAndMembership } from "../membership.js";
 import { DEFAULT_GEOMETRY } from "../layout.js";
 import { layoutWithFallback } from "../layoutEngine.js";
 import { buildServiceNode, buildBaseEdge } from "../diagramModel.js";
+import { useStage, stageEnabled, stageToken } from "../stage.js";
 
 const NODE_TYPES = { aws: AwsNode, group: GroupNode };
 const EDGE_TYPES = { custom: CustomEdge };
@@ -435,7 +436,8 @@ function StepFlow({ steps, activeStep, dark, lang, onPick }) {
 // CSS transform anchored to the pinned corner so positioning is unaffected.
 function StepOverlay({ steps, activeStep, lang, Icon, stepLayout, dark, onPick,
   expanded = false, cardScale = 1, onToggleExpand, expandLabel, collapseLabel,
-  onTextBigger, onTextSmaller, canTextBigger, canTextSmaller, textSmallerLabel, textLargerLabel }) {
+  onTextBigger, onTextSmaller, canTextBigger, canTextSmaller, textSmallerLabel, textLargerLabel,
+  stageProps }) {
   if (!(Array.isArray(steps) && steps.length > 0 && activeStep >= 0)) return null;
   const step = steps[Math.min(activeStep, steps.length - 1)] || {};
   // Expand forces the full-page overlay; otherwise honour the step's own side.
@@ -445,7 +447,8 @@ function StepOverlay({ steps, activeStep, lang, Icon, stepLayout, dark, onPick,
     expandLabel={expandLabel} collapseLabel={collapseLabel}
     onTextBigger={onTextBigger} onTextSmaller={onTextSmaller}
     canTextBigger={canTextBigger} canTextSmaller={canTextSmaller}
-    textSmallerLabel={textSmallerLabel} textLargerLabel={textLargerLabel} />;
+    textSmallerLabel={textSmallerLabel} textLargerLabel={textLargerLabel}
+    {...(stageProps || {})} />;
 
   // Text-size scale (pinned layouts only — the full/expanded card is already large).
   const scale = expanded ? 1 : cardScale;
@@ -543,6 +546,9 @@ export function LiveDiagram({
   // without a store). Leave undefined for the legacy self/host behavior.
   dark: darkProp, onThemeChange,
   languages = [], onLangChange, ui, langLabel, title, subtitle,
+  // Stage bridge (opt-in): { terminal, control, height } — the walkthrough drives
+  // a real shell and embeds its browser terminal in the card. See stage.js.
+  stage,
   collapsible = false, defaultCollapsed = [], zoomOnScroll = false,
   nodeModal = true, startStep = -1, startCardScale = 0,
   // Zoom bounds/caps — forwarded to the canvas (see DiagramCanvas jsdoc).
@@ -564,6 +570,25 @@ export function LiveDiagram({
   const [playing, setPlaying] = useState(false);
   const step = control === "auto" ? internalStep : (activeStep ?? -1);
 
+  // ── Stage bridge: the walkthrough driving a REAL shell (see stage.js) ──────
+  // Opt-in, and only meaningful with internal control + beats. The stage server
+  // owns the cursor: every move here is a *request*, and the resulting beat comes
+  // back over SSE — which is what keeps the shell and the card in lockstep even
+  // when the presenter moved from the prompt (Ctrl-]) instead of from the card.
+  const stageCfg = control === "auto" && hasWalk && stageEnabled(stage) ? stage : undefined;
+  const stageApi = useStage(stageCfg, {
+    onStep: (i) => setInternalStep(Math.max(-1, Math.min(i, steps.length - 1))),
+  });
+  const stageOn = stageApi.enabled;
+  const [termOpen, setTermOpen] = useState(true);
+  // Single entry point for navigation: through the stage when there is one (so
+  // the beat's command lands on the live prompt, un-executed), else local state.
+  const goStep = useCallback((i) => {
+    setPlaying(false);
+    if (stageOn) stageApi.send(stageToken(i));
+    else setInternalStep(Math.max(-1, Math.min(i, (steps?.length ?? 0) - 1)));
+  }, [stageOn, stageApi.send, steps]);
+
   // ── Collapsible groups (d3-treemap-style fold): a Set of collapsed group ids.
   const [collapsed, setCollapsed] = useState(() => new Set(defaultCollapsed || []));
   const onToggleCollapse = useCallback((gid) => {
@@ -572,16 +597,23 @@ export function LiveDiagram({
 
   useEffect(() => {
     if (control !== "auto" || !hasWalk) return;
+    // In stage mode the relative moves go to the server ("next"/"prev"), so the
+    // shell receives the beat's command too; the new index arrives over SSE.
+    const rel = (token, fallback) => {
+      setPlaying(false);
+      if (stageOn) stageApi.send(token);
+      else setInternalStep(fallback);
+    };
     const onKey = (e) => {
-      if (e.key === "ArrowRight" || e.key === " " || e.key === "PageDown") { e.preventDefault(); setPlaying(false); setInternalStep(s => Math.min(s + 1, steps.length - 1)); }
-      else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); setPlaying(false); setInternalStep(s => Math.max(s - 1, -1)); }
-      else if (e.key === "Home") { setPlaying(false); setInternalStep(0); }
-      else if (e.key === "End") { setPlaying(false); setInternalStep(steps.length - 1); }
-      else if (e.key === "Escape") { setPlaying(false); setInternalStep(-1); }
+      if (e.key === "ArrowRight" || e.key === " " || e.key === "PageDown") { e.preventDefault(); rel("next", s => Math.min(s + 1, steps.length - 1)); }
+      else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); rel("prev", s => Math.max(s - 1, -1)); }
+      else if (e.key === "Home") { goStep(0); }
+      else if (e.key === "End") { goStep(steps.length - 1); }
+      else if (e.key === "Escape") { goStep(-1); }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [control, hasWalk, steps]);
+  }, [control, hasWalk, steps, stageOn, stageApi.send, goStep]);
 
   // Deterministic beat control for headless rasterization (render_diagram_media
   // walkthrough mode): a screenshot driver calls window.__diagramGoToStep(i) to
@@ -597,9 +629,14 @@ export function LiveDiagram({
   useEffect(() => {
     if (control !== "auto" || !playing || !hasWalk) return;
     if (internalStep >= steps.length - 1) { const d = setTimeout(() => setPlaying(false), 2600); return () => clearTimeout(d); }
-    const id = setTimeout(() => setInternalStep(s => Math.min(s + 1, steps.length - 1)), 2600);
+    const id = setTimeout(() => {
+      // Stage mode: advance through the server so each beat's command is typed
+      // on the live prompt as the tour moves.
+      if (stageOn) stageApi.send("next");
+      else setInternalStep(s => Math.min(s + 1, steps.length - 1));
+    }, 2600);
     return () => clearTimeout(id);
-  }, [control, playing, hasWalk, internalStep, steps]);
+  }, [control, playing, hasWalk, internalStep, steps, stageOn, stageApi.send]);
 
   // ── Theme ──
   // Three modes:
@@ -798,6 +835,93 @@ export function LiveDiagram({
     return () => ro.disconnect();
   }, [attached]);
 
+  // ── Stage terminal: ONE iframe, only ever re-positioned ───────────────────
+  // The embedded shell lives at the FRAME level, outside the card's tree, and is
+  // moved by CSS over a footer slot the card renders (StepCard `stageSlot`).
+  // Re-parenting or remounting the iframe would reload the shell and throw away
+  // its session, so the card never owns it — it only says where it should be.
+  // The panel exists ONLY inside the card: with no beat on screen (the overview)
+  // it is hidden, not docked to a corner, so a recording opens on the
+  // architecture alone and the shell appears with the first step.
+  const [stageSlotEl, setStageSlotEl] = useState(null);
+  const [termBox, setTermBox] = useState(null);
+  const cardOnScreen = hasWalk && step >= 0;
+  const showTerm = stageOn && !!stageApi.terminal && termOpen && cardOnScreen;
+  useEffect(() => {
+    if (!stageOn || !stageApi.terminal || typeof window === "undefined") return;
+    // Followed on every frame (and only committed when the rounded box actually
+    // changed) so the panel tracks the card through its framer-motion entrance,
+    // the expand/collapse transition and any canvas resize, with no per-layout
+    // special cases.
+    let raf = 0, last = "";
+    const tick = () => {
+      const frame = frameRef.current;
+      const slot = stageSlotEl && stageSlotEl.isConnected ? stageSlotEl.getBoundingClientRect() : null;
+      // No slot means no card: keep the last box instead of resizing or clearing
+      // it, so hiding and showing the panel never reflows the live shell.
+      if (frame && slot && slot.width > 24 && slot.height > 24) {
+        const fr = frame.getBoundingClientRect();
+        const box = { left: slot.left - fr.left, top: slot.top - fr.top, width: slot.width, height: slot.height };
+        const key = [box.left, box.top, box.width, box.height].map(v => Math.round(v)).join("|");
+        if (key !== last) { last = key; setTermBox(box); }
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [stageOn, stageApi.terminal, stageApi.height, stageSlotEl]);
+
+  // The card's footer slot: a placeholder the size of the terminal panel, in the
+  // card's own surface colour, so the card reserves the space and the real
+  // iframe simply sits on top of it.
+  const stageSlot = showTerm
+    ? <div ref={setStageSlotEl} style={{ height: stageApi.height, borderRadius: 12, background: "#0b0d10" }} aria-hidden />
+    : null;
+
+  // Play/pause and reset, shared by the ZoomBar dock and the card's own rail.
+  // Starting a tour jumps to the first beat — through the stage when there is
+  // one, so the shell gets that beat's command like any other move.
+  const togglePlay = useCallback(() => {
+    setPlaying(p => {
+      if (!p) {
+        if (!hasWalk) return p;
+        const restart = step < 0 || step >= steps.length - 1;
+        if (restart) { if (stageOn) stageApi.send("1"); else setInternalStep(0); }
+      }
+      return !p;
+    });
+  }, [hasWalk, step, steps, stageOn, stageApi.send]);
+  const resetWalk = useCallback(() => { goStep(-1); }, [goStep]);
+
+  const stageProps = stageOn ? {
+    onSendCmd: () => stageApi.send("same"),
+    playing,
+    onTogglePlay: togglePlay,
+    autoLabel: ui ? ui(playing ? "pause" : "play", lang) : undefined,
+    terminalOn: termOpen,
+    onToggleTerminal: () => setTermOpen(v => !v),
+    stageOnline: stageApi.online,
+    stageSlot,
+  } : undefined;
+
+  const stageTerminal = stageOn && stageApi.terminal ? (
+    // data-norecord keeps the live shell out of the WebM walkthrough frames.
+    <div data-norecord="1" aria-hidden={!showTerm}
+      style={{ position: "absolute", zIndex: 41, overflow: "hidden", borderRadius: 12, background: "#11141c",
+        boxShadow: "0 0 0 1px rgba(255,255,255,.10), 0 25px 50px -12px rgba(0,0,0,.65)",
+        left: termBox ? termBox.left : 16, top: termBox ? termBox.top : 16,
+        width: termBox ? termBox.width : 320, height: termBox ? termBox.height : stageApi.height,
+        opacity: showTerm && termBox ? 1 : 0, pointerEvents: showTerm ? "auto" : "none",
+        transition: "opacity .18s ease" }}>
+      {/* ttyd paints its own white page behind xterm and shows a light scrollbar:
+          clip both by over-sizing the frame inside this opaque wrapper. */}
+      <div style={{ position: "absolute", inset: 0, overflow: "hidden", padding: "8px 0 0 10px" }}>
+        <iframe src={stageApi.terminal} title="stage terminal" allow="clipboard-read; clipboard-write"
+          style={{ border: 0, display: "block", width: "calc(100% + 22px)", height: "100%" }} />
+      </div>
+    </div>
+  ) : null;
+
   const canvas = (
     <DiagramCanvas
       data={data} lang={lang} animate={animate} direction={direction} edgeStyle={edgeStyle}
@@ -821,16 +945,19 @@ export function LiveDiagram({
       <ReactFlowProvider>
         <div ref={(el) => { attachedFrameRef.current = el; frameRef.current = el; }}
           className={`ld-frame ld-attached ${themeClass} ${className}`.trim()}
+          // position:relative so the stage terminal (absolutely positioned at the
+          // frame level) resolves its box against THIS frame, like the overlay path.
           style={attachedNarrow
-            ? { width: "100%", height: "100%", display: "grid",
+            ? { width: "100%", height: "100%", position: "relative", display: "grid",
                 gridTemplateRows: showAttachedCard ? "minmax(0,1fr) minmax(0,45%)" : "minmax(0,1fr) 0px",
                 gap: showAttachedCard ? "var(--ld-attached-gap, 12px)" : 0,
                 transition: "grid-template-rows .35s cubic-bezier(.22,.61,.36,1), gap .35s" }
-            : { width: "100%", height: "100%", display: "grid",
+            : { width: "100%", height: "100%", position: "relative", display: "grid",
                 gridTemplateColumns: showAttachedCard ? "minmax(0,1fr) var(--ld-attached-card-w, 340px)" : "minmax(0,1fr) 0px",
                 gap: showAttachedCard ? "var(--ld-attached-gap, 16px)" : 0,
                 transition: "grid-template-columns .35s cubic-bezier(.22,.61,.36,1), gap .35s" }}>
           <div style={{ position: "relative", minWidth: 0, minHeight: 0, height: "100%" }}>{canvas}</div>
+          {stageTerminal}
           <div style={{ position: "relative", minWidth: 0, minHeight: 0, height: "100%",
             maxHeight: attachedNarrow ? "45%" : undefined, overflow: "hidden" }}>
             <AnimatePresence>
@@ -840,7 +967,8 @@ export function LiveDiagram({
                   transition={{ duration: 0.3 }}
                   style={{ height: "100%", overflowY: "auto", pointerEvents: "auto" }}>
                   <StepCard steps={steps} activeStep={step} lang={lang} Icon={Icon}
-                    onPick={control === "auto" ? (i) => { setPlaying(false); setInternalStep(i); } : undefined}
+                    {...(stageProps || {})}
+                    onPick={control === "auto" ? goStep : undefined}
                     onToggleExpand={chrome ? () => setCardExpanded(v => !v) : undefined}
                     expandLabel={ui ? ui("expand", lang) : undefined} collapseLabel={ui ? ui("collapse", lang) : undefined}
                     onTextBigger={chrome ? () => setCardScaleIdx(i => Math.min(i + 1, CARD_SCALES.length - 1)) : undefined}
@@ -864,8 +992,8 @@ export function LiveDiagram({
                   hasWalk={hasWalk} playing={playing}
                   attention={hasWalk && !playing && step <= 0}
                   onRecord={recordWalkthrough} recording={recording} canRecord={canRecord}
-                  onPlay={() => { setPlaying(p => { if (!p) setInternalStep(s => (s < 0 || s >= steps.length - 1 ? 0 : s)); return !p; }); }}
-                  onReset={() => { setPlaying(false); setInternalStep(-1); }}
+                  onPlay={togglePlay}
+                  onReset={resetWalk}
                   lang={lang} languages={languages} onLang={onLangChange} ui={ui} langLabel={langLabel}
                 />
               </div>
@@ -897,9 +1025,10 @@ export function LiveDiagram({
           search={search} showMap={chrome && showMap} reachMode={chrome && reachMode} lens={chrome ? lens : 0}
           deltaView={deltaMode ? deltaView : null}
         />
+        {stageTerminal}
         <StepOverlay steps={steps} activeStep={step} lang={lang} Icon={Icon}
-          stepLayout={effectiveStepLayout} dark={effectiveDark}
-          onPick={chrome && control === "auto" ? (i) => { setPlaying(false); setInternalStep(i); } : undefined}
+          stepLayout={effectiveStepLayout} dark={effectiveDark} stageProps={stageProps}
+          onPick={chrome && control === "auto" ? goStep : undefined}
           expanded={cardExpanded} cardScale={cardScale}
           onToggleExpand={chrome ? () => setCardExpanded(v => !v) : undefined}
           expandLabel={ui ? ui("expand", lang) : undefined} collapseLabel={ui ? ui("collapse", lang) : undefined}
@@ -950,8 +1079,8 @@ export function LiveDiagram({
                 hasWalk={hasWalk} playing={playing}
                 attention={hasWalk && !playing && step <= 0}
                 onRecord={recordWalkthrough} recording={recording} canRecord={canRecord}
-                onPlay={() => { setPlaying(p => { if (!p) setInternalStep(s => (s < 0 || s >= steps.length - 1 ? 0 : s)); return !p; }); }}
-                onReset={() => { setPlaying(false); setInternalStep(-1); }}
+                onPlay={togglePlay}
+                onReset={resetWalk}
                 lang={lang} languages={languages} onLang={onLangChange} ui={ui} langLabel={langLabel}
               />
             </div>
