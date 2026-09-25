@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sequence diagram</title>
+<style>
+  /* Theme tokens mirror the architecture "sample diagram" chrome (StandaloneApp):
+     one dark/light switch driving --card-bg / --txt / --txt-muted / --border / --dot,
+     plus the SVG-diagram palette (--navy/--orange/--msg/…). */
+  :root, [data-theme="light"]{
+    --bg:#f4f6f9; --grid:rgba(0,0,0,.035);
+    --txt:#1e293b; --txt-muted:#64748b; --border:#e2e8f0;
+    --card-bg:rgba(255,255,255,.94); --pill-bg:rgba(255,255,255,.95); --dot:rgba(15,23,42,.1);
+    --navy:#232f3e; --orange:#ff9900; --msg:#2f4a63; --ret:#8a94a3;
+    --accent:#ff9900; --info:#2f6fed; --success:#1a7f37; --warn:#b7791f; --danger:#d13212; --neutral:#5f6b7a;
+  }
+  [data-theme="dark"]{
+    --bg:#0f1420; --grid:rgba(255,255,255,.04);
+    --txt:#e2e8f0; --txt-muted:#94a3b8; --border:rgba(255,255,255,.14);
+    --card-bg:rgba(24,28,40,.92); --pill-bg:rgba(26,29,39,.95); --dot:rgba(255,255,255,.12);
+    --navy:#2b3a4d; --orange:#ff9900; --msg:#8fb2da; --ret:#6b7684;
+    --accent:#ff9900; --info:#5b8def; --success:#3fb950; --warn:#d29922; --danger:#f85149; --neutral:#93a1b0;
+  }
+  *{box-sizing:border-box}
+  /* Accessibility: honor the OS "reduce motion" setting. Neutralize CSS
+     transitions/animations (pan/zoom, edge draws, label fades). JS-driven
+     transforms check the same preference (see PREFERS_REDUCED below). */
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+  }
+  html,body{margin:0;height:100%}
+  body{background:var(--bg);color:var(--txt);font-family:'Amazon Ember','Helvetica Neue',Helvetica,Arial,sans-serif;overflow:hidden}
+  .stage{position:fixed;inset:0;overflow:hidden;cursor:grab;user-select:none;touch-action:none;background:
+    linear-gradient(90deg,var(--grid) 1px,transparent 1px) 0 0/40px 40px,
+    linear-gradient(0deg,var(--grid) 1px,transparent 1px) 0 0/40px 40px}
+  .stage.grabbing{cursor:grabbing}
+  .stage svg{transform-origin:0 0}
+
+  /* ── floating narration card (StepCard clone) ──
+     Starts BELOW the pinned participant headers: they stay put while the band
+     scrolls, so a card at top:20 would sit on top of them. */
+  .card{position:fixed;top:96px;left:20px;z-index:20;width:360px;max-width:calc(100vw - 40px);
+    max-height:calc(100vh - 196px);overflow:auto;border:1px solid var(--border);border-radius:16px;
+    background:var(--card-bg);backdrop-filter:blur(12px);box-shadow:0 12px 34px rgba(0,0,0,.20),0 2px 10px rgba(0,0,0,.14);
+    padding:18px 22px;color:var(--txt)}
+  .rail{display:flex;gap:5px;margin-bottom:14px}
+  .rail i{height:5px;flex:1;border-radius:4px;background:var(--dot);transition:background .3s}
+  .rail i.on{background:var(--orange)}
+  .cardhead{display:flex;align-items:center;gap:8px;margin-bottom:11px;min-height:22px}
+  .counter{margin-left:auto;font-size:11px;font-family:'SF Mono',Menlo,Consolas,monospace;color:var(--txt-muted)}
+  .card .title{font-size:19px;font-weight:700;line-height:1.25;margin-bottom:6px}
+  .card .title .stepnum{display:inline-block;min-width:22px;margin-right:8px;padding:0 6px;border-radius:7px;
+    background:var(--orange);color:#16191f;font-size:13px;font-weight:800;text-align:center;
+    vertical-align:2px;font-variant-numeric:tabular-nums}
+  .card .flow{font-size:12.5px;color:var(--txt-muted);margin-bottom:11px}
+  .card .parties{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-bottom:11px}
+  .card .parties .pchip{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:2px 8px 2px 5px;border-radius:11px;background:color-mix(in srgb,var(--txt) 7%,transparent);border:1px solid var(--border);color:var(--txt-muted)}
+  .card .parties .pchip .pico{width:15px;height:15px;flex:none;object-fit:contain;border-radius:3px}
+  .card .parties .pchip svg.pico{fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round}
+  .card .parties .pchip svg.pico circle{fill:currentColor;stroke:none}
+  .card .parties .pchip.on{background:var(--orange);border-color:var(--orange);color:#16191f}
+  .card .parties .pchip.on .pico{background:#fff}
+  .card .parties .pchip.bdotc{color:var(--msg);font-weight:700}
+  .card .parties .parr{color:var(--txt-muted);font-size:12px;font-weight:700}
+  .card .desc{font-size:13.5px;line-height:1.6;color:var(--txt-muted);margin-bottom:11px}
+  .card .proof{background:color-mix(in srgb,var(--txt) 6%,transparent);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.5;color:var(--txt)}
+  .card .proof a{color:var(--info);text-decoration:none}
+  .card .proof a:hover{text-decoration:underline}
+  .card .codeblk{margin-top:10px;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+  .card .codeblk .hd{background:color-mix(in srgb,var(--txt) 6%,transparent);color:var(--txt-muted);font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;padding:5px 10px}
+  .card .codeblk pre{margin:0;padding:10px 12px;font-family:'SF Mono',Menlo,Consolas,monospace;font-size:11.5px;line-height:1.5;overflow:auto;white-space:pre;color:var(--txt)}
+  code{background:color-mix(in srgb,var(--txt) 8%,transparent);border:1px solid var(--border);border-radius:4px;padding:1px 5px;font-family:'SF Mono',Menlo,Consolas,monospace;font-size:11.5px}
+  .badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px}
+  .b-gate{color:var(--warn);background:color-mix(in srgb,var(--warn) 15%,transparent)}
+  .b-keyless{color:var(--success);background:color-mix(in srgb,var(--success) 15%,transparent)}
+  .b-async,.b-sync,.b-phase{color:var(--info);background:color-mix(in srgb,var(--info) 15%,transparent)}
+  .b-fail{color:var(--danger);background:color-mix(in srgb,var(--danger) 15%,transparent)}
+  .legend{margin-top:14px;padding-top:12px;border-top:1px solid var(--border);font-size:11px;color:var(--txt-muted);display:flex;gap:10px 14px;flex-wrap:wrap}
+  .legend span{display:inline-flex;align-items:center;gap:5px}
+  .legend svg{display:block}
+
+  /* ── floating pill toolbar (ZoomBar clone) ── */
+  .pill{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:30;display:flex;align-items:center;gap:6px;
+    padding:10px 18px;border:1px solid var(--border);border-radius:16px;background:var(--pill-bg);backdrop-filter:blur(12px);
+    box-shadow:0 4px 20px rgba(0,0,0,.3);max-width:calc(100vw - 32px);flex-wrap:wrap;justify-content:center}
+  .pill .sep{width:1px;height:20px;background:var(--border);margin:0 5px}
+  .pilltitle{max-width:260px;min-width:0;margin-right:4px}
+  .pilltitle .t{font-size:13px;font-weight:700;color:var(--txt);line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .pilltitle .s{font-size:10px;color:var(--txt-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+  .pbtn{height:34px;padding:0 11px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--txt);
+    font:inherit;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:5px;transition:background .15s}
+  .pbtn:hover:not(:disabled){background:color-mix(in srgb,var(--txt) 8%,transparent)}
+  .pbtn:disabled{opacity:.35;cursor:default}
+  .pbtn.play.on{border-color:var(--orange);color:var(--orange);background:color-mix(in srgb,var(--orange) 12%,transparent)}
+  .pill svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2}
+  .spdwrap{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--txt-muted)}
+  .spdwrap input[type=range]{width:76px;accent-color:var(--orange)}
+  .expandbtn{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:30;width:40px;height:40px;border-radius:50%;
+    border:1px solid var(--border);background:var(--pill-bg);color:var(--txt);font-size:15px;cursor:pointer;
+    backdrop-filter:blur(12px);box-shadow:0 4px 20px rgba(0,0,0,.3)}
+
+  /* ── group (aggregation) container ── */
+  .grp rect{fill:color-mix(in srgb,var(--txt) 3%,transparent);stroke-width:1.4}
+  .grp .gtabbg{stroke:none}
+  .grp .gtab{font-size:11px;font-weight:700;fill:#fff}
+  /* lifelines + headers */
+  .phead,.actor,.lifeline{transition:opacity .35s ease}
+  .lifeline{stroke:var(--txt-muted);stroke-width:1.2;stroke-dasharray:3 4;opacity:.5}
+  .phead rect{fill:var(--navy);stroke:var(--orange);stroke-width:1.4}
+  .phead text{fill:#fff;font-size:11px;font-weight:600}
+  .phead .sub{fill:#cdd6e0;font-size:9.5px;font-weight:400}
+  .phead .stereo{fill:#aab6c4;font-size:9.5px;font-style:italic;font-weight:400}
+  .phead.searchhit rect{stroke:var(--info);stroke-width:2.5px}
+  .phead.searchhit text{font-weight:700}
+  /* search overlay ('/') */
+  .seqsearch{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:40;display:none;
+    align-items:center;gap:8px;padding:7px 10px;border:1px solid var(--border);border-radius:11px;
+    background:var(--pill-bg);backdrop-filter:blur(12px);box-shadow:0 8px 24px rgba(0,0,0,.28)}
+  .seqsearch.on{display:flex}
+  .seqsearch input{background:transparent;border:none;outline:none;color:var(--txt);font:inherit;font-size:13px;width:190px}
+  .seqsearch .cnt{font-size:11px;color:var(--txt-muted);min-width:34px;text-align:right}
+  .phead.hot rect{fill:var(--orange)}
+  .phead.hot text{fill:#16191f} .phead.hot .sub{fill:#3a2a00}
+  .phead.iconhead rect{fill:#fff;stroke:var(--navy)}
+  .phead.iconhead text{fill:#16191f}
+  .phead.iconhead.hot rect{fill:#fff3e0;stroke:var(--orange)}
+  .actor line, .actor circle{stroke:var(--orange);stroke-width:1.8;fill:none}
+  .actor .alabel{fill:var(--txt);font-size:11px;font-weight:600;stroke:none}
+  /* execution / activation bars */
+  .exec rect{fill:color-mix(in srgb,var(--info) 20%,var(--card-bg));stroke:var(--navy);stroke-width:1}
+  .exec.hot rect{fill:color-mix(in srgb,var(--orange) 22%,var(--card-bg));stroke:var(--orange)}
+  /* destroy X */
+  .destroy line{stroke:var(--danger);stroke-width:2.6}
+  /* found/lost boundary dot */
+  .bdot{fill:var(--msg)}
+  /* messages */
+  .evt{opacity:0}
+  .evt.shown{opacity:1}
+  .evt .line{stroke:var(--msg);stroke-width:2;fill:none}
+  .evt.msg .line{stroke-dashoffset:var(--len);stroke-dasharray:var(--len)}
+  .evt.msg.shown .line{stroke-dashoffset:0;transition:stroke-dashoffset .55s ease}
+  .evt.ret .line{stroke:var(--ret);stroke-dasharray:7 5}
+  .evt.ret.shown{transition:opacity .4s}
+  .evt .lbl{font-size:11px;fill:var(--txt);opacity:0}
+  .evt.shown .lbl{opacity:1;transition:opacity .3s .2s}
+  .evt.active .line{stroke:var(--active,#ff9900);stroke-width:3;filter:drop-shadow(0 0 4px rgba(255,153,0,.6))}
+  .evt.active .lbl{font-weight:700}
+  .note rect{fill:#fff3e0;stroke:var(--orange);stroke-width:1.2}
+  .note text{font-size:11px;fill:#7a4e00;font-weight:600}
+  /* combined fragments */
+  .frame rect{fill:color-mix(in srgb,var(--msg) 6%,transparent);stroke:var(--txt-muted);stroke-width:1;stroke-dasharray:4 3}
+  .frame .flabel{fill:#fff;font-size:10.5px;font-weight:700}
+  .frame .flabelbg{fill:var(--neutral)}
+  .frame .elsediv{stroke:var(--txt-muted);stroke-width:1;stroke-dasharray:4 3}
+  .frame .elsetxt{fill:var(--txt-muted);font-size:10.5px;font-style:italic}
+</style>
+</head>
+<body>
+<div class="stage" id="stage"><svg id="svg" xmlns="http://www.w3.org/2000/svg"></svg></div>
+
+<!-- floating narration card -->
+<div class="card" id="card">
+  <div class="rail" id="rail"></div>
+  <div class="cardhead"><span id="badge"></span><span class="counter" id="stepno">1 / 1</span></div>
+  <div class="title" id="ptitle">Press Play to animate.</div>
+  <div class="parties" id="pparties" style="display:none"></div>
+  <div class="flow" id="pflow" style="display:none"></div>
+  <div class="desc" id="pdesc" style="display:none"></div>
+  <div class="proof" id="pproof" style="display:none"></div>
+  <div class="codeblk" id="pcode" style="display:none"><div class="hd" id="pcodehd"></div><pre id="pcodepre"></pre></div>
+  <div class="legend" id="legend"></div>
+</div>
+
+<!-- floating pill toolbar -->
+<div class="pill" id="pill">
+  <div class="pilltitle"><div class="t" id="h-title"></div><div class="s" id="h-sub"></div></div>
+  <span class="sep"></span>
+  <button class="pbtn" id="zout" title="Zoom out"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3M8 11h6"/></svg></button>
+  <button class="pbtn" id="zfit" title="Fit to width"><svg viewBox="0 0 24 24"><path d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9m11.25-5.25v4.5m0-4.5h-4.5m4.5 0L15 9m-11.25 11.25v-4.5m0 4.5h4.5m-4.5 0L9 15m11.25 5.25v-4.5m0 4.5h-4.5m4.5 0L15 15"/></svg></button>
+  <button class="pbtn" id="zin" title="Zoom in"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3M11 8v6m-3-3h6"/></svg></button>
+  <span class="sep"></span>
+  <button class="pbtn" id="prev" title="Previous"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+  <button class="pbtn play" id="play" title="Play"><svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M8 5v14l11-7z"/></svg></button>
+  <button class="pbtn" id="next" title="Next"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
+  <button class="pbtn" id="restart" title="Restart"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button>
+  <span class="sep"></span>
+  <span class="spdwrap"><input type="range" id="speed" min="400" max="2600" value="1300" step="100"><span id="spd">1.3s</span></span>
+  <span class="sep"></span>
+  <button class="pbtn" id="theme" title="Toggle theme">&#9788;</button>
+  <button class="pbtn" id="fs" title="Fullscreen"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3m13-5v3a2 2 0 0 1-2 2h-3"/></svg></button>
+  <button class="pbtn" id="dlsvg" title="Download SVG">SVG</button>
+  <button class="pbtn" id="dlpng" title="Download PNG">PNG</button>
+  <button class="pbtn" id="dlwebm" title="Record walkthrough (WebM)">REC</button>
+  <span class="sep"></span>
+  <button class="pbtn" id="collapse" title="Hide controls"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
+</div>
+<button class="expandbtn" id="expand" style="display:none" title="Show controls">&#9650;</button>
+
+<script id="seq-data" type="application/json">/*__SEQ_DATA__*/null</script>
+<script id="icon-data" type="application/json">/*__ICON_DATA__*/null</script>
+<script>
+const SEQ = JSON.parse(document.getElementById('seq-data').textContent);
+const ICONS = JSON.parse(document.getElementById('icon-data').textContent);
+const TONE = { accent:'#ff9900', info:'#2f6fed', success:'#1a7f37', warn:'#b7791f', danger:'#d13212', neutral:'#5f6b7a' };
+document.getElementById('h-title').textContent = SEQ.title || 'Sequence diagram';
+document.getElementById('h-sub').textContent = SEQ.subtitle || '';
+document.title = SEQ.title || 'Sequence diagram';
+
+const P = SEQ.participants;
+const idx = Object.fromEntries(P.map((p,i)=>[p.id,i]));
+const EV = SEQ.events;
+const GROUPS = SEQ.groups || [];
+const evIndexById = Object.fromEntries(EV.map((e,i)=>[e.id,i]));
+
+const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function md(s){
+  return esc(s)
+    .replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>')
+    .replace(/`([^`]+)`/g,'<code>$1</code>')
+    .replace(/\*([^*]+)\*/g,'<i>$1</i>');
+}
+// A step's `proof` is either free text (markdown, rendered inline) or a
+// structured, verifiable source reference {repo,path,ref,lines,url,text}.
+// Structured refs render as a clickable link to the exact file@ref/lines
+// (opens fine under file:// since it's an external https link); a plain
+// string keeps the previous behaviour.
+function lineFrag(lines){
+  if(lines==null) return '';
+  if(Array.isArray(lines)) return lines.length>1 ? '#L'+lines[0]+'-L'+lines[1] : '#L'+lines[0];
+  const m=String(lines).match(/(\d+)\s*[-–]\s*(\d+)/);
+  if(m) return '#L'+m[1]+'-L'+m[2];
+  const one=String(lines).match(/\d+/);
+  return one ? '#L'+one[0] : '';
+}
+function proofHtml(p){
+  if(p==null) return '';
+  if(typeof p==='string') return md(p);            // back-compat: free text
+  const path=p.path||'', frag=lineFrag(p.lines);
+  let url=p.url||'';
+  if(!url && p.repo && path){
+    url=String(p.repo).replace(/\/+$/,'')+'/blob/'+(p.ref||'main')+'/'+String(path).replace(/^\/+/,'')+frag;
+  }
+  const label=p.text || (path ? (path + (frag?frag.replace('#L',':').replace('-L','-'):'')) : url);
+  if(!url) return md(label||'');                    // no resolvable URL → text
+  return '<a href="'+esc(url)+'" target="_blank" rel="noopener"><code>'+esc(label)+'</code></a>';
+}
+
+// ── layout ──────────────────────────────────────────────────────────────────
+const HAS_GROUPS = GROUPS.length>0;
+// Header box width — same formula drawHead() uses, so the column pitch below can
+// clear the WIDEST box: at 150px fixed, "Developer Hub (ns rhdh)" and
+// "Keycloak (fonte-da-verdade)" drew on top of each other.
+const headBoxW = p => Math.max(96, (p.label||'').length*6.4+18, (p.sub||'').length*5.6+18, (p.stereotype||'').length*5.6+22);
+const HEAD_W = Math.max(0, ...P.filter(p=>!p.actor).map(headBoxW));
+const COL=Math.max(150, Math.min(190, 1300/Math.max(P.length,1)), HEAD_W+16);
+const HAS_STEREO=P.some(p=>p.stereotype && !p.actor);
+const X0=95, TOPPAD=HAS_GROUPS?26:0, HEAD_Y=16+TOPPAD, HEAD_H=P.some(p=>p.icon)?(HAS_STEREO?64:58):(HAS_STEREO?52:46);
+const LIFE_TOP=HEAD_Y+HEAD_H, ROW0=LIFE_TOP+52, ROW=62;
+// Group gutter: adjacent group boxes get air between them instead of sharing an
+// edge (same reading as the architecture containers). Crossing a group boundary
+// shifts every column to its right by GUT.
+const GUT=34;
+const groupOf = P.map(p => { const i = GROUPS.findIndex(g=>(g.participants||[]).includes(p.id)); return i<0?null:i; });
+const XS=[]; let _shift=0;
+P.forEach((_,i)=>{ if(i>0 && groupOf[i]!==groupOf[i-1]) _shift+=GUT; XS.push(X0 + i*COL + _shift); });
+const W = (XS.length?XS[XS.length-1]:X0) + 95;
+const H = ROW0 + EV.length*ROW + 40;
+const cx = i => (XS[i]!=null ? XS[i] : X0 + i*COL);
+const rowY = n => ROW0 + n*ROW;
+const svg = document.getElementById('svg');
+svg.setAttribute('viewBox','0 0 '+W+' '+H); svg.setAttribute('width',W); svg.setAttribute('height',H);
+const NS='http://www.w3.org/2000/svg';
+const el=(n,a={})=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);return e;};
+
+// arrowhead markers — filled (sync) + open (async / reply)
+const defs=el('defs');
+[['ah','var(--msg)'],['ahr','var(--ret)'],['aha','#ff9900']].forEach(([id,c])=>{
+  const m=el('marker',{id,markerWidth:12,markerHeight:12,refX:9,refY:4,orient:'auto',markerUnits:'userSpaceOnUse'});
+  m.appendChild(el('path',{d:'M0,0 L10,4 L0,8 z',fill:c})); defs.appendChild(m);
+});
+[['ao','var(--msg)'],['aor','var(--ret)'],['aoa','#ff9900']].forEach(([id,c])=>{
+  const m=el('marker',{id,markerWidth:14,markerHeight:12,refX:9,refY:4,orient:'auto',markerUnits:'userSpaceOnUse'});
+  m.appendChild(el('path',{d:'M0,0 L10,4 L0,8',fill:'none',stroke:c,'stroke-width':1.6})); defs.appendChild(m);
+});
+svg.appendChild(defs);
+
+// create/destroy rows per participant id (UML instance creation / destruction)
+const createRow={}, destroyRow={};
+EV.forEach((e,n)=>{ if(e.kind==='message'){
+  if(e.create && e.to!=null) createRow[e.to]=n;
+  if(e.destroy && e.to!=null) destroyRow[e.to]=n;
+}});
+const pStartStep = P.map(p => createRow[p.id]!=null ? createRow[p.id] : -1);
+const pEndStep   = P.map(p => destroyRow[p.id]!=null ? destroyRow[p.id] : -1);
+const headTopOf  = i => pStartStep[i]>=0 ? rowY(pStartStep[i])-HEAD_H/2 : HEAD_Y;
+const lifeTopOf  = i => pStartStep[i]>=0 ? rowY(pStartStep[i])+HEAD_H/2 : LIFE_TOP;
+const lifeBotOf  = i => pEndStep[i]>=0 ? rowY(pEndStep[i]) : H-24;
+
+// ── group (aggregation) containers ──────────────────────────────────────────
+GROUPS.forEach(gr=>{
+  const cols=(gr.participants||[]).map(id=>idx[id]).filter(v=>v!=null);
+  if(!cols.length) return;
+  const a=Math.min(...cols), b=Math.max(...cols);
+  const x=cx(a)-COL*0.44, w=cx(b)-cx(a)+COL*0.88;
+  const col=TONE[gr.tone]||'#8593a3';
+  const g=el('g',{class:'grp'});
+  g.appendChild(el('rect',{x,y:8,width:w,height:H-8-14,rx:8,stroke:col}));
+  const tw=Math.max(60,(gr.label.length)*6.6+16);
+  // inline style, not a `fill` attribute: `.grp rect` would otherwise win over it
+  // and leave the white label text sitting on a pale box.
+  g.appendChild(el('rect',{class:'gtabbg',x,y:8,width:tw,height:18,rx:4,style:`fill:${col}`}));
+  const t=el('text',{class:'gtab',x:x+8,y:21}); t.textContent=gr.label; g.appendChild(t);
+  svg.appendChild(g);
+});
+
+// ── lifelines ────────────────────────────────────────────────────────────────
+const pLife=[], pDestroy=[];
+P.forEach((p,i)=>{
+  const life=el('line',{class:'lifeline',x1:cx(i),y1:lifeTopOf(i),x2:cx(i),y2:lifeBotOf(i)});
+  svg.appendChild(life); pLife.push(life);
+  if(pEndStep[i]>=0){
+    const y=lifeBotOf(i), dg=el('g',{class:'destroy'});
+    dg.appendChild(el('line',{x1:cx(i)-8,y1:y-8,x2:cx(i)+8,y2:y+8}));
+    dg.appendChild(el('line',{x1:cx(i)-8,y1:y+8,x2:cx(i)+8,y2:y-8}));
+    dg.style.opacity=0; svg.appendChild(dg); pDestroy.push(dg);
+  } else pDestroy.push(null);
+});
+
+// ── activation / execution bars ──────────────────────────────────────────────
+function computeActs(){
+  const explicit = EV.some(e=>e.kind==='message' && (e.activate||e.deactivate));
+  if(explicit){
+    const stacks={}, out=[];
+    EV.forEach((e,n)=>{
+      if(e.kind!=='message') return;
+      if(e.activate && idx[e.to]!=null){ const p=idx[e.to]; (stacks[p]=stacks[p]||[]).push({p,from:n,to:n}); }
+      if(e.deactivate && idx[e.from]!=null){ const p=idx[e.from]; const st=stacks[p]; if(st&&st.length){ const a=st.pop(); a.to=n; out.push(a);} }
+    });
+    Object.values(stacks).forEach(st=>st.forEach(a=>{ a.to=EV.length-1; out.push(a); }));
+    return out;
+  }
+  if(SEQ.autoActivate===false) return [];
+  const raw=[];
+  EV.forEach((e,n)=>{
+    if(e.kind!=='message'||e.found||e.from===e.to) return;
+    const p=idx[e.to]; if(p==null) return;
+    let end=n;
+    for(let m=n+1;m<EV.length;m++){ const e2=EV[m]; if(e2.kind==='message'&&idx[e2.from]===p){ end=m; break; } }
+    raw.push({p,from:n,to:end});
+  });
+  const byP={}; raw.forEach(a=>{ (byP[a.p]=byP[a.p]||[]).push(a); });
+  const merged=[];
+  Object.keys(byP).forEach(k=>{
+    const arr=byP[k].sort((a,b)=>a.from-b.from); let cur=null;
+    arr.forEach(a=>{ if(cur && a.from<=cur.to){ cur.to=Math.max(cur.to,a.to); } else { cur={p:+k,from:a.from,to:a.to}; merged.push(cur); } });
+  });
+  return merged;
+}
+const acts=computeActs();
+const execEls=[];
+acts.forEach(a=>{
+  const x=cx(a.p)-4.5, y=rowY(a.from)-8, h=Math.max(18, rowY(a.to)-rowY(a.from)+16);
+  const g=el('g',{class:'exec'}); g.dataset.from=a.from; g.dataset.to=a.to;
+  g.appendChild(el('rect',{x,y,width:9,height:h,rx:2}));
+  g.style.opacity=0; svg.appendChild(g); execEls.push(g);
+});
+
+// ── combined fragments (alt/opt/loop/par/break/critical/ref/neg/assert) ──────
+function eventParticipants(e){
+  const s=new Set();
+  if(e.kind==='note'){ (e.over||[]).forEach(o=>{ if(idx[o]!=null)s.add(idx[o]); }); }
+  else {
+    if(!e.found && idx[e.from]!=null)s.add(idx[e.from]);
+    if(!e.lost && idx[e.to]!=null)s.add(idx[e.to]);
+  }
+  return [...s];
+}
+const fragEls=[];
+(SEQ.fragments||[]).forEach(fr=>{
+  const start=evIndexById[fr.startId], end=evIndexById[fr.endId];
+  if(start==null||end==null) return;
+  const parts=new Set();
+  for(let i=start;i<=end;i++) eventParticipants(EV[i]).forEach(p=>parts.add(p));
+  if(!parts.size) return;
+  const col=TONE[fr.tone]||'#5f6b7a';
+  const xmin=cx(Math.min(...parts))-48, xmax=cx(Math.max(...parts))+48;
+  const y1=rowY(start)-32, y2=rowY(end)+22;
+  const fg=el('g',{class:'frame'}); fg.style.opacity=0; fg.dataset.start=start;
+  fg.appendChild(el('rect',{x:xmin,y:y1,width:xmax-xmin,height:y2-y1,rx:6,stroke:col}));
+  const tabw=Math.max(70, (fr.kind.length+fr.label.length)*6+24);
+  fg.appendChild(el('rect',{class:'flabelbg',x:xmin,y:y1,width:tabw,height:17,style:`fill:${col}`}));
+  const ft=el('text',{class:'flabel',x:xmin+7,y:y1+13}); ft.textContent=fr.kind+'  '+fr.label; fg.appendChild(ft);
+  (fr.dividers||[]).forEach(d=>{
+    const at=evIndexById[d.beforeId]; if(at==null) return;
+    const ey=rowY(at)-32;
+    const line=el('line',{class:'elsediv',x1:xmin,y1:ey,x2:xmax,y2:ey}); line.style.opacity=0; line.dataset.at=at; fg.appendChild(line);
+    const tx=el('text',{class:'elsetxt',x:xmin+7,y:ey-4}); tx.textContent=d.label; tx.style.opacity=0; tx.dataset.at=at; fg.appendChild(tx);
+  });
+  svg.appendChild(fg); fragEls.push(fg);
+});
+
+// ── messages ─────────────────────────────────────────────────────────────────
+const evEls=[];
+EV.forEach((e,n)=>{
+  const y=rowY(n);
+  // arrow semantics
+  const kind = e.kind==='message' ? (e.arrow || (e.style==='dashed'?'reply':'sync')) : null;
+  const isReply = kind==='reply';
+  const isCreate = e.kind==='message' && e.create;
+  // UML: a «create» message is a dashed line with an open arrowhead onto the new
+  // object's box — render it like a reply line (dashed/open), not a solid call.
+  const cls = e.kind==='note' ? 'note' : (isReply||isCreate ? 'ret' : 'msg');
+  const marker = (isReply||isCreate) ? 'aor' : (kind==='async' ? 'ao' : 'ah');
+  const g=el('g',{class:'evt '+cls,'data-step':n});
+  if(e.kind==='note'){
+    // `over` is a SET of lifelines, not a range: leftmost/rightmost column, so a
+    // note authored back-to-front still gets a positive width.
+    const cols=(e.over||[]).map(o=>idx[o]).filter(v=>v!=null);
+    const x1=cx(Math.min(...cols))-56, x2=cx(Math.max(...cols))+56;
+    g.appendChild(el('rect',{x:x1,y:y-15,width:x2-x1,height:26,rx:5}));
+    const t=el('text',{x:(x1+x2)/2,y:y+2,'text-anchor':'middle'}); t.textContent=e.label; g.appendChild(t);
+  } else if(e.found || e.lost){
+    // boundary dot on the outside end
+    const anchorId = e.found ? e.to : e.from;
+    const ai = idx[anchorId]; if(ai==null){ svg.appendChild(g); evEls.push(g); return; }
+    const side = ai===0 ? 1 : -1;             // put dot to the right if leftmost, else left
+    const dotx = cx(ai) + side*64;
+    const xa = e.found ? dotx : cx(ai);
+    const xb = e.found ? cx(ai) : dotx;
+    const dir = xb>xa?1:-1;
+    g.appendChild(el('circle',{class:'bdot',cx:dotx,cy:y,r:5}));
+    g.appendChild(el('path',{class:'line',d:'M'+xa+','+y+' L'+(xb-dir*6)+','+y,'marker-end':'url(#'+marker+')'}));
+    const t=el('text',{class:'lbl',x:(xa+xb)/2,y:y-6,'text-anchor':'middle'}); t.textContent=e.label||''; g.appendChild(t);
+  } else if(e.from===e.to){
+    const x=cx(idx[e.from]);
+    g.appendChild(el('path',{class:'line',d:'M'+(x+4)+','+y+' h34 v20 h-34','marker-end':'url(#'+marker+')'}));
+    const t=el('text',{class:'lbl',x:x+46,y:y+13}); t.textContent=e.label||''; g.appendChild(t);
+  } else {
+    const xa=cx(idx[e.from]), xb=cx(idx[e.to]); const dir=xb>xa?1:-1;
+    // shorten onto the activation-bar edge, or onto the created box edge
+    const endPad = e.create ? 46 : 5;
+    const x2=xb-dir*endPad;
+    g.appendChild(el('path',{class:'line',d:'M'+(xa+dir*4)+','+y+' L'+x2+','+y,'marker-end':'url(#'+marker+')'}));
+    const t=el('text',{class:'lbl',x:(xa+xb)/2,y:y-6,'text-anchor':'middle'}); t.textContent=e.label||''; g.appendChild(t);
+    if(e.create){ const c=el('text',{class:'lbl',x:(xa+xb)/2,y:y+11,'text-anchor':'middle','font-style':'italic'}); c.setAttribute('fill','currentColor'); c.textContent='«create»'; g.appendChild(c); }
+  }
+  svg.appendChild(g); evEls.push(g);
+});
+evEls.forEach((g,n)=>{
+  const line=g.querySelector('.line');
+  const e=EV[n];
+  const isReply = e.kind==='message' && (e.arrow==='reply' || (!e.arrow && e.style==='dashed'));
+  if(line && !isReply && !e.create){ g.style.setProperty('--len', line.getTotalLength()); }
+});
+
+// ── headers (drawn last so they sit above bars/arrows) ───────────────────────
+// Wrapped in a dedicated layer so it can be pinned to the top of the viewport
+// while the step-zoom pans down (see applyZoom) — keeps the participant entities
+// visible for whatever step is framed. A background band keeps them legible when
+// they overlap earlier rows.
+const heads=[];
+const headerLayer=el('g',{id:'headerLayer'});
+const headerBg=el('rect',{class:'headerbg',x:0,y:HEAD_Y-8,width:W,height:HEAD_H+16,fill:'var(--bg)'});
+headerBg.style.opacity=0;                 // only shown once the layer is pinned
+headerLayer.appendChild(headerBg);
+P.forEach((p,i)=>{
+  const top=headTopOf(i);
+  const g=el('g',{class:(p.actor?'actor':'phead')+(p.icon?' iconhead':'')});
+  if(p.actor){
+    const hx=cx(i), hy=top+8;
+    g.appendChild(el('circle',{cx:hx,cy:hy,r:7}));
+    g.appendChild(el('line',{x1:hx,y1:hy+7,x2:hx,y2:hy+22}));       // body
+    g.appendChild(el('line',{x1:hx-9,y1:hy+13,x2:hx+9,y2:hy+13}));  // arms
+    g.appendChild(el('line',{x1:hx,y1:hy+22,x2:hx-8,y2:hy+33}));    // left leg
+    g.appendChild(el('line',{x1:hx,y1:hy+22,x2:hx+8,y2:hy+33}));    // right leg
+    const t=el('text',{class:'alabel',x:hx,y:top+HEAD_H+2,'text-anchor':'middle'}); t.textContent=p.label; g.appendChild(t);
+  } else {
+    const w=Math.max(96, (p.label||'').length*6.4+18, (p.sub||'').length*5.6+18, (p.stereotype||'').length*5.6+22);
+    g.appendChild(el('rect',{x:cx(i)-w/2,y:top,width:w,height:HEAD_H,rx:7}));
+    let ty=top+(p.sub?20:27);
+    if(p.stereotype){ const st=el('text',{class:'stereo',x:cx(i),y:top+12,'text-anchor':'middle'}); st.textContent='«'+p.stereotype+'»'; g.appendChild(st); ty=top+(p.sub?34:36); }
+    if(p.icon && ICONS[p.icon]){
+      g.appendChild(el('image',{href:ICONS[p.icon],x:cx(i)-14,y:top+(p.stereotype?18:5),width:28,height:28}));
+      const t=el('text',{x:cx(i),y:top+(p.stereotype?54:45),'text-anchor':'middle'}); t.textContent=p.label; g.appendChild(t);
+      if(p.sub){const s=el('text',{class:'sub',x:cx(i),y:top+(p.stereotype?62:55),'text-anchor':'middle'}); s.textContent=p.sub; g.appendChild(s);}
+    } else {
+      const t=el('text',{x:cx(i),y:ty,'text-anchor':'middle'}); t.textContent=p.label; g.appendChild(t);
+      if(p.sub){const s=el('text',{class:'sub',x:cx(i),y:ty+14,'text-anchor':'middle'}); s.textContent=p.sub; g.appendChild(s);}
+    }
+  }
+  headerLayer.appendChild(g); heads.push(g);
+});
+svg.appendChild(headerLayer);
+
+// ── legend (monochrome, follows the card text colour) ─────────────────────────
+document.getElementById('legend').innerHTML = [
+  '<span><svg width="30" height="10"><line x1="0" y1="5" x2="22" y2="5" stroke="currentColor" stroke-width="2"/><path d="M22,1 L30,5 L22,9 z" fill="currentColor"/></svg> sync</span>',
+  '<span><svg width="30" height="10"><line x1="0" y1="5" x2="22" y2="5" stroke="currentColor" stroke-width="2"/><path d="M22,1 L30,5 L22,9" fill="none" stroke="currentColor" stroke-width="1.6"/></svg> async</span>',
+  '<span><svg width="30" height="10"><line x1="0" y1="5" x2="22" y2="5" stroke="currentColor" stroke-width="2" stroke-dasharray="6 4"/><path d="M22,1 L30,5 L22,9" fill="none" stroke="currentColor" stroke-width="1.6"/></svg> reply</span>',
+  '<span><svg width="14" height="16"><rect x="4" y="0" width="6" height="16" fill="none" stroke="currentColor"/></svg> activation</span>',
+  '<span>«create» / <b style="color:var(--danger)">✕</b> destroy</span>',
+].join('');
+
+// ── player ─────────────────────────────────────────────────────────────────
+let cur=0, playing=false, timer=null, speed=SEQ.stepMs||1300;
+const stage=document.getElementById('stage'), stepno=document.getElementById('stepno');
+const rail=document.getElementById('rail');
+rail.innerHTML = EV.map(()=>'<i></i>').join('');
+const railSegs=[...rail.children];
+const ptitle=document.getElementById('ptitle'), pflow=document.getElementById('pflow'), pdesc=document.getElementById('pdesc'), pparties=document.getElementById('pparties');
+const pproof=document.getElementById('pproof'), pcode=document.getElementById('pcode'), pcodehd=document.getElementById('pcodehd'), pcodepre=document.getElementById('pcodepre'), badge=document.getElementById('badge');
+const BADGE_TXT = { gate:'◆ GATE', keyless:'● keyless', async:'async', sync:'sync', phase:'PHASE', fail:'✕ fail' };
+
+// Side-panel "who's involved" chips for the active step: from→to for a message
+// (boundary dot for found/lost, ↺ for a self-message), or the spanned lifelines
+// for a note. `inv` is the involved-participant Set (chips in it are highlighted).
+function partiesHtml(e, inv){
+  if(!e) return '';
+  const ico = i => {
+    const p=P[i];
+    if(p.icon && ICONS[p.icon]) return '<img class="pico" src="'+ICONS[p.icon]+'" alt="">';
+    if(p.actor) return '<svg class="pico" viewBox="0 0 16 16"><circle cx="8" cy="3.4" r="2.2"/><path d="M8 5.6V10.5M4.6 7.6h6.8M8 10.5l-2.4 3.4M8 10.5l2.4 3.4"/></svg>';
+    return '';
+  };
+  const chip = i => '<span class="pchip'+((inv&&inv.has(i))?' on':'')+'">'+ico(i)+esc(P[i].label)+'</span>';
+  const dot  = '<span class="pchip bdotc">&#9679;</span>';               // found/lost boundary
+  const arr  = t => '<span class="parr">'+t+'</span>';
+  if(e.kind==='note'){ return eventParticipants(e).map(chip).join(arr('·')); }
+  if(e.from===e.to){ const i=idx[e.from]; return i==null?'':chip(i)+arr('&#8635;'); }   // self
+  const left  = e.found ? dot : (idx[e.from]!=null?chip(idx[e.from]):'');
+  const right = e.lost  ? dot : (idx[e.to]  !=null?chip(idx[e.to])  :'');
+  const dir   = (e.arrow==='reply'||e.style==='dashed') ? '&#8674;' : '&#8594;';         // ⇢ reply / → call
+  return left+arr(dir)+right;
+}
+
+function render(){
+  evEls.forEach((g,i)=>{ g.classList.toggle('shown',i<=cur); g.classList.toggle('active',i===cur); });
+  fragEls.forEach(fg=>{
+    const st=+fg.dataset.start; fg.style.opacity = cur>=st?1:0;
+    fg.querySelectorAll('[data-at]').forEach(x=>{ x.style.opacity = cur>=(+x.dataset.at)?1:0; });
+  });
+  execEls.forEach(g=>{
+    const f=+g.dataset.from, t=+g.dataset.to;
+    g.style.opacity = cur>=f?1:0;
+    g.classList.toggle('hot', cur>=f && cur<=t);
+  });
+  // created lifelines/headers appear only once instantiated; destroy X after its
+  // step. On an active step, dim the participants NOT involved so the entry↔exit
+  // pair stands out; involved ones (or the overview) stay at full opacity.
+  const e=EV[cur];
+  const involved = e ? new Set(eventParticipants(e)) : null;
+  heads.forEach((h,i)=>{
+    const shown = pStartStep[i]<0 || cur>=pStartStep[i];
+    const dim = shown && involved && !involved.has(i);
+    h.style.opacity      = !shown ? 0 : dim ? 0.26 : 1;
+    pLife[i].style.opacity = !shown ? 0 : dim ? 0.12 : 1;
+  });
+  pDestroy.forEach((d,i)=>{ if(d) d.style.opacity = cur>=pEndStep[i]?1:0; });
+  heads.forEach(h=>h.classList.remove('hot'));
+  if(e) eventParticipants(e).forEach(i=>heads[i]&&heads[i].classList.add('hot'));
+  document.documentElement.style.setProperty('--active', (e&&e.tone&&TONE[e.tone])||'#ff9900');
+  railSegs.forEach((s,i)=>s.classList.toggle('on',i<=cur));
+  stepno.textContent=(cur+1)+' / '+EV.length;
+  pparties.style.display='none';
+  if(e){
+    if(e.badge){ badge.innerHTML='<span class="badge b-'+e.badge+'">'+esc(BADGE_TXT[e.badge]||e.badge)+'</span>'; } else badge.innerHTML='';
+    // Step number BEFORE the step: the reader sees where they are without
+    // hunting for the counter in the corner.
+    ptitle.innerHTML='<span class="stepnum">'+(cur+1)+'</span>'+esc(e.title||e.label||'');
+    pparties.innerHTML=partiesHtml(e,involved); pparties.style.display=pparties.innerHTML?'':'none';
+    pflow.textContent=e.flow||''; pflow.style.display=e.flow?'':'none';
+    pdesc.innerHTML=e.desc?md(e.desc):''; pdesc.style.display=e.desc?'':'none';
+    if(e.proof){ pproof.innerHTML=proofHtml(e.proof); pproof.style.display=''; } else pproof.style.display='none';
+    if(e.code){ pcodepre.textContent=e.code; pcodehd.textContent=e.codeLabel||'code'; pcode.style.display=''; } else pcode.style.display='none';
+  }
+  frameStep(true);
+  document.getElementById('prev').disabled=cur<=0;
+  document.getElementById('next').disabled=cur>=EV.length-1;
+}
+function step(d){ cur=Math.max(0,Math.min(EV.length-1,cur+d)); render(); }
+function setPlaying(v){
+  playing=v; const b=document.getElementById('play');
+  b.classList.toggle('on',playing);
+  b.innerHTML = playing
+    ? '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/></svg>'
+    : '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M8 5v14l11-7z"/></svg>';
+}
+function playToggle(){ setPlaying(!playing); if(playing){ if(cur>=EV.length-1)cur=-1; tick(); } else clearTimeout(timer); }
+function tick(){ if(!playing)return; if(cur>=EV.length-1){ setPlaying(false); return; } step(1); timer=setTimeout(tick,speed); }
+document.getElementById('play').onclick=playToggle;
+document.getElementById('next').onclick=()=>{ if(playing)playToggle(); step(1); };
+document.getElementById('prev').onclick=()=>{ if(playing)playToggle(); step(-1); };
+document.getElementById('restart').onclick=()=>{ if(playing)playToggle(); cur=-1; render(); cur=0; render(); };
+const spd=document.getElementById('speed'); spd.value=speed; document.getElementById('spd').textContent=(speed/1000).toFixed(1)+'s';
+spd.oninput=()=>{ speed=+spd.value; document.getElementById('spd').textContent=(speed/1000).toFixed(1)+'s'; };
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape' && searchOpen()){ e.preventDefault(); closeSearch(); return; }
+  if(e.target.tagName==='INPUT') return;
+  if(e.key==='/'){ e.preventDefault(); openSearch(); }
+  else if(e.key==='ArrowRight'){e.preventDefault();document.getElementById('next').click();}
+  else if(e.key==='ArrowLeft'){e.preventDefault();document.getElementById('prev').click();}
+  else if(e.key===' '){e.preventDefault();playToggle();}
+});
+
+// ── participant search ('/') ─────────────────────────────────────────────────
+// '/' opens an inline box that highlights lifelines whose label matches; Enter
+// focuses/zooms the first match, Esc clears and closes. Labels are already in P.
+const searchBox=document.createElement('div');
+searchBox.className='seqsearch';
+searchBox.innerHTML='<span style="opacity:.6">&#128269;</span><input type="text" placeholder="search participants…" aria-label="search participants"><span class="cnt"></span>';
+document.body.appendChild(searchBox);
+const searchInput=searchBox.querySelector('input'), searchCnt=searchBox.querySelector('.cnt');
+let searchMatches=[];
+function searchOpen(){ return searchBox.classList.contains('on'); }
+function openSearch(){ searchBox.classList.add('on'); searchInput.focus(); searchInput.select(); applySearch(); }
+function closeSearch(){ searchBox.classList.remove('on'); searchInput.value=''; clearSearchHits(); }
+function clearSearchHits(){ heads.forEach(h=>h&&h.classList.remove('searchhit')); searchMatches=[]; searchCnt.textContent=''; }
+function applySearch(){
+  const q=searchInput.value.trim().toLowerCase();
+  clearSearchHits();
+  if(!q) return;
+  P.forEach((p,i)=>{
+    const hay=((p.label||'')+' '+(p.sub||'')+' '+(p.service||'')).toLowerCase();
+    if(hay.includes(q)){ searchMatches.push(i); heads[i]&&heads[i].classList.add('searchhit'); }
+  });
+  searchCnt.textContent=searchMatches.length?('1/'+searchMatches.length):'0';
+}
+function gotoMatch(){ if(searchMatches.length){ frameParticipant(searchMatches[0]); } }
+searchInput.addEventListener('input',applySearch);
+searchInput.addEventListener('keydown',e=>{
+  if(e.key==='Enter'){ e.preventDefault(); gotoMatch(); }
+  else if(e.key==='Escape'){ e.preventDefault(); closeSearch(); }
+});
+
+// ── theme / zoom / fullscreen / download / collapse ──────────────────────────
+const root=document.documentElement, themeBtn=document.getElementById('theme');
+const THEME_KEY='seqdiag-theme';
+function applyTheme(t){ root.setAttribute('data-theme',t); themeBtn.innerHTML = t==='dark' ? '&#9788;' : '&#9789;'; try{localStorage.setItem(THEME_KEY,t);}catch(_){} }
+themeBtn.onclick=()=>applyTheme(root.getAttribute('data-theme')==='dark'?'light':'dark');
+applyTheme((()=>{ try{return localStorage.getItem(THEME_KEY);}catch(_){return null;} })() || 'dark');
+
+// Transform-based pan/zoom canvas. A left gutter is reserved for the floating
+// card so the framed content never hides behind it. The view auto-follows the
+// active step: frameStep() zooms/pans onto the participants + message row of the
+// step currently shown (like the architecture diagram's step-zoom). Wheel and
+// drag let the user adjust freely between steps; the zfit button fits the whole
+// diagram; navigating to another step re-frames it.
+const GUTTER=396;          // card 360 + 20 left inset + 16 gap
+// Honor the OS "reduce motion" setting for the JS-driven transform tweens
+// (the CSS @media block above covers the declarative transitions).
+const PREFERS_REDUCED = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+let zoom=1, tx=GUTTER, ty=12;
+function clampZoom(z){ return Math.max(0.25, Math.min(3, z)); }
+function applyZoom(animate){
+  svg.style.transition = (animate && !PREFERS_REDUCED) ? 'transform .45s cubic-bezier(.4,0,.2,1)' : 'none';
+  svg.style.transform='translate('+tx+'px,'+ty+'px) scale('+zoom+')';
+  pinHeaders(animate);
+}
+// Keep the participant headers on screen: if the natural header position would
+// scroll above the viewport top, push the layer down just enough to sit at the
+// top edge (and reveal its background band so it stays readable over the rows
+// behind it). d is in SVG user units (the layer is inside the scaled <svg>).
+function pinHeaders(animate){
+  if(!headerLayer) return;
+  let d=(6 - ty)/zoom - HEAD_Y;
+  if(d<0) d=0;
+  headerLayer.style.transition = (animate && !PREFERS_REDUCED) ? 'transform .45s cubic-bezier(.4,0,.2,1)' : 'none';
+  headerLayer.style.transform = d ? 'translateY('+d+'px)' : '';
+  headerBg.style.opacity = d>1 ? 1 : 0;
+}
+function gutter(){ return stage.clientWidth>760 ? GUTTER : 24; }  // narrow: card floats above
+
+// Frame the step currently shown: horizontally the participants it touches,
+// vertically a band of context rows around the active message. Falls back to a
+// whole-diagram fit for the intro/overview state (no active step).
+function frameStep(animate){
+  const g=gutter();
+  const availW=Math.max(120, stage.clientWidth - g - 30);
+  const availH=Math.max(120, stage.clientHeight - 40);
+  const e=EV[cur], parts=e?eventParticipants(e):[];
+  if(!e || !parts.length){                       // overview: fit whole width, top-aligned
+    zoom=Math.max(0.25, Math.min(1, availW/W));
+    tx=g; ty=12; applyZoom(animate); return;
+  }
+  const padX=COL*0.6, CTX=2.2;                    // rows of context above/below the active message
+  const x0=Math.max(0, cx(Math.min(...parts))-padX), x1=Math.min(W, cx(Math.max(...parts))+padX);
+  const y0=Math.max(0, rowY(cur)-ROW*CTX),         y1=Math.min(H, rowY(cur)+ROW*CTX);
+  const bw=Math.max(1, x1-x0), bh=Math.max(1, y1-y0);
+  zoom=clampZoom(Math.min(1.8, Math.min(availW/bw, availH/bh)));   // cap so a 2-lane step isn't over-magnified
+  tx=g + (availW - bw*zoom)/2 - x0*zoom;
+  // Centre the band, but never push the diagram BELOW its natural top: on the
+  // first steps y0 is 0 and centring would leave a dead band above the headers.
+  ty=Math.min(20, 20 + (availH - bh*zoom)/2 - y0*zoom);
+  applyZoom(animate);
+}
+// Whole-diagram fit (zfit button).
+function fit(){
+  const g=gutter();
+  zoom=Math.max(0.25, Math.min(1, (stage.clientWidth - g - 30)/W));
+  tx=g; ty=12; applyZoom(true);
+}
+// Center a single participant column (search 'Enter' target): horizontally
+// centre its lifeline, keep the vertical range showing the top of the diagram.
+function frameParticipant(i){
+  const g=gutter();
+  const availW=Math.max(120, stage.clientWidth - g - 30);
+  const bandW=COL*2.4;
+  zoom=clampZoom(Math.min(1.6, availW/bandW));
+  tx=g + availW/2 - cx(i)*zoom;
+  ty=12; applyZoom(true);
+}
+// Manual zoom about a point (wheel) or the viewport centre (buttons).
+function zoomAtPoint(nz, px, py){
+  nz=clampZoom(nz);
+  const sx=(px-tx)/zoom, sy=(py-ty)/zoom;
+  zoom=nz; tx=px-sx*zoom; ty=py-sy*zoom; applyZoom(false);
+}
+function zoomCentre(f){ zoomAtPoint(zoom*f, stage.clientWidth/2, stage.clientHeight/2); }
+document.getElementById('zin').onclick=()=>zoomCentre(1.15);
+document.getElementById('zout').onclick=()=>zoomCentre(1/1.15);
+document.getElementById('zfit').onclick=fit;
+addEventListener('resize',()=>frameStep(false));
+
+// wheel = zoom toward cursor; drag = pan
+stage.addEventListener('wheel',e=>{
+  e.preventDefault();
+  const r=stage.getBoundingClientRect(), f=e.deltaY<0?1.12:1/1.12;
+  zoomAtPoint(zoom*f, e.clientX-r.left, e.clientY-r.top);
+},{passive:false});
+let dragging=false,dsx=0,dsy=0,dtx=0,dty=0;
+stage.addEventListener('pointerdown',e=>{
+  if(e.button!==0 || (e.target.closest&&e.target.closest('#pill,#expand'))) return;
+  dragging=true; dsx=e.clientX; dsy=e.clientY; dtx=tx; dty=ty;
+  stage.classList.add('grabbing'); try{stage.setPointerCapture(e.pointerId);}catch(_){}
+});
+stage.addEventListener('pointermove',e=>{
+  if(!dragging)return; tx=dtx+(e.clientX-dsx); ty=dty+(e.clientY-dsy); applyZoom(false);
+});
+function endDrag(e){ if(!dragging)return; dragging=false; stage.classList.remove('grabbing'); try{stage.releasePointerCapture(e.pointerId);}catch(_){} }
+stage.addEventListener('pointerup',endDrag);
+stage.addEventListener('pointercancel',endDrag);
+
+frameStep(false);
+
+document.getElementById('fs').onclick=()=>{
+  const d=document; if(!d.fullscreenElement){ if(d.documentElement.requestFullscreen) d.documentElement.requestFullscreen(); }
+  else if(d.exitFullscreen){ d.exitFullscreen(); }
+};
+
+const pill=document.getElementById('pill'), expand=document.getElementById('expand');
+document.getElementById('collapse').onclick=()=>{ pill.style.display='none'; expand.style.display='block'; };
+expand.onclick=()=>{ pill.style.display='flex'; expand.style.display='none'; };
+
+function serializeSvg(){
+  const clone=svg.cloneNode(true);
+  clone.setAttribute('xmlns',NS); clone.setAttribute('xmlns:xlink','http://www.w3.org/1999/xlink');
+  clone.style.transform='';
+  const hl=clone.querySelector('#headerLayer'); if(hl) hl.style.transform='';   // un-pin headers in the export
+  const hbg=clone.querySelector('.headerbg'); if(hbg) hbg.style.opacity=0;
+  const cs=getComputedStyle(root);
+  const vars=['--navy','--orange','--txt','--txt-muted','--border','--bg','--card-bg','--msg','--ret','--accent','--info','--success','--warn','--danger','--neutral','--active'];
+  const style=document.createElementNS(NS,'style');
+  style.textContent=':root{'+vars.map(v=>v+':'+cs.getPropertyValue(v).trim()+';').join('')+'}'
+    +document.querySelector('style').textContent;
+  clone.insertBefore(style,clone.firstChild);
+  return '<?xml version="1.0" encoding="UTF-8"?>\n'+new XMLSerializer().serializeToString(clone);
+}
+function download(name,blob){ const u=URL.createObjectURL(blob),a=document.createElement('a'); a.href=u;a.download=name;a.click(); setTimeout(()=>URL.revokeObjectURL(u),1000); }
+document.getElementById('dlsvg').onclick=()=>download('sequence-diagram.svg',new Blob([serializeSvg()],{type:'image/svg+xml'}));
+document.getElementById('dlpng').onclick=()=>{
+  const scale=2, img=new Image();
+  img.onload=()=>{ const c=document.createElement('canvas'); c.width=W*scale; c.height=H*scale;
+    const ctx=c.getContext('2d'); ctx.fillStyle=getComputedStyle(root).getPropertyValue('--bg').trim()||'#fff';
+    ctx.fillRect(0,0,c.width,c.height); ctx.scale(scale,scale); ctx.drawImage(img,0,0);
+    c.toBlob(b=>b&&download('sequence-diagram.png',b),'image/png'); };
+  img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(serializeSvg());
+};
+
+// ── WebM walkthrough export (MediaRecorder + canvas.captureStream) ───────────
+// Records the walkthrough beat-by-beat (one event per beat) into a single .webm
+// — no library, no network: each beat's SVG is rasterized onto an offscreen
+// canvas whose stream MediaRecorder captures, with a caption bar drawn per beat.
+// Degrades to a DISABLED button when MediaRecorder / canvas.captureStream / a
+// webm codec aren't available so the rest of the player is unaffected. Same
+// file:// safety as the SVG/PNG export (icons are already inlined as data-URIs).
+recorderSetup({
+  fname: 'sequence-walkthrough',
+  total: () => EV.length,
+  hasBeats: () => EV.length > 0,
+  caption: i => { const e = EV[i] || {}; return { title: e.title || e.label || '', desc: e.desc || '' }; },
+});
+
+function recorderSetup(REC){
+  const btn = document.getElementById('dlwebm'); if(!btn) return;
+  const pickMime = () => {
+    const c = ['video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm'];
+    for(const m of c){ try{ if(window.MediaRecorder && MediaRecorder.isTypeSupported(m)) return m; }catch(_){} }
+    return '';
+  };
+  const supported = typeof MediaRecorder !== 'undefined'
+    && typeof HTMLCanvasElement !== 'undefined'
+    && !!HTMLCanvasElement.prototype.captureStream && !!pickMime();
+  if(!REC.hasBeats() || !supported){
+    btn.disabled = true;
+    btn.title = !REC.hasBeats() ? 'No walkthrough to record' : 'WebM recording not supported in this browser';
+    return;
+  }
+  const wait = ms => new Promise(r => setTimeout(r, ms));
+  const clip = (ctx, s, max) => { s = String(s == null ? '' : s);
+    if(ctx.measureText(s).width <= max) return s;
+    while(s.length && ctx.measureText(s + '…').width > max) s = s.slice(0, -1);
+    return s + '…'; };
+  let busy = false;
+  btn.onclick = async () => {
+    if(busy) return; busy = true;
+    if(playing) playToggle();
+    const mime = pickMime();
+    const scale = Math.max(1, Math.min(2, 1600 / Math.max(W, H)));
+    const cw = Math.round(W * scale), ch = Math.round(H * scale);
+    const cv = document.createElement('canvas'); cv.width = cw; cv.height = ch;
+    const ctx = cv.getContext('2d');
+    const bg = getComputedStyle(root).getPropertyValue('--bg').trim() || '#0f1117';
+    const stream = cv.captureStream(30);
+    const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 6000000 });
+    const chunks = []; rec.ondataavailable = e => { if(e.data && e.data.size) chunks.push(e.data); };
+    const stopped = new Promise(res => { rec.onstop = res; });
+    const savedCur = cur, label0 = btn.textContent;
+    btn.classList.add('on');
+    const total = REC.total();
+    let img = null;
+    const load = () => new Promise(res => { const im = new Image();
+      im.onload = () => { img = im; res(); }; im.onerror = () => res();
+      im.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(serializeSvg()); });
+    const paint = i => {
+      ctx.setTransform(1,0,0,1,0,0); ctx.fillStyle = bg; ctx.fillRect(0,0,cw,ch);
+      ctx.setTransform(scale,0,0,scale,0,0); if(img) ctx.drawImage(img, 0, 0);
+      const cap = REC.caption(i), barH = Math.max(56, Math.round(H * 0.15)), y = H - barH, pad = 18;
+      ctx.fillStyle = 'rgba(9,11,17,0.82)'; ctx.fillRect(0, y, W, barH);
+      ctx.fillStyle = '#ff9900'; ctx.fillRect(0, y, 6, barH);
+      ctx.textBaseline = 'top'; ctx.fillStyle = '#fff';
+      ctx.font = '700 ' + Math.round(barH * 0.28) + "px 'Amazon Ember','Helvetica Neue',Arial,sans-serif";
+      ctx.fillText(clip(ctx, (i + 1) + ' / ' + total + '   ' + (cap.title || ''), W - 2 * pad), pad, y + barH * 0.16);
+      const d = (cap.desc || '').replace(/[*`_]/g, '');
+      if(d){ ctx.fillStyle = 'rgba(255,255,255,0.82)';
+        ctx.font = '400 ' + Math.round(barH * 0.22) + "px 'Amazon Ember','Helvetica Neue',Arial,sans-serif";
+        ctx.fillText(clip(ctx, d, W - 2 * pad), pad, y + barH * 0.56); }
+      ctx.setTransform(1,0,0,1,0,0);
+    };
+    const hold = async (i, ms) => { const end = performance.now() + ms;
+      while(performance.now() < end){ paint(i); await wait(1000 / 30); } };
+    rec.start();
+    try{
+      cur = 0; render(); await wait(90); await load(); await hold(0, 300);
+      for(let i = 0; i < total; i++){
+        cur = i; render(); btn.textContent = 'REC ' + (i + 1) + '/' + total;
+        await wait(70); await load(); await hold(i, Math.max(900, speed));
+      }
+      await wait(250);
+    } finally {
+      rec.stop(); await stopped;
+      try{ download(REC.fname + '.webm', new Blob(chunks, { type: mime })); }catch(_){}
+      stream.getTracks().forEach(t => t.stop());
+      btn.classList.remove('on'); btn.textContent = label0;
+      cur = savedCur; render(); busy = false;
+    }
+  };
+}
+
+render();
+if(SEQ.autoplay) playToggle();
+</script>
+</body>
+</html>

@@ -16,6 +16,8 @@ import { LiveDiagram } from '@aws-live-diagram/core/react';
 import { HORIZONTAL_GEOMETRY } from '@aws-live-diagram/core';
 import { makeUi, makeLangLabel } from '@/lib/i18n';
 import { McpIcon } from './McpIcon';
+import { TabShell } from './TabShell';
+import { TAB_STYLE } from './tabStyle';
 
 interface Props {
   data: {
@@ -34,6 +36,9 @@ interface Props {
     stepZoom?: boolean;
     flowDots?: boolean;
     flowPeriod?: number;
+    // Multi-view document: a tab rail + one panel per view (architecture / the
+    // animated UML sequence / prose). Absent => classic single-canvas diagram.
+    tabs?: any[];
   };
 }
 
@@ -106,10 +111,16 @@ export function StandaloneApp({ data }: Props) {
   // can fully localize the toolbar/modal, not just its content.
   const uiResolver = makeUi(data.uiStrings as any);
   const langLabel = makeLangLabel(data.langLabels);
-  return (
-    <>
-      <style>{CHROME_STYLE}</style>
-      <LiveDiagram
+  // In multi-tab mode the SHELL owns the theme (the sequence/doc panels live
+  // outside the diagram's own .ld-frame, so the vars must come from an ancestor),
+  // and LiveDiagram runs in its controlled-theme mode: `dark` + onThemeChange, so
+  // its dock's theme button still flips both.
+  const tabs = data.tabs || [];
+  const tabbed = tabs.length > 1;
+  const [dark, setDark] = useState(false);
+  const diagram = (
+    <LiveDiagram
+      {...(tabbed ? { dark, onThemeChange: setDark } : {})}
         data={data}
         lang={lang}
         onLangChange={setLang}
@@ -139,6 +150,18 @@ export function StandaloneApp({ data }: Props) {
         ui={uiResolver}
         langLabel={langLabel}
       />
+  );
+  return (
+    <>
+      <style>{CHROME_STYLE}</style>
+      {tabbed ? (
+        <>
+          <style>{TAB_STYLE}</style>
+          <div className={`ld-frame ld-shell ${dark ? 'dark' : 'light'}`}>
+            <TabShell tabs={tabs} lang={lang} ui={uiResolver} ArchSlot={() => diagram} />
+          </div>
+        </>
+      ) : diagram}
     </>
   );
 }

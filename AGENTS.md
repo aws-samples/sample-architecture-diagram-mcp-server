@@ -73,6 +73,35 @@ agent that turns a described architecture into a diagram.
 7. **Do NOT ask this server to generate IaC.** The IaC button emits a spec for
    the official `awslabs.aws-iac-mcp-server`; hand off to that.
 
+## When the flow matters: add a sequence tab
+
+If the user's ask is about an **order of operations** (a vend/provisioning flow, an
+auth handshake, a CI/CD pipeline, a saga), the architecture alone under-serves it.
+Pass `sequence` to `generate_html_diagram` (or `diagram_add_sequence` on a draft)
+and the SAME file gains a tab rail: Architecture + the animated UML sequence player.
+It is the SAME schema and renderer as the standalone `generate_sequence_diagram`
+output — author it once, embed it either way.
+
+- `participants[]`: `{ id, label, sub?, service?, icon?, actor?, stereotype? }` — give
+  `service` (canonical AWS name) and the icon resolves itself; use `icon:
+  'tech-icons/<x>.svg'` for non-AWS lifelines; `actor: true` for a human.
+- `events[]` in order, each with a **required `id`** and an explicit `kind`:
+  - `{ kind: 'message', id, from, to, label, arrow?, tone?, badge?, … }` —
+    `arrow: 'sync'|'async'|'reply'` (reply = dashed return), `badge: 'gate'` for a
+    blocking check, plus `activate`/`deactivate`/`create`/`destroy`/`found`/`lost`.
+  - `{ kind: 'note', id, over: [a, b], label }` for a band of explanation.
+- `fragments[]` is a SEPARATE array anchored by event id — never inline
+  begin/else/end events: `{ kind: 'alt'|'opt'|'loop'|'par'|'break'|'critical'|'ref'|
+  'neg'|'assert', label, startId, endId, dividers?: [{ beforeId, label }] }`.
+- `groups[]` boxes participant columns: `{ label, participants: [ids], tone? }`.
+- Narrate the important beats: `title`, `flow`, `desc` (inline markdown), `code` +
+  `codeLabel`, and `proof` (free text or `{repo, path, ref, lines}` → clickable link).
+- Add `tabs[]` yourself only when you need more than the two default tabs (e.g. a
+  `kind: 'doc'` tab with `sections[]` for runbook/decision prose). Tab labels
+  default per kind, so `{ id, kind }` is enough.
+- Keep the two views CONSISTENT: every sequence participant should exist as a node
+  (or group) in the architecture, using the same wording.
+
 ## Group variants
 
 `aws-cloud`, `region`, `vpc`, `public-subnet`, `private-subnet`,
