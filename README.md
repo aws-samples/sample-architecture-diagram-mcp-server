@@ -46,6 +46,14 @@ containers, and flip the theme, all offline:
   as a `{ en, ja, … }` map; the toolbar shows a language dropdown and the whole diagram
   (labels, roles, walkthrough) re-renders in place. Not limited to EN/PT — localize
   the UI chrome for any language with `uiStrings` + `langLabels`.
+- **Multi-tab documents** — pass `sequence` (or an explicit `tabs[]`) and the same
+  single HTML file becomes a small document with a tab rail: the architecture canvas,
+  the **animated UML sequence player** (the same renderer as the standalone
+  `render_diagram_media` sequence output — play/step/keyboard, activation bars,
+  `alt`/`opt`/`loop`/`par` fragments, participant groups, notes, tone/badge
+  narration cards with source `proof` links, PNG/SVG/WebM export), and free-form
+  `doc` tabs (sections, bullets, code). Tabs deep-link via the URL hash. See
+  [Multi-tab documents](#multi-tab-documents-sequence--doc-tabs).
 - **Collapsible containers** — every group header has a fold toggle; collapse a VPC
   or account to a small box and the layout re-flows (start dense diagrams pre-collapsed
   with `defaultCollapsed`).
@@ -137,6 +145,8 @@ Clone this repo, run `npm install`, then point your MCP client at
 | `diagram_add_connections` | Append connections (edges) to a draft |
 | `diagram_add_groups` | Append container groups to a draft |
 | `diagram_add_steps` | Append guided-walkthrough beats to a draft |
+| `diagram_add_sequence` | Add an animated UML sequence diagram as a second tab of a draft |
+| `diagram_add_doc_tab` | Add a prose tab (sections / bullets / code) to a draft |
 | `diagram_render` | Render an incremental draft to a self-contained HTML file |
 | `auto_generate_diagram` | Fully auto-laid-out `.drawio` file |
 | `generate_diagram` | `.drawio` with manual x/y positioning |
@@ -250,6 +260,77 @@ Card content: `eyebrow`, `title`, `body` (markdown), `bullets`, `chips`, `code`,
     "nodes": ["fn", "db"], "zoom": ["fn", "db"], "badge": false }
 ]
 ```
+
+## Multi-tab documents (sequence + doc tabs)
+
+A diagram is often only half the story: the other half is *the order in which
+things happen*. Pass a `sequence` and the generated HTML grows a tab rail —
+**Architecture** (the canvas, unchanged) plus **Sequence** — in the same
+self-contained file. The sequence tab is the same player `generate_sequence_diagram`
+ships standalone (same schema, same geometry, same narration card), so a flow you
+already authored as its own file drops in unchanged.
+
+```jsonc
+"sequence": {
+  "title": "Account vend",
+  "subtitle": "Developer Hub → AFT → Control Tower",
+  "participants": [
+    { "id": "dev", "label": "Developer", "actor": true },
+    { "id": "hub", "label": "Developer Hub", "icon": "tech-icons/rhdh.svg",
+      "stereotype": "boundary" },
+    { "id": "sfn", "label": "Step Functions", "service": "AWS Step Functions",
+      "sub": "aft-account-provisioning" }
+  ],
+  "groups": [
+    { "label": "AWS Control Plane", "participants": ["sfn"], "tone": "info" }
+  ],
+  "events": [
+    { "kind": "message", "id": "m1", "from": "dev", "to": "hub",
+      "label": "fill the template form", "activate": true },
+    { "kind": "message", "id": "m2", "from": "hub", "to": "sfn",
+      "label": "start execution", "arrow": "async", "tone": "success",
+      "title": "Vend starts", "desc": "Writes the `.tf` request and pushes.",
+      "proof": { "repo": "https://github.com/…", "path": "lib/schemas.js", "lines": "40-58" } },
+    { "kind": "message", "id": "m3", "from": "hub", "to": "dev",
+      "label": "render HCL only", "arrow": "reply", "deactivate": true },
+    { "kind": "note", "id": "n1", "over": ["hub", "sfn"],
+      "label": "keyless (IRSA → STS)", "badge": "keyless" }
+  ],
+  "fragments": [
+    { "kind": "alt", "label": "dispararVend = true", "startId": "m2", "endId": "m3",
+      "dividers": [{ "beforeId": "m3", "label": "[else] dry-run" }] }
+  ]
+}
+```
+
+- **Participants** get an icon automatically from `service` (any AWS name), or an
+  explicit `icon` (`tech-icons/vault.svg`); `actor: true` renders a stick-figure
+  glyph, `stereotype` adds a `«…»` line, `sub` a smaller second line.
+- **Events** are a discriminated list — `kind: "message"` or `kind: "note"` — and
+  every event needs a stable `id`. A message carries `arrow`
+  (`sync` | `async` | `reply`), `tone`, `badge` (`gate`/`keyless`/`async`/`sync`/
+  `phase`/`fail`), UML lifecycle flags (`activate`, `deactivate`, `create`,
+  `destroy`, `found`, `lost`) and the narration fields (`title`, `flow`, `desc`,
+  `code`, `codeLabel`, `proof`). A note spans `over: [a, b]`.
+- **Fragments** live in their own `fragments[]` array and are anchored by event id
+  (`startId`/`endId`, plus `dividers[{beforeId,label}]` for the `else` of an `alt`) —
+  `alt`, `opt`, `loop`, `par`, `break`, `critical`, `ref`, `neg`, `assert`.
+  **Groups** (`groups[]`) box a set of participant columns (PlantUML `box`).
+- `proof` is free text *or* a structured `{repo, path, ref, lines, url, text}` ref
+  rendered as a clickable link to the exact file@ref#Lx-Ly.
+- The view **animates**: play/pause, step, ←/→/space/Home/End, a speed slider,
+  "show all", per-step camera framing, participant search, and PNG / SVG / WebM
+  walkthrough export. Activation bars are auto-derived unless a message sets
+  `activate`/`deactivate` (then explicit mode); `autoActivate: false` hides them.
+- For full control pass `tabs[]` instead, mixing `kind: "architecture"`,
+  `"sequence"` and `"doc"` (prose `sections[]` with `title`, `body`, `bullets`,
+  `code`). Labels default per kind (Architecture / Arquitetura / …); `slug` sets
+  the URL hash so a tab is linkable.
+- Incrementally, the draft tools do the same: `diagram_add_sequence` and
+  `diagram_add_doc_tab` before `diagram_render`.
+
+With fewer than two tabs nothing changes — the output stays the classic
+single-canvas diagram.
 
 ## Development
 

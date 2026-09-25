@@ -56,7 +56,7 @@ declare function NodeModal({ node, onClose, Icon, strings }: {
     strings: any;
 }): react.JSX.Element;
 
-declare function ZoomBar({ title, subtitle, dark, visible, onToggle, onTheme, hasWalk, playing, onPlay, onReset, attention, lang, languages, onLang, ui, langLabel, }: {
+declare function ZoomBar({ title, subtitle, dark, visible, onToggle, onTheme, hasWalk, playing, onPlay, onReset, attention, onRecord, recording, canRecord, lang, languages, onLang, ui, langLabel, }: {
     title: any;
     subtitle: any;
     dark: any;
@@ -68,6 +68,9 @@ declare function ZoomBar({ title, subtitle, dark, visible, onToggle, onTheme, ha
     onPlay: any;
     onReset: any;
     attention?: boolean;
+    onRecord: any;
+    recording?: boolean;
+    canRecord?: boolean;
     lang?: string;
     languages?: any[];
     onLang: any;
@@ -173,7 +176,7 @@ declare namespace Icon {
     let displayName: string;
 }
 
-declare function LiveDiagram({ data, lang, animate, direction, edgeStyle, steps, activeStep, stepLayout, fitPadding, stepFocus, spacing, stepZoom, className, geometry, nodeLayout, vars, Icon, markerId, reanchorEdges, groupsInteractive, edgeTuning, flowDots, control, chrome, theme, languages, onLangChange, ui, langLabel, title, subtitle, collapsible, defaultCollapsed, zoomOnScroll, nodeModal, startStep, startCardScale, minZoom, maxZoom, fitMaxZoom, stepMaxZoom, }: {
+declare function LiveDiagram({ data, lang, animate, direction, edgeStyle, steps, activeStep, stepLayout, fitPadding, stepFocus, spacing, stepZoom, className, geometry, nodeLayout, vars, Icon, markerId, reanchorEdges, groupsInteractive, edgeTuning, flowDots, control, chrome, theme, dark: darkProp, onThemeChange, languages, onLangChange, ui, langLabel, title, subtitle, collapsible, defaultCollapsed, zoomOnScroll, nodeModal, startStep, startCardScale, minZoom, maxZoom, fitMaxZoom, stepMaxZoom, }: {
     data: any;
     lang?: string;
     animate?: boolean;
@@ -199,6 +202,8 @@ declare function LiveDiagram({ data, lang, animate, direction, edgeStyle, steps,
     control?: string;
     chrome?: boolean;
     theme?: string;
+    dark: any;
+    onThemeChange: any;
     languages?: any[];
     onLangChange: any;
     ui: any;

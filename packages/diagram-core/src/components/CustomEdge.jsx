@@ -83,7 +83,8 @@ function CustomEdge({ id, sourceX, sourceY, targetX, targetY, sourcePosition, ta
   // data.dots === false turns off the animated flow dot entirely (static edges).
   // Defaults to on, preserving the original animated look.
   const dotsEnabled = data?.dots !== false;
-  const showDot = dotsEnabled && !severed && ((active && tone !== "severed") || !anyActive);
+  const showDot = dotsEnabled && !severed && ((active && tone !== "severed") || !anyActive)
+    && !(data?.deltaActive && (data?.delta === "removed" || (data?.deltaView === "delta" && (!data?.delta || data?.delta === "unchanged"))));
 
   // Visual tunables (defaults = MCP look; the slides factory passes the heavier ones).
   const strokeActive = data?.strokeActive ?? 3.5;
@@ -108,8 +109,18 @@ function CustomEdge({ id, sourceX, sourceY, targetX, targetY, sourcePosition, ta
   const SEVERED_COLOR = "#EF4444";
   // A severed edge is red + dashed regardless of step state; its ✕ badge always
   // needs a midpoint even when no label is shown.
-  const strokeColor = severed ? SEVERED_COLOR : (active ? activeColor : ts.stroke);
-  const strokeDash = severed ? "10 6" : (active ? activeDash : ts.dash);
+  // Architecture delta ('diagram_delta'): when delta mode is on, tint the edge by
+  // change status. added=green, removed=red (dashed), changed=amber. Unchanged
+  // edges keep their normal styling (and dim in the combined "delta" view).
+  const DELTA_COL = { added: "#2E9E5B", removed: "#DD344C", changed: "#F59E0B" };
+  const deltaStatus = data?.deltaActive ? data?.delta : undefined;
+  const deltaCol = deltaStatus && DELTA_COL[deltaStatus];
+  const deltaDim = data?.deltaActive && data?.deltaView === "delta" && (!deltaStatus || deltaStatus === "unchanged");
+  const strokeColor = deltaCol || (severed ? SEVERED_COLOR : (active ? activeColor : ts.stroke));
+  const strokeDash = deltaStatus === "removed" ? "8 5" : (severed ? "10 6" : (active ? activeDash : ts.dash));
+  // Delta styling can lower the edge's effective opacity (removed = faded, and
+  // unchanged edges fade in the combined "delta" view so the changes stand out).
+  const edgeOpacity = deltaStatus === "removed" ? Math.min(opacity, 0.45) : (deltaDim ? Math.min(opacity, 0.4) : opacity);
   const needMid = labelVisible || severed;
   const mid = needMid ? midpointAlong(routed, { x: labelX, y: labelY }) : null;
   const labelColor = severed ? SEVERED_COLOR : (active ? activeColor : ts.stroke);
@@ -119,7 +130,7 @@ function CustomEdge({ id, sourceX, sourceY, targetX, targetY, sourcePosition, ta
       <BaseEdge
         id={id}
         path={edgePath}
-        style={{ ...style, strokeWidth: active ? strokeActive : strokeIdle, stroke: strokeColor, strokeDasharray: strokeDash, opacity, transition: "opacity .2s, stroke .2s, stroke-width .2s" }}
+        style={{ ...style, strokeWidth: active ? strokeActive : strokeIdle, stroke: strokeColor, strokeDasharray: strokeDash, opacity: edgeOpacity, transition: "opacity .2s, stroke .2s, stroke-width .2s" }}
         markerEnd={`url(#${markerId})`}
         markerStart={data?.bidirectional ? `url(#${markerId})` : undefined}
       />
