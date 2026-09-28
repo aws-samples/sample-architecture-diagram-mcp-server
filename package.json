@@ -1,6 +1,6 @@
 {
   "name": "sample-architecture-diagram-mcp-server",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "MCP server that generates self-contained interactive AWS architecture diagrams (HTML + draw.io), with IaC and neutral element-JSON handoff for downstream apps.",
   "type": "module",
   "license": "MIT-0",
