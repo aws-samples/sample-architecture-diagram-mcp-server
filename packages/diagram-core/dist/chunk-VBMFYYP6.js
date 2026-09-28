@@ -38,7 +38,7 @@ function resolveGroupsAndMembership(services, declaredGroups) {
   const isExternal = (s) => s.external || s.category === "user" || s.category === "external" || s.id === "users" || typeof s.id === "string" && s.id.startsWith("ext-");
   const membership = {};
   if (declaredGroups && declaredGroups.length) {
-    const groups2 = declaredGroups.map((g) => ({ id: g.id, label: g.label || g.id, parent: g.parent, variant: g.variant, icon: g.icon, pill: g.pill, pillOverlay: g.pillOverlay }));
+    const groups2 = declaredGroups.map((g) => ({ id: g.id, label: g.label || g.id, parent: g.parent, variant: g.variant, icon: g.icon, pill: g.pill, pillOverlay: g.pillOverlay, pillSide: g.pillSide }));
     const ids = new Set(groups2.map((g) => g.id));
     for (const s of services) {
       const p = s.parentId || s.group;

@@ -219,6 +219,7 @@ declare function buildServiceNodeData(s: any, { lang, vars, Icon, geom, nodeLayo
     role: any;
     pill: any;
     pillOverlay: any;
+    pillSide: any;
     staticTone: any;
     config: any;
     layout: string;
@@ -243,6 +244,7 @@ declare function buildServiceNode(s: any, ctx: any): {
         role: any;
         pill: any;
         pillOverlay: any;
+        pillSide: any;
         staticTone: any;
         config: any;
         layout: string;
