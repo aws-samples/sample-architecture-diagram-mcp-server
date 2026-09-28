@@ -1,0 +1,20 @@
+{
+  "name": "aws-architecture-diagram",
+  "owner": {
+    "name": "AWS Samples"
+  },
+  "metadata": {
+    "description": "Interactive AWS architecture, UML sequence, walkthrough and delta diagrams as self-contained HTML.",
+    "version": "2.0.0"
+  },
+  "plugins": [
+    {
+      "name": "aws-architecture-diagram",
+      "description": "MCP server plus the skill that drives it: AWS architecture topologies, animated UML sequence diagrams, guided walkthroughs and before/after deltas, emitted as ONE self-contained HTML file (also .drawio, PNG/GIF/SVG).",
+      "source": "./",
+      "version": "2.0.0",
+      "category": "productivity",
+      "keywords": ["aws", "architecture", "diagram", "sequence-diagram", "mcp", "documentation"]
+    }
+  ]
+}

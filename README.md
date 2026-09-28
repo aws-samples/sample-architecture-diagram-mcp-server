@@ -143,9 +143,12 @@ to edit), and `skills/aws-architecture-diagram/` — a skill that teaches the
 agent when to reach for an architecture view versus a sequence, a walkthrough or
 a delta, and the authoring rules that make the output look right.
 
+The repo doubles as its own single-plugin marketplace
+(`.claude-plugin/marketplace.json`), so it installs in two commands:
+
 ```
 /plugin marketplace add aws-samples/sample-architecture-diagram-mcp-server
-/plugin install aws-architecture-diagram
+/plugin install aws-architecture-diagram@aws-architecture-diagram
 ```
 
 Installing a plugin clones the repo; it does not install dependencies. Run
