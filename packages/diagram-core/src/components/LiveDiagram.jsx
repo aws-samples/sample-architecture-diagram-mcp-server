@@ -30,7 +30,7 @@ import StepCard from "./StepCard.jsx";
 import NodeModal from "./NodeModal.jsx";
 import ZoomBar from "./ZoomBar.jsx";
 import { TONE_COLORS, resolveToneColor } from "../tones.js";
-import { tr } from "../i18n.js";
+import { tr, trAll } from "../i18n.js";
 import { resolveGroupsAndMembership } from "../membership.js";
 import { DEFAULT_GEOMETRY } from "../layout.js";
 import { layoutWithFallback } from "../layoutEngine.js";
@@ -149,8 +149,11 @@ function DiagramCanvas({
     return vis;
   }, [stepFocus, anyActive, nodeTone, membership, groups]);
 
-  // Search ('/'): a query lights up matching aws nodes (label/sub/category)
-  // and dims the rest. Empty query = no-op.
+  // Search ('/'): a query lights up matching aws nodes and dims the rest. The
+  // haystack is the rendered label plus the AUTHORED service name and role, so a
+  // node labelled "Auth API" is still findable by "api gateway". Empty query —
+  // and a query that matches nothing — are no-ops: dimming every node would
+  // blank the diagram on each intermediate keystroke while the user types.
   const searchQ = (search || "").trim().toLowerCase();
   const searchHits = useMemo(() => {
     if (!searchQ) return null;
@@ -158,10 +161,10 @@ function DiagramCanvas({
     for (const n of baseNodes) {
       if (n.type !== "aws") continue;
       const d = n.data || {};
-      const hay = `${d.label || ""} ${d.sub || ""} ${d.category || ""} ${d.service || ""}`.toLowerCase();
+      const hay = `${d.label || ""} ${d.sub || ""} ${d.role || ""} ${trAll(d.__src?.service)}`.toLowerCase();
       if (hay.includes(searchQ)) hits.add(n.id);
     }
-    return hits;
+    return hits.size ? hits : null;
   }, [searchQ, baseNodes]);
 
   // Semantic lens ('L'): recolor each node by the active dimension + collect the
@@ -275,10 +278,15 @@ function DiagramCanvas({
       onNodeClick={onNodeClick ? (_e, n) => { if (n.type !== "aws") return; onNodeClick(n); } : undefined}
     >
       <Background variant={BackgroundVariant.Dots} gap={20} size={1} color={`var(${vars.dot || "--dot"}, rgba(0,0,0,0.05))`} />
+      {/* React Flow's minimap defaults to an opaque white canvas, which reads as a
+          bright patch over a dark diagram — pin it to the frame's own pill/border
+          tokens so it follows the theme like every other piece of chrome. */}
       {showMap && <MiniMap pannable zoomable position="bottom-right"
         nodeColor={(n) => (n.type === "aws" ? "#4a90d9" : "#94a3b8")}
         nodeStrokeColor="transparent" maskColor="rgba(0,0,0,0.14)"
-        style={{ borderRadius: 10, overflow: "hidden" }} />}
+        style={{ borderRadius: 10, overflow: "hidden",
+          background: `var(${vars.pillBg || "--pill-bg"}, rgba(255,255,255,.95))`,
+          border: `1px solid var(${vars.border || "--border"}, rgba(0,0,0,.14))` }} />}
       {lensLegend && (
         <div style={{ position: "absolute", bottom: 14, left: 14, zIndex: 45,
           padding: "9px 12px", borderRadius: 11, fontSize: 12,
