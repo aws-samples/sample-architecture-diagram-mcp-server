@@ -30,6 +30,7 @@
     "lib/",
     "dist/index.html",
     "scripts/fetch-icons.sh",
+    "skills/",
     "AGENTS.md",
     "THIRD-PARTY-LICENSES"
   ],
