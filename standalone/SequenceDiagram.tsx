@@ -47,6 +47,10 @@ function lineFrag(lines: Any): string {
   return one ? `#L${one[0]}` : '';
 }
 
+// Only http(s)/mailto proof links become anchors: React escapes the attribute,
+// but a `javascript:` URL still runs on click in a file the reader just opened.
+const safeUrl = (u: Any) => (/^(https?:|mailto:)/i.test(String(u || '').trim()) ? String(u).trim() : '');
+
 function ProofLine({ proof }: Any) {
   if (proof == null) return null;
   if (typeof proof === 'string') return <>{cardKit.mdInline(proof)}</>;
@@ -56,6 +60,7 @@ function ProofLine({ proof }: Any) {
     url = `${String(proof.repo).replace(/\/+$/, '')}/blob/${proof.ref || 'main'}/${path.replace(/^\/+/, '')}${frag}`;
   }
   const label = proof.text || (path ? path + frag.replace('#L', ':').replace('-L', '-') : url);
+  url = safeUrl(url);
   if (!url) return <>{cardKit.mdInline(String(label || ''))}</>;
   return <a href={url} target="_blank" rel="noopener noreferrer"><code>{label}</code></a>;
 }

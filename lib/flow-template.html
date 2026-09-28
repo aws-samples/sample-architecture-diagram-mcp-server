@@ -192,7 +192,13 @@ const DIR = FLOW.direction === 'LR' ? 'LR' : 'TB';
 const nodeById = Object.fromEntries(NODES.map(n => [n.id, n]));
 const edgeById = Object.fromEntries(EDGES.map(e => [e.id, e]));
 
-const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+// Escapes quotes too: esc() also guards ATTRIBUTE values (the proof link's
+// href), where a `"` in author text would otherwise end the attribute and let
+// the rest of the string inject markup.
+const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+// Only http(s)/mailto proof links become anchors — a `javascript:` (or `data:`)
+// URL would run script on click in a file the reader just double-clicked.
+const safeUrl = u => /^(https?:|mailto:)/i.test(String(u||'').trim()) ? String(u).trim() : '';
 function md(s){
   return esc(s)
     .replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>')
@@ -218,6 +224,7 @@ function proofHtml(p){
     url=String(p.repo).replace(/\/+$/,'')+'/blob/'+(p.ref||'main')+'/'+String(path).replace(/^\/+/,'')+frag;
   }
   const label=p.text || (path ? (path + (frag?frag.replace('#L',':').replace('-L','-'):'')) : url);
+  url = safeUrl(url);
   if(!url) return md(label||'');
   return '<a href="'+esc(url)+'" target="_blank" rel="noopener"><code>'+esc(label)+'</code></a>';
 }
