@@ -11,6 +11,9 @@ export { default as CustomEdge } from "./components/CustomEdge.jsx";
 export { default as StepCard } from "./components/StepCard.jsx";
 export { default as NodeModal } from "./components/NodeModal.jsx";
 export { default as ZoomBar } from "./components/ZoomBar.jsx";
+// Exported on its own too: in a TABBED document the shell renders the caption
+// above the tab rail (not inside the diagram frame), so it needs the component.
+export { DiagramCaption, resolveCaption } from "./components/DiagramCaption.jsx";
 export * as cardKit from "./components/cardKit.jsx";
 export { LiveDiagram, default as LiveDiagramDefault } from "./components/LiveDiagram.jsx";
 export { LiveDiagramEditor } from "./components/LiveDiagramEditor.jsx";

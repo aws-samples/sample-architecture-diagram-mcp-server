@@ -72,6 +72,25 @@ agent that turns a described architecture into a diagram.
    the IaC handoff so generated infra honors the intent.
 7. **Do NOT ask this server to generate IaC.** The IaC button emits a spec for
    the official `awslabs.aws-iac-mcp-server`; hand off to that.
+8. **Add a `caption` when the file will be read without you.** The diagram's
+   `title`/`subtitle` only live in the small floating dock, so a diagram opened
+   cold — an email attachment, a wiki link, a PDF page — starts as boxes with no
+   framing. `caption` renders a header band above the canvas:
+
+   ```jsonc
+   "caption": {
+     "eyebrow": "Arquitetura alvo",              // small uppercase label, AWS orange
+     "title": "Portal do Cidadão — camada pública",
+     "text": "One paragraph: what this shows and for whom.",
+     "meta": ["Versão: v2", "Data: 28/09/2026", "Ambiente: produção"]
+   }
+   ```
+
+   A plain string (or a `{ en, pt }` map) is shorthand for just `text`. Each
+   `meta` entry written as `"Label: value"` renders as a labelled stat; anything
+   else renders as a bare value. In a **tabbed** document the band sits above the
+   tab rail, so it frames every view. Omit `caption` for the classic bare canvas
+   (a slide, or a diagram whose surrounding page already has the title).
 
 ## When the flow matters: add a sequence tab
 

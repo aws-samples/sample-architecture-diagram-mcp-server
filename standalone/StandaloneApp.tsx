@@ -15,6 +15,7 @@ import { useState } from 'react';
 import { LiveDiagram } from '@aws-live-diagram/core/react';
 import { HORIZONTAL_GEOMETRY } from '@aws-live-diagram/core';
 import { makeUi, makeLangLabel } from '@/lib/i18n';
+import { DiagramCaption } from '@aws-live-diagram/core/react';
 import { McpIcon } from './McpIcon';
 import { TabShell } from './TabShell';
 import { TAB_STYLE } from './tabStyle';
@@ -23,6 +24,8 @@ interface Props {
   data: {
     title?: any;
     subtitle?: any;
+    // Optional header band above the canvas: string | { title, text, meta[] }.
+    caption?: any;
     services?: any[];
     connections?: any[];
     groups?: any[];
@@ -134,6 +137,10 @@ export function StandaloneApp({ data }: Props) {
         flowDots={data.flowDots}
         title={data.title}
         subtitle={data.subtitle}
+        // In a tabbed document the SHELL renders the caption above the rail, so
+        // the band frames the whole document (arch + sequence + doc) instead of
+        // only the architecture panel — and it doesn't remount on tab switch.
+        caption={tabbed ? undefined : data.caption}
         // MCP wiring
         Icon={McpIcon}
         nodeLayout="horizontal"
@@ -158,6 +165,7 @@ export function StandaloneApp({ data }: Props) {
         <>
           <style>{TAB_STYLE}</style>
           <div className={`ld-frame ld-shell ${dark ? 'dark' : 'light'}`}>
+            {data.caption && <DiagramCaption caption={data.caption} lang={lang} />}
             <TabShell tabs={tabs} lang={lang} ui={uiResolver} ArchSlot={() => diagram} />
           </div>
         </>
