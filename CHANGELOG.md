@@ -19,8 +19,7 @@ All notable changes to the AWS Architecture Diagram MCP server are documented he
   create/destroy/found/lost, and narration cards with `tone`/`badge`/`code` and
   structured `proof` links. A flow authored as a standalone file embeds unchanged.
 - The embedded player keeps the full standalone chrome: per-step camera framing,
-  pinned headers, participant search, zoom/pan, and PNG / SVG / WebM walkthrough
-  export (the SVG export un-scopes its CSS and pins the theme tokens so the file
+  pinned headers, participant search, zoom/pan, and PNG / SVG export (the SVG export un-scopes its CSS and pins the theme tokens so the file
   renders on its own).
 - New draft tools `diagram_add_sequence` and `diagram_add_doc_tab`; participant and
   tab icons are inlined as data-URIs like every other icon.

@@ -74,7 +74,7 @@ function DiagramCanvas({
   //   stepMaxZoom      — default per-step focus zoom cap (a step may still set
   //                      its own step.maxZoom, which wins).
   minZoom = 0.1, maxZoom = 3, fitMaxZoom, stepMaxZoom = 2.2,
-  search = "", showMap = false, reachMode = false, lens = 0,
+  search = "", showMap = false, lens = 0,
   deltaView = null,
 }) {
   const { fitView } = useReactFlow();
@@ -164,62 +164,6 @@ function DiagramCanvas({
     return hits;
   }, [searchQ, baseNodes]);
 
-  // ── Route probing / focus-reach ('R') ──────────────────────────────────
-  // Adjacency built from the typed connections. `sel` holds up to two picked
-  // node ids: 1 selection lights the reachable closure (upstream + downstream);
-  // 2 selections probe a connecting path (undirected shortest path) or report
-  // none. Selections are cleared when reach mode is turned off.
-  const graph = useMemo(() => {
-    const fwd = new Map(), rev = new Map(), undir = new Map();
-    const link = (m, a, b) => { if (!m.has(a)) m.set(a, new Set()); m.get(a).add(b); };
-    for (const e of baseEdges) {
-      link(fwd, e.source, e.target); link(rev, e.target, e.source);
-      link(undir, e.source, e.target); link(undir, e.target, e.source);
-    }
-    return { fwd, rev, undir };
-  }, [baseEdges]);
-  const [sel, setSel] = useState([]);
-  useEffect(() => { if (!reachMode) setSel([]); }, [reachMode]);
-  const pickReach = useCallback((id) => setSel(prev => {
-    if (prev.length === 1) return prev[0] === id ? [] : [prev[0], id];
-    return [id]; // 0 → single; 2 → reset to single
-  }), []);
-  const reach = useMemo(() => {
-    if (!reachMode || !sel.length) return null;
-    const closure = (roots, m) => {
-      const seen = new Set(roots); const q = [...roots];
-      while (q.length) { const c = q.shift(); for (const nb of (m.get(c) || [])) if (!seen.has(nb)) { seen.add(nb); q.push(nb); } }
-      return seen;
-    };
-    if (sel.length === 1) {
-      const nodes = new Set([...closure([sel[0]], graph.fwd), ...closure([sel[0]], graph.rev)]);
-      const edges = new Set();
-      for (const e of baseEdges) if (nodes.has(e.source) && nodes.has(e.target)) edges.add(e.id);
-      return { mode: "reach", nodes, edges, roots: new Set(sel), found: true };
-    }
-    // Two-node probe → undirected shortest path (BFS).
-    const [a, b] = sel; const prev = new Map(); const seen = new Set([a]); const q = [a];
-    while (q.length) { const c = q.shift(); if (c === b) break; for (const nb of (graph.undir.get(c) || [])) if (!seen.has(nb)) { seen.add(nb); prev.set(nb, c); q.push(nb); } }
-    if (!seen.has(b)) return { mode: "probe", nodes: new Set(sel), edges: new Set(), roots: new Set(sel), found: false };
-    const pathNodes = [b]; let c = b; while (c !== a) { c = prev.get(c); pathNodes.unshift(c); }
-    const nodes = new Set(pathNodes); const edges = new Set();
-    for (let i = 0; i < pathNodes.length - 1; i++) {
-      const u = pathNodes[i], v = pathNodes[i + 1];
-      const hit = baseEdges.find(e => (e.source === u && e.target === v) || (e.source === v && e.target === u));
-      if (hit) edges.add(hit.id);
-    }
-    return { mode: "probe", nodes, edges, roots: new Set(sel), found: true };
-  }, [reachMode, sel, graph, baseEdges]);
-  const reachNodes = reach?.found ? reach.nodes : null;
-  const reachEdges = reach?.found ? reach.edges : null;
-  // Fit the reachable/path subgraph when it resolves.
-  useEffect(() => {
-    if (!reachNodes || !reachNodes.size) return;
-    const ids = [...reachNodes];
-    const t = setTimeout(() => fitView({ nodes: ids.map(id => ({ id })), padding: 0.3, duration: 500, maxZoom: 1.6 }), 80);
-    return () => clearTimeout(t);
-  }, [reachNodes, fitView]);
-
   // Semantic lens ('L'): recolor each node by the active dimension + collect the
   // legend (distinct key→color pairs actually present in the diagram).
   const lensDef = LENSES[lens] || null;
@@ -248,7 +192,7 @@ function DiagramCanvas({
     return hide;
   }, [deltaView, baseNodes]);
 
-  const lit = searchHits || reachNodes; // combined focus set (search or reach)
+  const lit = searchHits; // active focus set (search)
   const nodes = useMemo(() => baseNodes.map(n => {
     const dHidden = deltaHidden ? deltaHidden.has(n.id) : false;
     const hidden = (visibleIds ? !visibleIds.has(n.id) : false) || dHidden;
@@ -274,10 +218,9 @@ function DiagramCanvas({
   // must be hidden too (else React Flow draws it to a missing node).
   const presentIds = useMemo(() => new Set(baseNodes.map(n => n.id)), [baseNodes]);
   const edges = useMemo(() => baseEdges.map(e => {
-    const reachLit = reachEdges ? reachEdges.has(e.id) : false;
-    const active = !!edgeTone[e.id] || reachLit;
-    const anyEdgeActive = anyActive || !!reachEdges;
-    const tone = edgeTone[e.id] || (reachLit ? "info" : undefined);
+    const active = !!edgeTone[e.id];
+    const anyEdgeActive = anyActive;
+    const tone = edgeTone[e.id];
     const endpointHidden = !presentIds.has(e.source) || !presentIds.has(e.target);
     // Delta view: hide an edge whose own change status is filtered out, or whose
     // endpoint node is delta-hidden (else React Flow draws a dangling edge).
@@ -289,7 +232,7 @@ function DiagramCanvas({
       : false;
     const hidden = endpointHidden || (visibleIds ? !active : false) || deltaEdgeHidden;
     return { ...e, hidden, data: { ...e.data, active, tone, anyActive: anyEdgeActive, routed: edgePaths[e.id], deltaActive: !!deltaView, delta: est, deltaView } };
-  }), [baseEdges, edgeTone, anyActive, edgePaths, visibleIds, presentIds, reachEdges, deltaHidden, deltaView]);
+  }), [baseEdges, edgeTone, anyActive, edgePaths, visibleIds, presentIds, deltaHidden, deltaView]);
 
   useEffect(() => {
     const t = setTimeout(() => fitView({ padding: fitPadding, ...(fitMaxZoom != null ? { maxZoom: fitMaxZoom } : {}) }), 60);
@@ -326,30 +269,16 @@ function DiagramCanvas({
       nodes={nodes} edges={edges} nodeTypes={NODE_TYPES} edgeTypes={EDGE_TYPES}
       fitView fitViewOptions={{ padding: fitPadding, ...(fitMaxZoom != null ? { maxZoom: fitMaxZoom } : {}) }} proOptions={{ hideAttribution: true }}
       minZoom={minZoom} maxZoom={maxZoom}
-      nodesDraggable={groupsInteractive} nodesConnectable={false} elementsSelectable={!!onNodeClick || reachMode}
+      nodesDraggable={groupsInteractive} nodesConnectable={false} elementsSelectable={!!onNodeClick}
       panOnDrag zoomOnScroll={!!zoomOnScroll} zoomOnPinch panOnScroll={false} zoomOnDoubleClick={false}
       onDoubleClick={() => fitView({ padding: fitPadding, duration: 400, ...(fitMaxZoom != null ? { maxZoom: fitMaxZoom } : {}) })} preventScrolling={!!zoomOnScroll}
-      onNodeClick={(reachMode || onNodeClick) ? (_e, n) => { if (n.type !== "aws") return; if (reachMode) pickReach(n.id); else onNodeClick(n); } : undefined}
+      onNodeClick={onNodeClick ? (_e, n) => { if (n.type !== "aws") return; onNodeClick(n); } : undefined}
     >
       <Background variant={BackgroundVariant.Dots} gap={20} size={1} color={`var(${vars.dot || "--dot"}, rgba(0,0,0,0.05))`} />
       {showMap && <MiniMap pannable zoomable position="bottom-right"
         nodeColor={(n) => (n.type === "aws" ? "#4a90d9" : "#94a3b8")}
         nodeStrokeColor="transparent" maskColor="rgba(0,0,0,0.14)"
         style={{ borderRadius: 10, overflow: "hidden" }} />}
-      {reachMode && (
-        <div style={{ position: "absolute", top: 14, left: 14, zIndex: 45, maxWidth: 340,
-          padding: "7px 12px", borderRadius: 11, fontSize: 12.5, lineHeight: 1.4,
-          border: `1px solid var(${vars.border || "--border"}, rgba(0,0,0,.14))`,
-          background: reach && reach.mode === "probe" && !reach.found
-            ? "rgba(221,52,76,.92)" : `var(${vars.pillBg || "--pill-bg"}, rgba(255,255,255,.95))`,
-          color: reach && reach.mode === "probe" && !reach.found ? "#fff" : `var(${vars.txt || "--txt"}, inherit)`,
-          backdropFilter: "blur(12px)", boxShadow: "0 8px 24px rgba(0,0,0,.28)" }}>
-          {!sel.length && <span><b>Reach mode</b> — click a node to light its upstream + downstream; click a second to probe a path. Esc exits.</span>}
-          {reach && reach.mode === "reach" && <span><b>Reachable set</b> — {reach.nodes.size} node{reach.nodes.size === 1 ? "" : "s"} connected. Click another node to probe a path.</span>}
-          {reach && reach.mode === "probe" && reach.found && <span><b>Path found</b> — {reach.nodes.size} hops highlighted.</span>}
-          {reach && reach.mode === "probe" && !reach.found && <span><b>No path</b> — the two nodes are not connected.</span>}
-        </div>
-      )}
       {lensLegend && (
         <div style={{ position: "absolute", bottom: 14, left: 14, zIndex: 45,
           padding: "9px 12px", borderRadius: 11, fontSize: 12,
@@ -643,8 +572,6 @@ export function LiveDiagram({
   const searchRef = useRef(null);
   // Overview radar / minimap ('M') — viewport rect + click-to-pan (React Flow's <MiniMap>).
   const [showMap, setShowMap] = useState(false);
-  // Route probing / focus-reach ('R') — click nodes to light reachable set / probe path.
-  const [reachMode, setReachMode] = useState(false);
   // Semantic lens ('L') — cycles through LENSES (0 = off).
   const [lens, setLens] = useState(0);
   // Architecture delta ('diagram_delta') — Before/Delta/After segmented toggle.
@@ -671,101 +598,21 @@ export function LiveDiagram({
     return () => document.removeEventListener("fullscreenchange", onFs);
   }, []);
 
-  // ── WebM walkthrough export (MediaRecorder + canvas.captureStream) ──────────
-  // Records the guided walkthrough into a single .webm: step through the beats,
-  // snapshot the frame (diagram + narration card, minus the chrome dock) with
-  // html-to-image, blit each snapshot onto an offscreen canvas whose stream
-  // MediaRecorder captures. No network, no extra deps beyond the html-to-image
-  // already used for PNG export, so it works under file://. `canRecord`
-  // feature-detects MediaRecorder + canvas.captureStream + a webm codec so the
-  // button hides where unsupported (e.g. Safari lacks captureStream).
-  const pickWebmMime = () => {
-    if (typeof MediaRecorder === "undefined") return "";
-    for (const m of ["video/webm;codecs=vp9", "video/webm;codecs=vp8", "video/webm"]) {
-      try { if (MediaRecorder.isTypeSupported(m)) return m; } catch { /* ignore */ }
-    }
-    return "";
-  };
-  const canRecord = typeof MediaRecorder !== "undefined"
-    && typeof HTMLCanvasElement !== "undefined"
-    && !!HTMLCanvasElement.prototype.captureStream
-    && !!pickWebmMime();
-  const [recording, setRecording] = useState(false);
-  const recordWalkthrough = useCallback(async () => {
-    if (!hasWalk || recording) return;
-    const mime = pickWebmMime();
-    const frame = frameRef.current;
-    if (!mime || !frame) return;
-    setPlaying(false);
-    setRecording(true);
-    const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-    let stream, cleanupTracks = () => {};
-    try {
-      const { toPng } = await import("html-to-image");
-      const w = Math.max(2, frame.clientWidth), h = Math.max(2, frame.clientHeight);
-      const bg = effectiveDark ? "#0f1117" : "#f8fafc";
-      const cv = document.createElement("canvas");
-      cv.width = w; cv.height = h;
-      const ctx = cv.getContext("2d");
-      stream = cv.captureStream(30);
-      cleanupTracks = () => stream.getTracks().forEach((t) => t.stop());
-      const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 8_000_000 });
-      const chunks = [];
-      rec.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
-      const stopped = new Promise((res) => { rec.onstop = res; });
-      let img = null;
-      // Snapshot the frame, dropping any node tagged data-norecord (the dock and
-      // other chrome) so the video shows only the diagram + narration card.
-      const snapshot = async () => {
-        const url = await toPng(frame, {
-          backgroundColor: bg, width: w, height: h, pixelRatio: 1,
-          imagePlaceholder: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
-          filter: (node) => !(node && node.dataset && node.dataset.norecord),
-        });
-        await new Promise((res) => { const im = new Image(); im.onload = () => { img = im; res(); }; im.onerror = () => res(); im.src = url; });
-      };
-      const paint = () => { ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h); if (img) ctx.drawImage(img, 0, 0, w, h); };
-      const hold = async (ms) => { const end = performance.now() + ms; while (performance.now() < end) { paint(); await wait(1000 / 30); } };
-      rec.start();
-      try {
-        setInternalStep(0); await wait(950); await snapshot(); await hold(500);
-        for (let i = 0; i < steps.length; i++) {
-          setInternalStep(i); await wait(950); await snapshot(); await hold(2200);
-        }
-        await wait(350);
-      } finally {
-        rec.stop(); await stopped;
-        const blob = new Blob(chunks, { type: mime });
-        const u = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = u; a.download = "architecture-walkthrough.webm";
-        document.body.appendChild(a); a.click(); document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(u), 1000);
-      }
-    } catch { /* export failed — leave the diagram untouched */ }
-    finally {
-      cleanupTracks();
-      setRecording(false);
-      setInternalStep(-1);
-    }
-  }, [hasWalk, recording, steps, effectiveDark]);
   useEffect(() => {
     if (!chrome) return;
     const onKey = (e) => {
       const tag = e.target?.tagName;
       if (e.key === "Escape" && searchOpen) { setSearchOpen(false); setSearch(""); return; }
-      if (e.key === "Escape" && reachMode) { setReachMode(false); return; }
       if (tag === "INPUT" || tag === "TEXTAREA") return;
       if (e.key === "/") { e.preventDefault(); setSearchOpen(true); setTimeout(() => searchRef.current?.focus(), 0); }
       if (e.key === "m" || e.key === "M") { e.preventDefault(); setShowMap(v => !v); }
       if (e.key === "f" || e.key === "F") { e.preventDefault(); togglePresent(); }
-      if (e.key === "r" || e.key === "R") { e.preventDefault(); setReachMode(v => !v); }
       if (e.key === "l" || e.key === "L") { e.preventDefault(); setLens(v => (v + 1) % LENSES.length); }
       if ((e.key === "d" || e.key === "D") && deltaMode) { e.preventDefault(); const order = ["before", "delta", "after"]; setDeltaView(v => order[(order.indexOf(v) + 1) % order.length]); }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [chrome, searchOpen, reachMode, togglePresent, deltaMode]);
+  }, [chrome, searchOpen, togglePresent, deltaMode]);
 
   // ── Attached layout ──
   // Instead of floating the step card OVER the canvas, `stepLayout="attached"`
@@ -809,7 +656,7 @@ export function LiveDiagram({
       collapsible={collapsible} collapsed={collapsed} onToggleCollapse={onToggleCollapse}
       zoomOnScroll={zoomOnScroll}
       minZoom={minZoom} maxZoom={maxZoom} fitMaxZoom={fitMaxZoom} stepMaxZoom={stepMaxZoom}
-      search={search} showMap={chrome && showMap} reachMode={chrome && reachMode} lens={chrome ? lens : 0}
+      search={search} showMap={chrome && showMap} lens={chrome ? lens : 0}
       deltaView={deltaMode ? deltaView : null}
     />
   );
@@ -855,20 +702,16 @@ export function LiveDiagram({
           {chrome && (
             <>
               {nodeModal && <NodeModal node={detailNode} onClose={() => setDetailNode(null)} Icon={Icon} strings={ui ? { iac: ui("iac", lang), pricing: ui("pricing", lang) } : undefined} />}
-              {/* data-norecord keeps the dock out of the WebM walkthrough frames. */}
-              <div data-norecord="1" style={{ display: "contents" }}>
-                <ZoomBar
-                  title={tr(title, lang)} subtitle={tr(subtitle, lang)}
-                  dark={effectiveDark} visible={dockVisible} onToggle={() => setDockVisible(v => !v)}
-                  onTheme={toggleTheme}
-                  hasWalk={hasWalk} playing={playing}
-                  attention={hasWalk && !playing && step <= 0}
-                  onRecord={recordWalkthrough} recording={recording} canRecord={canRecord}
-                  onPlay={() => { setPlaying(p => { if (!p) setInternalStep(s => (s < 0 || s >= steps.length - 1 ? 0 : s)); return !p; }); }}
-                  onReset={() => { setPlaying(false); setInternalStep(-1); }}
-                  lang={lang} languages={languages} onLang={onLangChange} ui={ui} langLabel={langLabel}
-                />
-              </div>
+              <ZoomBar
+                title={tr(title, lang)} subtitle={tr(subtitle, lang)}
+                dark={effectiveDark} visible={dockVisible} onToggle={() => setDockVisible(v => !v)}
+                onTheme={toggleTheme}
+                hasWalk={hasWalk} playing={playing}
+                attention={hasWalk && !playing && step <= 0}
+                onPlay={() => { setPlaying(p => { if (!p) setInternalStep(s => (s < 0 || s >= steps.length - 1 ? 0 : s)); return !p; }); }}
+                onReset={() => { setPlaying(false); setInternalStep(-1); }}
+                lang={lang} languages={languages} onLang={onLangChange} ui={ui} langLabel={langLabel}
+              />
             </>
           )}
         </div>
@@ -894,7 +737,7 @@ export function LiveDiagram({
           collapsible={collapsible} collapsed={collapsed} onToggleCollapse={onToggleCollapse}
           zoomOnScroll={zoomOnScroll}
           minZoom={minZoom} maxZoom={maxZoom} fitMaxZoom={fitMaxZoom} stepMaxZoom={stepMaxZoom}
-          search={search} showMap={chrome && showMap} reachMode={chrome && reachMode} lens={chrome ? lens : 0}
+          search={search} showMap={chrome && showMap} lens={chrome ? lens : 0}
           deltaView={deltaMode ? deltaView : null}
         />
         <StepOverlay steps={steps} activeStep={step} lang={lang} Icon={Icon}
@@ -911,7 +754,7 @@ export function LiveDiagram({
         {/* External StepFlow pill removed — the navigation rail now lives inside
             the card (see StepCard), so the two elements read as one. */}
         {chrome && searchOpen && (
-          <div data-norecord="1" style={{ position: "absolute", top: 14, left: "50%", transform: "translateX(-50%)", zIndex: 45,
+          <div style={{ position: "absolute", top: 14, left: "50%", transform: "translateX(-50%)", zIndex: 45,
             display: "flex", alignItems: "center", gap: 8, padding: "7px 10px", borderRadius: 11,
             border: `1px solid var(${vars.border || "--border"}, rgba(0,0,0,.14))`,
             background: `var(${vars.pillBg || "--pill-bg"}, rgba(255,255,255,.95))`,
@@ -924,12 +767,10 @@ export function LiveDiagram({
           </div>
         )}
         {chrome && deltaMode && !presenting && (
-          <div data-norecord="1" style={{ display: "contents" }}>
-            <DeltaControls view={deltaView} onView={setDeltaView} summary={data?.deltaSummary} vars={vars || {}} />
-          </div>
+          <DeltaControls view={deltaView} onView={setDeltaView} summary={data?.deltaSummary} vars={vars || {}} />
         )}
         {chrome && presenting && (
-          <button data-norecord="1" onClick={togglePresent} aria-label="exit presentation (Esc)" title="Exit presentation (Esc)"
+          <button onClick={togglePresent} aria-label="exit presentation (Esc)" title="Exit presentation (Esc)"
             style={{ position: "absolute", top: 14, right: 14, zIndex: 46, cursor: "pointer",
               padding: "6px 12px", borderRadius: 999, font: "inherit", fontSize: 12, fontWeight: 600,
               border: `1px solid var(${vars.border || "--border"}, rgba(0,0,0,.14))`,
@@ -942,19 +783,16 @@ export function LiveDiagram({
         {chrome && !presenting && (
           <>
             {nodeModal && <NodeModal node={detailNode} onClose={() => setDetailNode(null)} Icon={Icon} strings={ui ? { iac: ui("iac", lang), pricing: ui("pricing", lang) } : undefined} />}
-            <div data-norecord="1" style={{ display: "contents" }}>
-              <ZoomBar
-                title={tr(title, lang)} subtitle={tr(subtitle, lang)}
-                dark={effectiveDark} visible={dockVisible} onToggle={() => setDockVisible(v => !v)}
-                onTheme={toggleTheme}
-                hasWalk={hasWalk} playing={playing}
-                attention={hasWalk && !playing && step <= 0}
-                onRecord={recordWalkthrough} recording={recording} canRecord={canRecord}
-                onPlay={() => { setPlaying(p => { if (!p) setInternalStep(s => (s < 0 || s >= steps.length - 1 ? 0 : s)); return !p; }); }}
-                onReset={() => { setPlaying(false); setInternalStep(-1); }}
-                lang={lang} languages={languages} onLang={onLangChange} ui={ui} langLabel={langLabel}
-              />
-            </div>
+            <ZoomBar
+              title={tr(title, lang)} subtitle={tr(subtitle, lang)}
+              dark={effectiveDark} visible={dockVisible} onToggle={() => setDockVisible(v => !v)}
+              onTheme={toggleTheme}
+              hasWalk={hasWalk} playing={playing}
+              attention={hasWalk && !playing && step <= 0}
+              onPlay={() => { setPlaying(p => { if (!p) setInternalStep(s => (s < 0 || s >= steps.length - 1 ? 0 : s)); return !p; }); }}
+              onReset={() => { setPlaying(false); setInternalStep(-1); }}
+              lang={lang} languages={languages} onLang={onLangChange} ui={ui} langLabel={langLabel}
+            />
           </>
         )}
       </div>

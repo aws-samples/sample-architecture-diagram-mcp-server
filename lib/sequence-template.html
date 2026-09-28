@@ -191,7 +191,6 @@
   <button class="pbtn" id="fs" title="Fullscreen"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3m13-5v3a2 2 0 0 1-2 2h-3"/></svg></button>
   <button class="pbtn" id="dlsvg" title="Download SVG">SVG</button>
   <button class="pbtn" id="dlpng" title="Download PNG">PNG</button>
-  <button class="pbtn" id="dlwebm" title="Record walkthrough (WebM)">REC</button>
   <span class="sep"></span>
   <button class="pbtn" id="collapse" title="Hide controls"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
 </div>
@@ -776,97 +775,6 @@ document.getElementById('dlpng').onclick=()=>{
     c.toBlob(b=>b&&download('sequence-diagram.png',b),'image/png'); };
   img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(serializeSvg());
 };
-
-// ── WebM walkthrough export (MediaRecorder + canvas.captureStream) ───────────
-// Records the walkthrough beat-by-beat (one event per beat) into a single .webm
-// — no library, no network: each beat's SVG is rasterized onto an offscreen
-// canvas whose stream MediaRecorder captures, with a caption bar drawn per beat.
-// Degrades to a DISABLED button when MediaRecorder / canvas.captureStream / a
-// webm codec aren't available so the rest of the player is unaffected. Same
-// file:// safety as the SVG/PNG export (icons are already inlined as data-URIs).
-recorderSetup({
-  fname: 'sequence-walkthrough',
-  total: () => EV.length,
-  hasBeats: () => EV.length > 0,
-  caption: i => { const e = EV[i] || {}; return { title: e.title || e.label || '', desc: e.desc || '' }; },
-});
-
-function recorderSetup(REC){
-  const btn = document.getElementById('dlwebm'); if(!btn) return;
-  const pickMime = () => {
-    const c = ['video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm'];
-    for(const m of c){ try{ if(window.MediaRecorder && MediaRecorder.isTypeSupported(m)) return m; }catch(_){} }
-    return '';
-  };
-  const supported = typeof MediaRecorder !== 'undefined'
-    && typeof HTMLCanvasElement !== 'undefined'
-    && !!HTMLCanvasElement.prototype.captureStream && !!pickMime();
-  if(!REC.hasBeats() || !supported){
-    btn.disabled = true;
-    btn.title = !REC.hasBeats() ? 'No walkthrough to record' : 'WebM recording not supported in this browser';
-    return;
-  }
-  const wait = ms => new Promise(r => setTimeout(r, ms));
-  const clip = (ctx, s, max) => { s = String(s == null ? '' : s);
-    if(ctx.measureText(s).width <= max) return s;
-    while(s.length && ctx.measureText(s + '…').width > max) s = s.slice(0, -1);
-    return s + '…'; };
-  let busy = false;
-  btn.onclick = async () => {
-    if(busy) return; busy = true;
-    if(playing) playToggle();
-    const mime = pickMime();
-    const scale = Math.max(1, Math.min(2, 1600 / Math.max(W, H)));
-    const cw = Math.round(W * scale), ch = Math.round(H * scale);
-    const cv = document.createElement('canvas'); cv.width = cw; cv.height = ch;
-    const ctx = cv.getContext('2d');
-    const bg = getComputedStyle(root).getPropertyValue('--bg').trim() || '#0f1117';
-    const stream = cv.captureStream(30);
-    const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 6000000 });
-    const chunks = []; rec.ondataavailable = e => { if(e.data && e.data.size) chunks.push(e.data); };
-    const stopped = new Promise(res => { rec.onstop = res; });
-    const savedCur = cur, label0 = btn.textContent;
-    btn.classList.add('on');
-    const total = REC.total();
-    let img = null;
-    const load = () => new Promise(res => { const im = new Image();
-      im.onload = () => { img = im; res(); }; im.onerror = () => res();
-      im.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(serializeSvg()); });
-    const paint = i => {
-      ctx.setTransform(1,0,0,1,0,0); ctx.fillStyle = bg; ctx.fillRect(0,0,cw,ch);
-      ctx.setTransform(scale,0,0,scale,0,0); if(img) ctx.drawImage(img, 0, 0);
-      const cap = REC.caption(i), barH = Math.max(56, Math.round(H * 0.15)), y = H - barH, pad = 18;
-      ctx.fillStyle = 'rgba(9,11,17,0.82)'; ctx.fillRect(0, y, W, barH);
-      ctx.fillStyle = '#ff9900'; ctx.fillRect(0, y, 6, barH);
-      ctx.textBaseline = 'top'; ctx.fillStyle = '#fff';
-      ctx.font = '700 ' + Math.round(barH * 0.28) + "px 'Amazon Ember','Helvetica Neue',Arial,sans-serif";
-      ctx.fillText(clip(ctx, (i + 1) + ' / ' + total + '   ' + (cap.title || ''), W - 2 * pad), pad, y + barH * 0.16);
-      const d = (cap.desc || '').replace(/[*`_]/g, '');
-      if(d){ ctx.fillStyle = 'rgba(255,255,255,0.82)';
-        ctx.font = '400 ' + Math.round(barH * 0.22) + "px 'Amazon Ember','Helvetica Neue',Arial,sans-serif";
-        ctx.fillText(clip(ctx, d, W - 2 * pad), pad, y + barH * 0.56); }
-      ctx.setTransform(1,0,0,1,0,0);
-    };
-    const hold = async (i, ms) => { const end = performance.now() + ms;
-      while(performance.now() < end){ paint(i); await wait(1000 / 30); } };
-    rec.start();
-    try{
-      cur = 0; render(); await wait(90); await load(); await hold(0, 300);
-      for(let i = 0; i < total; i++){
-        cur = i; render(); btn.textContent = 'REC ' + (i + 1) + '/' + total;
-        await wait(70); await load(); await hold(i, Math.max(900, speed));
-      }
-      await wait(250);
-    } finally {
-      rec.stop(); await stopped;
-      try{ download(REC.fname + '.webm', new Blob(chunks, { type: mime })); }catch(_){}
-      stream.getTracks().forEach(t => t.stop());
-      btn.classList.remove('on'); btn.textContent = label0;
-      cur = savedCur; render(); busy = false;
-    }
-  };
-}
-
 render();
 if(SEQ.autoplay) playToggle();
 </script>

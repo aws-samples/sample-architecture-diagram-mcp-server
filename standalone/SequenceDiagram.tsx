@@ -395,8 +395,6 @@ export function SequenceDiagram({ seq, lang = 'en', active = true, ui }: Any) {
   const [dockVisible, setDockVisible] = useState(true);
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState('');
-  const [recording, setRecording] = useState(false);
-  const [recLabel, setRecLabel] = useState('REC');
 
   const stageRef = useRef<HTMLDivElement | null>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
@@ -554,11 +552,11 @@ export function SequenceDiagram({ seq, lang = 'en', active = true, ui }: Any) {
     setPlaying(p => !p);
   };
   useEffect(() => {
-    if (!playing || recording) return;
+    if (!playing) return;
     if (cur >= EV.length - 1) { setPlaying(false); return; }
     const timer = setTimeout(() => setCur(c => Math.min(EV.length - 1, c + 1)), speed);
     return () => clearTimeout(timer);
-  }, [playing, cur, speed, EV.length, recording]);
+  }, [playing, cur, speed, EV.length]);
 
   useEffect(() => {
     if (!active) return;
@@ -624,98 +622,6 @@ export function SequenceDiagram({ seq, lang = 'en', active = true, ui }: Any) {
       c.toBlob(b => b && download('sequence-diagram.png', b), 'image/png');
     };
     img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(serializeSvg())}`;
-  };
-
-  const pickMime = () => {
-    for (const m of ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm']) {
-      try { if (typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported(m)) return m; } catch { /* probe failed */ }
-    }
-    return '';
-  };
-  const canRecord = EV.length > 0 && typeof MediaRecorder !== 'undefined'
-    && typeof HTMLCanvasElement !== 'undefined' && !!HTMLCanvasElement.prototype.captureStream && !!pickMime();
-
-  // WebM walkthrough: rasterize each beat's SVG onto an offscreen canvas whose
-  // stream MediaRecorder captures, with a caption bar per beat. The button is
-  // DISABLED (not silently broken) when the browser lacks the pieces.
-  const recordWalkthrough = async () => {
-    const mime = pickMime();
-    if (recording || !mime) return;
-    setPlaying(false);
-    setRecording(true);
-    const savedCur = cur;
-    const wait = (ms: number) => new Promise(r => setTimeout(r, ms));
-    // Two frames: let React commit the new step before the SVG is rasterized.
-    const settle = () => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(() => r(null))));
-    const clip = (ctx: CanvasRenderingContext2D, s: Any, max: number) => {
-      let out = String(s == null ? '' : s);
-      if (ctx.measureText(out).width <= max) return out;
-      while (out.length && ctx.measureText(`${out}…`).width > max) out = out.slice(0, -1);
-      return `${out}…`;
-    };
-    const scale = Math.max(1, Math.min(2, 1600 / Math.max(W, H)));
-    const cw = Math.round(W * scale), ch = Math.round(H * scale);
-    const cv = document.createElement('canvas');
-    cv.width = cw; cv.height = ch;
-    const ctx = cv.getContext('2d')!;
-    const bg = (svgRef.current ? getComputedStyle(svgRef.current).getPropertyValue('--bg').trim() : '') || '#0f1117';
-    const stream = cv.captureStream(30);
-    const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 6000000 });
-    const chunks: Blob[] = [];
-    rec.ondataavailable = ev => { if (ev.data && ev.data.size) chunks.push(ev.data); };
-    const stopped = new Promise(res => { rec.onstop = res; });
-    let img: HTMLImageElement | null = null;
-    const load = () => new Promise<void>(res => {
-      const im = new Image();
-      im.onload = () => { img = im; res(); };
-      im.onerror = () => res();
-      im.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(serializeSvg())}`;
-    });
-    const paint = (i: number) => {
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.fillStyle = bg;
-      ctx.fillRect(0, 0, cw, ch);
-      ctx.setTransform(scale, 0, 0, scale, 0, 0);
-      if (img) ctx.drawImage(img, 0, 0);
-      const ev = EV[i] || {}, barH = Math.max(56, Math.round(H * 0.15)), y = H - barH, pad = 18;
-      ctx.fillStyle = 'rgba(9,11,17,0.82)';
-      ctx.fillRect(0, y, W, barH);
-      ctx.fillStyle = '#ff9900';
-      ctx.fillRect(0, y, 6, barH);
-      ctx.textBaseline = 'top';
-      ctx.fillStyle = '#fff';
-      ctx.font = `700 ${Math.round(barH * 0.28)}px 'Amazon Ember','Helvetica Neue',Arial,sans-serif`;
-      ctx.fillText(clip(ctx, `${i + 1} / ${EV.length}   ${tr(ev.title, lang) || tr(ev.label, lang) || ''}`, W - 2 * pad), pad, y + barH * 0.16);
-      const d = String(tr(ev.desc, lang) || '').replace(/[*`_]/g, '');
-      if (d) {
-        ctx.fillStyle = 'rgba(255,255,255,0.82)';
-        ctx.font = `400 ${Math.round(barH * 0.22)}px 'Amazon Ember','Helvetica Neue',Arial,sans-serif`;
-        ctx.fillText(clip(ctx, d, W - 2 * pad), pad, y + barH * 0.56);
-      }
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-    };
-    const hold = async (i: number, ms: number) => {
-      const end = performance.now() + ms;
-      while (performance.now() < end) { paint(i); await wait(1000 / 30); }
-    };
-    rec.start();
-    try {
-      setCur(0); await settle(); await load(); await hold(0, 300);
-      for (let i = 0; i < EV.length; i++) {
-        setCur(i);
-        setRecLabel(`REC ${i + 1}/${EV.length}`);
-        await settle(); await load(); await hold(i, Math.max(900, speed));
-      }
-      await wait(250);
-    } finally {
-      rec.stop();
-      await stopped;
-      try { download('sequence-walkthrough.webm', new Blob(chunks, { type: mime })); } catch { /* nothing captured */ }
-      stream.getTracks().forEach(tk => tk.stop());
-      setRecLabel('REC');
-      setRecording(false);
-      setCur(savedCur);
-    }
   };
 
   // ── render ────────────────────────────────────────────────────────────────
@@ -946,9 +852,6 @@ export function SequenceDiagram({ seq, lang = 'en', active = true, ui }: Any) {
           <span className="sep" />
           <button className="pbtn wide" onClick={dlSvg} title="Download SVG">SVG</button>
           <button className="pbtn wide" onClick={dlPng} title="Download PNG">PNG</button>
-          <button className={`pbtn wide${recording ? ' on' : ''}`} onClick={recordWalkthrough}
-            disabled={!canRecord || recording}
-            title={canRecord ? 'Record walkthrough (WebM)' : 'WebM recording is not supported in this browser'}>{recLabel}</button>
           <span className="sep" />
           <button className="pbtn" onClick={() => setDockVisible(false)} title={t('hideControls', 'Hide controls')} aria-label="hide controls">
             <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
