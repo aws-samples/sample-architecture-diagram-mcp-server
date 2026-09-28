@@ -19,7 +19,7 @@ import { participantSchema, messageSchema, noteSchema, eventSchema, fragmentSche
 import { generateFlowHtml, flowIconResolutionReport } from "./lib/flow-generator.js";
 import { flowNodeSchema, flowEdgeSchema, flowStepSchema } from "./lib/flow-schemas.js";
 
-const server = new McpServer({ name: "sample-architecture-diagram-mcp-server", version: "2.0.0" });
+const server = new McpServer({ name: "sample-architecture-diagram-mcp-server", version: "2.1.0" });
 
 // This package's own directory — the server may be launched from anywhere (plugin
 // cache, npx, a clone), so bundled scripts are addressed relative to this file.
