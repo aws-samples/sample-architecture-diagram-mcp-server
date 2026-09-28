@@ -29,8 +29,9 @@ import {
   resolveVariant,
   serializeDiagram,
   tr,
+  trAll,
   variantKey
-} from "./chunk-LRTBSKVX.js";
+} from "./chunk-F44NWBUR.js";
 import "./chunk-MLKGABMK.js";
 export {
   ALL_GROUP_ICONS,
@@ -61,5 +62,6 @@ export {
   toneColor,
   toneMeta,
   tr,
+  trAll,
   variantKey
 };

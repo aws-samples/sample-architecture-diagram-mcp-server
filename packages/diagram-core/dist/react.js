@@ -6,7 +6,7 @@ import {
 } from "./chunk-2EKNJYAS.js";
 import {
   layoutWithFallback
-} from "./chunk-FRY5YIPL.js";
+} from "./chunk-YQ4M6NEG.js";
 import {
   DEFAULT_GEOMETRY,
   buildBaseEdge,
@@ -15,8 +15,9 @@ import {
   membershipFromNodes,
   resolveVariant,
   serializeDiagram,
-  tr
-} from "./chunk-LRTBSKVX.js";
+  tr,
+  trAll
+} from "./chunk-F44NWBUR.js";
 import {
   __export
 } from "./chunk-MLKGABMK.js";
@@ -1534,10 +1535,10 @@ function DiagramCanvas({
     for (const n of baseNodes) {
       if (n.type !== "aws") continue;
       const d = n.data || {};
-      const hay = `${d.label || ""} ${d.sub || ""} ${d.category || ""} ${d.service || ""}`.toLowerCase();
+      const hay = `${d.label || ""} ${d.sub || ""} ${d.role || ""} ${trAll(d.__src?.service)}`.toLowerCase();
       if (hay.includes(searchQ)) hits.add(n.id);
     }
-    return hits;
+    return hits.size ? hits : null;
   }, [searchQ, baseNodes]);
   const lensDef = LENSES[lens] || null;
   const lensLegend = useMemo(() => {
@@ -1645,7 +1646,12 @@ function DiagramCanvas({
             nodeColor: (n) => n.type === "aws" ? "#4a90d9" : "#94a3b8",
             nodeStrokeColor: "transparent",
             maskColor: "rgba(0,0,0,0.14)",
-            style: { borderRadius: 10, overflow: "hidden" }
+            style: {
+              borderRadius: 10,
+              overflow: "hidden",
+              background: `var(${vars.pillBg || "--pill-bg"}, rgba(255,255,255,.95))`,
+              border: `1px solid var(${vars.border || "--border"}, rgba(0,0,0,.14))`
+            }
           }
         ),
         lensLegend && /* @__PURE__ */ jsxs9("div", { style: {

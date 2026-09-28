@@ -13,6 +13,16 @@ export function tr(val, lang, fallback = "en") {
   return String(val);
 }
 
+/** Every language variant of an author value, space-joined. For search haystacks,
+ *  where a match in ANY offered language should count regardless of which one is
+ *  currently displayed. */
+export function trAll(val) {
+  if (val == null) return "";
+  if (typeof val === "string") return val;
+  if (typeof val === "object") return Object.values(val).filter((v) => typeof v === "string").join(" ");
+  return String(val);
+}
+
 /** Back-compat alias for the slides `i18n(val, lang)` call site: same intent,
  *  with the historical en→pt fallback chain. Prefer `tr` in new code. */
 export const i18n = (val, lang) => {

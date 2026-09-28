@@ -45,6 +45,12 @@ function tr(val, lang, fallback = "en") {
   if (typeof val === "object") return val[lang] ?? val[fallback] ?? Object.values(val)[0] ?? "";
   return String(val);
 }
+function trAll(val) {
+  if (val == null) return "";
+  if (typeof val === "string") return val;
+  if (typeof val === "object") return Object.values(val).filter((v) => typeof v === "string").join(" ");
+  return String(val);
+}
 var i18n = (val, lang) => {
   if (val == null) return "";
   if (typeof val === "string") return val;
@@ -318,6 +324,7 @@ export {
   variantKey,
   ALL_GROUP_ICONS,
   tr,
+  trAll,
   i18n,
   DEFAULT_GEOMETRY,
   HORIZONTAL_GEOMETRY,

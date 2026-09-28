@@ -99,6 +99,10 @@ declare function resolveGroupsAndMembership(services: any, declaredGroups: any):
  *  Fallback order: lang → `fallback` (default "en") → first available value → "".
  */
 declare function tr(val: any, lang: any, fallback?: string): any;
+/** Every language variant of an author value, space-joined. For search haystacks,
+ *  where a match in ANY offered language should count regardless of which one is
+ *  currently displayed. */
+declare function trAll(val: any): string;
 declare function i18n(val: any, lang: any): any;
 
 /** ELK spacing applied at the root AND inside every group so nodes never end up
@@ -285,4 +289,4 @@ declare function serializeDiagram(nodes: any, edges: any, base?: {}): {
     connections: any;
 };
 
-export { DEFAULT_GEOMETRY, HORIZONTAL_GEOMETRY, SLIDES_GEOMETRY, TONE_COLORS, TONE_META, type Tone, ancestorsOf, buildBaseEdge, buildServiceNode, buildServiceNodeData, elkGraphOptions, elkGroupPadding, elkSpacing, groupDepth, groupStyle, i18n, lcaContainer, radialLayout, resolveGroupsAndMembership, resolveToneColor, serializeDiagram, toneColor, toneMeta, tr };
+export { DEFAULT_GEOMETRY, HORIZONTAL_GEOMETRY, SLIDES_GEOMETRY, TONE_COLORS, TONE_META, type Tone, ancestorsOf, buildBaseEdge, buildServiceNode, buildServiceNodeData, elkGraphOptions, elkGroupPadding, elkSpacing, groupDepth, groupStyle, i18n, lcaContainer, radialLayout, resolveGroupsAndMembership, resolveToneColor, serializeDiagram, toneColor, toneMeta, tr, trAll };
