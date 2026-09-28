@@ -108,29 +108,3 @@ describe('generateFlowHtml — data wiring', () => {
     expect(map).not.toBeNull();
   });
 });
-
-describe('generateFlowHtml — WebM walkthrough export', () => {
-  it('ships a REC button wired to MediaRecorder + canvas.captureStream', () => {
-    const html = generateFlowHtml(base({ steps: [{ nodes: ['start'], title: 'A' }] }));
-    expect(html).toContain('id="dlwebm"');
-    expect(html).toContain('MediaRecorder');
-    expect(html).toContain('captureStream');
-    // records into a walkthrough-named webm blob
-    expect(html).toContain("-walkthrough");
-    expect(html).toMatch(/\.webm/);
-  });
-
-  it('feature-detects support and degrades to a disabled button', () => {
-    const html = generateFlowHtml(base());
-    // codec probe + a disabled-button fallback path for unsupported browsers
-    expect(html).toContain('isTypeSupported');
-    expect(html).toContain('WebM recording not supported in this browser');
-    expect(html).toContain('btn.disabled = true');
-  });
-
-  it('adds no external dependency for the recorder (still self-contained)', () => {
-    const html = generateFlowHtml(base({ steps: [{ nodes: ['start'], title: 'A' }] }));
-    expect(html).not.toMatch(/<script\s+[^>]*src=/i);
-    expect(html).not.toMatch(/https?:\/\/[^"']*\.(js|css)/i);
-  });
-});

@@ -1043,7 +1043,7 @@ var defLangLabel = (l) => (l || "").toUpperCase();
 async function exportDiagramPng(nodes, dark) {
   const el = document.querySelector(".react-flow__viewport");
   if (!el || !nodes.length) return;
-  const { toPng } = await import("./es-XEWTSNWI.js");
+  const { toPng } = await import("./es-OO7EDAF3.js");
   const W = 1920, H = 1200;
   const vp = getViewportForBounds(getNodesBounds(nodes), W, H, 0.2, 2, 0.12);
   const dataUrl = await toPng(el, {
@@ -1068,7 +1068,7 @@ async function exportDiagramPng(nodes, dark) {
 async function exportShareCard(nodes, dark, title, subtitle) {
   const el = document.querySelector(".react-flow__viewport");
   if (!el || !nodes.length) return;
-  const { toPng } = await import("./es-XEWTSNWI.js");
+  const { toPng } = await import("./es-OO7EDAF3.js");
   const W = 1200, H = 630;
   const vp = getViewportForBounds(getNodesBounds(nodes), W, H, 0.2, 2, 0.14);
   const bg = dark ? "#0f1117" : "#f8fafc";
@@ -1243,9 +1243,6 @@ function ZoomBar({
   onPlay,
   onReset,
   attention = false,
-  onRecord,
-  recording = false,
-  canRecord = false,
   lang = "en",
   languages = [],
   onLang,
@@ -1353,19 +1350,6 @@ function ZoomBar({
           ] }) : /* @__PURE__ */ jsx8("svg", { width: "14", height: "14", fill: "currentColor", viewBox: "0 0 24 24", children: /* @__PURE__ */ jsx8("path", { d: "M8 5v14l11-7z" }) })
         }
       ),
-      canRecord && /* @__PURE__ */ jsxs8(
-        "button",
-        {
-          style: recording ? { ...btn, borderColor: "#DD344C", color: "#DD344C", background: "rgba(221,52,76,0.12)", gap: 6 } : btn,
-          onClick: onRecord,
-          disabled: recording,
-          title: recording ? ui("recording", lang) === "recording" ? "Recording walkthrough\u2026" : ui("recording", lang) : ui("recordWebm", lang) === "recordWebm" ? "Record walkthrough (WebM)" : ui("recordWebm", lang),
-          children: [
-            /* @__PURE__ */ jsx8("svg", { width: "14", height: "14", viewBox: "0 0 24 24", fill: "currentColor", children: /* @__PURE__ */ jsx8("circle", { cx: "12", cy: "12", r: "7", children: recording && /* @__PURE__ */ jsx8("animate", { attributeName: "opacity", values: "1;0.3;1", dur: "1.1s", repeatCount: "indefinite" }) }) }),
-            recording && /* @__PURE__ */ jsx8("span", { style: { fontSize: 11, fontWeight: 800 }, children: "REC" })
-          ]
-        }
-      ),
       sep
     ] }),
     languages.length > 1 && /* @__PURE__ */ jsxs8(Fragment5, { children: [
@@ -1464,7 +1448,6 @@ function DiagramCanvas({
   stepMaxZoom = 2.2,
   search = "",
   showMap = false,
-  reachMode = false,
   lens = 0,
   deltaView = null
 }) {
@@ -1556,85 +1539,6 @@ function DiagramCanvas({
     }
     return hits;
   }, [searchQ, baseNodes]);
-  const graph = useMemo(() => {
-    const fwd = /* @__PURE__ */ new Map(), rev = /* @__PURE__ */ new Map(), undir = /* @__PURE__ */ new Map();
-    const link = (m, a, b) => {
-      if (!m.has(a)) m.set(a, /* @__PURE__ */ new Set());
-      m.get(a).add(b);
-    };
-    for (const e of baseEdges) {
-      link(fwd, e.source, e.target);
-      link(rev, e.target, e.source);
-      link(undir, e.source, e.target);
-      link(undir, e.target, e.source);
-    }
-    return { fwd, rev, undir };
-  }, [baseEdges]);
-  const [sel, setSel] = useState4([]);
-  useEffect2(() => {
-    if (!reachMode) setSel([]);
-  }, [reachMode]);
-  const pickReach = useCallback((id) => setSel((prev) => {
-    if (prev.length === 1) return prev[0] === id ? [] : [prev[0], id];
-    return [id];
-  }), []);
-  const reach = useMemo(() => {
-    if (!reachMode || !sel.length) return null;
-    const closure = (roots, m) => {
-      const seen2 = new Set(roots);
-      const q2 = [...roots];
-      while (q2.length) {
-        const c2 = q2.shift();
-        for (const nb of m.get(c2) || []) if (!seen2.has(nb)) {
-          seen2.add(nb);
-          q2.push(nb);
-        }
-      }
-      return seen2;
-    };
-    if (sel.length === 1) {
-      const nodes3 = /* @__PURE__ */ new Set([...closure([sel[0]], graph.fwd), ...closure([sel[0]], graph.rev)]);
-      const edges3 = /* @__PURE__ */ new Set();
-      for (const e of baseEdges) if (nodes3.has(e.source) && nodes3.has(e.target)) edges3.add(e.id);
-      return { mode: "reach", nodes: nodes3, edges: edges3, roots: new Set(sel), found: true };
-    }
-    const [a, b] = sel;
-    const prev = /* @__PURE__ */ new Map();
-    const seen = /* @__PURE__ */ new Set([a]);
-    const q = [a];
-    while (q.length) {
-      const c2 = q.shift();
-      if (c2 === b) break;
-      for (const nb of graph.undir.get(c2) || []) if (!seen.has(nb)) {
-        seen.add(nb);
-        prev.set(nb, c2);
-        q.push(nb);
-      }
-    }
-    if (!seen.has(b)) return { mode: "probe", nodes: new Set(sel), edges: /* @__PURE__ */ new Set(), roots: new Set(sel), found: false };
-    const pathNodes = [b];
-    let c = b;
-    while (c !== a) {
-      c = prev.get(c);
-      pathNodes.unshift(c);
-    }
-    const nodes2 = new Set(pathNodes);
-    const edges2 = /* @__PURE__ */ new Set();
-    for (let i = 0; i < pathNodes.length - 1; i++) {
-      const u = pathNodes[i], v = pathNodes[i + 1];
-      const hit = baseEdges.find((e) => e.source === u && e.target === v || e.source === v && e.target === u);
-      if (hit) edges2.add(hit.id);
-    }
-    return { mode: "probe", nodes: nodes2, edges: edges2, roots: new Set(sel), found: true };
-  }, [reachMode, sel, graph, baseEdges]);
-  const reachNodes = reach?.found ? reach.nodes : null;
-  const reachEdges = reach?.found ? reach.edges : null;
-  useEffect2(() => {
-    if (!reachNodes || !reachNodes.size) return;
-    const ids = [...reachNodes];
-    const t = setTimeout(() => fitView({ nodes: ids.map((id) => ({ id })), padding: 0.3, duration: 500, maxZoom: 1.6 }), 80);
-    return () => clearTimeout(t);
-  }, [reachNodes, fitView]);
   const lensDef = LENSES[lens] || null;
   const lensLegend = useMemo(() => {
     if (!lensDef) return null;
@@ -1656,7 +1560,7 @@ function DiagramCanvas({
     }
     return hide;
   }, [deltaView, baseNodes]);
-  const lit = searchHits || reachNodes;
+  const lit = searchHits;
   const nodes = useMemo(() => baseNodes.map((n) => {
     const dHidden = deltaHidden ? deltaHidden.has(n.id) : false;
     const hidden = (visibleIds ? !visibleIds.has(n.id) : false) || dHidden;
@@ -1676,16 +1580,15 @@ function DiagramCanvas({
   }, [searchHits, fitView]);
   const presentIds = useMemo(() => new Set(baseNodes.map((n) => n.id)), [baseNodes]);
   const edges = useMemo(() => baseEdges.map((e) => {
-    const reachLit = reachEdges ? reachEdges.has(e.id) : false;
-    const active = !!edgeTone[e.id] || reachLit;
-    const anyEdgeActive = anyActive || !!reachEdges;
-    const tone = edgeTone[e.id] || (reachLit ? "info" : void 0);
+    const active = !!edgeTone[e.id];
+    const anyEdgeActive = anyActive;
+    const tone = edgeTone[e.id];
     const endpointHidden = !presentIds.has(e.source) || !presentIds.has(e.target);
     const est = e.data?.__src?.delta;
     const deltaEdgeHidden = deltaHidden ? deltaHidden.has(e.source) || deltaHidden.has(e.target) || deltaView === "before" && est === "added" || deltaView === "after" && est === "removed" : false;
     const hidden = endpointHidden || (visibleIds ? !active : false) || deltaEdgeHidden;
     return { ...e, hidden, data: { ...e.data, active, tone, anyActive: anyEdgeActive, routed: edgePaths[e.id], deltaActive: !!deltaView, delta: est, deltaView } };
-  }), [baseEdges, edgeTone, anyActive, edgePaths, visibleIds, presentIds, reachEdges, deltaHidden, deltaView]);
+  }), [baseEdges, edgeTone, anyActive, edgePaths, visibleIds, presentIds, deltaHidden, deltaView]);
   useEffect2(() => {
     const t = setTimeout(() => fitView({ padding: fitPadding, ...fitMaxZoom != null ? { maxZoom: fitMaxZoom } : {} }), 60);
     return () => clearTimeout(t);
@@ -1719,7 +1622,7 @@ function DiagramCanvas({
       maxZoom,
       nodesDraggable: groupsInteractive,
       nodesConnectable: false,
-      elementsSelectable: !!onNodeClick || reachMode,
+      elementsSelectable: !!onNodeClick,
       panOnDrag: true,
       zoomOnScroll: !!zoomOnScroll,
       zoomOnPinch: true,
@@ -1727,10 +1630,9 @@ function DiagramCanvas({
       zoomOnDoubleClick: false,
       onDoubleClick: () => fitView({ padding: fitPadding, duration: 400, ...fitMaxZoom != null ? { maxZoom: fitMaxZoom } : {} }),
       preventScrolling: !!zoomOnScroll,
-      onNodeClick: reachMode || onNodeClick ? (_e, n) => {
+      onNodeClick: onNodeClick ? (_e, n) => {
         if (n.type !== "aws") return;
-        if (reachMode) pickReach(n.id);
-        else onNodeClick(n);
+        onNodeClick(n);
       } : void 0,
       children: [
         /* @__PURE__ */ jsx9(Background, { variant: BackgroundVariant.Dots, gap: 20, size: 1, color: `var(${vars.dot || "--dot"}, rgba(0,0,0,0.05))` }),
@@ -1746,45 +1648,6 @@ function DiagramCanvas({
             style: { borderRadius: 10, overflow: "hidden" }
           }
         ),
-        reachMode && /* @__PURE__ */ jsxs9("div", { style: {
-          position: "absolute",
-          top: 14,
-          left: 14,
-          zIndex: 45,
-          maxWidth: 340,
-          padding: "7px 12px",
-          borderRadius: 11,
-          fontSize: 12.5,
-          lineHeight: 1.4,
-          border: `1px solid var(${vars.border || "--border"}, rgba(0,0,0,.14))`,
-          background: reach && reach.mode === "probe" && !reach.found ? "rgba(221,52,76,.92)" : `var(${vars.pillBg || "--pill-bg"}, rgba(255,255,255,.95))`,
-          color: reach && reach.mode === "probe" && !reach.found ? "#fff" : `var(${vars.txt || "--txt"}, inherit)`,
-          backdropFilter: "blur(12px)",
-          boxShadow: "0 8px 24px rgba(0,0,0,.28)"
-        }, children: [
-          !sel.length && /* @__PURE__ */ jsxs9("span", { children: [
-            /* @__PURE__ */ jsx9("b", { children: "Reach mode" }),
-            " \u2014 click a node to light its upstream + downstream; click a second to probe a path. Esc exits."
-          ] }),
-          reach && reach.mode === "reach" && /* @__PURE__ */ jsxs9("span", { children: [
-            /* @__PURE__ */ jsx9("b", { children: "Reachable set" }),
-            " \u2014 ",
-            reach.nodes.size,
-            " node",
-            reach.nodes.size === 1 ? "" : "s",
-            " connected. Click another node to probe a path."
-          ] }),
-          reach && reach.mode === "probe" && reach.found && /* @__PURE__ */ jsxs9("span", { children: [
-            /* @__PURE__ */ jsx9("b", { children: "Path found" }),
-            " \u2014 ",
-            reach.nodes.size,
-            " hops highlighted."
-          ] }),
-          reach && reach.mode === "probe" && !reach.found && /* @__PURE__ */ jsxs9("span", { children: [
-            /* @__PURE__ */ jsx9("b", { children: "No path" }),
-            " \u2014 the two nodes are not connected."
-          ] })
-        ] }),
         lensLegend && /* @__PURE__ */ jsxs9("div", { style: {
           position: "absolute",
           bottom: 14,
@@ -2135,7 +1998,6 @@ function LiveDiagram({
   const [search, setSearch] = useState4("");
   const searchRef = useRef2(null);
   const [showMap, setShowMap] = useState4(false);
-  const [reachMode, setReachMode] = useState4(false);
   const [lens, setLens] = useState4(0);
   const deltaMode = !!data?.delta;
   const [deltaView, setDeltaView] = useState4(() => ["before", "delta", "after"].includes(data?.deltaView) ? data.deltaView : "delta");
@@ -2160,111 +2022,6 @@ function LiveDiagram({
     document.addEventListener("fullscreenchange", onFs);
     return () => document.removeEventListener("fullscreenchange", onFs);
   }, []);
-  const pickWebmMime = () => {
-    if (typeof MediaRecorder === "undefined") return "";
-    for (const m of ["video/webm;codecs=vp9", "video/webm;codecs=vp8", "video/webm"]) {
-      try {
-        if (MediaRecorder.isTypeSupported(m)) return m;
-      } catch {
-      }
-    }
-    return "";
-  };
-  const canRecord = typeof MediaRecorder !== "undefined" && typeof HTMLCanvasElement !== "undefined" && !!HTMLCanvasElement.prototype.captureStream && !!pickWebmMime();
-  const [recording, setRecording] = useState4(false);
-  const recordWalkthrough = useCallback(async () => {
-    if (!hasWalk || recording) return;
-    const mime = pickWebmMime();
-    const frame = frameRef.current;
-    if (!mime || !frame) return;
-    setPlaying(false);
-    setRecording(true);
-    const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-    let stream, cleanupTracks = () => {
-    };
-    try {
-      const { toPng } = await import("./es-XEWTSNWI.js");
-      const w = Math.max(2, frame.clientWidth), h = Math.max(2, frame.clientHeight);
-      const bg = effectiveDark ? "#0f1117" : "#f8fafc";
-      const cv = document.createElement("canvas");
-      cv.width = w;
-      cv.height = h;
-      const ctx = cv.getContext("2d");
-      stream = cv.captureStream(30);
-      cleanupTracks = () => stream.getTracks().forEach((t) => t.stop());
-      const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 8e6 });
-      const chunks = [];
-      rec.ondataavailable = (e) => {
-        if (e.data && e.data.size) chunks.push(e.data);
-      };
-      const stopped = new Promise((res) => {
-        rec.onstop = res;
-      });
-      let img = null;
-      const snapshot = async () => {
-        const url = await toPng(frame, {
-          backgroundColor: bg,
-          width: w,
-          height: h,
-          pixelRatio: 1,
-          imagePlaceholder: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
-          filter: (node) => !(node && node.dataset && node.dataset.norecord)
-        });
-        await new Promise((res) => {
-          const im = new Image();
-          im.onload = () => {
-            img = im;
-            res();
-          };
-          im.onerror = () => res();
-          im.src = url;
-        });
-      };
-      const paint = () => {
-        ctx.fillStyle = bg;
-        ctx.fillRect(0, 0, w, h);
-        if (img) ctx.drawImage(img, 0, 0, w, h);
-      };
-      const hold = async (ms) => {
-        const end = performance.now() + ms;
-        while (performance.now() < end) {
-          paint();
-          await wait(1e3 / 30);
-        }
-      };
-      rec.start();
-      try {
-        setInternalStep(0);
-        await wait(950);
-        await snapshot();
-        await hold(500);
-        for (let i = 0; i < steps.length; i++) {
-          setInternalStep(i);
-          await wait(950);
-          await snapshot();
-          await hold(2200);
-        }
-        await wait(350);
-      } finally {
-        rec.stop();
-        await stopped;
-        const blob = new Blob(chunks, { type: mime });
-        const u = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = u;
-        a.download = "architecture-walkthrough.webm";
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(u), 1e3);
-      }
-    } catch {
-    } finally {
-      cleanupTracks();
-      setRecording(false);
-      setInternalStep(-1);
-    }
-  }, [hasWalk, recording, steps, effectiveDark]);
   useEffect2(() => {
     if (!chrome) return;
     const onKey = (e) => {
@@ -2272,10 +2029,6 @@ function LiveDiagram({
       if (e.key === "Escape" && searchOpen) {
         setSearchOpen(false);
         setSearch("");
-        return;
-      }
-      if (e.key === "Escape" && reachMode) {
-        setReachMode(false);
         return;
       }
       if (tag === "INPUT" || tag === "TEXTAREA") return;
@@ -2292,10 +2045,6 @@ function LiveDiagram({
         e.preventDefault();
         togglePresent();
       }
-      if (e.key === "r" || e.key === "R") {
-        e.preventDefault();
-        setReachMode((v) => !v);
-      }
       if (e.key === "l" || e.key === "L") {
         e.preventDefault();
         setLens((v) => (v + 1) % LENSES.length);
@@ -2308,7 +2057,7 @@ function LiveDiagram({
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [chrome, searchOpen, reachMode, togglePresent, deltaMode]);
+  }, [chrome, searchOpen, togglePresent, deltaMode]);
   const attached = effectiveStepLayout === "attached" && !cardExpanded;
   const showAttachedCard = attached && hasWalk && step >= 0;
   const attachedFrameRef = useRef2(null);
@@ -2357,7 +2106,6 @@ function LiveDiagram({
       stepMaxZoom,
       search,
       showMap: chrome && showMap,
-      reachMode: chrome && reachMode,
       lens: chrome ? lens : 0,
       deltaView: deltaMode ? deltaView : null
     }
@@ -2430,7 +2178,7 @@ function LiveDiagram({
           ) }) }),
           chrome && /* @__PURE__ */ jsxs9(Fragment6, { children: [
             nodeModal && /* @__PURE__ */ jsx9(NodeModal, { node: detailNode, onClose: () => setDetailNode(null), Icon: Icon2, strings: ui ? { iac: ui("iac", lang), pricing: ui("pricing", lang) } : void 0 }),
-            /* @__PURE__ */ jsx9("div", { "data-norecord": "1", style: { display: "contents" }, children: /* @__PURE__ */ jsx9(
+            /* @__PURE__ */ jsx9(
               ZoomBar,
               {
                 title: tr(title, lang),
@@ -2442,9 +2190,6 @@ function LiveDiagram({
                 hasWalk,
                 playing,
                 attention: hasWalk && !playing && step <= 0,
-                onRecord: recordWalkthrough,
-                recording,
-                canRecord,
                 onPlay: () => {
                   setPlaying((p) => {
                     if (!p) setInternalStep((s) => s < 0 || s >= steps.length - 1 ? 0 : s);
@@ -2461,7 +2206,7 @@ function LiveDiagram({
                 ui,
                 langLabel
               }
-            ) })
+            )
           ] })
         ]
       }
@@ -2506,7 +2251,6 @@ function LiveDiagram({
           stepMaxZoom,
           search,
           showMap: chrome && showMap,
-          reachMode: chrome && reachMode,
           lens: chrome ? lens : 0,
           deltaView: deltaMode ? deltaView : null
         }
@@ -2537,7 +2281,7 @@ function LiveDiagram({
           textLargerLabel: ui ? ui("textLarger", lang) : void 0
         }
       ),
-      chrome && searchOpen && /* @__PURE__ */ jsxs9("div", { "data-norecord": "1", style: {
+      chrome && searchOpen && /* @__PURE__ */ jsxs9("div", { style: {
         position: "absolute",
         top: 14,
         left: "50%",
@@ -2573,11 +2317,10 @@ function LiveDiagram({
           }
         )
       ] }),
-      chrome && deltaMode && !presenting && /* @__PURE__ */ jsx9("div", { "data-norecord": "1", style: { display: "contents" }, children: /* @__PURE__ */ jsx9(DeltaControls, { view: deltaView, onView: setDeltaView, summary: data?.deltaSummary, vars: vars || {} }) }),
+      chrome && deltaMode && !presenting && /* @__PURE__ */ jsx9(DeltaControls, { view: deltaView, onView: setDeltaView, summary: data?.deltaSummary, vars: vars || {} }),
       chrome && presenting && /* @__PURE__ */ jsx9(
         "button",
         {
-          "data-norecord": "1",
           onClick: togglePresent,
           "aria-label": "exit presentation (Esc)",
           title: "Exit presentation (Esc)",
@@ -2610,7 +2353,7 @@ function LiveDiagram({
       ),
       chrome && !presenting && /* @__PURE__ */ jsxs9(Fragment6, { children: [
         nodeModal && /* @__PURE__ */ jsx9(NodeModal, { node: detailNode, onClose: () => setDetailNode(null), Icon: Icon2, strings: ui ? { iac: ui("iac", lang), pricing: ui("pricing", lang) } : void 0 }),
-        /* @__PURE__ */ jsx9("div", { "data-norecord": "1", style: { display: "contents" }, children: /* @__PURE__ */ jsx9(
+        /* @__PURE__ */ jsx9(
           ZoomBar,
           {
             title: tr(title, lang),
@@ -2622,9 +2365,6 @@ function LiveDiagram({
             hasWalk,
             playing,
             attention: hasWalk && !playing && step <= 0,
-            onRecord: recordWalkthrough,
-            recording,
-            canRecord,
             onPlay: () => {
               setPlaying((p) => {
                 if (!p) setInternalStep((s) => s < 0 || s >= steps.length - 1 ? 0 : s);
@@ -2641,7 +2381,7 @@ function LiveDiagram({
             ui,
             langLabel
           }
-        ) })
+        )
       ] })
     ] }) }) })
   );

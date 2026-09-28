@@ -161,7 +161,6 @@ function LangMenu({ lang, languages, onLang, langLabel, ui, btn, dark }) {
 export default function ZoomBar({
   title, subtitle, dark, visible, onToggle, onTheme,
   hasWalk, playing, onPlay, onReset, attention = false,
-  onRecord, recording = false, canRecord = false,
   lang = "en", languages = [], onLang,
   ui = noopUi, langLabel = defLangLabel,
 }) {
@@ -234,22 +233,6 @@ export default function ZoomBar({
             ? <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/></svg>
             : <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>}
         </button>
-        {canRecord && (
-          <button
-            style={recording
-              ? { ...btn, borderColor: "#DD344C", color: "#DD344C", background: "rgba(221,52,76,0.12)", gap: 6 }
-              : btn}
-            onClick={onRecord} disabled={recording}
-            title={recording
-              ? (ui("recording", lang) === "recording" ? "Recording walkthrough…" : ui("recording", lang))
-              : (ui("recordWebm", lang) === "recordWebm" ? "Record walkthrough (WebM)" : ui("recordWebm", lang))}>
-            {/* record-dot glyph; pulses while recording */}
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-              <circle cx="12" cy="12" r="7">{recording && <animate attributeName="opacity" values="1;0.3;1" dur="1.1s" repeatCount="indefinite" />}</circle>
-            </svg>
-            {recording && <span style={{ fontSize: 11, fontWeight: 800 }}>REC</span>}
-          </button>
-        )}
         {sep}
       </>}
       {languages.length > 1 && <>

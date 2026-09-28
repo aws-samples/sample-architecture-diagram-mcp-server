@@ -51,7 +51,7 @@ containers, and flip the theme, all offline:
   the **animated UML sequence player** (the same renderer as the standalone
   `render_diagram_media` sequence output — play/step/keyboard, activation bars,
   `alt`/`opt`/`loop`/`par` fragments, participant groups, notes, tone/badge
-  narration cards with source `proof` links, PNG/SVG/WebM export), and free-form
+  narration cards with source `proof` links, PNG/SVG export), and free-form
   `doc` tabs (sections, bullets, code). Tabs deep-link via the URL hash. See
   [Multi-tab documents](#multi-tab-documents-sequence--doc-tabs).
 - **Collapsible containers** — every group header has a fold toggle; collapse a VPC
@@ -319,8 +319,8 @@ already authored as its own file drops in unchanged.
 - `proof` is free text *or* a structured `{repo, path, ref, lines, url, text}` ref
   rendered as a clickable link to the exact file@ref#Lx-Ly.
 - The view **animates**: play/pause, step, ←/→/space/Home/End, a speed slider,
-  "show all", per-step camera framing, participant search, and PNG / SVG / WebM
-  walkthrough export. Activation bars are auto-derived unless a message sets
+  "show all", per-step camera framing, participant search, and PNG / SVG
+  export. Activation bars are auto-derived unless a message sets
   `activate`/`deactivate` (then explicit mode); `autoActivate: false` hides them.
 - For full control pass `tabs[]` instead, mixing `kind: "architecture"`,
   `"sequence"` and `"doc"` (prose `sections[]` with `title`, `body`, `bullets`,
