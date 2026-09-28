@@ -21,8 +21,26 @@ function GroupNode({ data, selected }) {
   const g = resolveVariant(data.variant);
   const pill = data.pill ? String(data.pill) : "";
   const pillOverlay = !!data.pillOverlay;
+  // Which end of the top edge the overlay tag sits on. Right is the default for a
+  // container because the header (icon + name) owns the top-left corner, but the
+  // choice is the author's: on a wide container with a short name, or when two
+  // nested boxes would stack their tags on the same corner, left reads better.
+  const pillLeft = data.pillSide === "left";
   const noIcon = data.icon === "none";
   const iconRef = data.icon && data.icon !== "none" ? String(data.icon) : g.icon;
+
+  // A container name is prose ("OU SharedServicesPlatform", "Bootstrap on-prem
+  // (RHBK / Vault / GitLab / Zabbix)") and often carries one long unbreakable
+  // token. Two lines were not enough for those, so they still ended in an "…" —
+  // step the type down and grant more lines as the name grows, exactly like the
+  // service nodes. The reserved header band (groupPadTop) absorbs the extra
+  // lines, so children are never pushed into.
+  // Line budget is driven by the container's WIDTH, not only by the name length:
+  // a 27-char name with one long token ("OU SharedServicesPlatform") needs a
+  // third line in a narrow box. Three lines is therefore the floor, and the
+  // reserved header band still absorbs it.
+  const longLbl = label.length > 30, veryLongLbl = label.length > 48;
+  const lblLines = veryLongLbl ? 4 : 3;
 
   const iconSize = lg ? 42 : 30;
   const labelSize = lg ? 24 : 17;
@@ -56,7 +74,12 @@ function GroupNode({ data, selected }) {
       <div {...handlers}
         style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", gap: 8, padding: "0 12px", boxSizing: "border-box", overflow: "hidden", ...cp }}>
         {!noIcon && Icon && <Icon src={iconRef} size={lg ? 24 : 20} alt="" />}
-        <span style={{ flex: 1, minWidth: 0, fontSize: lg ? 15 : 13, fontWeight: 700, color: `var(${vars.txt}, #1e293b)`, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+        {/* Wrap, don't truncate: a container name is prose ("Conta de produção —
+            Plataforma Digital do Cidadão") and an ellipsis eats exactly the
+            words that tell two containers apart. Breaks mid-token if a name has
+            no spaces, over as many lines as the name needs. */}
+        <span style={{ flex: 1, minWidth: 0, fontSize: (lg ? 15 : 13) - (veryLongLbl ? 2 : longLbl ? 1.5 : 0), fontWeight: 700, color: `var(${vars.txt}, #1e293b)`,
+          lineHeight: 1.2, overflowWrap: "anywhere", display: "-webkit-box", WebkitBoxOrient: "vertical", WebkitLineClamp: lblLines, overflow: "hidden" }}>
           {label}
         </span>
       </div>
@@ -73,32 +96,49 @@ function GroupNode({ data, selected }) {
           through). It sits BEHIND child nodes (zIndex 0 vs children above), so
           clicking a member still selects the member, not the group. */}
       {resizable && <div style={{ position: "absolute", inset: 0, zIndex: 0, pointerEvents: "all" }} />}
-      {/* Overlay pill: a solid badge anchored to the container's top-left edge
-          (like the node pillOverlay), for a qualifier such as an instance type. */}
+      {/* Overlay pill: a tag inlaid in the container's top EDGE, for a qualifier
+          such as an account number, a Region or an instance type.
+          It defaults to the RIGHT end, not the left: the header (icon + name)
+          owns the top-left, and a tag parked right above it read as a crowded
+          second title line rather than a boundary tag. `pillSide:"left"` moves
+          it to the left end for the cases where that reads better. Its AXIS sits
+          on the border line: offsets here are relative to the node's content box,
+          which is FRAME_INSET below the drawn border (React Flow gives the
+          group node 10px of padding on top of the 2px border), so a plain
+          top:0 would drop the tag a dozen pixels INSIDE the container. */}
       {pill && pillOverlay && (
-        // Ribbon label floating on the top edge, matching the slides deck
-        // LabeledBoundary (align:left, compact): left-3 (12px), -top-3 (-12px),
-        // px-3.5 horizontal padding.
         <span style={{
-          position: "absolute", top: -12, left: 12, zIndex: 5,
-          padding: "3px 14px", borderRadius: 999,
-          fontSize: pillSize, fontWeight: 800, letterSpacing: 0.3, lineHeight: 1.3,
-          color: "#fff", background: g.stroke, boxShadow: `0 2px 8px ${g.stroke}66`, whiteSpace: "nowrap",
+          // -11 = the 2px border's center line, 12px above the content box.
+          // Flush with the CORNER, no side margin: -11 on the side axis is the
+          // same border center line as the top offset, so the tag's end meets the
+          // vertical border instead of floating a dozen pixels inside it.
+          position: "absolute", top: -11, [pillLeft ? "left" : "right"]: -11,
+          transform: "translateY(-50%)", zIndex: 5,
+          // Bounded by the frame and wrapping: an instance type
+          // ("ml.g6e.48xlarge — 8x L40S") is longer than a small container is
+          // wide, and a nowrap tag bled out through both side borders.
+          maxWidth: `calc(100% - ${pad}px)`, boxSizing: "border-box", textAlign: "center",
+          padding: lg ? "3px 14px" : "3px 12px", borderRadius: 999,
+          fontSize: pillSize - (pill.length > 22 ? 1.5 : 0), fontWeight: 800, letterSpacing: 0.3, lineHeight: 1.3,
+          color: "#fff", background: g.stroke, boxShadow: `0 2px 8px ${g.stroke}66`, overflowWrap: "anywhere",
           border: "1.5px solid rgba(255,255,255,0.5)",
         }}>{pill}</span>
       )}
       <div {...handlers}
         style={{ position: "absolute", top, left, display: "flex", alignItems: "center", gap, maxWidth: `calc(100% - ${pad}px)`, padding: collapsible ? "4px 8px" : 0, margin: collapsible ? "-4px -8px" : 0, ...cp }}>
         {!noIcon && Icon && <Icon src={iconRef} size={iconSize} alt="" />}
-        <span style={{ fontSize: labelSize, fontWeight: 700, color: `var(${vars.txt}, #1e293b)`, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+        {/* Same rule as the collapsed header: the name wraps over as many lines
+            as it needs and steps down a size instead of being cut with an "…". */}
+        <span style={{ minWidth: 0, fontSize: labelSize - (veryLongLbl ? 3 : longLbl ? 2 : 0), fontWeight: 700, color: `var(${vars.txt}, #1e293b)`,
+          lineHeight: 1.2, overflowWrap: "anywhere", display: "-webkit-box", WebkitBoxOrient: "vertical", WebkitLineClamp: lblLines, overflow: "hidden" }}>
           {label}
         </span>
         {pill && !pillOverlay && (
           <span style={{
-            flexShrink: 0, padding: lg ? "3px 12px" : "3px 11px", borderRadius: 999,
-            fontSize: pillSize, fontWeight: 700, letterSpacing: 0.3, lineHeight: 1.3,
+            flexShrink: 1, minWidth: 0, padding: lg ? "3px 12px" : "3px 11px", borderRadius: 999,
+            fontSize: pillSize - (pill.length > 20 ? 1.5 : 0), fontWeight: 700, letterSpacing: 0.3, lineHeight: 1.3,
             // Solid variant fill + white text for strong contrast in light & dark.
-            color: "#fff", background: g.stroke, whiteSpace: "nowrap",
+            color: "#fff", background: g.stroke, overflowWrap: "anywhere",
           }}>{pill}</span>
         )}
       </div>

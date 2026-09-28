@@ -18,7 +18,7 @@ export function resolveGroupsAndMembership(services, declaredGroups) {
   const membership = {};
 
   if (declaredGroups && declaredGroups.length) {
-    const groups = declaredGroups.map(g => ({ id: g.id, label: g.label || g.id, parent: g.parent, variant: g.variant, icon: g.icon, pill: g.pill, pillOverlay: g.pillOverlay }));
+    const groups = declaredGroups.map(g => ({ id: g.id, label: g.label || g.id, parent: g.parent, variant: g.variant, icon: g.icon, pill: g.pill, pillOverlay: g.pillOverlay, pillSide: g.pillSide }));
     const ids = new Set(groups.map(g => g.id));
     for (const s of services) {
       const p = s.parentId || s.group;

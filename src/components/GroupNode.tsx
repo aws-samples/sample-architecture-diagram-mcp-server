@@ -30,7 +30,15 @@ function GroupNode({ data }: NodeProps) {
           <img src={resolveIcon(iconRef) ?? ''} alt="" width={30} height={30}
             onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
         )}
-        <span style={{ fontSize: 17, fontWeight: 700, color: "var(--txt, #e2e8f0)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+        {/* Wrap, don't truncate: a container label is prose ("Conta de produção
+            — Rede compartilhada") and an ellipsis hides exactly the words that
+            tell the two containers apart. It breaks onto a second line and steps
+            down a size past ~30 chars so the header still clears the nodes. */}
+        <span style={{
+          fontSize: label.length > 30 ? 15 : 17, fontWeight: 700, color: "var(--txt, #e2e8f0)",
+          lineHeight: 1.25, overflowWrap: "anywhere",
+          display: "-webkit-box", WebkitBoxOrient: "vertical", WebkitLineClamp: 2, overflow: "hidden",
+        }}>
           {label}
         </span>
         {pill && (

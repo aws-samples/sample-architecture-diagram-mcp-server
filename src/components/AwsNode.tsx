@@ -58,7 +58,14 @@ function AwsNode({ data }: NodeProps) {
             : <span style={{ fontSize: 30, fontWeight: 700, color }}>{initial}</span>;
         })()}
       </div>
-      <div style={{ fontSize: 15, fontWeight: 700, color: "var(--txt, #e8e8e8)", lineHeight: 1.25 }}>{label}</div>
+      {/* The box is a fixed 180px, so a long name has to wrap INSIDE it: break
+          even mid-token (an unspaced "ApplicationLoadBalancer" would otherwise
+          bleed past the border) and step the size down past ~26 chars so the
+          label stays within the node's laid-out height instead of being cut. */}
+      <div style={{
+        fontSize: label.length > 40 ? 12.5 : label.length > 26 ? 13.5 : 15,
+        fontWeight: 700, color: "var(--txt, #e8e8e8)", lineHeight: 1.25, overflowWrap: "anywhere",
+      }}>{label}</div>
       {pill && !pillOverlay && (
         <span style={{
           display: "inline-block", marginTop: 5, padding: "2px 9px", borderRadius: 999,
