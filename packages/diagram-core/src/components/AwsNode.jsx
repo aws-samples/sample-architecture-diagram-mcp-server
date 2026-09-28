@@ -32,6 +32,10 @@ function AwsNode({ data, selected }) {
   const initial = label.replace(/^(Amazon |AWS )/, "").charAt(0);
   const pill = data.pill ? String(data.pill) : "";
   const pillOverlay = !!data.pillOverlay;
+  // End of the top edge the overlay tag sits on — left by default (the con18
+  // "On-premises"/"In-Region" look); `pillSide:"right"` flips it, e.g. to keep it
+  // clear of the tag on the container the node sits in.
+  const pillRight = data.pillSide === "right";
 
   const tone = data.tone || data.staticTone;
   const toneCol = tone ? TONE_COLORS[tone] : undefined;
@@ -94,25 +98,43 @@ function AwsNode({ data, selected }) {
   );
   const overlayPill = pill && pillOverlay && (
     <span style={{
-      position: "absolute", top: isH ? -14 : -13, left: isH ? 16 : 14, zIndex: 5,
+      // Axis on the top border line and flush with the corner (no side margin):
+      // the frame's 3px border means its center sits 1.5px above/left of the
+      // padding box these offsets resolve against. translateY keeps the axis
+      // centered even when a long pill wraps to a second line.
+      position: "absolute", top: -1.5, [pillRight ? "right" : "left"]: -1.5,
+      transform: "translateY(-50%)", zIndex: 5,
+      maxWidth: `calc(100% - ${isH ? 20 : 16}px)`, boxSizing: "border-box",
       padding: isH ? "3px 12px" : "3px 11px", borderRadius: 999,
-      fontSize: isH ? 13 : 12, fontWeight: 800, letterSpacing: 0.3, lineHeight: 1.3,
-      color: "#fff", background: color, boxShadow: `0 2px 8px ${color}66`, whiteSpace: "nowrap",
+      fontSize: (isH ? 13 : 12) - (pill.length > 20 ? 1.5 : 0), fontWeight: 800, letterSpacing: 0.3, lineHeight: 1.3,
+      color: "#fff", background: color, boxShadow: `0 2px 8px ${color}66`, overflowWrap: "anywhere",
       border: "1.5px solid rgba(255,255,255,0.5)",
     }}>{pill}</span>
   );
+  // A pill can be as long as its label ("ApplicationLoadBalancerListener"), and a
+  // nowrap pill wider than the frame bled straight through the node's border. It
+  // is now bounded by the frame: it steps down a size and wraps inside it.
+  const longPill = pill.length > 20;
   const inlinePill = pill && !pillOverlay && (
     <span style={{
-      display: "inline-block", marginTop: 5, padding: isH ? "2px 10px" : "2px 10px", borderRadius: 999,
-      fontSize: isH ? 12 : 11, fontWeight: 700, letterSpacing: 0.2, lineHeight: 1.4,
+      display: "inline-block", maxWidth: "100%", boxSizing: "border-box",
+      marginTop: 5, padding: "2px 10px", borderRadius: 999,
+      fontSize: (isH ? 12 : 11) - (longPill ? 1.5 : 0), fontWeight: 700, letterSpacing: 0.2, lineHeight: 1.4,
       // Solid tone fill + white text — reads with strong contrast on both light
       // and dark surfaces (the old translucent fill washed out on light themes).
-      color: "#fff", background: color, whiteSpace: "nowrap",
+      color: "#fff", background: color, overflowWrap: "anywhere",
     }}>{pill}</span>
   );
-  const labelEl = <div style={{ fontSize: isH ? 16 : 14, fontWeight: 700, color: `var(${vars.txt}, #1e293b)`, lineHeight: 1.25,
-    // Wrap long names to up to 2 lines instead of overflowing the card.
-    overflowWrap: "anywhere", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{label}</div>;
+  // Long official service names are the rule, not the exception ("Amazon Aurora
+  // PostgreSQL-Compatible Edition" is 43 chars), and a 2-line clamp cut them to
+  // "Amazon Aurora PostgreSQL-…" — hiding precisely the words that distinguish
+  // one node from its neighbour. So step the type down and allow more lines as
+  // the name grows: the frame has a min-height, not a fixed one, so it absorbs
+  // the extra line, and the name always reads in full.
+  const long = label.length > 34, veryLong = label.length > 52;
+  const labelSize = (isH ? 16 : 14) - (veryLong ? 3.5 : long ? 2 : 0);
+  const labelEl = <div style={{ fontSize: labelSize, fontWeight: 700, color: `var(${vars.txt}, #1e293b)`, lineHeight: 1.25,
+    overflowWrap: "anywhere", display: "-webkit-box", WebkitLineClamp: veryLong ? 4 : long ? 3 : 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{label}</div>;
   const subEl = sublabel && <div style={{ fontSize: isH ? 14 : 12, color: `var(${vars.txtMuted}, #64748b)`, fontStyle: "italic", marginTop: 2 }}>{sublabel}</div>;
 
   const hs = isH ? 10 : 8;   // target handle size

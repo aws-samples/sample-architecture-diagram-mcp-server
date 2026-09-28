@@ -6,10 +6,10 @@
 //
 // The diagram JSON contract (see README / deck .json files):
 //   services[]:    { id, service, label?, icon?, category?, parentId?, role?,
-//                    tone?, pill?, pillOverlay?, config? }
+//                    tone?, pill?, pillOverlay?, pillSide?, config? }
 //   connections[]: { id, source, target, label?, type?, dashed?, severed?,
 //                    bidirectional?, showLabel? }
-//   groups[]:      { id, label?, parent?, variant?, icon?, pill?, pillOverlay? }
+//   groups[]:      { id, label?, parent?, variant?, icon?, pill?, pillOverlay?, pillSide? }
 import { tr } from "./i18n.js";
 
 /**
@@ -25,6 +25,7 @@ export function buildServiceNodeData(s, { lang = "en", vars = {}, Icon, geom = {
     role: tr(s.role, lang),
     pill: tr(s.pill, lang),
     pillOverlay: s.pillOverlay,
+    pillSide: s.pillSide,
     staticTone: s.tone,
     config: s.config ? { ...s.config, label: tr(s.config.label, lang) } : undefined,
     layout: nodeLayout,
@@ -103,6 +104,7 @@ function serviceFromNode(n) {
     if (d.staticTone) out.tone = d.staticTone;
     if (d.pill) out.pill = d.pill;
     if (d.pillOverlay) out.pillOverlay = d.pillOverlay;
+    if (d.pillSide) out.pillSide = d.pillSide;
     if (d.config && Object.keys(d.config).length) out.config = d.config;
   }
   // Membership is authored on the node (parentId), reflect it back.
@@ -127,6 +129,7 @@ function groupFromNode(n) {
     if (d.icon) out.icon = d.icon;
     if (d.pill) out.pill = d.pill;
     if (d.pillOverlay) out.pillOverlay = d.pillOverlay;
+    if (d.pillSide) out.pillSide = d.pillSide;
   }
   if (n.parentId) out.parent = n.parentId; else delete out.parent;
   // Persist position AND box size (a container is resizable) for faithful reload.

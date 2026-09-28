@@ -59,17 +59,7 @@ async function exportShareCard(nodes, dark, title, subtitle) {
   ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
   ctx.drawImage(img, 0, 0, W, H);
 
-  // Bottom scrim so the title stays legible over the diagram.
-  const scrimH = 200;
-  const grad = ctx.createLinearGradient(0, H - scrimH, 0, H);
-  grad.addColorStop(0, dark ? "rgba(15,17,23,0)" : "rgba(248,250,252,0)");
-  grad.addColorStop(1, dark ? "rgba(15,17,23,0.96)" : "rgba(248,250,252,0.97)");
-  ctx.fillStyle = grad; ctx.fillRect(0, H - scrimH, W, scrimH);
-
-  // AWS-orange accent bar + title/subtitle text.
   const PAD = 56;
-  ctx.fillStyle = "#FF9900";
-  ctx.fillRect(PAD, H - 118, 48, 6);
   const txt = dark ? "#f8fafc" : "#0f1117";
   const muted = dark ? "rgba(248,250,252,0.72)" : "rgba(15,17,23,0.66)";
   const wrap = (s, font, maxW, maxLines) => {
@@ -88,16 +78,37 @@ async function exportShareCard(nodes, dark, title, subtitle) {
     }
     return lines;
   };
+  // Measure FIRST, then lay the band out from the bottom edge up: the old code
+  // used fixed offsets, so a 2-line title pushed its second line — and the
+  // subtitle with it — off the 630px canvas. The subtitle also got a single line
+  // (cut mid-word with an "…"); it gets two, like the title.
   const titleFont = "700 44px 'Amazon Ember', 'Helvetica Neue', Helvetica, Arial, sans-serif";
+  const subFont = "400 24px 'Amazon Ember', 'Helvetica Neue', Helvetica, Arial, sans-serif";
+  const TITLE_LEAD = 50, SUB_LEAD = 30, BOTTOM = 46;
   const titleLines = wrap(title, titleFont, W - PAD * 2, 2);
+  const subLines = subtitle ? wrap(subtitle, subFont, W - PAD * 2, 2) : [];
+  const blockH = titleLines.length * TITLE_LEAD + subLines.length * SUB_LEAD;
+  const blockTop = H - BOTTOM - blockH;
+
+  // Bottom scrim so the title stays legible over the diagram — tall enough to
+  // cover the whole text block plus the accent bar.
+  const scrimH = Math.max(200, H - blockTop + 90);
+  const grad = ctx.createLinearGradient(0, H - scrimH, 0, H);
+  grad.addColorStop(0, dark ? "rgba(15,17,23,0)" : "rgba(248,250,252,0)");
+  grad.addColorStop(1, dark ? "rgba(15,17,23,0.96)" : "rgba(248,250,252,0.97)");
+  ctx.fillStyle = grad; ctx.fillRect(0, H - scrimH, W, scrimH);
+
+  // AWS-orange accent bar sitting just above the text block.
+  ctx.fillStyle = "#FF9900";
+  ctx.fillRect(PAD, blockTop - 26, 48, 6);
+
   ctx.fillStyle = txt; ctx.font = titleFont; ctx.textBaseline = "alphabetic";
-  let y = H - 92 + 44;
-  for (const l of titleLines) { ctx.fillText(l, PAD, y); y += 50; }
-  if (subtitle) {
-    const subFont = "400 24px 'Amazon Ember', 'Helvetica Neue', Helvetica, Arial, sans-serif";
-    const subLines = wrap(subtitle, subFont, W - PAD * 2, 1);
+  let y = blockTop + 38;
+  for (const l of titleLines) { ctx.fillText(l, PAD, y); y += TITLE_LEAD; }
+  if (subLines.length) {
     ctx.fillStyle = muted; ctx.font = subFont;
-    if (subLines[0]) ctx.fillText(subLines[0], PAD, y + 4);
+    y -= 6;
+    for (const l of subLines) { ctx.fillText(l, PAD, y); y += SUB_LEAD; }
   }
 
   const url = canvas.toDataURL("image/png");
@@ -193,9 +204,17 @@ export default function ZoomBar({
       border: "1px solid var(--border)", borderRadius: 16, backdropFilter: "blur(12px)",
       boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
     }}>
-      {title && <div style={{ marginRight: 12, minWidth: 0, maxWidth: 320 }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: "var(--txt)", lineHeight: 1.2, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{title}</div>
-        {subtitle && <div style={{ fontSize: 10, color: "var(--txt-muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 320, marginTop: 2 }}>{subtitle}</div>}
+      {/* Fixed-width text column: it used to get its width from the nowrap
+          subtitle, so once that wraps the flex item would collapse to min-content
+          and squeeze the title into a sliver. */}
+      {title && <div style={{ marginRight: 12, flex: "0 0 300px", maxWidth: 300 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: "var(--txt)", lineHeight: 1.2, overflowWrap: "anywhere", display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{title}</div>
+        {/* The subtitle is a sentence, not a tag: a single nowrap line clipped with
+            an ellipsis cut it mid-word ("…corpora"). It wraps — and gets four
+            lines, because a flow summary ("Self-service no RHDH → AFT + Control
+            Tower → seed → account-customizations") does not fit in two and was
+            still ending in an "…". */}
+        {subtitle && <div style={{ fontSize: 10, color: "var(--txt-muted)", lineHeight: 1.35, overflowWrap: "anywhere", display: "-webkit-box", WebkitLineClamp: 4, WebkitBoxOrient: "vertical", overflow: "hidden", marginTop: 3 }}>{subtitle}</div>}
       </div>}
       {title && sep}
       <button style={btn} onClick={() => zoomOut({ duration: 300 })}>
