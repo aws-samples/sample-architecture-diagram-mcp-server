@@ -98,20 +98,27 @@ git clone <this-repo>
 cd sample-architecture-diagram-mcp-server
 npm install
 
-# Populate icons (one-time). Download the Asset Package zip from
-# https://aws.amazon.com/architecture/icons/ then:
-./scripts/fetch-icons.sh ~/Downloads/Asset-Package_*.zip
+# Icons, once per MACHINE. Download the Asset Package zip from
+# https://aws.amazon.com/architecture/icons/ (leave it in ~/Downloads), then:
+./scripts/fetch-icons.sh
 ```
 
-This downloads ~810 official icons (services + group containers) into
-`assets/icons/`. A handful of niche services map to category SVGs under
-`assets/aws-icons/` instead — drop your own SVGs there if you want custom icons.
+With no argument the script picks up the newest `Asset-Package*.zip` in
+`~/Downloads` (or `~/Desktop`, or the current directory). It installs ~810
+official icons (services + group containers) into **`~/.aws-architecture-icons`**
+— a shared cache that every copy of this server reads, so a plugin install, an
+`npx` run and a clone all see the same icons and reinstalling never means
+downloading the zip again. Pass `--dest assets` to fill this checkout instead.
+
+Or let the agent do it: **ask it to run the `setup_icons` tool** — same script,
+no shell, and it reports the download link back if it can't find a zip.
+
+Lookup order is: `AWS_DIAGRAM_ICON_ROOT` → this package's `assets/` (if
+populated) → `~/.aws-architecture-icons`. An icon root holds `icons/` plus,
+optionally, `aws-icons/` and `tech-icons/` for your own SVGs.
 
 Without icons the diagrams still render — nodes fall back to a category-colored
-initial. With icons, each node shows its official AWS service icon.
-
-To point at an icon directory elsewhere, set `AWS_DIAGRAM_ICON_ROOT` (it must
-contain `icons/`, and optionally `aws-icons/` and `tech-icons/`).
+initial, and every render tool says so in its result.
 
 ## Register the MCP server
 
@@ -130,10 +137,10 @@ Clone this repo, run `npm install`, then point your MCP client at
 ```
 
 > Icons are not bundled (AWS Terms of Use). On first run without them, diagrams
-> render category-colored initials; add them by running
-> `./scripts/fetch-icons.sh <Asset-Package.zip>` (download from
-> https://aws.amazon.com/architecture/icons/), or set `AWS_DIAGRAM_ICON_ROOT`
-> to a folder containing `icons/`.
+> render category-colored initials; add them with `./scripts/fetch-icons.sh`
+> (or the `setup_icons` tool) after downloading the Asset Package from
+> https://aws.amazon.com/architecture/icons/. They install to the shared
+> `~/.aws-architecture-icons`, so this is a one-time, per-machine step.
 
 ### As a Claude Code plugin
 
@@ -152,8 +159,10 @@ The repo doubles as its own single-plugin marketplace
 ```
 
 Installing a plugin clones the repo; it does not install dependencies. Run
-`npm install` in the installed plugin directory (and fetch the icons) before the
-server will start. Other MCP clients can read
+`npm install` in the installed plugin directory before the server will start.
+Icons need no extra step per install — the plugin reads the shared
+`~/.aws-architecture-icons` cache, and if it is empty just ask the agent to run
+`setup_icons`. Other MCP clients can read
 `skills/aws-architecture-diagram/SKILL.md` as plain guidance.
 
 ## Tools
@@ -184,6 +193,7 @@ server will start. Other MCP clients can read
 | `generate_diagram` | `.drawio` with manual x/y positioning |
 | `export_diagram` | Convert `.drawio` → PNG/SVG/PDF (needs `drawio` CLI) |
 | `resolve_icon` | Resolve a service name to its icon filename (or list all) |
+| `setup_icons` | Install the AWS Architecture Icons into the shared per-machine cache (auto-detects the Asset Package zip in `~/Downloads`) |
 | `list_shapes` | AWS4 drawio shape names (for the `.drawio` path) |
 | `list_service_configs` | IaC config fields per service |
 | `export_iac_json` | Extract an AWS IaC MCP handoff payload (resources + dependencies) from a diagram |

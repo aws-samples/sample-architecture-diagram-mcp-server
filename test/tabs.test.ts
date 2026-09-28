@@ -5,12 +5,13 @@
 // map renders as a bare initial under file://).
 import { describe, it, expect } from 'vitest';
 import { existsSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+import { join } from 'path';
 // @ts-expect-error — plain JS module, no types
 import { generateHtml, resolveTabs } from '../lib/html-generator.js';
 // @ts-expect-error — plain JS module, no types
 import { htmlDiagramInputSchema, sequenceSchema, tabSchema } from '../lib/schemas.js';
+// @ts-expect-error — plain JS module, no types
+import { iconRoot } from '../lib/icon-root.js';
 
 function archDataOf(html: string): any {
   const m = html.match(/id="arch-data"[^>]*>([\s\S]*?)<\/script>/);
@@ -21,8 +22,9 @@ function iconDataOf(html: string): Record<string, string> {
   return m ? JSON.parse(m[1]) : {};
 }
 
-const __dir = dirname(fileURLToPath(import.meta.url));
-const TECH_ICON = join(__dir, '..', 'assets', 'tech-icons', 'vault.svg');
+// Icons may live in the repo's assets/ or in the shared per-machine cache, so ask
+// the resolver rather than hardcoding one of the two.
+const TECH_ICON = join(iconRoot(), 'tech-icons', 'vault.svg');
 const TECH_ICONS_PRESENT = existsSync(TECH_ICON);
 
 const services = [
@@ -130,6 +132,18 @@ describe('schemas', () => {
     });
     expect(parsed.sequence.participants).toHaveLength(4);
     expect(parsed.tabs).toHaveLength(2);
+  });
+
+  it('does not force a drawio `shape` on the HTML path', () => {
+    // AGENTS.md tells agents to name the service and let the icon resolve, so a
+    // service without `shape` must be accepted (it used to be required, which
+    // made every HTML call invent a shape string).
+    const parsed = htmlDiagramInputSchema.parse({
+      title: 't',
+      services: [{ id: 'fn', service: 'AWS Lambda', category: 'compute' }],
+      connections: [],
+    });
+    expect(parsed.services[0].shape).toBeUndefined();
   });
 
   it('rejects an unknown tab kind and an unknown event kind', () => {
