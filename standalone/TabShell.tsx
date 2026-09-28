@@ -1,9 +1,15 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
-// Multi-tab chrome for the generated HTML — the same idea as the cost-calculator
-// app's CalculatorChrome (a tab rail + one panel per view, deep-linkable through
-// the URL hash), so ONE self-contained file can carry the live architecture, its
+// Multi-tab chrome for the generated HTML — the same sidebar-and-content shell
+// the cost-calculator app uses (Tailwind/Catalyst style: a fixed left rail of
+// views, a collapse toggle, the panel filling the rest), deep-linkable through
+// the URL hash, so ONE self-contained file can carry the live architecture, its
 // animated UML sequence and prose sections instead of shipping three files.
+//
+// A LEFT rail rather than a top bar: view names are prose ("Fluxo de autorização
+// do cidadão"), and a horizontal bar has no room for them — it truncates to an
+// ellipsis. A column gives each entry a full line, which is also why a document
+// can carry a dozen views without the rail turning into a scroll strip.
 //
 // Only the active panel is MOUNTED: the architecture canvas measures itself on
 // mount (ELK layout + fitView), and a hidden container has zero size — so tab
@@ -42,28 +48,43 @@ function Bullets({ items, lang }: Any) {
   );
 }
 
+// A doc tab reads as a document, not as a text dump: a masthead (accent rule +
+// headline + lede) over one numbered card per section. The number is derived from
+// the order — a decision register is referred to by number in review — and a
+// section may carry an optional `badge` for its status ("Aprovada", "Trade-off").
 function DocPanel({ tab, lang }: Any) {
+  const sections: Any[] = tab.sections || [];
   return (
     <div className="ld-doc">
-      {(tab.title || tab.subtitle) && (
-        <div className="ld-doc-head">
-          {tab.title && <h2>{tr(tab.title, lang)}</h2>}
-          {tab.subtitle && <p>{tr(tab.subtitle, lang)}</p>}
+      <div className="ld-doc-inner">
+        {(tab.title || tab.subtitle) && (
+          <div className="ld-doc-head">
+            {tab.title && <h2>{tr(tab.title, lang)}</h2>}
+            {tab.subtitle && <p>{cardKit.mdInline(tr(tab.subtitle, lang))}</p>}
+          </div>
+        )}
+        <div className="ld-doc-grid">
+          {sections.map((s: Any, i: number) => (
+            <section key={i} className={`ld-doc-sec${s.code ? ' has-code' : ''}`}>
+              {(s.title || s.badge) && (
+                <div className="ld-doc-sec-hd">
+                  <span className="ld-doc-num">{i + 1}</span>
+                  {s.title && <h3>{tr(s.title, lang)}</h3>}
+                  {s.badge && <span className="ld-doc-badge">{tr(s.badge, lang)}</span>}
+                </div>
+              )}
+              {s.body && <p>{cardKit.mdInline(tr(s.body, lang))}</p>}
+              <Bullets items={s.bullets} lang={lang} />
+              {s.code && (
+                <div className="ld-doc-code">
+                  {s.codeLabel && <span className="ld-doc-code-lbl">{tr(s.codeLabel, lang)}</span>}
+                  <pre>{tr(s.code, lang)}</pre>
+                </div>
+              )}
+            </section>
+          ))}
         </div>
-      )}
-      {(tab.sections || []).map((s: Any, i: number) => (
-        <section key={i} className="ld-doc-sec">
-          {s.title && <h3>{tr(s.title, lang)}</h3>}
-          {s.body && <p>{cardKit.mdInline(tr(s.body, lang))}</p>}
-          <Bullets items={s.bullets} lang={lang} />
-          {s.code && (
-            <div className="ld-doc-code">
-              {s.codeLabel && <span className="ld-doc-code-lbl">{tr(s.codeLabel, lang)}</span>}
-              <pre>{tr(s.code, lang)}</pre>
-            </div>
-          )}
-        </section>
-      ))}
+      </div>
     </div>
   );
 }
@@ -71,8 +92,9 @@ function DocPanel({ tab, lang }: Any) {
 /**
  * @param tabs     normalized tab descriptors (lib/html-generator.js → resolveTabs)
  * @param ArchSlot render-prop for the live architecture canvas (kind:'architecture')
+ * @param title/subtitle  document identity, shown as the sidebar brand
  */
-export function TabShell({ tabs, lang, ArchSlot, ui }: Any) {
+export function TabShell({ tabs, lang, ArchSlot, ui, title, subtitle }: Any) {
   const list: Any[] = tabs || [];
   const fromHash = () => {
     const h = (typeof window !== 'undefined' ? window.location.hash : '').replace(/^#/, '');
@@ -80,6 +102,7 @@ export function TabShell({ tabs, lang, ArchSlot, ui }: Any) {
     return hit ? hit.id : list[0]?.id;
   };
   const [activeId, setActiveId] = useState(fromHash);
+  const [collapsed, setCollapsed] = useState(false);
 
   // Deep-linking: reflect the tab in the hash, and follow back/forward.
   useEffect(() => {
@@ -104,19 +127,44 @@ export function TabShell({ tabs, lang, ArchSlot, ui }: Any) {
     [active],
   );
 
+  const t = (k: string, fb: string) => (ui ? (ui(k, lang) || fb) : fb);
+  const brandTitle = tr(title, lang);
+  const brandSub = tr(subtitle, lang);
+
   return (
-    <div className="ld-tabs-shell">
-      <nav className="ld-tabs-rail">
-        {list.map(t => (
-          <button key={t.id} className={`ld-tab${t.id === active?.id ? ' active' : ''}`}
-            onClick={() => setActiveId(t.id)} title={tr(t.label, lang)}>
-            {t.icon && t.icon !== 'none'
-              ? <McpIcon src={t.icon} size={18} alt="" />
-              : <span className="ld-tab-glyph">{GLYPH[t.kind] || '•'}</span>}
-            <span className="ld-tab-lbl">{tr(t.label, lang)}</span>
-          </button>
-        ))}
+    <div className={`ld-tabs-shell${collapsed ? ' sb-collapsed' : ''}`}>
+      <nav className="ld-side" aria-label={t('views', 'Views')}>
+        {brandTitle && (
+          <div className="ld-side-brand">
+            <span className="ld-side-logo" aria-hidden>◫</span>
+            <span className="ld-side-tt">
+              <span className="ld-side-title">{brandTitle}</span>
+              {brandSub && <span className="ld-side-sub">{brandSub}</span>}
+            </span>
+          </div>
+        )}
+        <span className="ld-side-sec">{t('views', 'Views')}</span>
+        <div className="ld-side-list">
+          {list.map(tab => (
+            <button key={tab.id} className={`ld-tab${tab.id === active?.id ? ' active' : ''}`}
+              onClick={() => setActiveId(tab.id)}
+              aria-current={tab.id === active?.id ? 'page' : undefined}>
+              {tab.icon && tab.icon !== 'none'
+                ? <McpIcon src={tab.icon} size={17} alt="" />
+                : <span className="ld-tab-glyph">{GLYPH[tab.kind] || '•'}</span>}
+              <span className="ld-tab-lbl">{tr(tab.label, lang)}</span>
+            </button>
+          ))}
+        </div>
       </nav>
+      {/* Chevron parked on the sidebar's edge (it rides along when the rail
+          collapses), so a dense canvas can reclaim the full width. */}
+      <button className="ld-side-toggle" onClick={() => setCollapsed(c => !c)}
+        title={collapsed ? t('expand', 'Expand') : t('collapse', 'Collapse')}
+        aria-label={collapsed ? t('expand', 'Expand') : t('collapse', 'Collapse')}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+          strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
+      </button>
       <div className="ld-tabs-panel">
         {active?.kind === 'architecture' && <ArchSlot key={active.id} />}
         {active?.kind === 'sequence' && (

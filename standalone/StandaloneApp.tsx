@@ -88,10 +88,13 @@ const CHROME_STYLE = `
   .ld-frame .ld-cost-row-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 7px 0; cursor: pointer; list-style: none; }
   .ld-frame .ld-cost-row-head::-webkit-details-marker { display: none; }
   .ld-frame .ld-cost-row-label { display: flex; flex-direction: column; min-width: 0; }
-  .ld-frame .ld-cost-row-svc { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* Wrap instead of clipping: the panel is 300px and a full official service
+     name ("Amazon Aurora PostgreSQL-Compatible Edition") does not fit on one
+     line, so an ellipsis hid which service the row was pricing. */
+  .ld-frame .ld-cost-row-svc { font-weight: 600; line-height: 1.3; overflow-wrap: anywhere; }
   .ld-frame .ld-cost-caret { display: inline-block; font-size: 9px; color: var(--txt-muted); margin-right: 5px; transition: transform .15s; }
   .ld-frame details[open] .ld-cost-caret { transform: rotate(90deg); }
-  .ld-frame .ld-cost-row-desc { font-size: 11px; color: var(--txt-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ld-frame .ld-cost-row-desc { font-size: 11px; color: var(--txt-muted); line-height: 1.35; overflow-wrap: anywhere; }
   .ld-frame .ld-cost-row-val { font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
   .ld-frame .ld-cost-config { margin: 0 0 8px; padding: 4px 0 4px 14px; list-style: none; display: flex; flex-direction: column; gap: 3px; }
   .ld-frame .ld-cost-config li { font-size: 11px; color: var(--txt-muted); position: relative; padding-left: 10px; line-height: 1.35; }
@@ -166,7 +169,11 @@ export function StandaloneApp({ data }: Props) {
           <style>{TAB_STYLE}</style>
           <div className={`ld-frame ld-shell ${dark ? 'dark' : 'light'}`}>
             {data.caption && <DiagramCaption caption={data.caption} lang={lang} />}
-            <TabShell tabs={tabs} lang={lang} ui={uiResolver} ArchSlot={() => diagram} />
+            {/* The sidebar carries the document identity; when a caption band is
+                present it already says it, so don't print the title twice. */}
+            <TabShell tabs={tabs} lang={lang} ui={uiResolver} ArchSlot={() => diagram}
+              title={data.caption ? undefined : data.title}
+              subtitle={data.caption ? undefined : data.subtitle} />
           </div>
         </>
       ) : diagram}
