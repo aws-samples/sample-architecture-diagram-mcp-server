@@ -1425,7 +1425,7 @@ function DiagramCanvas({
   stepZoom,
   geometry,
   nodeLayout,
-  vars,
+  vars = {},
   Icon: Icon2,
   markerId,
   reanchorEdges,
@@ -1877,7 +1877,7 @@ function LiveDiagram({
   // unification props (sensible slides-friendly defaults):
   geometry,
   nodeLayout = "horizontal",
-  vars,
+  vars = {},
   Icon: Icon2,
   markerId = "ld-arrow",
   reanchorEdges = false,
