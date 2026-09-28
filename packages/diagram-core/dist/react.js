@@ -3,10 +3,10 @@ import {
   TONE_META,
   resolveGroupsAndMembership,
   resolveToneColor
-} from "./chunk-2EKNJYAS.js";
+} from "./chunk-VBMFYYP6.js";
 import {
   layoutWithFallback
-} from "./chunk-YQ4M6NEG.js";
+} from "./chunk-OVUQQREH.js";
 import {
   DEFAULT_GEOMETRY,
   buildBaseEdge,
@@ -17,7 +17,7 @@ import {
   serializeDiagram,
   tr,
   trAll
-} from "./chunk-F44NWBUR.js";
+} from "./chunk-OCPGHV7I.js";
 import {
   __export
 } from "./chunk-MLKGABMK.js";
@@ -165,6 +165,7 @@ function AwsNode({ data, selected }) {
   const initial = label.replace(/^(Amazon |AWS )/, "").charAt(0);
   const pill = data.pill ? String(data.pill) : "";
   const pillOverlay = !!data.pillOverlay;
+  const pillRight = data.pillSide === "right";
   const tone = data.tone || data.staticTone;
   const toneCol = tone ? TONE_COLORS[tone] : void 0;
   const active = !!data.active || !data.anyActive && !!data.staticTone;
@@ -214,28 +215,38 @@ function AwsNode({ data, selected }) {
     boxShadow: `0 2px 6px ${deltaCol}88`
   }, children: deltaBadge });
   const overlayPill = pill && pillOverlay && /* @__PURE__ */ jsx2("span", { style: {
+    // Axis on the top border line and flush with the corner (no side margin):
+    // the frame's 3px border means its center sits 1.5px above/left of the
+    // padding box these offsets resolve against. translateY keeps the axis
+    // centered even when a long pill wraps to a second line.
     position: "absolute",
-    top: isH ? -14 : -13,
-    left: isH ? 16 : 14,
+    top: -1.5,
+    [pillRight ? "right" : "left"]: -1.5,
+    transform: "translateY(-50%)",
     zIndex: 5,
+    maxWidth: `calc(100% - ${isH ? 20 : 16}px)`,
+    boxSizing: "border-box",
     padding: isH ? "3px 12px" : "3px 11px",
     borderRadius: 999,
-    fontSize: isH ? 13 : 12,
+    fontSize: (isH ? 13 : 12) - (pill.length > 20 ? 1.5 : 0),
     fontWeight: 800,
     letterSpacing: 0.3,
     lineHeight: 1.3,
     color: "#fff",
     background: color,
     boxShadow: `0 2px 8px ${color}66`,
-    whiteSpace: "nowrap",
+    overflowWrap: "anywhere",
     border: "1.5px solid rgba(255,255,255,0.5)"
   }, children: pill });
+  const longPill = pill.length > 20;
   const inlinePill = pill && !pillOverlay && /* @__PURE__ */ jsx2("span", { style: {
     display: "inline-block",
+    maxWidth: "100%",
+    boxSizing: "border-box",
     marginTop: 5,
-    padding: isH ? "2px 10px" : "2px 10px",
+    padding: "2px 10px",
     borderRadius: 999,
-    fontSize: isH ? 12 : 11,
+    fontSize: (isH ? 12 : 11) - (longPill ? 1.5 : 0),
     fontWeight: 700,
     letterSpacing: 0.2,
     lineHeight: 1.4,
@@ -243,17 +254,18 @@ function AwsNode({ data, selected }) {
     // and dark surfaces (the old translucent fill washed out on light themes).
     color: "#fff",
     background: color,
-    whiteSpace: "nowrap"
+    overflowWrap: "anywhere"
   }, children: pill });
+  const long = label.length > 34, veryLong = label.length > 52;
+  const labelSize = (isH ? 16 : 14) - (veryLong ? 3.5 : long ? 2 : 0);
   const labelEl = /* @__PURE__ */ jsx2("div", { style: {
-    fontSize: isH ? 16 : 14,
+    fontSize: labelSize,
     fontWeight: 700,
     color: `var(${vars.txt}, #1e293b)`,
     lineHeight: 1.25,
-    // Wrap long names to up to 2 lines instead of overflowing the card.
     overflowWrap: "anywhere",
     display: "-webkit-box",
-    WebkitLineClamp: 2,
+    WebkitLineClamp: veryLong ? 4 : long ? 3 : 2,
     WebkitBoxOrient: "vertical",
     overflow: "hidden"
   }, children: label });
@@ -307,8 +319,11 @@ function GroupNode({ data, selected }) {
   const g = resolveVariant(data.variant);
   const pill = data.pill ? String(data.pill) : "";
   const pillOverlay = !!data.pillOverlay;
+  const pillLeft = data.pillSide === "left";
   const noIcon = data.icon === "none";
   const iconRef = data.icon && data.icon !== "none" ? String(data.icon) : g.icon;
+  const longLbl = label.length > 30, veryLongLbl = label.length > 48;
+  const lblLines = veryLongLbl ? 4 : 3;
   const iconSize = lg ? 42 : 30;
   const labelSize = lg ? 24 : 17;
   const pillSize = lg ? 15 : 13;
@@ -345,7 +360,19 @@ function GroupNode({ data, selected }) {
         style: { width: "100%", height: "100%", display: "flex", alignItems: "center", gap: 8, padding: "0 12px", boxSizing: "border-box", overflow: "hidden", ...cp2 },
         children: [
           !noIcon && Icon2 && /* @__PURE__ */ jsx3(Icon2, { src: iconRef, size: lg ? 24 : 20, alt: "" }),
-          /* @__PURE__ */ jsx3("span", { style: { flex: 1, minWidth: 0, fontSize: lg ? 15 : 13, fontWeight: 700, color: `var(${vars.txt}, #1e293b)`, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }, children: label })
+          /* @__PURE__ */ jsx3("span", { style: {
+            flex: 1,
+            minWidth: 0,
+            fontSize: (lg ? 15 : 13) - (veryLongLbl ? 2 : longLbl ? 1.5 : 0),
+            fontWeight: 700,
+            color: `var(${vars.txt}, #1e293b)`,
+            lineHeight: 1.2,
+            overflowWrap: "anywhere",
+            display: "-webkit-box",
+            WebkitBoxOrient: "vertical",
+            WebkitLineClamp: lblLines,
+            overflow: "hidden"
+          }, children: label })
         ]
       }
     );
@@ -363,24 +390,32 @@ function GroupNode({ data, selected }) {
       }
     ),
     resizable && /* @__PURE__ */ jsx3("div", { style: { position: "absolute", inset: 0, zIndex: 0, pointerEvents: "all" } }),
-    pill && pillOverlay && // Ribbon label floating on the top edge, matching the slides deck
-    // LabeledBoundary (align:left, compact): left-3 (12px), -top-3 (-12px),
-    // px-3.5 horizontal padding.
-    /* @__PURE__ */ jsx3("span", { style: {
+    pill && pillOverlay && /* @__PURE__ */ jsx3("span", { style: {
+      // -11 = the 2px border's center line, 12px above the content box.
+      // Flush with the CORNER, no side margin: -11 on the side axis is the
+      // same border center line as the top offset, so the tag's end meets the
+      // vertical border instead of floating a dozen pixels inside it.
       position: "absolute",
-      top: -12,
-      left: 12,
+      top: -11,
+      [pillLeft ? "left" : "right"]: -11,
+      transform: "translateY(-50%)",
       zIndex: 5,
-      padding: "3px 14px",
+      // Bounded by the frame and wrapping: an instance type
+      // ("ml.g6e.48xlarge — 8x L40S") is longer than a small container is
+      // wide, and a nowrap tag bled out through both side borders.
+      maxWidth: `calc(100% - ${pad}px)`,
+      boxSizing: "border-box",
+      textAlign: "center",
+      padding: lg ? "3px 14px" : "3px 12px",
       borderRadius: 999,
-      fontSize: pillSize,
+      fontSize: pillSize - (pill.length > 22 ? 1.5 : 0),
       fontWeight: 800,
       letterSpacing: 0.3,
       lineHeight: 1.3,
       color: "#fff",
       background: g.stroke,
       boxShadow: `0 2px 8px ${g.stroke}66`,
-      whiteSpace: "nowrap",
+      overflowWrap: "anywhere",
       border: "1.5px solid rgba(255,255,255,0.5)"
     }, children: pill }),
     /* @__PURE__ */ jsxs3(
@@ -390,19 +425,31 @@ function GroupNode({ data, selected }) {
         style: { position: "absolute", top, left, display: "flex", alignItems: "center", gap, maxWidth: `calc(100% - ${pad}px)`, padding: collapsible ? "4px 8px" : 0, margin: collapsible ? "-4px -8px" : 0, ...cp },
         children: [
           !noIcon && Icon2 && /* @__PURE__ */ jsx3(Icon2, { src: iconRef, size: iconSize, alt: "" }),
-          /* @__PURE__ */ jsx3("span", { style: { fontSize: labelSize, fontWeight: 700, color: `var(${vars.txt}, #1e293b)`, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }, children: label }),
+          /* @__PURE__ */ jsx3("span", { style: {
+            minWidth: 0,
+            fontSize: labelSize - (veryLongLbl ? 3 : longLbl ? 2 : 0),
+            fontWeight: 700,
+            color: `var(${vars.txt}, #1e293b)`,
+            lineHeight: 1.2,
+            overflowWrap: "anywhere",
+            display: "-webkit-box",
+            WebkitBoxOrient: "vertical",
+            WebkitLineClamp: lblLines,
+            overflow: "hidden"
+          }, children: label }),
           pill && !pillOverlay && /* @__PURE__ */ jsx3("span", { style: {
-            flexShrink: 0,
+            flexShrink: 1,
+            minWidth: 0,
             padding: lg ? "3px 12px" : "3px 11px",
             borderRadius: 999,
-            fontSize: pillSize,
+            fontSize: pillSize - (pill.length > 20 ? 1.5 : 0),
             fontWeight: 700,
             letterSpacing: 0.3,
             lineHeight: 1.3,
             // Solid variant fill + white text for strong contrast in light & dark.
             color: "#fff",
             background: g.stroke,
-            whiteSpace: "nowrap"
+            overflowWrap: "anywhere"
           }, children: pill })
         ]
       }
@@ -1094,15 +1141,7 @@ async function exportShareCard(nodes, dark, title, subtitle) {
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, W, H);
   ctx.drawImage(img, 0, 0, W, H);
-  const scrimH = 200;
-  const grad = ctx.createLinearGradient(0, H - scrimH, 0, H);
-  grad.addColorStop(0, dark ? "rgba(15,17,23,0)" : "rgba(248,250,252,0)");
-  grad.addColorStop(1, dark ? "rgba(15,17,23,0.96)" : "rgba(248,250,252,0.97)");
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, H - scrimH, W, scrimH);
   const PAD = 56;
-  ctx.fillStyle = "#FF9900";
-  ctx.fillRect(PAD, H - 118, 48, 6);
   const txt = dark ? "#f8fafc" : "#0f1117";
   const muted = dark ? "rgba(248,250,252,0.72)" : "rgba(15,17,23,0.66)";
   const wrap = (s, font, maxW, maxLines) => {
@@ -1126,21 +1165,36 @@ async function exportShareCard(nodes, dark, title, subtitle) {
     return lines;
   };
   const titleFont = "700 44px 'Amazon Ember', 'Helvetica Neue', Helvetica, Arial, sans-serif";
+  const subFont = "400 24px 'Amazon Ember', 'Helvetica Neue', Helvetica, Arial, sans-serif";
+  const TITLE_LEAD = 50, SUB_LEAD = 30, BOTTOM = 46;
   const titleLines = wrap(title, titleFont, W - PAD * 2, 2);
+  const subLines = subtitle ? wrap(subtitle, subFont, W - PAD * 2, 2) : [];
+  const blockH = titleLines.length * TITLE_LEAD + subLines.length * SUB_LEAD;
+  const blockTop = H - BOTTOM - blockH;
+  const scrimH = Math.max(200, H - blockTop + 90);
+  const grad = ctx.createLinearGradient(0, H - scrimH, 0, H);
+  grad.addColorStop(0, dark ? "rgba(15,17,23,0)" : "rgba(248,250,252,0)");
+  grad.addColorStop(1, dark ? "rgba(15,17,23,0.96)" : "rgba(248,250,252,0.97)");
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, H - scrimH, W, scrimH);
+  ctx.fillStyle = "#FF9900";
+  ctx.fillRect(PAD, blockTop - 26, 48, 6);
   ctx.fillStyle = txt;
   ctx.font = titleFont;
   ctx.textBaseline = "alphabetic";
-  let y = H - 92 + 44;
+  let y = blockTop + 38;
   for (const l of titleLines) {
     ctx.fillText(l, PAD, y);
-    y += 50;
+    y += TITLE_LEAD;
   }
-  if (subtitle) {
-    const subFont = "400 24px 'Amazon Ember', 'Helvetica Neue', Helvetica, Arial, sans-serif";
-    const subLines = wrap(subtitle, subFont, W - PAD * 2, 1);
+  if (subLines.length) {
     ctx.fillStyle = muted;
     ctx.font = subFont;
-    if (subLines[0]) ctx.fillText(subLines[0], PAD, y + 4);
+    y -= 6;
+    for (const l of subLines) {
+      ctx.fillText(l, PAD, y);
+      y += SUB_LEAD;
+    }
   }
   const url = canvas.toDataURL("image/png");
   const a = document.createElement("a");
@@ -1304,9 +1358,9 @@ function ZoomBar({
     backdropFilter: "blur(12px)",
     boxShadow: "0 4px 20px rgba(0,0,0,0.3)"
   }, children: [
-    title && /* @__PURE__ */ jsxs8("div", { style: { marginRight: 12, minWidth: 0, maxWidth: 320 }, children: [
-      /* @__PURE__ */ jsx8("div", { style: { fontSize: 13, fontWeight: 700, color: "var(--txt)", lineHeight: 1.2, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }, children: title }),
-      subtitle && /* @__PURE__ */ jsx8("div", { style: { fontSize: 10, color: "var(--txt-muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 320, marginTop: 2 }, children: subtitle })
+    title && /* @__PURE__ */ jsxs8("div", { style: { marginRight: 12, flex: "0 0 300px", maxWidth: 300 }, children: [
+      /* @__PURE__ */ jsx8("div", { style: { fontSize: 13, fontWeight: 700, color: "var(--txt)", lineHeight: 1.2, overflowWrap: "anywhere", display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }, children: title }),
+      subtitle && /* @__PURE__ */ jsx8("div", { style: { fontSize: 10, color: "var(--txt-muted)", lineHeight: 1.35, overflowWrap: "anywhere", display: "-webkit-box", WebkitLineClamp: 4, WebkitBoxOrient: "vertical", overflow: "hidden", marginTop: 3 }, children: subtitle })
     ] }),
     title && sep,
     /* @__PURE__ */ jsx8("button", { style: btn, onClick: () => zoomOut({ duration: 300 }), children: /* @__PURE__ */ jsxs8("svg", { width: "16", height: "16", fill: "none", stroke: "currentColor", strokeWidth: "2", viewBox: "0 0 24 24", children: [

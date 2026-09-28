@@ -9,7 +9,7 @@ import {
   radialLayout,
   resolveVariant,
   variantKey
-} from "./chunk-F44NWBUR.js";
+} from "./chunk-OCPGHV7I.js";
 
 // src/layoutEngine.js
 import ELK from "elkjs/lib/elk.bundled.js";
@@ -121,7 +121,7 @@ function elkLayout(serviceNodes, edges, membership, opts = {}) {
         id: gp.id,
         type: "group",
         position: { x: b.x, y: b.y },
-        data: { label: gp.label, variant: variantKey(gp.variant), icon: gp.icon, pill: gp.pill, pillOverlay: gp.pillOverlay, collapsed: col, collapsible: true },
+        data: { label: gp.label, variant: variantKey(gp.variant), icon: gp.icon, pill: gp.pill, pillOverlay: gp.pillOverlay, pillSide: gp.pillSide, collapsed: col, collapsible: true },
         style: groupStyle(variant, b.w, b.h, depth),
         selectable: groupsInteractive,
         draggable: groupsInteractive
@@ -248,7 +248,7 @@ function compoundLayout(serviceNodes, edges, membership, opts = {}) {
       id: grp.id,
       type: "group",
       position: { x: box.x, y: box.y },
-      data: { label: grp.label, variant: variantKey(grp.variant), icon: grp.icon, pill: grp.pill, pillOverlay: grp.pillOverlay },
+      data: { label: grp.label, variant: variantKey(grp.variant), icon: grp.icon, pill: grp.pill, pillOverlay: grp.pillOverlay, pillSide: grp.pillSide },
       style: groupStyle(variant, box.w, box.h, depth),
       selectable: groupsInteractive,
       draggable: groupsInteractive

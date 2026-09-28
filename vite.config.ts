@@ -16,5 +16,9 @@ export default defineConfig({
     outDir: resolve(__dirname, 'dist'),
     emptyOutDir: true,
     target: 'es2020',
+    // viteSingleFile inlines everything into one HTML, so there are never any
+    // `<link rel="modulepreload">` chunks for Vite's polyfill to preload — it ships
+    // as unreachable code in every generated diagram. Drop it.
+    modulePreload: false,
   },
 });
