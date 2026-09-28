@@ -1,11 +1,10 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
 import { describe, it, expect } from 'vitest';
-import { existsSync, readdirSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
 // @ts-expect-error — plain JS module, no types
 import { generateHtml, iconForService, iconForShape } from '../lib/html-generator.js';
+// @ts-expect-error — plain JS module, no types
+import { iconRoot, hasIcons } from '../lib/icon-root.js';
 
 function archDataOf(html: string): any {
   const m = html.match(/id="arch-data"[^>]*>([\s\S]*?)<\/script>/);
@@ -16,12 +15,11 @@ function iconDataOf(html: string): Record<string, string> {
   return m ? JSON.parse(m[1]) : {};
 }
 // The AWS Architecture Icons aren't redistributed (their Terms of Use), so a
-// fresh clone / CI has an empty assets/icons/. Tests that assert base64 INLINING
-// only make sense when the icons are actually present; gate them so the suite is
-// green with or without `fetch-icons.sh` having run.
-const __dir = dirname(fileURLToPath(import.meta.url));
-const ICON_DIR = join(__dir, '..', 'assets', 'icons');
-const ICONS_PRESENT = existsSync(ICON_DIR) && readdirSync(ICON_DIR).some(f => f.endsWith('.png'));
+// fresh clone / CI has no icons at all. Tests that assert base64 INLINING only
+// make sense when the icons are actually present; gate them on the SAME resolver
+// the generator uses (repo assets/ or the shared per-machine cache) so the suite
+// is green with or without `fetch-icons.sh` having run.
+const ICONS_PRESENT = hasIcons(iconRoot());
 
 describe('generateHtml — arch data wiring', () => {
   const services = [

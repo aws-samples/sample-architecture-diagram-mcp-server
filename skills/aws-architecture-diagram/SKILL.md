@@ -134,8 +134,10 @@ ask this server for IaC or prices.
 ## Gotchas
 
 - **Letters instead of icons** means the AWS Architecture Icons were never
-  downloaded — they are not bundled (Terms of Use). Run
-  `scripts/fetch-icons.sh <Asset-Package.zip>` or set `AWS_DIAGRAM_ICON_ROOT`.
+  installed — they are not bundled (Terms of Use). Call `setup_icons`: it picks
+  up the Asset Package zip from `~/Downloads` by itself and installs to the
+  shared `~/.aws-architecture-icons` (once per machine, survives reinstalls). No
+  zip there → it hands back the download link for you to relay to the user.
 - Layouts are `TB` (default), `LR`, `RADIAL`; radial is flat hub-and-spoke only
   and ignores groups.
 - Multi-language: pass `languages: ['en','pt',…]` and author any text field as a

@@ -10,6 +10,7 @@ import { execFileSync } from "child_process";
 import { computeLayout } from "./lib/layout.js";
 import { generateDrawio } from "./lib/drawio-xml.js";
 import { generateHtml, SERVICE_ICONS, iconForService, resolveTabs } from "./lib/html-generator.js";
+import { iconRoot, resetIconRoot, hasIcons, SHARED_ICON_ROOT } from "./lib/icon-root.js";
 import { rasterizeDiagram } from "./lib/rasterize.js";
 import { validateDiagram, formatValidationReport } from "./lib/validate.js";
 import { computeDelta, formatDeltaSummary } from "./lib/delta.js";
@@ -19,6 +20,20 @@ import { generateFlowHtml, flowIconResolutionReport } from "./lib/flow-generator
 import { flowNodeSchema, flowEdgeSchema, flowStepSchema } from "./lib/flow-schemas.js";
 
 const server = new McpServer({ name: "sample-architecture-diagram-mcp-server", version: "2.0.0" });
+
+// This package's own directory — the server may be launched from anywhere (plugin
+// cache, npx, a clone), so bundled scripts are addressed relative to this file.
+const PKG_ROOT = new URL(".", import.meta.url).pathname;
+
+// When the icon SET is missing (not just one unresolved ref), every node renders
+// as a colored initial — and the generate call still "succeeds", so the user only
+// finds out when the file opens. Say it in the result the agent is already reading,
+// and name the one-call fix.
+function iconSetNotice() {
+  if (hasIcons(iconRoot())) return "";
+  return "\n\n⚠️ The AWS Architecture Icons are not installed, so every node will render as a category-colored initial."
+    + "\nFix (once per machine): call setup_icons — it picks up an Asset-Package*.zip from ~/Downloads, or returns the download link to relay to the user.";
+}
 
 // Neutral element JSON — the machine-readable diagram contract that downstream
 // apps consume (cost estimation, inventory, docs). Built from the same arch-data
@@ -203,7 +218,7 @@ server.tool(
       resolvedTabs?.length ? `${resolvedTabs.length} tabs (${resolvedTabs.map(t => t.kind).join(", ")})` : null,
       seqTabs.length ? `sequence: ${seqTabs.reduce((n, t) => n + (t.sequence?.participants?.length || 0), 0)} participants / ${seqTabs.reduce((n, t) => n + (t.sequence?.events?.length || 0), 0)} events` : null,
     ].filter(Boolean);
-    return { content: [{ type: "text", text: `Interactive diagram saved: ${outputPath}${extras.length ? "\nIncluded: " + extras.join(", ") : ""}${jsonPath ? `\nElements JSON: ${jsonPath}` : ""}\nOpen in browser for animated data flow visualization.${formatValidationReport(report)}` }] };
+    return { content: [{ type: "text", text: `Interactive diagram saved: ${outputPath}${extras.length ? "\nIncluded: " + extras.join(", ") : ""}${jsonPath ? `\nElements JSON: ${jsonPath}` : ""}\nOpen in browser for animated data flow visualization.${formatValidationReport(report)}${iconSetNotice()}` }] };
   }
 );
 
@@ -268,7 +283,7 @@ server.tool(
       delta: true, deltaSummary: delta.summary, deltaView: defaultView || "delta",
     });
     writeFileSync(outputPath, html, "utf-8");
-    return { content: [{ type: "text", text: `Architecture delta saved: ${outputPath}\n${formatDeltaSummary(delta.summary)}\nOpen in a browser and use the Before / Delta / After toggle.${formatValidationReport(report)}` }] };
+    return { content: [{ type: "text", text: `Architecture delta saved: ${outputPath}\n${formatDeltaSummary(delta.summary)}\nOpen in a browser and use the Before / Delta / After toggle.${formatValidationReport(report)}${iconSetNotice()}` }] };
   }
 );
 
@@ -516,6 +531,42 @@ server.tool(
   }
 );
 
+// Icon installation. The AWS Architecture Icons can't be bundled (Terms of Use),
+// and the failure mode — nodes rendering as colored initials — is easy to hit
+// after a fresh install. Exposing the fetch as a tool means the agent can fix it
+// in the conversation instead of the user hunting for a shell command, and the
+// icons land in the shared per-machine cache, so this is needed ONCE per machine.
+server.tool(
+  "setup_icons",
+  "Install the AWS Architecture Icons (once per machine) so diagrams render real service icons instead of category-colored initials. Call this when a generate/validate result reports unresolved icons. With no argument it picks up the newest Asset-Package*.zip from ~/Downloads/~/Desktop; if none is there, it returns the download instructions to relay to the user. Icons install to ~/.aws-architecture-icons and are shared by every copy of this server.",
+  {
+    source: z.string().optional().describe("Path to the Asset Package .zip (or an already-extracted directory). Omit to auto-detect the newest download."),
+    dest: z.string().optional().describe("Install somewhere other than the shared ~/.aws-architecture-icons cache."),
+    force: z.boolean().optional().describe("Re-install even when icons are already available."),
+  },
+  async ({ source, dest, force }) => {
+    const current = iconRoot();
+    if (!force && !source && !dest && hasIcons(current)) {
+      const n = readdirSync(join(current, "icons")).filter(f => /\.(png|svg)$/i.test(f)).length;
+      return { content: [{ type: "text", text: `Icons already installed: ${n} file(s) in ${current}. Nothing to do (pass force:true to re-install).` }] };
+    }
+    const script = join(PKG_ROOT, "scripts", "fetch-icons.sh");
+    const args = [script, ...(source ? [source] : []), ...(dest ? ["--dest", dest] : [])];
+    let out;
+    try {
+      out = execFileSync("bash", args, { encoding: "utf-8", maxBuffer: 8 * 1024 * 1024 });
+    } catch (e) {
+      throw new Error(`fetch-icons failed: ${e.stderr || e.message}`);
+    }
+    resetIconRoot(); // the next diagram must see what we just installed
+    const root = iconRoot();
+    const installed = hasIcons(root);
+    return { content: [{ type: "text", text: installed
+      ? `${out.trim()}\n\nIcon root now: ${root}. Re-generate the diagram to pick the icons up.`
+      : `${out.trim()}\n\nNo icons installed yet — relay the download steps above to the user, then call setup_icons again.` }] };
+  }
+);
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Incremental builder — assemble a diagram in stages instead of one big call.
 //
@@ -613,7 +664,7 @@ server.tool("diagram_render",
     writeFileSync(outputPath, html, "utf-8");
     const jsonPath = writeSidecarJson(outputPath, d.title, d.subtitle, repaired.services, repaired.connections, { groups: repaired.groups, direction: d.direction });
     if (!keep) drafts.delete(draftId);
-    return { content: [{ type: "text", text: `Rendered ${draftSummary(draftId, d)} → ${outputPath}${jsonPath ? `\nElements JSON: ${jsonPath}` : ""}${keep ? " (draft kept)" : " (draft cleared)"}${formatValidationReport(report)}` }] };
+    return { content: [{ type: "text", text: `Rendered ${draftSummary(draftId, d)} → ${outputPath}${jsonPath ? `\nElements JSON: ${jsonPath}` : ""}${keep ? " (draft kept)" : " (draft cleared)"}${formatValidationReport(report)}${iconSetNotice()}` }] };
   }
 );
 
@@ -655,7 +706,7 @@ server.tool(
     writeFileSync(outputPath, html, "utf-8");
     const frag = fragments?.length ? `, ${fragments.length} fragment(s)` : "";
     const grp = groups?.length ? `, ${groups.length} group(s)` : "";
-    return { content: [{ type: "text", text: `Animated sequence diagram saved: ${outputPath}\n${participants.length} participant(s), ${events.length} step(s)${frag}${grp}\nOpen in a browser and press Play (or ← → / space).${seqIconWarning(participants)}` }] };
+    return { content: [{ type: "text", text: `Animated sequence diagram saved: ${outputPath}\n${participants.length} participant(s), ${events.length} step(s)${frag}${grp}\nOpen in a browser and press Play (or ← → / space).${seqIconWarning(participants)}${iconSetNotice()}` }] };
   }
 );
 
@@ -732,7 +783,7 @@ server.tool("sequence_render",
     const html = generateSequenceHtml(d);
     writeFileSync(outputPath, html, "utf-8");
     if (!keep) seqDrafts.delete(sequenceId);
-    return { content: [{ type: "text", text: `Rendered ${seqSummary(sequenceId, d)} → ${outputPath}${keep ? " (draft kept)" : " (draft cleared)"}${seqIconWarning(d.participants)}` }] };
+    return { content: [{ type: "text", text: `Rendered ${seqSummary(sequenceId, d)} → ${outputPath}${keep ? " (draft kept)" : " (draft cleared)"}${seqIconWarning(d.participants)}${iconSetNotice()}` }] };
   }
 );
 
@@ -803,7 +854,7 @@ function registerFlowType(type) {
       const html = generateFlowHtml({ type, title, subtitle, direction, nodes, edges, steps, autoplay, stepMs });
       writeFileSync(outputPath, html, "utf-8");
       const st = steps?.length ? `, ${steps.length} step(s)` : " (static)";
-      return { content: [{ type: "text", text: `${t.noun} saved: ${outputPath}\n${nodes.length} node(s), ${edges.length} edge(s)${st}\nOpen in a browser${steps?.length ? " and press Play (or ← → / space)." : "."}${flowIconWarning(nodes)}` }] };
+      return { content: [{ type: "text", text: `${t.noun} saved: ${outputPath}\n${nodes.length} node(s), ${edges.length} edge(s)${st}\nOpen in a browser${steps?.length ? " and press Play (or ← → / space)." : "."}${flowIconWarning(nodes)}${iconSetNotice()}` }] };
     }
   );
 
@@ -852,7 +903,7 @@ function registerFlowType(type) {
       const html = generateFlowHtml(d);
       writeFileSync(outputPath, html, "utf-8");
       if (!keep) flowDrafts.delete(flowId);
-      return { content: [{ type: "text", text: `Rendered ${flowSummary(flowId, d)} → ${outputPath}${keep ? " (draft kept)" : " (draft cleared)"}${flowIconWarning(d.nodes)}` }] };
+      return { content: [{ type: "text", text: `Rendered ${flowSummary(flowId, d)} → ${outputPath}${keep ? " (draft kept)" : " (draft cleared)"}${flowIconWarning(d.nodes)}${iconSetNotice()}` }] };
     }
   );
 }
@@ -861,16 +912,14 @@ function registerFlowType(type) {
 // First-run hint: if no icons are available, tell the user how to add them.
 // stderr only — never stdout — so the stdio MCP protocol stays clean.
 try {
-  const base = process.env.AWS_DIAGRAM_ICON_ROOT || new URL("./assets", import.meta.url).pathname;
-  const iconDir = join(base, "icons");
-  const hasIcons = existsSync(iconDir) && readdirSync(iconDir).some(f => f.endsWith(".png"));
-  if (!hasIcons) {
+  if (!hasIcons(iconRoot())) {
     console.error(
       "[aws-architecture-diagram] AWS Architecture Icons not found — diagrams will render " +
-      "category-colored initials until you add them.\n" +
-      "  Fix: download the Asset Package from https://aws.amazon.com/architecture/icons/ then run\n" +
-      "       npx --package sample-architecture-diagram-mcp-server fetch-icons <Asset-Package.zip>\n" +
-      "  or set AWS_DIAGRAM_ICON_ROOT to a folder containing icons/ (icons are not bundled — AWS Terms of Use)."
+      "category-colored initials until you add them (they are not bundled — AWS Terms of Use).\n" +
+      "  Easiest fix: ask me to run the setup_icons tool — with the Asset Package zip\n" +
+      "  (https://aws.amazon.com/architecture/icons/) sitting in ~/Downloads it needs no arguments.\n" +
+      `  Equivalent shell: bash ${join(PKG_ROOT, "scripts", "fetch-icons.sh")}\n` +
+      `  Installs once per machine into ${SHARED_ICON_ROOT}, shared by every copy of this server.`
     );
   }
 } catch { /* best-effort hint only */ }

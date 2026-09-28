@@ -1,20 +1,16 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
 import { describe, it, expect } from 'vitest';
-import { existsSync, readdirSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
 // @ts-expect-error — plain JS module, no types
 import { iconForService, SERVICE_ICONS, generateHtml } from '../lib/html-generator.js';
+// @ts-expect-error — plain JS module, no types
+import { iconRoot, hasIcons } from '../lib/icon-root.js';
 
 // The AWS Architecture Icons aren't redistributed (their Terms of Use), so a
-// fresh clone / CI has an empty assets/icons/. Base64-inlining assertions only
-// apply when the icons are present; gate them so the suite is green either way.
-const __dir = dirname(fileURLToPath(import.meta.url));
-const ICONS_PRESENT = (() => {
-  const d = join(__dir, '..', 'assets', 'icons');
-  return existsSync(d) && readdirSync(d).some(f => f.endsWith('.png'));
-})();
+// fresh clone / CI has none. Base64-inlining assertions only apply when the icons
+// are present; gate them on the same resolver the generator uses (repo assets/ or
+// the shared per-machine cache) so the suite is green either way.
+const ICONS_PRESENT = hasIcons(iconRoot());
 
 // Pull the inlined icon map back out of a generated HTML for assertions.
 function iconMapOf(html: string): Record<string, string> {

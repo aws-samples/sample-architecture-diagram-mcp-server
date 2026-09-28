@@ -129,8 +129,12 @@ output — author it once, embed it either way.
 
 ## Gotchas
 
-- Icons are not bundled; if a diagram renders letters instead of icons, the user
-  hasn't run `scripts/fetch-icons.sh` (see README).
+- Icons are not bundled. If a render result warns that the icon set is missing
+  (or a diagram comes out as letters), call **`setup_icons`** — it finds the
+  Asset Package zip in `~/Downloads` on its own and installs into the shared
+  `~/.aws-architecture-icons`, so it is needed once per machine, not once per
+  install. If it finds no zip it returns the download link: relay that to the
+  user, then call it again.
 - Layouts: `TB` (default), `LR`, `RADIAL`. Radial is for flat hub-and-spoke and
   ignores groups.
 - Keep process/step detail in `connections[].label` and `adr`, not as extra
