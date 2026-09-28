@@ -64,7 +64,7 @@ const LENSES = [
 
 function DiagramCanvas({
   data, lang, animate, direction: dirOverride, edgeStyle, steps, activeStep,
-  fitPadding, stepFocus, spacing, stepZoom, geometry, nodeLayout, vars, Icon,
+  fitPadding, stepFocus, spacing, stepZoom, geometry, nodeLayout, vars = {}, Icon,
   markerId, reanchorEdges, groupsInteractive, edgeTuning, onNodeClick,
   collapsible, collapsed, onToggleCollapse, zoomOnScroll,
   // Zoom controls (all overridable; defaults preserve prior hardcoded values):
@@ -463,7 +463,7 @@ export function LiveDiagram({
   steps, activeStep, stepLayout = "overlay", fitPadding = 0.09, stepFocus = false,
   spacing = 1, stepZoom = false, className = "",
   // unification props (sensible slides-friendly defaults):
-  geometry, nodeLayout = "horizontal", vars, Icon,
+  geometry, nodeLayout = "horizontal", vars = {}, Icon,
   markerId = "ld-arrow", reanchorEdges = false, groupsInteractive = false,
   edgeTuning, flowDots = true, control = "controlled", chrome = false, theme = "host",
   // Controlled theme (host-driven): when `dark` is a boolean the diagram uses it

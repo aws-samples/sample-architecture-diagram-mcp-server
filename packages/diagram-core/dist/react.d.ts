@@ -189,7 +189,7 @@ declare function LiveDiagram({ data, lang, animate, direction, edgeStyle, steps,
     className?: string;
     geometry: any;
     nodeLayout?: string;
-    vars: any;
+    vars?: {};
     Icon: any;
     markerId?: string;
     reanchorEdges?: boolean;
