@@ -71,7 +71,9 @@ export default function ZoomBar({ title, subtitle, dark, visible, onToggle, onTh
       {/* Title — wraps to 2 lines so long deck titles aren't truncated */}
       <div style={{ marginRight: 12, minWidth: 0, maxWidth: 320 }}>
         <div style={{ fontSize: 13, fontWeight: 700, color: "var(--txt)", lineHeight: 1.2, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{title}</div>
-        {subtitle && <div style={{ fontSize: 10, color: "var(--txt-muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 320, marginTop: 2 }}>{subtitle}</div>}
+        {/* Subtitle wraps to 2 lines as well — it used to be a single nowrap line
+            clipped with an ellipsis, which ate the end of any real sentence. */}
+        {subtitle && <div style={{ fontSize: 10, color: "var(--txt-muted)", lineHeight: 1.3, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", overflowWrap: "anywhere", maxWidth: 320, marginTop: 2 }}>{subtitle}</div>}
       </div>
 
       {sep}
