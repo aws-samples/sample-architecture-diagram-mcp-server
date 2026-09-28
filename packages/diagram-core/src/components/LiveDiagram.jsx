@@ -29,6 +29,7 @@ import CustomEdge from "./CustomEdge.jsx";
 import StepCard from "./StepCard.jsx";
 import NodeModal from "./NodeModal.jsx";
 import ZoomBar from "./ZoomBar.jsx";
+import DiagramCaption, { resolveCaption } from "./DiagramCaption.jsx";
 import { TONE_COLORS, resolveToneColor } from "../tones.js";
 import { tr, trAll } from "../i18n.js";
 import { resolveGroupsAndMembership } from "../membership.js";
@@ -480,6 +481,10 @@ export function LiveDiagram({
   // without a store). Leave undefined for the legacy self/host behavior.
   dark: darkProp, onThemeChange,
   languages = [], onLangChange, ui, langLabel, title, subtitle,
+  // Optional header band above the canvas describing what the diagram is:
+  // a string (the description), or { title, text, meta[] } — any of them a
+  // per-language map. Omit for the classic bare canvas.
+  caption,
   collapsible = false, defaultCollapsed = [], zoomOnScroll = false,
   nodeModal = true, startStep = -1, startCardScale = 0,
   // Zoom bounds/caps — forwarded to the canvas (see DiagramCanvas jsdoc).
@@ -727,14 +732,13 @@ export function LiveDiagram({
     );
   }
 
-  return (
-    // reducedMotion="user" makes every descendant framer-motion animation honor
-    // the OS "reduce motion" setting (transforms/layout are skipped, opacity
-    // kept) — pairs with the CSS media override that neutralizes plain CSS
-    // transitions. The diagram stays fully navigable; only motion is removed.
-    <MotionConfig reducedMotion="user">
-    <ReactFlowProvider>
-      <div ref={frameRef} className={`ld-frame ${themeClass} ${className}`.trim()} style={{ width: "100%", height: "100%", position: "relative", background: presenting ? `var(${vars.bg || "--bg"}, #fff)` : undefined }}>
+  // Optional header band (see DiagramCaption). When present the frame becomes a
+  // column — caption row, then canvas row — and every absolute overlay anchors to
+  // the CANVAS area, so the dock/search/delta legend never land on top of the
+  // text. Absent, the tree is exactly the classic single relative frame.
+  const cap = resolveCaption(caption, lang);
+  const body = (
+    <>
         <DiagramCanvas
           data={data} lang={lang} animate={animate} direction={direction} edgeStyle={edgeStyle}
           steps={steps} activeStep={step} fitPadding={fitPadding} stepFocus={stepFocus}
@@ -803,6 +807,24 @@ export function LiveDiagram({
             />
           </>
         )}
+    </>
+  );
+
+  return (
+    // reducedMotion="user" makes every descendant framer-motion animation honor
+    // the OS "reduce motion" setting (transforms/layout are skipped, opacity
+    // kept) — pairs with the CSS media override that neutralizes plain CSS
+    // transitions. The diagram stays fully navigable; only motion is removed.
+    <MotionConfig reducedMotion="user">
+    <ReactFlowProvider>
+      <div ref={frameRef} className={`ld-frame ${themeClass} ${className}`.trim()}
+        style={{ width: "100%", height: "100%", position: "relative",
+          ...(cap ? { display: "flex", flexDirection: "column" } : null),
+          background: presenting ? `var(${vars.bg || "--bg"}, #fff)` : undefined }}>
+        {cap && <DiagramCaption caption={caption} lang={lang} vars={vars || {}} />}
+        {cap
+          ? <div style={{ position: "relative", flex: "1 1 auto", minHeight: 0 }}>{body}</div>
+          : body}
       </div>
     </ReactFlowProvider>
     </MotionConfig>

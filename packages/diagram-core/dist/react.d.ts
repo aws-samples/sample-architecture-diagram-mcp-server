@@ -1,4 +1,5 @@
 import * as react from 'react';
+import react__default from 'react';
 import { r as resolveVariant } from './groupVariants-Dh9m6l9E.js';
 
 declare const DARK_VARIANT_BASES: Set<string>;
@@ -173,7 +174,20 @@ declare namespace Icon {
     let displayName: string;
 }
 
-declare function LiveDiagram({ data, lang, animate, direction, edgeStyle, steps, activeStep, stepLayout, fitPadding, stepFocus, spacing, stepZoom, className, geometry, nodeLayout, vars, Icon, markerId, reanchorEdges, groupsInteractive, edgeTuning, flowDots, control, chrome, theme, dark: darkProp, onThemeChange, languages, onLangChange, ui, langLabel, title, subtitle, collapsible, defaultCollapsed, zoomOnScroll, nodeModal, startStep, startCardScale, minZoom, maxZoom, fitMaxZoom, stepMaxZoom, }: {
+/** Normalize the author shape into { eyebrow, title, text, meta[] } (or null). */
+declare function resolveCaption(caption: any, lang?: string): {
+    eyebrow: any;
+    title: any;
+    text: any;
+    meta: any;
+};
+declare function DiagramCaption({ caption, lang, vars }: {
+    caption: any;
+    lang?: string;
+    vars?: {};
+}): react__default.JSX.Element;
+
+declare function LiveDiagram({ data, lang, animate, direction, edgeStyle, steps, activeStep, stepLayout, fitPadding, stepFocus, spacing, stepZoom, className, geometry, nodeLayout, vars, Icon, markerId, reanchorEdges, groupsInteractive, edgeTuning, flowDots, control, chrome, theme, dark: darkProp, onThemeChange, languages, onLangChange, ui, langLabel, title, subtitle, caption, collapsible, defaultCollapsed, zoomOnScroll, nodeModal, startStep, startCardScale, minZoom, maxZoom, fitMaxZoom, stepMaxZoom, }: {
     data: any;
     lang?: string;
     animate?: boolean;
@@ -207,6 +221,7 @@ declare function LiveDiagram({ data, lang, animate, direction, edgeStyle, steps,
     langLabel: any;
     title: any;
     subtitle: any;
+    caption: any;
     collapsible?: boolean;
     defaultCollapsed?: any[];
     zoomOnScroll?: boolean;
@@ -219,4 +234,4 @@ declare function LiveDiagram({ data, lang, animate, direction, edgeStyle, steps,
     stepMaxZoom?: number;
 }): react.JSX.Element;
 
-export { _default$2 as AwsNode, _default as CustomEdge, DARK_VARIANT_BASES, _default$1 as GroupNode, Icon, Icon as IconDefault, LiveDiagram, LiveDiagram as LiveDiagramDefault, LiveDiagramEditor, NodeModal, StepCard, ZoomBar, cardKit };
+export { _default$2 as AwsNode, _default as CustomEdge, DARK_VARIANT_BASES, DiagramCaption, _default$1 as GroupNode, Icon, Icon as IconDefault, LiveDiagram, LiveDiagram as LiveDiagramDefault, LiveDiagramEditor, NodeModal, StepCard, ZoomBar, cardKit, resolveCaption };

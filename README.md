@@ -135,6 +135,24 @@ Clone this repo, run `npm install`, then point your MCP client at
 > https://aws.amazon.com/architecture/icons/), or set `AWS_DIAGRAM_ICON_ROOT`
 > to a folder containing `icons/`.
 
+### As a Claude Code plugin
+
+This repo is also a Claude Code plugin: it ships `.claude-plugin/plugin.json`,
+the `.mcp.json` above (resolved via `${CLAUDE_PLUGIN_ROOT}`, so no absolute path
+to edit), and `skills/aws-architecture-diagram/` — a skill that teaches the
+agent when to reach for an architecture view versus a sequence, a walkthrough or
+a delta, and the authoring rules that make the output look right.
+
+```
+/plugin marketplace add aws-samples/sample-architecture-diagram-mcp-server
+/plugin install aws-architecture-diagram
+```
+
+Installing a plugin clones the repo; it does not install dependencies. Run
+`npm install` in the installed plugin directory (and fetch the icons) before the
+server will start. Other MCP clients can read
+`skills/aws-architecture-diagram/SKILL.md` as plain guidance.
+
 ## Tools
 
 | Tool | Purpose |
@@ -148,6 +166,17 @@ Clone this repo, run `npm install`, then point your MCP client at
 | `diagram_add_sequence` | Add an animated UML sequence diagram as a second tab of a draft |
 | `diagram_add_doc_tab` | Add a prose tab (sections / bullets / code) to a draft |
 | `diagram_render` | Render an incremental draft to a self-contained HTML file |
+| `validate_diagram` | Lint a diagram payload before rendering: unresolved icons, dangling connection endpoints, orphaned `parentId`/step references |
+| `diagram_delta` | Diff two diagram JSONs into a Before/Delta/After payload |
+| `generate_sequence_diagram` | Standalone animated UML sequence player (no architecture canvas) |
+| `sequence_create` | Start an incremental sequence draft; returns a `draftId` |
+| `sequence_add_participants` | Append lifelines to a sequence draft |
+| `sequence_add_messages` | Append messages (arrows) to a sequence draft |
+| `sequence_add_notes` | Append notes to a sequence draft |
+| `sequence_add_fragments` | Append combined fragments (`alt` / `opt` / `loop` / …) anchored by event id |
+| `sequence_add_groups` | Append participant groups (bands) to a sequence draft |
+| `sequence_render` | Render a sequence draft to a self-contained HTML file |
+| `render_diagram_media` | Screenshot/record a generated HTML diagram to PNG, animated GIF or animated SVG |
 | `auto_generate_diagram` | Fully auto-laid-out `.drawio` file |
 | `generate_diagram` | `.drawio` with manual x/y positioning |
 | `export_diagram` | Convert `.drawio` → PNG/SVG/PDF (needs `drawio` CLI) |
@@ -170,6 +199,15 @@ shape.
   "title": "My App",
   "subtitle": "Serverless API",
   "outputPath": "/tmp/my-app.html",
+  // Optional header band above the canvas, for a file that has to explain itself
+  // when opened cold (email attachment, wiki link). Omit for a bare canvas.
+  // A plain string is shorthand for just `text`.
+  "caption": {
+    "eyebrow": "Reference architecture",
+    "title": "My App — target state",
+    "text": "What this diagram shows and for whom.",
+    "meta": ["Version: v2", "Env: prod", "Owner: platform"]
+  },
   "services": [
     { "id": "api", "service": "Amazon API Gateway", "shape": "api_gateway", "category": "networking",
       "role": "REST front door — routing, throttling, request validation" },

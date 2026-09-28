@@ -1363,6 +1363,137 @@ function ZoomBar({
   ] });
 }
 
+// src/components/DiagramCaption.jsx
+import React from "react";
+import { jsx as jsx9, jsxs as jsxs9 } from "react/jsx-runtime";
+var ORANGE = "#FF9900";
+function resolveCaption(caption, lang = "en") {
+  if (!caption) return null;
+  const raw = typeof caption === "string" || caption.en || caption.pt ? { text: caption } : caption;
+  const eyebrow = tr(raw.eyebrow, lang) || "";
+  const title = tr(raw.title, lang) || "";
+  const text = tr(raw.text, lang) || "";
+  const meta = (Array.isArray(raw.meta) ? raw.meta : []).map((m) => tr(m, lang)).filter(Boolean);
+  if (!eyebrow && !title && !text && !meta.length) return null;
+  return { eyebrow, title, text, meta };
+}
+function splitStat(s) {
+  const m = /^\s*([^:]{2,22}):\s+(.+)$/.exec(s);
+  return m ? { label: m[1], value: m[2] } : { label: null, value: s };
+}
+function DiagramCaption({ caption, lang = "en", vars = {} }) {
+  const c = resolveCaption(caption, lang);
+  if (!c) return null;
+  const txt = `var(${vars.txt || "--txt"}, inherit)`;
+  const muted = `var(${vars.txtMuted || "--txt-muted"}, #64748b)`;
+  const border = `var(${vars.border || "--border"}, rgba(0,0,0,.08))`;
+  const surface = `var(${vars.surface || "--surface"}, #fff)`;
+  return /* @__PURE__ */ jsxs9("header", { className: "ld-caption", style: { borderBottom: `1px solid ${border}`, color: txt }, children: [
+    /* @__PURE__ */ jsx9("style", { children: CAPTION_CSS }),
+    /* @__PURE__ */ jsx9("span", { "aria-hidden": "true", className: "ld-caption-accent" }),
+    /* @__PURE__ */ jsx9("span", { "aria-hidden": "true", className: "ld-caption-glow" }),
+    /* @__PURE__ */ jsxs9("div", { className: "ld-caption-row", children: [
+      /* @__PURE__ */ jsxs9("div", { className: "ld-caption-main", children: [
+        c.eyebrow && /* @__PURE__ */ jsxs9("span", { className: "ld-caption-badge", children: [
+          /* @__PURE__ */ jsx9("i", { "aria-hidden": "true" }),
+          c.eyebrow
+        ] }),
+        c.title && /* @__PURE__ */ jsx9("h1", { className: "ld-caption-title", children: c.title }),
+        c.text && /* @__PURE__ */ jsx9("p", { className: "ld-caption-text", children: c.text })
+      ] }),
+      c.meta.length > 0 && // Stat rail: right-aligned on a wide viewport, wrapping under the prose
+      // on a narrow one. Divider rules instead of chips, so version/date/owner
+      // scan as metadata rather than competing with the headline.
+      /* @__PURE__ */ jsx9("dl", { className: "ld-caption-meta", children: c.meta.map((m, i) => {
+        const { label, value } = splitStat(m);
+        return /* @__PURE__ */ jsxs9("div", { className: `ld-caption-stat${label ? "" : " bare"}`, children: [
+          label && /* @__PURE__ */ jsx9("dt", { children: label }),
+          /* @__PURE__ */ jsx9("dd", { children: value })
+        ] }, i);
+      }) })
+    ] })
+  ] });
+}
+var CAPTION_CSS = `
+.ld-caption {
+  position: relative; overflow: hidden; flex: 0 0 auto; min-width: 0;
+  padding: 22px 30px 20px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface, #fff) 92%, transparent) 0%, transparent 100%),
+    var(--bg, transparent);
+}
+.ld-caption-accent {
+  position: absolute; inset: 0 0 auto 0; height: 2px; pointer-events: none;
+  background: linear-gradient(90deg, ${ORANGE} 0%, rgba(255,153,0,.45) 26%, transparent 62%);
+}
+.ld-caption-glow {
+  position: absolute; top: -70px; left: -40px; width: 320px; height: 190px;
+  pointer-events: none; opacity: .5;
+  background: radial-gradient(closest-side, rgba(255,153,0,.22), transparent 78%);
+}
+.ld-caption-row {
+  position: relative; display: flex; align-items: flex-start;
+  justify-content: space-between; gap: 28px 40px; flex-wrap: wrap;
+}
+.ld-caption-main { min-width: 0; flex: 1 1 420px; display: flex; flex-direction: column; align-items: flex-start; }
+.ld-caption-badge {
+  display: inline-flex; align-items: center; gap: 6px; margin-bottom: 10px;
+  padding: 3px 10px 3px 8px; border-radius: 999px;
+  border: 1px solid rgba(255,153,0,.38); background: rgba(255,153,0,.1);
+  font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  color: ${ORANGE}; line-height: 1.5; white-space: nowrap;
+}
+.ld-caption-badge i { width: 5px; height: 5px; border-radius: 50%; background: ${ORANGE}; box-shadow: 0 0 0 3px rgba(255,153,0,.18); }
+/* Display headline: fluid so a narrow embed never wraps it into three lines. */
+.ld-caption-title {
+  margin: 0; font-size: clamp(19px, 1.35vw + 11px, 27px); font-weight: 700;
+  letter-spacing: -.025em; line-height: 1.16; color: var(--txt, inherit);
+  text-wrap: balance;
+}
+/* ~68ch: the readable measure. Full-bleed prose on a 34" monitor is what made
+   the first cut look unfinished. Sits one notch under the headline in size but
+   NOT in contrast \u2014 a fully muted paragraph at 13px read as fine print. */
+.ld-caption-text {
+  margin: 10px 0 0; max-width: 68ch; font-size: 14px; line-height: 1.6;
+  color: var(--txt, inherit); opacity: .78; text-wrap: pretty;
+}
+/* Metadata card: a bordered panel, not four labels adrift in the corner. Grouping
+   them gives the band two clear objects (what it is / which version it is)
+   instead of eight competing text sizes. */
+.ld-caption-meta {
+  margin: 0; flex: 0 1 auto; display: flex; flex-wrap: wrap; align-items: stretch;
+  gap: 0; padding: 9px 14px; border-radius: 12px;
+  border: 1px solid var(--border, rgba(0,0,0,.08));
+  background: var(--chip-bg, rgba(100,116,139,.07));
+}
+.ld-caption-stat { padding-left: 15px; margin-left: 15px; border-left: 1px solid var(--border, rgba(0,0,0,.08)); }
+.ld-caption-stat:first-child { padding-left: 0; margin-left: 0; border-left: none; }
+.ld-caption-stat dt {
+  font-size: 9px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--txt, inherit); opacity: .48; line-height: 1.5;
+}
+/* The value is the thing worth reading: full-contrast text, tabular numerals so
+   dates/versions line up column-wise. */
+.ld-caption-stat dd {
+  margin: 2px 0 0; font-size: 13px; font-weight: 650; line-height: 1.35;
+  color: var(--txt, inherit); font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+/* No label to split on ("GBR", "rev 4") \u2014 centre it in the cell so a mixed rail
+   of stats and bare values doesn't look ragged. */
+.ld-caption-stat.bare { display: flex; align-items: center; }
+.ld-caption-stat.bare dd { margin: 0; }
+@media (max-width: 860px) {
+  .ld-caption { padding: 16px 18px 14px; }
+  .ld-caption-row { gap: 14px; }
+  .ld-caption-title { font-size: clamp(18px, 3.4vw, 22px); }
+  .ld-caption-text { font-size: 13px; }
+  /* Narrow: the card's own border would box in the whole column, so drop to a
+     plain wrapping row under the prose. */
+  .ld-caption-meta { padding: 0; border: none; background: none; gap: 8px 0; }
+}
+`;
+var DiagramCaption_default = DiagramCaption;
+
 // src/components/LiveDiagram.jsx
 import { useMemo, useEffect as useEffect2, useState as useState4, useCallback, useRef as useRef2 } from "react";
 import {
@@ -1375,7 +1506,7 @@ import {
 } from "@xyflow/react";
 import { motion as motion3, AnimatePresence as AnimatePresence3, MotionConfig } from "framer-motion";
 import "@xyflow/react/dist/style.css";
-import { Fragment as Fragment6, jsx as jsx9, jsxs as jsxs9 } from "react/jsx-runtime";
+import { Fragment as Fragment6, jsx as jsx10, jsxs as jsxs10 } from "react/jsx-runtime";
 var NODE_TYPES = { aws: AwsNode_default, group: GroupNode_default };
 var EDGE_TYPES = { custom: CustomEdge_default };
 var LENS_CATEGORY_COLORS = {
@@ -1609,7 +1740,7 @@ function DiagramCanvas({
     }, 120);
     return () => clearTimeout(t);
   }, [stepZoom, anyActive, activeStep, steps, fitView, fitPadding, fitMaxZoom, stepMaxZoom, baseNodes]);
-  return /* @__PURE__ */ jsxs9(
+  return /* @__PURE__ */ jsxs10(
     ReactFlow,
     {
       nodes,
@@ -1636,8 +1767,8 @@ function DiagramCanvas({
         onNodeClick(n);
       } : void 0,
       children: [
-        /* @__PURE__ */ jsx9(Background, { variant: BackgroundVariant.Dots, gap: 20, size: 1, color: `var(${vars.dot || "--dot"}, rgba(0,0,0,0.05))` }),
-        showMap && /* @__PURE__ */ jsx9(
+        /* @__PURE__ */ jsx10(Background, { variant: BackgroundVariant.Dots, gap: 20, size: 1, color: `var(${vars.dot || "--dot"}, rgba(0,0,0,0.05))` }),
+        showMap && /* @__PURE__ */ jsx10(
           MiniMap,
           {
             pannable: true,
@@ -1654,7 +1785,7 @@ function DiagramCanvas({
             }
           }
         ),
-        lensLegend && /* @__PURE__ */ jsxs9("div", { style: {
+        lensLegend && /* @__PURE__ */ jsxs10("div", { style: {
           position: "absolute",
           bottom: 14,
           left: 14,
@@ -1669,16 +1800,16 @@ function DiagramCanvas({
           boxShadow: "0 8px 24px rgba(0,0,0,.28)",
           maxWidth: 240
         }, children: [
-          /* @__PURE__ */ jsxs9("div", { style: { fontWeight: 700, marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.4, fontSize: 10.5, opacity: 0.7 }, children: [
+          /* @__PURE__ */ jsxs10("div", { style: { fontWeight: 700, marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.4, fontSize: 10.5, opacity: 0.7 }, children: [
             "Lens \xB7 ",
             lensLegend.title
           ] }),
-          /* @__PURE__ */ jsx9("div", { style: { display: "flex", flexDirection: "column", gap: 4 }, children: lensLegend.entries.map((e) => /* @__PURE__ */ jsxs9("div", { style: { display: "flex", alignItems: "center", gap: 8 }, children: [
-            /* @__PURE__ */ jsx9("span", { style: { width: 12, height: 12, borderRadius: 3, background: e.color, flexShrink: 0 } }),
-            /* @__PURE__ */ jsx9("span", { children: e.label })
+          /* @__PURE__ */ jsx10("div", { style: { display: "flex", flexDirection: "column", gap: 4 }, children: lensLegend.entries.map((e) => /* @__PURE__ */ jsxs10("div", { style: { display: "flex", alignItems: "center", gap: 8 }, children: [
+            /* @__PURE__ */ jsx10("span", { style: { width: 12, height: 12, borderRadius: 3, background: e.color, flexShrink: 0 } }),
+            /* @__PURE__ */ jsx10("span", { children: e.label })
           ] }, e.label)) })
         ] }),
-        /* @__PURE__ */ jsx9("svg", { style: { position: "absolute", width: 0, height: 0 }, children: /* @__PURE__ */ jsx9("defs", { children: /* @__PURE__ */ jsx9("marker", { id: markerId, viewBox: "0 0 10 10", refX: "8", refY: "5", markerWidth: "7", markerHeight: "7", orient: "auto-start-reverse", children: /* @__PURE__ */ jsx9("path", { d: "M 0 0 L 10 5 L 0 10 z", fill: "#4a90d9" }) }) }) })
+        /* @__PURE__ */ jsx10("svg", { style: { position: "absolute", width: 0, height: 0 }, children: /* @__PURE__ */ jsx10("defs", { children: /* @__PURE__ */ jsx10("marker", { id: markerId, viewBox: "0 0 10 10", refX: "8", refY: "5", markerWidth: "7", markerHeight: "7", orient: "auto-start-reverse", children: /* @__PURE__ */ jsx10("path", { d: "M 0 0 L 10 5 L 0 10 z", fill: "#4a90d9" }) }) }) })
       ]
     }
   );
@@ -1706,7 +1837,7 @@ function StepOverlay({
   if (!(Array.isArray(steps) && steps.length > 0 && activeStep >= 0)) return null;
   const step = steps[Math.min(activeStep, steps.length - 1)] || {};
   const cardSide = expanded ? "full" : step.cardSide || "right";
-  const card = /* @__PURE__ */ jsx9(
+  const card = /* @__PURE__ */ jsx10(
     StepCard,
     {
       steps,
@@ -1728,7 +1859,7 @@ function StepOverlay({
   );
   const scale = expanded ? 1 : cardScale;
   if (stepLayout === "drawer") {
-    return /* @__PURE__ */ jsx9(
+    return /* @__PURE__ */ jsx10(
       motion3.div,
       {
         initial: { x: 40, opacity: 0 },
@@ -1750,7 +1881,7 @@ function StepOverlay({
     );
   }
   if (stepLayout === "top") {
-    return /* @__PURE__ */ jsx9(
+    return /* @__PURE__ */ jsx10(
       motion3.div,
       {
         initial: { y: -20, opacity: 0 },
@@ -1762,11 +1893,11 @@ function StepOverlay({
     );
   }
   if (cardSide === "full") {
-    return /* @__PURE__ */ jsx9("div", { style: { position: "absolute", inset: 0, zIndex: 40, display: "flex", alignItems: "center", justifyContent: "center", padding: 32, background: dark ? "rgba(6,8,12,0.72)" : "rgba(15,23,42,0.45)", backdropFilter: "blur(6px)", pointerEvents: "none" }, children: /* @__PURE__ */ jsx9("div", { style: { width: "min(92%, 860px)" }, children: card }) });
+    return /* @__PURE__ */ jsx10("div", { style: { position: "absolute", inset: 0, zIndex: 40, display: "flex", alignItems: "center", justifyContent: "center", padding: 32, background: dark ? "rgba(6,8,12,0.72)" : "rgba(15,23,42,0.45)", backdropFilter: "blur(6px)", pointerEvents: "none" }, children: /* @__PURE__ */ jsx10("div", { style: { width: "min(92%, 860px)" }, children: card }) });
   }
   const sideMaxH = "calc(100vh - 32px)";
   const pos = cardSide === "top" ? { top: 16, left: "50%", transform: `translateX(-50%)${scale !== 1 ? ` scale(${scale})` : ""}`, transformOrigin: "top center", width: "min(88%, 900px)" } : cardSide === "left" ? { top: 16, left: 16, width: "min(46%, 640px)", maxHeight: sideMaxH, transform: scale !== 1 ? `scale(${scale})` : void 0, transformOrigin: "top left" } : { top: 16, right: 16, width: "min(46%, 640px)", maxHeight: sideMaxH, transform: scale !== 1 ? `scale(${scale})` : void 0, transformOrigin: "top right" };
-  return /* @__PURE__ */ jsx9("div", { style: { position: "absolute", zIndex: 30, pointerEvents: "none", ...pos }, children: card });
+  return /* @__PURE__ */ jsx10("div", { style: { position: "absolute", zIndex: 30, pointerEvents: "none", ...pos }, children: card });
 }
 var DELTA_LEGEND = [
   { key: "added", color: "#2E9E5B", sym: "+", label: "Added" },
@@ -1783,7 +1914,7 @@ function DeltaControls({ view, onView, summary, vars }) {
     { id: "delta", label: "Delta" },
     { id: "after", label: "After" }
   ];
-  return /* @__PURE__ */ jsxs9("div", { style: {
+  return /* @__PURE__ */ jsxs10("div", { style: {
     position: "absolute",
     top: 16,
     left: "50%",
@@ -1795,7 +1926,7 @@ function DeltaControls({ view, onView, summary, vars }) {
     gap: 8,
     pointerEvents: "none"
   }, children: [
-    /* @__PURE__ */ jsx9("div", { role: "tablist", "aria-label": "Architecture delta view", style: {
+    /* @__PURE__ */ jsx10("div", { role: "tablist", "aria-label": "Architecture delta view", style: {
       display: "flex",
       gap: 3,
       padding: 3,
@@ -1807,7 +1938,7 @@ function DeltaControls({ view, onView, summary, vars }) {
       pointerEvents: "auto"
     }, children: VIEWS.map((v) => {
       const on = view === v.id;
-      return /* @__PURE__ */ jsx9(
+      return /* @__PURE__ */ jsx10(
         "button",
         {
           type: "button",
@@ -1833,7 +1964,7 @@ function DeltaControls({ view, onView, summary, vars }) {
         v.id
       );
     }) }),
-    /* @__PURE__ */ jsx9("div", { style: {
+    /* @__PURE__ */ jsx10("div", { style: {
       display: "flex",
       gap: 10,
       padding: "6px 12px",
@@ -1845,8 +1976,8 @@ function DeltaControls({ view, onView, summary, vars }) {
       fontSize: 11.5,
       color: txt,
       pointerEvents: "auto"
-    }, children: DELTA_LEGEND.map((l) => /* @__PURE__ */ jsxs9("span", { style: { display: "flex", alignItems: "center", gap: 5 }, children: [
-      /* @__PURE__ */ jsx9("span", { style: {
+    }, children: DELTA_LEGEND.map((l) => /* @__PURE__ */ jsxs10("span", { style: { display: "flex", alignItems: "center", gap: 5 }, children: [
+      /* @__PURE__ */ jsx10("span", { style: {
         width: 16,
         height: 16,
         borderRadius: "50%",
@@ -1859,7 +1990,7 @@ function DeltaControls({ view, onView, summary, vars }) {
         fontWeight: 800,
         lineHeight: 1
       }, children: l.sym }),
-      /* @__PURE__ */ jsxs9("span", { children: [
+      /* @__PURE__ */ jsxs10("span", { children: [
         l.label,
         t ? ` ${t[l.key]}` : ""
       ] })
@@ -1905,6 +2036,10 @@ function LiveDiagram({
   langLabel,
   title,
   subtitle,
+  // Optional header band above the canvas describing what the diagram is:
+  // a string (the description), or { title, text, meta[] } — any of them a
+  // per-language map. Omit for the classic bare canvas.
+  caption,
   collapsible = false,
   defaultCollapsed = [],
   zoomOnScroll = false,
@@ -2079,7 +2214,7 @@ function LiveDiagram({
     ro.observe(el);
     return () => ro.disconnect();
   }, [attached]);
-  const canvas = /* @__PURE__ */ jsx9(
+  const canvas = /* @__PURE__ */ jsx10(
     DiagramCanvas,
     {
       data,
@@ -2117,7 +2252,7 @@ function LiveDiagram({
     }
   );
   if (attached) {
-    return /* @__PURE__ */ jsx9(ReactFlowProvider, { children: /* @__PURE__ */ jsxs9(
+    return /* @__PURE__ */ jsx10(ReactFlowProvider, { children: /* @__PURE__ */ jsxs10(
       "div",
       {
         ref: (el) => {
@@ -2141,15 +2276,15 @@ function LiveDiagram({
           transition: "grid-template-columns .35s cubic-bezier(.22,.61,.36,1), gap .35s"
         },
         children: [
-          /* @__PURE__ */ jsx9("div", { style: { position: "relative", minWidth: 0, minHeight: 0, height: "100%" }, children: canvas }),
-          /* @__PURE__ */ jsx9("div", { style: {
+          /* @__PURE__ */ jsx10("div", { style: { position: "relative", minWidth: 0, minHeight: 0, height: "100%" }, children: canvas }),
+          /* @__PURE__ */ jsx10("div", { style: {
             position: "relative",
             minWidth: 0,
             minHeight: 0,
             height: "100%",
             maxHeight: attachedNarrow ? "45%" : void 0,
             overflow: "hidden"
-          }, children: /* @__PURE__ */ jsx9(AnimatePresence3, { children: showAttachedCard && /* @__PURE__ */ jsx9(
+          }, children: /* @__PURE__ */ jsx10(AnimatePresence3, { children: showAttachedCard && /* @__PURE__ */ jsx10(
             motion3.div,
             {
               initial: { opacity: 0, x: 24 },
@@ -2157,7 +2292,7 @@ function LiveDiagram({
               exit: { opacity: 0, x: 24 },
               transition: { duration: 0.3 },
               style: { height: "100%", overflowY: "auto", pointerEvents: "auto" },
-              children: /* @__PURE__ */ jsx9(
+              children: /* @__PURE__ */ jsx10(
                 StepCard,
                 {
                   steps,
@@ -2182,9 +2317,9 @@ function LiveDiagram({
             },
             "attached-card"
           ) }) }),
-          chrome && /* @__PURE__ */ jsxs9(Fragment6, { children: [
-            nodeModal && /* @__PURE__ */ jsx9(NodeModal, { node: detailNode, onClose: () => setDetailNode(null), Icon: Icon2, strings: ui ? { iac: ui("iac", lang), pricing: ui("pricing", lang) } : void 0 }),
-            /* @__PURE__ */ jsx9(
+          chrome && /* @__PURE__ */ jsxs10(Fragment6, { children: [
+            nodeModal && /* @__PURE__ */ jsx10(NodeModal, { node: detailNode, onClose: () => setDetailNode(null), Icon: Icon2, strings: ui ? { iac: ui("iac", lang), pricing: ui("pricing", lang) } : void 0 }),
+            /* @__PURE__ */ jsx10(
               ZoomBar,
               {
                 title: tr(title, lang),
@@ -2218,178 +2353,197 @@ function LiveDiagram({
       }
     ) });
   }
+  const cap = resolveCaption(caption, lang);
+  const body = /* @__PURE__ */ jsxs10(Fragment6, { children: [
+    /* @__PURE__ */ jsx10(
+      DiagramCanvas,
+      {
+        data,
+        lang,
+        animate,
+        direction,
+        edgeStyle,
+        steps,
+        activeStep: step,
+        fitPadding,
+        stepFocus,
+        spacing,
+        stepZoom,
+        geometry,
+        nodeLayout,
+        vars: vars || {},
+        Icon: Icon2,
+        markerId,
+        reanchorEdges,
+        groupsInteractive,
+        edgeTuning: resolvedEdgeTuning,
+        onNodeClick: chrome && nodeModal ? setDetailNode : void 0,
+        collapsible,
+        collapsed,
+        onToggleCollapse,
+        zoomOnScroll,
+        minZoom,
+        maxZoom,
+        fitMaxZoom,
+        stepMaxZoom,
+        search,
+        showMap: chrome && showMap,
+        lens: chrome ? lens : 0,
+        deltaView: deltaMode ? deltaView : null
+      }
+    ),
+    /* @__PURE__ */ jsx10(
+      StepOverlay,
+      {
+        steps,
+        activeStep: step,
+        lang,
+        Icon: Icon2,
+        stepLayout: effectiveStepLayout,
+        dark: effectiveDark,
+        onPick: chrome && control === "auto" ? (i) => {
+          setPlaying(false);
+          setInternalStep(i);
+        } : void 0,
+        expanded: cardExpanded,
+        cardScale,
+        onToggleExpand: chrome ? () => setCardExpanded((v) => !v) : void 0,
+        expandLabel: ui ? ui("expand", lang) : void 0,
+        collapseLabel: ui ? ui("collapse", lang) : void 0,
+        onTextBigger: chrome ? () => setCardScaleIdx((i) => Math.min(i + 1, CARD_SCALES.length - 1)) : void 0,
+        onTextSmaller: chrome ? () => setCardScaleIdx((i) => Math.max(i - 1, 0)) : void 0,
+        canTextBigger: chrome && !cardExpanded && cardScaleIdx < CARD_SCALES.length - 1,
+        canTextSmaller: chrome && !cardExpanded && cardScaleIdx > 0,
+        textSmallerLabel: ui ? ui("textSmaller", lang) : void 0,
+        textLargerLabel: ui ? ui("textLarger", lang) : void 0
+      }
+    ),
+    chrome && searchOpen && /* @__PURE__ */ jsxs10("div", { style: {
+      position: "absolute",
+      top: 14,
+      left: "50%",
+      transform: "translateX(-50%)",
+      zIndex: 45,
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      padding: "7px 10px",
+      borderRadius: 11,
+      border: `1px solid var(${vars.border || "--border"}, rgba(0,0,0,.14))`,
+      background: `var(${vars.pillBg || "--pill-bg"}, rgba(255,255,255,.95))`,
+      backdropFilter: "blur(12px)",
+      boxShadow: "0 8px 24px rgba(0,0,0,.28)"
+    }, children: [
+      /* @__PURE__ */ jsx10("span", { style: { opacity: 0.6 }, children: "\u{1F50D}" }),
+      /* @__PURE__ */ jsx10(
+        "input",
+        {
+          ref: searchRef,
+          type: "text",
+          value: search,
+          onChange: (e) => setSearch(e.target.value),
+          onKeyDown: (e) => {
+            if (e.key === "Escape") {
+              setSearchOpen(false);
+              setSearch("");
+            }
+          },
+          placeholder: "search nodes\u2026",
+          "aria-label": "search nodes",
+          style: { background: "transparent", border: "none", outline: "none", font: "inherit", fontSize: 13, width: 190, color: `var(${vars.txt || "--txt"}, inherit)` }
+        }
+      )
+    ] }),
+    chrome && deltaMode && !presenting && /* @__PURE__ */ jsx10(DeltaControls, { view: deltaView, onView: setDeltaView, summary: data?.deltaSummary, vars: vars || {} }),
+    chrome && presenting && /* @__PURE__ */ jsx10(
+      "button",
+      {
+        onClick: togglePresent,
+        "aria-label": "exit presentation (Esc)",
+        title: "Exit presentation (Esc)",
+        style: {
+          position: "absolute",
+          top: 14,
+          right: 14,
+          zIndex: 46,
+          cursor: "pointer",
+          padding: "6px 12px",
+          borderRadius: 999,
+          font: "inherit",
+          fontSize: 12,
+          fontWeight: 600,
+          border: `1px solid var(${vars.border || "--border"}, rgba(0,0,0,.14))`,
+          background: `var(${vars.pillBg || "--pill-bg"}, rgba(255,255,255,.85))`,
+          color: `var(${vars.txt || "--txt"}, inherit)`,
+          backdropFilter: "blur(12px)",
+          opacity: 0.55,
+          transition: "opacity .2s"
+        },
+        onMouseEnter: (e) => {
+          e.currentTarget.style.opacity = "1";
+        },
+        onMouseLeave: (e) => {
+          e.currentTarget.style.opacity = ".55";
+        },
+        children: "Esc"
+      }
+    ),
+    chrome && !presenting && /* @__PURE__ */ jsxs10(Fragment6, { children: [
+      nodeModal && /* @__PURE__ */ jsx10(NodeModal, { node: detailNode, onClose: () => setDetailNode(null), Icon: Icon2, strings: ui ? { iac: ui("iac", lang), pricing: ui("pricing", lang) } : void 0 }),
+      /* @__PURE__ */ jsx10(
+        ZoomBar,
+        {
+          title: tr(title, lang),
+          subtitle: tr(subtitle, lang),
+          dark: effectiveDark,
+          visible: dockVisible,
+          onToggle: () => setDockVisible((v) => !v),
+          onTheme: toggleTheme,
+          hasWalk,
+          playing,
+          attention: hasWalk && !playing && step <= 0,
+          onPlay: () => {
+            setPlaying((p) => {
+              if (!p) setInternalStep((s) => s < 0 || s >= steps.length - 1 ? 0 : s);
+              return !p;
+            });
+          },
+          onReset: () => {
+            setPlaying(false);
+            setInternalStep(-1);
+          },
+          lang,
+          languages,
+          onLang: onLangChange,
+          ui,
+          langLabel
+        }
+      )
+    ] })
+  ] });
   return (
     // reducedMotion="user" makes every descendant framer-motion animation honor
     // the OS "reduce motion" setting (transforms/layout are skipped, opacity
     // kept) — pairs with the CSS media override that neutralizes plain CSS
     // transitions. The diagram stays fully navigable; only motion is removed.
-    /* @__PURE__ */ jsx9(MotionConfig, { reducedMotion: "user", children: /* @__PURE__ */ jsx9(ReactFlowProvider, { children: /* @__PURE__ */ jsxs9("div", { ref: frameRef, className: `ld-frame ${themeClass} ${className}`.trim(), style: { width: "100%", height: "100%", position: "relative", background: presenting ? `var(${vars.bg || "--bg"}, #fff)` : void 0 }, children: [
-      /* @__PURE__ */ jsx9(
-        DiagramCanvas,
-        {
-          data,
-          lang,
-          animate,
-          direction,
-          edgeStyle,
-          steps,
-          activeStep: step,
-          fitPadding,
-          stepFocus,
-          spacing,
-          stepZoom,
-          geometry,
-          nodeLayout,
-          vars: vars || {},
-          Icon: Icon2,
-          markerId,
-          reanchorEdges,
-          groupsInteractive,
-          edgeTuning: resolvedEdgeTuning,
-          onNodeClick: chrome && nodeModal ? setDetailNode : void 0,
-          collapsible,
-          collapsed,
-          onToggleCollapse,
-          zoomOnScroll,
-          minZoom,
-          maxZoom,
-          fitMaxZoom,
-          stepMaxZoom,
-          search,
-          showMap: chrome && showMap,
-          lens: chrome ? lens : 0,
-          deltaView: deltaMode ? deltaView : null
-        }
-      ),
-      /* @__PURE__ */ jsx9(
-        StepOverlay,
-        {
-          steps,
-          activeStep: step,
-          lang,
-          Icon: Icon2,
-          stepLayout: effectiveStepLayout,
-          dark: effectiveDark,
-          onPick: chrome && control === "auto" ? (i) => {
-            setPlaying(false);
-            setInternalStep(i);
-          } : void 0,
-          expanded: cardExpanded,
-          cardScale,
-          onToggleExpand: chrome ? () => setCardExpanded((v) => !v) : void 0,
-          expandLabel: ui ? ui("expand", lang) : void 0,
-          collapseLabel: ui ? ui("collapse", lang) : void 0,
-          onTextBigger: chrome ? () => setCardScaleIdx((i) => Math.min(i + 1, CARD_SCALES.length - 1)) : void 0,
-          onTextSmaller: chrome ? () => setCardScaleIdx((i) => Math.max(i - 1, 0)) : void 0,
-          canTextBigger: chrome && !cardExpanded && cardScaleIdx < CARD_SCALES.length - 1,
-          canTextSmaller: chrome && !cardExpanded && cardScaleIdx > 0,
-          textSmallerLabel: ui ? ui("textSmaller", lang) : void 0,
-          textLargerLabel: ui ? ui("textLarger", lang) : void 0
-        }
-      ),
-      chrome && searchOpen && /* @__PURE__ */ jsxs9("div", { style: {
-        position: "absolute",
-        top: 14,
-        left: "50%",
-        transform: "translateX(-50%)",
-        zIndex: 45,
-        display: "flex",
-        alignItems: "center",
-        gap: 8,
-        padding: "7px 10px",
-        borderRadius: 11,
-        border: `1px solid var(${vars.border || "--border"}, rgba(0,0,0,.14))`,
-        background: `var(${vars.pillBg || "--pill-bg"}, rgba(255,255,255,.95))`,
-        backdropFilter: "blur(12px)",
-        boxShadow: "0 8px 24px rgba(0,0,0,.28)"
-      }, children: [
-        /* @__PURE__ */ jsx9("span", { style: { opacity: 0.6 }, children: "\u{1F50D}" }),
-        /* @__PURE__ */ jsx9(
-          "input",
-          {
-            ref: searchRef,
-            type: "text",
-            value: search,
-            onChange: (e) => setSearch(e.target.value),
-            onKeyDown: (e) => {
-              if (e.key === "Escape") {
-                setSearchOpen(false);
-                setSearch("");
-              }
-            },
-            placeholder: "search nodes\u2026",
-            "aria-label": "search nodes",
-            style: { background: "transparent", border: "none", outline: "none", font: "inherit", fontSize: 13, width: 190, color: `var(${vars.txt || "--txt"}, inherit)` }
-          }
-        )
-      ] }),
-      chrome && deltaMode && !presenting && /* @__PURE__ */ jsx9(DeltaControls, { view: deltaView, onView: setDeltaView, summary: data?.deltaSummary, vars: vars || {} }),
-      chrome && presenting && /* @__PURE__ */ jsx9(
-        "button",
-        {
-          onClick: togglePresent,
-          "aria-label": "exit presentation (Esc)",
-          title: "Exit presentation (Esc)",
-          style: {
-            position: "absolute",
-            top: 14,
-            right: 14,
-            zIndex: 46,
-            cursor: "pointer",
-            padding: "6px 12px",
-            borderRadius: 999,
-            font: "inherit",
-            fontSize: 12,
-            fontWeight: 600,
-            border: `1px solid var(${vars.border || "--border"}, rgba(0,0,0,.14))`,
-            background: `var(${vars.pillBg || "--pill-bg"}, rgba(255,255,255,.85))`,
-            color: `var(${vars.txt || "--txt"}, inherit)`,
-            backdropFilter: "blur(12px)",
-            opacity: 0.55,
-            transition: "opacity .2s"
-          },
-          onMouseEnter: (e) => {
-            e.currentTarget.style.opacity = "1";
-          },
-          onMouseLeave: (e) => {
-            e.currentTarget.style.opacity = ".55";
-          },
-          children: "Esc"
-        }
-      ),
-      chrome && !presenting && /* @__PURE__ */ jsxs9(Fragment6, { children: [
-        nodeModal && /* @__PURE__ */ jsx9(NodeModal, { node: detailNode, onClose: () => setDetailNode(null), Icon: Icon2, strings: ui ? { iac: ui("iac", lang), pricing: ui("pricing", lang) } : void 0 }),
-        /* @__PURE__ */ jsx9(
-          ZoomBar,
-          {
-            title: tr(title, lang),
-            subtitle: tr(subtitle, lang),
-            dark: effectiveDark,
-            visible: dockVisible,
-            onToggle: () => setDockVisible((v) => !v),
-            onTheme: toggleTheme,
-            hasWalk,
-            playing,
-            attention: hasWalk && !playing && step <= 0,
-            onPlay: () => {
-              setPlaying((p) => {
-                if (!p) setInternalStep((s) => s < 0 || s >= steps.length - 1 ? 0 : s);
-                return !p;
-              });
-            },
-            onReset: () => {
-              setPlaying(false);
-              setInternalStep(-1);
-            },
-            lang,
-            languages,
-            onLang: onLangChange,
-            ui,
-            langLabel
-          }
-        )
-      ] })
-    ] }) }) })
+    /* @__PURE__ */ jsx10(MotionConfig, { reducedMotion: "user", children: /* @__PURE__ */ jsx10(ReactFlowProvider, { children: /* @__PURE__ */ jsxs10(
+      "div",
+      {
+        ref: frameRef,
+        className: `ld-frame ${themeClass} ${className}`.trim(),
+        style: {
+          width: "100%",
+          height: "100%",
+          position: "relative",
+          ...cap ? { display: "flex", flexDirection: "column" } : null,
+          background: presenting ? `var(${vars.bg || "--bg"}, #fff)` : void 0
+        },
+        children: [
+          cap && /* @__PURE__ */ jsx10(DiagramCaption_default, { caption, lang, vars: vars || {} }),
+          cap ? /* @__PURE__ */ jsx10("div", { style: { position: "relative", flex: "1 1 auto", minHeight: 0 }, children: body }) : body
+        ]
+      }
+    ) }) })
   );
 }
 var LiveDiagram_default = LiveDiagram;
@@ -2409,7 +2563,7 @@ import {
   addEdge
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { jsx as jsx10, jsxs as jsxs10 } from "react/jsx-runtime";
+import { jsx as jsx11, jsxs as jsxs11 } from "react/jsx-runtime";
 var NODE_TYPES2 = { aws: AwsNode_default, group: GroupNode_default };
 var EDGE_TYPES2 = { custom: CustomEdge_default };
 var _seq = 0;
@@ -2979,7 +3133,7 @@ function EditorCanvas({
     onContextMenu({ kind, id: obj?.id, x: e.clientX, y: e.clientY });
   }, [onContextMenu]);
   const bgVariant = bg === "lines" ? BackgroundVariant2.Lines : BackgroundVariant2.Dots;
-  return /* @__PURE__ */ jsxs10(
+  return /* @__PURE__ */ jsxs11(
     ReactFlow2,
     {
       nodes,
@@ -3010,7 +3164,7 @@ function EditorCanvas({
       fitViewOptions: { padding: 0.12, maxZoom: 1 },
       deleteKeyCode: ["Backspace", "Delete"],
       children: [
-        bg !== "plain" && /* @__PURE__ */ jsx10(
+        bg !== "plain" && /* @__PURE__ */ jsx11(
           Background2,
           {
             variant: bgVariant,
@@ -3019,21 +3173,22 @@ function EditorCanvas({
             color: `var(${vars.dot || "--dot"}, rgba(0,0,0,0.05))`
           }
         ),
-        controls && /* @__PURE__ */ jsx10(Controls, {}),
-        minimap && /* @__PURE__ */ jsx10(MiniMap2, { pannable: true, zoomable: true, nodeStrokeWidth: 2, style: { background: `var(${vars.nodeBg || "--nodeBg"}, #fff)` } }),
-        /* @__PURE__ */ jsx10("svg", { style: { position: "absolute", width: 0, height: 0 }, children: /* @__PURE__ */ jsx10("defs", { children: /* @__PURE__ */ jsx10("marker", { id: markerId, viewBox: "0 0 10 10", refX: "8", refY: "5", markerWidth: "7", markerHeight: "7", orient: "auto-start-reverse", children: /* @__PURE__ */ jsx10("path", { d: "M 0 0 L 10 5 L 0 10 z", fill: "#4a90d9" }) }) }) })
+        controls && /* @__PURE__ */ jsx11(Controls, {}),
+        minimap && /* @__PURE__ */ jsx11(MiniMap2, { pannable: true, zoomable: true, nodeStrokeWidth: 2, style: { background: `var(${vars.nodeBg || "--nodeBg"}, #fff)` } }),
+        /* @__PURE__ */ jsx11("svg", { style: { position: "absolute", width: 0, height: 0 }, children: /* @__PURE__ */ jsx11("defs", { children: /* @__PURE__ */ jsx11("marker", { id: markerId, viewBox: "0 0 10 10", refX: "8", refY: "5", markerWidth: "7", markerHeight: "7", orient: "auto-start-reverse", children: /* @__PURE__ */ jsx11("path", { d: "M 0 0 L 10 5 L 0 10 z", fill: "#4a90d9" }) }) }) })
       ]
     }
   );
 }
 var LiveDiagramEditor = forwardRef(function LiveDiagramEditor2(props, ref) {
   const { className = "", ...rest } = props;
-  return /* @__PURE__ */ jsx10(ReactFlowProvider2, { children: /* @__PURE__ */ jsx10("div", { className: `ld-frame ${className}`.trim(), style: { width: "100%", height: "100%", position: "relative" }, children: /* @__PURE__ */ jsx10(EditorCanvas, { ...rest, editorRef: ref }) }) });
+  return /* @__PURE__ */ jsx11(ReactFlowProvider2, { children: /* @__PURE__ */ jsx11("div", { className: `ld-frame ${className}`.trim(), style: { width: "100%", height: "100%", position: "relative" }, children: /* @__PURE__ */ jsx11(EditorCanvas, { ...rest, editorRef: ref }) }) });
 });
 export {
   AwsNode_default as AwsNode,
   CustomEdge_default as CustomEdge,
   DARK_VARIANT_BASES,
+  DiagramCaption,
   GroupNode_default as GroupNode,
   Icon,
   Icon_default as IconDefault,
@@ -3043,5 +3198,6 @@ export {
   NodeModal,
   StepCard,
   ZoomBar,
-  cardKit_exports as cardKit
+  cardKit_exports as cardKit,
+  resolveCaption
 };
