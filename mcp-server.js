@@ -32,7 +32,7 @@ const PKG_ROOT = new URL(".", import.meta.url).pathname;
 function iconSetNotice() {
   if (hasIcons(iconRoot())) return "";
   return "\n\n⚠️ The AWS Architecture Icons are not installed, so every node will render as a category-colored initial."
-    + "\nFix (once per machine): call setup_icons — it picks up an Asset-Package*.zip from ~/Downloads, or returns the download link to relay to the user.";
+    + "\nFix (once per machine): call setup_icons — it picks up an Icon-package*.zip (or older Asset-Package*.zip) from ~/Downloads, or returns the download link to relay to the user.";
 }
 
 // Neutral element JSON — the machine-readable diagram contract that downstream
@@ -538,9 +538,9 @@ server.tool(
 // icons land in the shared per-machine cache, so this is needed ONCE per machine.
 server.tool(
   "setup_icons",
-  "Install the AWS Architecture Icons (once per machine) so diagrams render real service icons instead of category-colored initials. Call this when a generate/validate result reports unresolved icons. With no argument it picks up the newest Asset-Package*.zip from ~/Downloads/~/Desktop; if none is there, it returns the download instructions to relay to the user. Icons install to ~/.aws-architecture-icons and are shared by every copy of this server.",
+  "Install the AWS Architecture Icons (once per machine) so diagrams render real service icons instead of category-colored initials. Call this when a generate/validate result reports unresolved icons. With no argument it picks up the newest Icon-package*.zip (or older Asset-Package*.zip) from ~/Downloads/~/Desktop; if none is there, it returns the download instructions to relay to the user. Icons install to ~/.aws-architecture-icons and are shared by every copy of this server.",
   {
-    source: z.string().optional().describe("Path to the Asset Package .zip (or an already-extracted directory). Omit to auto-detect the newest download."),
+    source: z.string().optional().describe("Path to the icon package .zip (Icon-package_<date>.zip) (or an already-extracted directory). Omit to auto-detect the newest download."),
     dest: z.string().optional().describe("Install somewhere other than the shared ~/.aws-architecture-icons cache."),
     force: z.boolean().optional().describe("Re-install even when icons are already available."),
   },
