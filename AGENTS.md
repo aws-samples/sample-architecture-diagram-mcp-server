@@ -131,7 +131,7 @@ output — author it once, embed it either way.
 
 - Icons are not bundled. If a render result warns that the icon set is missing
   (or a diagram comes out as letters), call **`setup_icons`** — it finds the
-  Asset Package zip in `~/Downloads` on its own and installs into the shared
+  icon package zip (`Icon-package_<date>.zip`) in `~/Downloads` on its own and installs into the shared
   `~/.aws-architecture-icons`, so it is needed once per machine, not once per
   install. If it finds no zip it returns the download link: relay that to the
   user, then call it again.

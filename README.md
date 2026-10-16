@@ -98,13 +98,17 @@ git clone <this-repo>
 cd sample-architecture-diagram-mcp-server
 npm install
 
-# Icons, once per MACHINE. Download the Asset Package zip from
+# Icons, once per MACHINE. Fetch the current package straight from AWS:
+./scripts/fetch-icons.sh --latest
+# ...or download Icon-package_<date>.zip from
 # https://aws.amazon.com/architecture/icons/ (leave it in ~/Downloads), then:
 ./scripts/fetch-icons.sh
 ```
 
-With no argument the script picks up the newest `Asset-Package*.zip` in
-`~/Downloads` (or `~/Desktop`, or the current directory). It installs ~810
+With no argument the script picks up the newest `Icon-package*.zip` (or an
+older `Asset-Package*.zip`) in `~/Downloads` (or `~/Desktop`, or the current
+directory); `--latest` downloads it from aws.amazon.com instead. Re-running with
+a newer package overwrites the official icons, so the cache never goes stale. It installs ~810
 official icons (services + group containers) into **`~/.aws-architecture-icons`**
 — a shared cache that every copy of this server reads, so a plugin install, an
 `npx` run and a clone all see the same icons and reinstalling never means
@@ -327,7 +331,7 @@ already authored as its own file drops in unchanged.
   "subtitle": "Developer Hub → AFT → Control Tower",
   "participants": [
     { "id": "dev", "label": "Developer", "actor": true },
-    { "id": "hub", "label": "Developer Hub", "icon": "tech-icons/rhdh.svg",
+    { "id": "hub", "label": "Developer Hub", "icon": "tech-icons/backstage.svg",
       "stereotype": "boundary" },
     { "id": "sfn", "label": "Step Functions", "service": "AWS Step Functions",
       "sub": "aft-account-provisioning" }
