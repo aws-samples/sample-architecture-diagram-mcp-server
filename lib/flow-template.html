@@ -496,7 +496,7 @@ function partiesHtml(step, set){
   if(!ids.length) return '';
   const ico=id=>{
     const n=nodeById[id];
-    if(n.icon && ICONS[n.icon]) return '<img class="pico" src="'+ICONS[n.icon]+'" alt="">';
+    if(n.icon && ICONS[n.icon]) return '<img class="pico" src="'+esc(ICONS[n.icon])+'" alt="">';
     return '<span class="pdot" style="background:'+(n.tone&&TONE[n.tone]||'var(--orange)')+'"></span>';
   };
   return ids.slice(0,8).map(id=>'<span class="pchip on">'+ico(id)+esc(nodeById[id].label||id)+'</span>').join('');

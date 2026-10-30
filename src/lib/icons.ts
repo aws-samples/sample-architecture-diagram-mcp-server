@@ -5,6 +5,12 @@
 // window.__ICONS__ at generation time, so we never depend on an external
 // /icons/ path that breaks under file://. Falls back to the dev /icons/ path
 // when no inlined map is present (e.g. the live MCP canvas served with assets).
+// Only inlined images and same-origin paths may reach an <img src>.
+function safeSrc(src?: string): string | null {
+  if (typeof src !== 'string') return null;
+  return /^data:image\//i.test(src) || /^\/(?!\/)/.test(src) ? src : null;
+}
+
 export function resolveIcon(ref?: string): string | null {
   if (!ref) return null;
   const map = (typeof window !== 'undefined' ? (window as any).__ICONS__ : null) as Record<string, string> | null;
@@ -13,11 +19,11 @@ export function resolveIcon(ref?: string): string | null {
     // at generation time. A ref that's absent couldn't be resolved on disk, so
     // render the initials fallback (null) — NOT a served "/icons/…" path, which
     // would 404 as a broken <img> and, under file://, abort PNG export.
-    return map[ref] ?? null;
+    return safeSrc(map[ref]);
   }
   // Dev/served fallback (no inlined map): "aws-icons/x.svg" keeps its prefix,
   // bare names go under /icons/.
-  return ref.includes('/') ? '/' + ref : '/icons/' + ref;
+  return safeSrc(ref.includes('/') ? '/' + ref.replace(/^\/+/, '') : '/icons/' + ref);
 }
 
 // Some icons are MONOCHROME (single dark glyph on transparent) — they vanish on
