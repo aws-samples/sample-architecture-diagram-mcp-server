@@ -25,6 +25,11 @@ export const TONE_COLORS = {
   degrade: "#F59E0B",
 };
 
+// Tri-state status (ok / not ok / partial) — check marks, status chips, table
+// cells. The walkthrough success/danger/warn hues, keyed by the status value.
+/** @type {Record<"true" | "false" | "warn", string>} */
+export const STATUS_COLORS = { true: TONE_COLORS.success, false: TONE_COLORS.danger, warn: TONE_COLORS.warn };
+
 export const TONE_META = {
   accent:  { label: "",                    glyph: "" },
   info:    { label: "Info",                glyph: "i" },
