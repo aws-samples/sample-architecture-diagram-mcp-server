@@ -101,7 +101,7 @@ const fragments = [
 ];
 
 const html = generateSequenceHtml({
-  title: "Vend de conta — OU SharedServicesPlatform",
+  title: "Vend de conta — OU SharedServices",
   subtitle: "Landing zone isolada · AFT + Control Tower + seed (Vault/RHBK/GitLab/Zabbix) + account-customizations",
   participants, events, fragments, groups,
 });

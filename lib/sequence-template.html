@@ -196,8 +196,6 @@ document.title = SEQ.title || 'Sequence diagram';
 const P = SEQ.participants;
 const idx = Object.fromEntries(P.map((p,i)=>[p.id,i]));
 const EV = SEQ.events;
-const GROUPS = SEQ.groups || [];
-const evIndexById = Object.fromEntries(EV.map((e,i)=>[e.id,i]));
 
 // Escapes quotes too: esc() also guards ATTRIBUTE values (the proof link's
 // href), where a `"` in author text would otherwise end the attribute and let
@@ -240,27 +238,12 @@ function proofHtml(p){
 }
 
 // ── layout ──────────────────────────────────────────────────────────────────
-const HAS_GROUPS = GROUPS.length>0;
-// Header box width — same formula drawHead() uses, so the column pitch below can
-// clear the WIDEST box: at 150px fixed, "Developer Hub (ns rhdh)" and
-// "Keycloak (fonte-da-verdade)" drew on top of each other.
-const headBoxW = p => Math.max(96, (p.label||'').length*6.4+18, (p.sub||'').length*5.6+18, (p.stereotype||'').length*5.6+22);
-const HEAD_W = Math.max(0, ...P.filter(p=>!p.actor).map(headBoxW));
-const COL=Math.max(150, Math.min(190, 1300/Math.max(P.length,1)), HEAD_W+16);
-const HAS_STEREO=P.some(p=>p.stereotype && !p.actor);
-const X0=95, TOPPAD=HAS_GROUPS?26:0, HEAD_Y=16+TOPPAD, HEAD_H=P.some(p=>p.icon)?(HAS_STEREO?64:58):(HAS_STEREO?52:46);
-const LIFE_TOP=HEAD_Y+HEAD_H, ROW0=LIFE_TOP+52, ROW=62;
-// Group gutter: adjacent group boxes get air between them instead of sharing an
-// edge (same reading as the architecture containers). Crossing a group boundary
-// shifts every column to its right by GUT.
-const GUT=34;
-const groupOf = P.map(p => { const i = GROUPS.findIndex(g=>(g.participants||[]).includes(p.id)); return i<0?null:i; });
-const XS=[]; let _shift=0;
-P.forEach((_,i)=>{ if(i>0 && groupOf[i]!==groupOf[i-1]) _shift+=GUT; XS.push(X0 + i*COL + _shift); });
-const W = (XS.length?XS[XS.length-1]:X0) + 95;
-const H = ROW0 + EV.length*ROW + 40;
-const cx = i => (XS[i]!=null ? XS[i] : X0 + i*COL);
-const rowY = n => ROW0 + n*ROW;
+// The geometry is shared with the React <SequencePlayer> of
+// @aws-sample-live-diagram/core: the generator inlines its sequenceLayout.js
+// here, so both renderers place columns, rows, bars, fragments and arrows alike.
+/*__SEQ_LAYOUT__*/
+const L = layoutSequence(SEQ, { tones: TONE });
+const { COL, ROW, HEAD_Y, HEAD_H, W, H, cx, rowY, pStartStep, pEndStep, headTopOf, lifeTopOf, lifeBotOf, eventParticipants, acts } = L;
 const svg = document.getElementById('svg');
 svg.setAttribute('viewBox','0 0 '+W+' '+H); svg.setAttribute('width',W); svg.setAttribute('height',H);
 const NS='http://www.w3.org/2000/svg';
@@ -278,32 +261,14 @@ const defs=el('defs');
 });
 svg.appendChild(defs);
 
-// create/destroy rows per participant id (UML instance creation / destruction)
-const createRow={}, destroyRow={};
-EV.forEach((e,n)=>{ if(e.kind==='message'){
-  if(e.create && e.to!=null) createRow[e.to]=n;
-  if(e.destroy && e.to!=null) destroyRow[e.to]=n;
-}});
-const pStartStep = P.map(p => createRow[p.id]!=null ? createRow[p.id] : -1);
-const pEndStep   = P.map(p => destroyRow[p.id]!=null ? destroyRow[p.id] : -1);
-const headTopOf  = i => pStartStep[i]>=0 ? rowY(pStartStep[i])-HEAD_H/2 : HEAD_Y;
-const lifeTopOf  = i => pStartStep[i]>=0 ? rowY(pStartStep[i])+HEAD_H/2 : LIFE_TOP;
-const lifeBotOf  = i => pEndStep[i]>=0 ? rowY(pEndStep[i]) : H-24;
-
 // ── group (aggregation) containers ──────────────────────────────────────────
-GROUPS.forEach(gr=>{
-  const cols=(gr.participants||[]).map(id=>idx[id]).filter(v=>v!=null);
-  if(!cols.length) return;
-  const a=Math.min(...cols), b=Math.max(...cols);
-  const x=cx(a)-COL*0.44, w=cx(b)-cx(a)+COL*0.88;
-  const col=TONE[gr.tone]||'#8593a3';
+L.groupBoxes.forEach(gb=>{
   const g=el('g',{class:'grp'});
-  g.appendChild(el('rect',{x,y:8,width:w,height:H-8-14,rx:8,stroke:col}));
-  const tw=Math.max(60,(gr.label.length)*6.6+16);
+  g.appendChild(el('rect',{x:gb.x,y:8,width:gb.w,height:H-8-14,rx:8,stroke:gb.color}));
   // inline style, not a `fill` attribute: `.grp rect` would otherwise win over it
   // and leave the white label text sitting on a pale box.
-  g.appendChild(el('rect',{class:'gtabbg',x,y:8,width:tw,height:18,rx:4,style:`fill:${col}`}));
-  const t=el('text',{class:'gtab',x:x+8,y:21}); t.textContent=gr.label; g.appendChild(t);
+  g.appendChild(el('rect',{class:'gtabbg',x:gb.x,y:8,width:gb.tw,height:18,rx:4,style:`fill:${gb.color}`}));
+  const t=el('text',{class:'gtab',x:gb.x+8,y:21}); t.textContent=gb.label; g.appendChild(t);
   svg.appendChild(g);
 });
 
@@ -321,36 +286,6 @@ P.forEach((p,i)=>{
 });
 
 // ── activation / execution bars ──────────────────────────────────────────────
-function computeActs(){
-  const explicit = EV.some(e=>e.kind==='message' && (e.activate||e.deactivate));
-  if(explicit){
-    const stacks={}, out=[];
-    EV.forEach((e,n)=>{
-      if(e.kind!=='message') return;
-      if(e.activate && idx[e.to]!=null){ const p=idx[e.to]; (stacks[p]=stacks[p]||[]).push({p,from:n,to:n}); }
-      if(e.deactivate && idx[e.from]!=null){ const p=idx[e.from]; const st=stacks[p]; if(st&&st.length){ const a=st.pop(); a.to=n; out.push(a);} }
-    });
-    Object.values(stacks).forEach(st=>st.forEach(a=>{ a.to=EV.length-1; out.push(a); }));
-    return out;
-  }
-  if(SEQ.autoActivate===false) return [];
-  const raw=[];
-  EV.forEach((e,n)=>{
-    if(e.kind!=='message'||e.found||e.from===e.to) return;
-    const p=idx[e.to]; if(p==null) return;
-    let end=n;
-    for(let m=n+1;m<EV.length;m++){ const e2=EV[m]; if(e2.kind==='message'&&idx[e2.from]===p){ end=m; break; } }
-    raw.push({p,from:n,to:end});
-  });
-  const byP={}; raw.forEach(a=>{ (byP[a.p]=byP[a.p]||[]).push(a); });
-  const merged=[];
-  Object.keys(byP).forEach(k=>{
-    const arr=byP[k].sort((a,b)=>a.from-b.from); let cur=null;
-    arr.forEach(a=>{ if(cur && a.from<=cur.to){ cur.to=Math.max(cur.to,a.to); } else { cur={p:+k,from:a.from,to:a.to}; merged.push(cur); } });
-  });
-  return merged;
-}
-const acts=computeActs();
 const execEls=[];
 acts.forEach(a=>{
   const x=cx(a.p)-4.5, y=rowY(a.from)-8, h=Math.max(18, rowY(a.to)-rowY(a.from)+16);
@@ -360,91 +295,51 @@ acts.forEach(a=>{
 });
 
 // ── combined fragments (alt/opt/loop/par/break/critical/ref/neg/assert) ──────
-function eventParticipants(e){
-  const s=new Set();
-  if(e.kind==='note'){ (e.over||[]).forEach(o=>{ if(idx[o]!=null)s.add(idx[o]); }); }
-  else {
-    if(!e.found && idx[e.from]!=null)s.add(idx[e.from]);
-    if(!e.lost && idx[e.to]!=null)s.add(idx[e.to]);
-  }
-  return [...s];
-}
 const fragEls=[];
-(SEQ.fragments||[]).forEach(fr=>{
-  const start=evIndexById[fr.startId], end=evIndexById[fr.endId];
-  if(start==null||end==null) return;
-  const parts=new Set();
-  for(let i=start;i<=end;i++) eventParticipants(EV[i]).forEach(p=>parts.add(p));
-  if(!parts.size) return;
-  const col=TONE[fr.tone]||'#5f6b7a';
-  const xmin=cx(Math.min(...parts))-48, xmax=cx(Math.max(...parts))+48;
-  const y1=rowY(start)-32, y2=rowY(end)+22;
-  const fg=el('g',{class:'frame'}); fg.style.opacity=0; fg.dataset.start=start;
-  fg.appendChild(el('rect',{x:xmin,y:y1,width:xmax-xmin,height:y2-y1,rx:6,stroke:col}));
+L.frames.forEach(f=>{
+  const fr=f.fr, xmin=f.xmin, xmax=f.xmax, y1=f.y1, y2=f.y2;
+  const fg=el('g',{class:'frame'}); fg.style.opacity=0; fg.dataset.start=f.start;
+  fg.appendChild(el('rect',{x:xmin,y:y1,width:xmax-xmin,height:y2-y1,rx:6,stroke:f.color}));
   const tabw=Math.max(70, (fr.kind.length+fr.label.length)*6+24);
-  fg.appendChild(el('rect',{class:'flabelbg',x:xmin,y:y1,width:tabw,height:17,style:`fill:${col}`}));
+  fg.appendChild(el('rect',{class:'flabelbg',x:xmin,y:y1,width:tabw,height:17,style:`fill:${f.color}`}));
   const ft=el('text',{class:'flabel',x:xmin+7,y:y1+13}); ft.textContent=fr.kind+'  '+fr.label; fg.appendChild(ft);
-  (fr.dividers||[]).forEach(d=>{
-    const at=evIndexById[d.beforeId]; if(at==null) return;
-    const ey=rowY(at)-32;
-    const line=el('line',{class:'elsediv',x1:xmin,y1:ey,x2:xmax,y2:ey}); line.style.opacity=0; line.dataset.at=at; fg.appendChild(line);
-    const tx=el('text',{class:'elsetxt',x:xmin+7,y:ey-4}); tx.textContent=d.label; tx.style.opacity=0; tx.dataset.at=at; fg.appendChild(tx);
+  f.dividers.forEach(d=>{
+    const ey=rowY(d.at)-32;
+    const line=el('line',{class:'elsediv',x1:xmin,y1:ey,x2:xmax,y2:ey}); line.style.opacity=0; line.dataset.at=d.at; fg.appendChild(line);
+    const tx=el('text',{class:'elsetxt',x:xmin+7,y:ey-4}); tx.textContent=d.label; tx.style.opacity=0; tx.dataset.at=d.at; fg.appendChild(tx);
   });
   svg.appendChild(fg); fragEls.push(fg);
 });
 
 // ── messages ─────────────────────────────────────────────────────────────────
+// One geometry descriptor per event (L.evGeom): arrow class/marker and the
+// endpoints already resolved (a «create» message is drawn like a reply — dashed
+// with an open head onto the new object's box; found/lost get a boundary dot).
 const evEls=[];
 EV.forEach((e,n)=>{
-  const y=rowY(n);
-  // arrow semantics
-  const kind = e.kind==='message' ? (e.arrow || (e.style==='dashed'?'reply':'sync')) : null;
-  const isReply = kind==='reply';
-  const isCreate = e.kind==='message' && e.create;
-  // UML: a «create» message is a dashed line with an open arrowhead onto the new
-  // object's box — render it like a reply line (dashed/open), not a solid call.
-  const cls = e.kind==='note' ? 'note' : (isReply||isCreate ? 'ret' : 'msg');
-  const marker = (isReply||isCreate) ? 'aor' : (kind==='async' ? 'ao' : 'ah');
-  const g=el('g',{class:'evt '+cls,'data-step':n});
-  if(e.kind==='note'){
-    // `over` is a SET of lifelines, not a range: leftmost/rightmost column, so a
-    // note authored back-to-front still gets a positive width.
-    const cols=(e.over||[]).map(o=>idx[o]).filter(v=>v!=null);
-    const x1=cx(Math.min(...cols))-56, x2=cx(Math.max(...cols))+56;
-    g.appendChild(el('rect',{x:x1,y:y-15,width:x2-x1,height:26,rx:5}));
-    const t=el('text',{x:(x1+x2)/2,y:y+2,'text-anchor':'middle'}); t.textContent=e.label; g.appendChild(t);
-  } else if(e.found || e.lost){
-    // boundary dot on the outside end
-    const anchorId = e.found ? e.to : e.from;
-    const ai = idx[anchorId]; if(ai==null){ svg.appendChild(g); evEls.push(g); return; }
-    const side = ai===0 ? 1 : -1;             // put dot to the right if leftmost, else left
-    const dotx = cx(ai) + side*64;
-    const xa = e.found ? dotx : cx(ai);
-    const xb = e.found ? cx(ai) : dotx;
-    const dir = xb>xa?1:-1;
-    g.appendChild(el('circle',{class:'bdot',cx:dotx,cy:y,r:5}));
-    g.appendChild(el('path',{class:'line',d:'M'+xa+','+y+' L'+(xb-dir*6)+','+y,'marker-end':'url(#'+marker+')'}));
-    const t=el('text',{class:'lbl',x:(xa+xb)/2,y:y-6,'text-anchor':'middle'}); t.textContent=e.label||''; g.appendChild(t);
-  } else if(e.from===e.to){
-    const x=cx(idx[e.from]);
-    g.appendChild(el('path',{class:'line',d:'M'+(x+4)+','+y+' h34 v20 h-34','marker-end':'url(#'+marker+')'}));
-    const t=el('text',{class:'lbl',x:x+46,y:y+13}); t.textContent=e.label||''; g.appendChild(t);
-  } else {
-    const xa=cx(idx[e.from]), xb=cx(idx[e.to]); const dir=xb>xa?1:-1;
-    // shorten onto the activation-bar edge, or onto the created box edge
-    const endPad = e.create ? 46 : 5;
-    const x2=xb-dir*endPad;
-    g.appendChild(el('path',{class:'line',d:'M'+(xa+dir*4)+','+y+' L'+x2+','+y,'marker-end':'url(#'+marker+')'}));
-    const t=el('text',{class:'lbl',x:(xa+xb)/2,y:y-6,'text-anchor':'middle'}); t.textContent=e.label||''; g.appendChild(t);
-    if(e.create){ const c=el('text',{class:'lbl',x:(xa+xb)/2,y:y+11,'text-anchor':'middle','font-style':'italic'}); c.setAttribute('fill','currentColor'); c.textContent='«create»'; g.appendChild(c); }
+  const geo=L.evGeom[n], y=geo.y;
+  const g=el('g',{class:'evt '+geo.cls,'data-step':n});
+  const marker='url(#'+geo.marker+')';
+  if(geo.shape==='note'){
+    g.appendChild(el('rect',{x:geo.x1,y:y-15,width:geo.x2-geo.x1,height:26,rx:5}));
+    const t=el('text',{x:(geo.x1+geo.x2)/2,y:y+2,'text-anchor':'middle'}); t.textContent=e.label; g.appendChild(t);
+  } else if(geo.shape==='boundary'){
+    g.appendChild(el('circle',{class:'bdot',cx:geo.dotx,cy:y,r:5}));
+    g.appendChild(el('path',{class:'line',d:'M'+geo.x1+','+y+' L'+geo.x2+','+y,'marker-end':marker}));
+    const t=el('text',{class:'lbl',x:geo.mid,y:y-6,'text-anchor':'middle'}); t.textContent=e.label||''; g.appendChild(t);
+  } else if(geo.shape==='self'){
+    g.appendChild(el('path',{class:'line',d:'M'+(geo.x+4)+','+y+' h34 v20 h-34','marker-end':marker}));
+    const t=el('text',{class:'lbl',x:geo.x+46,y:y+13}); t.textContent=e.label||''; g.appendChild(t);
+  } else if(geo.shape==='arrow'){
+    g.appendChild(el('path',{class:'line',d:'M'+geo.x1+','+y+' L'+geo.x2+','+y,'marker-end':marker}));
+    const t=el('text',{class:'lbl',x:geo.mid,y:y-6,'text-anchor':'middle'}); t.textContent=e.label||''; g.appendChild(t);
+    if(geo.isCreate){ const c=el('text',{class:'lbl',x:geo.mid,y:y+11,'text-anchor':'middle','font-style':'italic'}); c.setAttribute('fill','currentColor'); c.textContent='«create»'; g.appendChild(c); }
   }
   svg.appendChild(g); evEls.push(g);
 });
 evEls.forEach((g,n)=>{
   const line=g.querySelector('.line');
-  const e=EV[n];
-  const isReply = e.kind==='message' && (e.arrow==='reply' || (!e.arrow && e.style==='dashed'));
-  if(line && !isReply && !e.create){ g.style.setProperty('--len', line.getTotalLength()); }
+  if(line && L.evGeom[n].drawOn){ g.style.setProperty('--len', line.getTotalLength()); }
 });
 
 // ── headers (drawn last so they sit above bars/arrows) ───────────────────────

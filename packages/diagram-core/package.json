@@ -1,6 +1,6 @@
 {
   "name": "@aws-sample-live-diagram/core",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "Diagram vocabulary and renderers shared by the aws-live-diagram MCP and downstream apps (slides): tone palette and player theme, group variants, membership, layout primitives, i18n, the flow layout, typed-diagram specs (./typed), and React components (./react: LiveDiagram, FlowPlayer, SequencePlayer; ./typed-react: typed-diagram SVG views).",
   "license": "MIT-0",
   "type": "module",

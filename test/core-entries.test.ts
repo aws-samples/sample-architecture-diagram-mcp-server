@@ -53,8 +53,14 @@ describe('HTML players take layout + palette from the core', () => {
   });
   it('sequence HTML has no placeholder left and carries the shared palette', () => {
     const html = generateSequenceHtml({ title: 'S', participants: [{ id: 'a', label: 'A' }, { id: 'b', label: 'B' }], events: [{ kind: 'message', id: 'm', from: 'a', to: 'b', label: 'hi' }] } as any);
-    expect(html).not.toMatch(/__TONES__|__THEME_CSS__/);
+    expect(html).not.toMatch(/__TONES__|__THEME_CSS__|__SEQ_LAYOUT__/);
+    expect(html).toContain('function layoutSequence(');
     expect(html).toContain(`--danger:${core.PLAYER_TONES.danger}`);
+  });
+  it('the sequence layout is the core one (same geometry in both renderers)', () => {
+    const L = core.layoutSequence({ participants: [{ id: 'a', label: 'A' }, { id: 'b', label: 'B' }], events: [{ kind: 'message', id: 'm', from: 'a', to: 'b', label: 'hi' }] }, { tones: core.PLAYER_TONES });
+    expect(L.evGeom[0]).toMatchObject({ shape: 'arrow', cls: 'msg', marker: 'ah' });
+    expect(L.acts).toHaveLength(1);
   });
   it('the flow layout is the core one (same geometry in both renderers)', () => {
     const L = core.layoutFlow(flow, {});

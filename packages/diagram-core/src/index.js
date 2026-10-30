@@ -16,6 +16,8 @@ export * from "./diagramModel.js";
 // Flow-diagram layout (workflow / data-flow / lifecycle) — the one layered
 // layout shared by the MCP's HTML flow player and <FlowPlayer>. Pure.
 export { layoutFlow, flowActiveSet, flowFrame } from "./flowLayout.js";
+// UML sequence layout — shared by <SequencePlayer> and the MCP's HTML player. Pure.
+export { layoutSequence, sequenceHeadBoxW } from "./sequenceLayout.js";
 // NOTE: layoutEngine (elkLayout/compoundLayout) is NOT re-exported here — it
 // pulls elkjs + dagre. Import it from "@aws-sample-live-diagram/core/layout-engine" so
 // the pure "." entry stays dependency-free.

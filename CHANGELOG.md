@@ -4,6 +4,15 @@ All notable changes to the AWS Architecture Diagram MCP server are documented he
 
 ## [Unreleased]
 
+## [2.2.1] — 2026-10-30
+
+- **One sequence layout.** `diagram-core` 1.5.0 exports `layoutSequence` (pure):
+  the React `SequencePlayer` and the self-contained sequence HTML player both
+  lay out from it (the generator inlines it, as it already does for the flow
+  layout). Output is unchanged — the SVG is identical element for element.
+- **Examples** — the account-vend sequence example and two code comments no
+  longer name a customer environment.
+
 ## [2.2.0] — 2026-10-30
 
 - **Typed diagrams in the core and in the MCP's HTML.** The 15 typed diagram

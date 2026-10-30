@@ -36,7 +36,7 @@ function GroupNode({ data, selected }) {
   // service nodes. The reserved header band (groupPadTop) absorbs the extra
   // lines, so children are never pushed into.
   // Line budget is driven by the container's WIDTH, not only by the name length:
-  // a 27-char name with one long token ("OU SharedServicesPlatform") needs a
+  // a 25-char name with one long token ("OU SharedServicesPlatform") needs a
   // third line in a narrow box. Three lines is therefore the floor, and the
   // reserved header band still absorbs it.
   const longLbl = label.length > 30, veryLongLbl = label.length > 48;
