@@ -112,6 +112,11 @@ declare function NumberedSteps({ items, color, Icon }: {
     color: any;
     Icon: any;
 }): react.JSX.Element;
+declare function wsTail(a: any): any;
+declare function splitLead(t: any): {
+    strong: string;
+    text: any;
+};
 declare function Bullets({ items, color, Icon }: {
     items: any;
     color: any;
@@ -143,8 +148,10 @@ declare const cardKit_NumberedSteps: typeof NumberedSteps;
 declare const cardKit_Section: typeof Section;
 declare const cardKit_mdInline: typeof mdInline;
 declare const cardKit_resolveVariant: typeof resolveVariant;
+declare const cardKit_splitLead: typeof splitLead;
+declare const cardKit_wsTail: typeof wsTail;
 declare namespace cardKit {
-  export { cardKit_Body as Body, cardKit_Bullets as Bullets, cardKit_CardHeader as CardHeader, cardKit_CardShell as CardShell, cardKit_Chips as Chips, cardKit_CodeBlock as CodeBlock, cardKit_IconTile as IconTile, cardKit_KeyValues as KeyValues, cardKit_NumberedSteps as NumberedSteps, cardKit_Section as Section, cardKit_mdInline as mdInline, cardKit_resolveVariant as resolveVariant };
+  export { cardKit_Body as Body, cardKit_Bullets as Bullets, cardKit_CardHeader as CardHeader, cardKit_CardShell as CardShell, cardKit_Chips as Chips, cardKit_CodeBlock as CodeBlock, cardKit_IconTile as IconTile, cardKit_KeyValues as KeyValues, cardKit_NumberedSteps as NumberedSteps, cardKit_Section as Section, cardKit_mdInline as mdInline, cardKit_resolveVariant as resolveVariant, cardKit_splitLead as splitLead, cardKit_wsTail as wsTail };
 }
 
 declare const LiveDiagramEditor: react.ForwardRefExoticComponent<react.RefAttributes<any>>;

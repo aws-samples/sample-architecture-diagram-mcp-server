@@ -15,6 +15,7 @@
 // the rail (see StandaloneApp), so the band always sits at the very top.
 import React from "react";
 import { tr } from "../i18n.js";
+import { wsTail } from "./cardKit.jsx";
 
 const ORANGE = "#FF9900";
 
@@ -37,9 +38,13 @@ export function resolveCaption(caption, lang = "en") {
 // "Ambiente: produção" reads as a labelled fact, not a tag — so split it into a
 // stat (tiny uppercase label over the value). Anything without a "Label: value"
 // shape stays a single line, sized like the value.
-function splitStat(s) {
-  const m = /^\s*([^:]{2,22}):\s+(.+)$/.exec(s);
-  return m ? { label: m[1], value: m[2] } : { label: null, value: s };
+// Same result as /^\s*([^:]{2,22}):\s+(.+)$/, which backtracks quadratically
+// on long runs of spaces.
+export function splitStat(s) {
+  const str = String(s), i = str.indexOf(":");
+  const k = Math.min(str.length - str.trimStart().length, i - 2);
+  const value = i >= 2 && i - k <= 22 ? wsTail(str.slice(i + 1)) : null;
+  return value != null ? { label: str.slice(k, i), value } : { label: null, value: s };
 }
 
 export function DiagramCaption({ caption, lang = "en", vars = {} }) {
