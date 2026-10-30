@@ -47,7 +47,7 @@ const SEQ_CSS = `
      scoped to .ld-seqp so the class names in SequenceDiagram.tsx stay identical
      to the original renderer's. Tokens: the shared player theme (playerTheme.js);
      inside the MCP's .ld-frame the base chrome tokens come from the frame. */
-  ${playerThemeCss('.ld-seqp', '.ld-seqp[data-theme="dark"],:where(.dark) .ld-seqp:not([data-theme="light"])')}
+  ${playerThemeCss('.ld-seqp', '.ld-seqp[data-theme="dark"],:where(.dark) .ld-seqp:not([data-theme="light"])', ':where(.dark .light,.dark .force-light) .ld-seqp:not([data-theme="dark"])')}
   .ld-frame .ld-seqp { --bg: inherit; --txt: inherit; --txt-muted: inherit; --border: inherit; --card-bg: inherit; --dot: inherit; --chip-bg: inherit; --pill-bg: inherit; }
 
   .ld-seqp { position: relative; flex: 1; min-width: 0; min-height: 0; overflow: hidden; background: var(--bg); }

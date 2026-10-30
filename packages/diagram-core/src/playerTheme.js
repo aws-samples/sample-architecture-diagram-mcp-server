@@ -27,7 +27,10 @@ export const PLAYER_THEME = {
 
 const decl = (vars) => Object.entries(vars).map(([k, v]) => `--${k}:${v}`).join(";");
 
-/** CSS rules setting the player tokens: `light` on `lightSel`, `dark` on `darkSel`. */
-export function playerThemeCss(lightSel = ':root,[data-theme="light"]', darkSel = '[data-theme="dark"]') {
-  return `${lightSel}{${decl(PLAYER_THEME.light)}}\n${darkSel}{${decl(PLAYER_THEME.dark)}}`;
+/** CSS rules setting the player tokens: `light` on `lightSel`, `dark` on
+ *  `darkSel`, and — last, so it wins — `light` again on `forceLightSel` (a light
+ *  island inside a dark page: previews, exports, light template slides). */
+export function playerThemeCss(lightSel = ':root,[data-theme="light"]', darkSel = '[data-theme="dark"]', forceLightSel = '') {
+  const light = decl(PLAYER_THEME.light);
+  return `${lightSel}{${light}}\n${darkSel}{${decl(PLAYER_THEME.dark)}}` + (forceLightSel ? `\n${forceLightSel}{${light}}` : '');
 }

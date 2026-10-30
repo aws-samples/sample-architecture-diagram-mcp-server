@@ -4,6 +4,32 @@ All notable changes to the AWS Architecture Diagram MCP server are documented he
 
 ## [Unreleased]
 
+## [2.1.4] — 2026-10-30
+
+- **`diagram-core` 1.3.0 — the players move into the core.** `FlowPlayer`
+  (workflow / data-flow / lifecycle) and `SequencePlayer` (UML sequence) are now
+  core React components, alongside `LiveDiagram`. The MCP's sequence tab renders
+  with `SequencePlayer`; apps (e.g. a slides deck) import both directly, so a
+  flow or sequence reads exactly as in the MCP's HTML.
+- **One layout, one palette.** The flow layout (`layoutFlow`), the player
+  palette (`PLAYER_TONES`, `DIAGRAM_TONES`) and light/dark tokens
+  (`PLAYER_THEME`, `playerThemeCss`) live in the core; the self-contained flow
+  and sequence HTML players inline them instead of carrying copies. Edge labels
+  sit at the arc-length midpoint in both renderers. Also new: `AWS_ORANGE`,
+  `STATUS_COLORS`, and the UI chrome strings (`UI_STRINGS`, `makeUi`).
+- **Build** — one file per core entry (no hashed chunks); the pure vocabulary
+  is bundled once, in `dist/index.js`. `packages/diagram-core/dist/` is no longer
+  committed: `npm test` and `build:standalone` build it first, and the release
+  workflow builds it before `npm pack`.
+- **Fix** — the dagre fallback layout emitted nested groups innermost-first,
+  so an outer container was drawn over its inner ones.
+- **Types** — optional component props are typed optional; `npm run typecheck`
+  runs in CI.
+- **Cleanup** — removed the pre-core copies under `src/components/` and
+  `src/lib/` (codegen, codeview, drawio/PNG export, compound layout, tone/group
+  shims) and the tests that only exercised them; the group and membership tests
+  now run against the core.
+
 ## [2.1.3] — 2026-10-30
 
 - The shared render package is renamed `@aws-live-diagram/core` →

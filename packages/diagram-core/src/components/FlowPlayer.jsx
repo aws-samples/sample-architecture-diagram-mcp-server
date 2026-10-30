@@ -69,9 +69,10 @@ const LEGENDS = {
 };
 
 // Styles: the HTML player's, scoped under .lfd (light by default; dark via
-// theme="dark" or a `.dark` ancestor when no theme is forced).
+// theme="dark" or a `.dark` ancestor; a `.light`/`.force-light` island inside
+// a dark page stays light).
 const CSS = `
-${playerThemeCss(".lfd", '.lfd[data-theme="dark"],:where(.dark) .lfd:not([data-theme="light"])')}
+${playerThemeCss(".lfd", '.lfd[data-theme="dark"],:where(.dark) .lfd:not([data-theme="light"])', ':where(.dark .light,.dark .force-light) .lfd:not([data-theme="dark"])')}
 .lfd{position:relative;width:100%;height:100%;overflow:hidden;color:var(--txt);font-family:'Amazon Ember','Helvetica Neue',Helvetica,Arial,sans-serif;user-select:none;touch-action:none;
   background:linear-gradient(90deg,var(--grid) 1px,transparent 1px) 0 0/40px 40px,linear-gradient(0deg,var(--grid) 1px,transparent 1px) 0 0/40px 40px,var(--bg)}
 .lfd.lfd-bare{background:linear-gradient(90deg,var(--grid) 1px,transparent 1px) 0 0/40px 40px,linear-gradient(0deg,var(--grid) 1px,transparent 1px) 0 0/40px 40px}

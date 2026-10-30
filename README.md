@@ -396,15 +396,19 @@ npm test                    # run the vitest unit suite
 node mcp-server.js          # run the MCP server over stdio
 ```
 
-The repo is an npm workspace. The React render layer (nodes, edges, group
-containers, walkthrough cards, layout engine) lives in
-`packages/diagram-core` (`@aws-sample-live-diagram/core`) and is shared by the standalone
-app in `standalone/` + `src/`. The MCP server and Node-side generators live in
+The repo is an npm workspace. The render layer — the architecture canvas
+(nodes, edges, group containers, walkthrough cards, layout engine), the flow and
+sequence players, the palette/theme tokens and the UI strings — lives in
+`packages/diagram-core` (`@aws-sample-live-diagram/core`, see its README) and is
+shared by the standalone app in `standalone/` + `src/`, by the self-contained
+flow/sequence HTML players (which inline its layout and tokens) and by apps that
+install it from a release. The MCP server and Node-side generators live in
 `mcp-server.js` + `lib/`; `lib/schemas.js` is the single source of truth for the
 input shape (imported by both the tools and the local example generators).
 `lib/html-generator.js` injects the diagram data and base64-inlined icons into
 the built `dist/index.html`. Tests (`test/`) cover the pure generators — icon
-resolution, IaC handoff, draw.io XML, and service-config integrity.
+resolution, draw.io XML, service-config integrity, the core entries — and
+`npm run typecheck` checks the standalone app against the core's types.
 
 ## Containers & nesting
 
