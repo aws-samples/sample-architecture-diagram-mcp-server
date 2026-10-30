@@ -4,6 +4,11 @@ All notable changes to the AWS Architecture Diagram MCP server are documented he
 
 ## [Unreleased]
 
+- `diagram-core`: `stepLayout: "below"` stacks the walkthrough card under the
+  canvas. The `attached` and `below` layouts keep step zoom and refit whenever
+  the canvas box changes, so the focused nodes are no longer clipped behind
+  the card track.
+
 ## [2.1.2] — 2026-10-30
 
 - **Security** — dependency advisories cleared: `@modelcontextprotocol/sdk`
