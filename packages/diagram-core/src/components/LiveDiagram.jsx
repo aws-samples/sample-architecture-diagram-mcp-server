@@ -484,27 +484,27 @@ function DeltaControls({ view, onView, summary, vars }) {
 }
 
 export function LiveDiagram({
-  data, lang = "en", animate = true, direction, edgeStyle,
-  steps, activeStep, stepLayout = "overlay", fitPadding = 0.09, stepFocus = false,
+  data, lang = "en", animate = true, direction = undefined, edgeStyle = undefined,
+  steps = undefined, activeStep = undefined, stepLayout = "overlay", fitPadding = 0.09, stepFocus = false,
   spacing = 1, stepZoom = false, className = "",
   // unification props (sensible slides-friendly defaults):
-  geometry, nodeLayout = "horizontal", vars = {}, Icon,
+  geometry = undefined, nodeLayout = "horizontal", vars = {}, Icon = undefined,
   markerId = "ld-arrow", reanchorEdges = false, groupsInteractive = false,
-  edgeTuning, flowDots = true, control = "controlled", chrome = false, theme = "host",
+  edgeTuning = undefined, flowDots = true, control = "controlled", chrome = false, theme = "host",
   // Controlled theme (host-driven): when `dark` is a boolean the diagram uses it
   // instead of its internal selfDark, and the ZoomBar's ☾/☀ button calls
   // onThemeChange(nextDark) so the HOST can flip its own theme too (two-way sync
   // without a store). Leave undefined for the legacy self/host behavior.
-  dark: darkProp, onThemeChange,
-  languages = [], onLangChange, ui, langLabel, title, subtitle,
+  dark: darkProp = undefined, onThemeChange = undefined,
+  languages = [], onLangChange = undefined, ui = undefined, langLabel = undefined, title = undefined, subtitle = undefined,
   // Optional header band above the canvas describing what the diagram is:
   // a string (the description), or { title, text, meta[] } — any of them a
   // per-language map. Omit for the classic bare canvas.
-  caption,
+  caption = undefined,
   collapsible = false, defaultCollapsed = [], zoomOnScroll = false,
   nodeModal = true, startStep = -1, startCardScale = 0,
   // Zoom bounds/caps — forwarded to the canvas (see DiagramCanvas jsdoc).
-  minZoom = 0.1, maxZoom = 3, fitMaxZoom, stepMaxZoom = 2.2,
+  minZoom = 0.1, maxZoom = 3, fitMaxZoom = undefined, stepMaxZoom = 2.2,
 }) {
   // flowDots=false turns off the animated dot travelling along every edge, for a
   // static-arrow look. Merged into edgeTuning (spread onto each edge's data), so

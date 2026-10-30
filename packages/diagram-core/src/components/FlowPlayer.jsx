@@ -190,8 +190,8 @@ function FlowNode({ n, m, x, y, iconSrc, cls }) {
 }
 
 export function FlowPlayer({
-  flow, activeStep, onStepChange, iconUrl, theme, card = true, controls = false, interactive = true,
-  background = true, gutter, className = "", style,
+  flow, activeStep = undefined, onStepChange = undefined, iconUrl = undefined, theme = undefined, card = true, controls = false, interactive = true,
+  background = true, gutter = undefined, className = "", style = undefined,
 }) {
   const ref = useRef(null);
   const { w: SW, h: SH } = useSize(ref);

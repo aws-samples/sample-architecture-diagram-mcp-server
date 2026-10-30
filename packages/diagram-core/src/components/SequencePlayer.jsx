@@ -33,7 +33,7 @@
 //   theme               'light' | 'dark' to force; else a `.dark` ancestor (or
 //                       the MCP's .ld-frame.dark) decides
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { tr } from '../i18n.js';
+import { tr, ui as defaultUi } from '../i18n.js';
 import { PLAYER_TONES as TONE, AWS_ORANGE } from '../tones.js';
 import { playerThemeCss } from '../playerTheme.js';
 import * as cardKit from './cardKit.jsx';
@@ -591,8 +591,8 @@ const PREFERS_REDUCED = typeof window !== 'undefined' && !!window.matchMedia
  * @param active whether this tab is the visible one (gates the keyboard map)
  */
 export function SequencePlayer({
-  seq, lang = 'en', active = true, ui, cur: curProp, onCur,
-  iconUrl, iconFilter, controls = true, card = true, theme, className = '', style,
+  seq, lang = 'en', active = true, ui = undefined, cur: curProp = undefined, onCur = undefined,
+  iconUrl = undefined, iconFilter = undefined, controls = true, card = true, theme = undefined, className = '', style = undefined,
 }) {
   const L = useMemo(() => buildLayout(seq), [seq]);
   const { P, EV, W, H, cx, rowY, eventParticipants } = L;
@@ -623,7 +623,7 @@ export function SequencePlayer({
 
   const e = EV[cur];
   const involved = useMemo(() => (e ? new Set(eventParticipants(e)) : null), [e, eventParticipants]);
-  const t = (k, fb) => (ui ? (ui(k, lang) || fb) : fb);
+  const t = (k, fb) => ((ui || defaultUi)(k, lang) || fb);
 
   // Participants whose label / sub / service matches the search box.
   const matches = useMemo(() => {

@@ -51,7 +51,8 @@
     "test:watch": "vitest",
     "start": "node mcp-server.js",
     "pretest": "npm run build:core",
-    "prebuild:standalone": "npm run build:core"
+    "prebuild:standalone": "npm run build:core",
+    "typecheck": "npm run build:core && tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.2",
