@@ -15,8 +15,8 @@
 // mount (ELK layout + fitView), and a hidden container has zero size — so tab
 // switching remounts it instead of leaving it laid out against a 0×0 box.
 import { useEffect, useMemo, useState } from 'react';
-import { tr } from '@aws-live-diagram/core';
-import { cardKit } from '@aws-live-diagram/core/react';
+import { tr } from '@aws-sample-live-diagram/core';
+import { cardKit } from '@aws-sample-live-diagram/core/react';
 import { McpIcon } from './McpIcon';
 import { SequenceDiagram } from './SequenceDiagram';
 

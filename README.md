@@ -390,7 +390,7 @@ single-canvas diagram.
 ## Development
 
 ```bash
-npm run build:core         # build the shared @aws-live-diagram/core render package
+npm run build:core         # build the shared @aws-sample-live-diagram/core render package
 npm run build:standalone   # rebuild dist/index.html (the HTML template)
 npm test                    # run the vitest unit suite
 node mcp-server.js          # run the MCP server over stdio
@@ -398,7 +398,7 @@ node mcp-server.js          # run the MCP server over stdio
 
 The repo is an npm workspace. The React render layer (nodes, edges, group
 containers, walkthrough cards, layout engine) lives in
-`packages/diagram-core` (`@aws-live-diagram/core`) and is shared by the standalone
+`packages/diagram-core` (`@aws-sample-live-diagram/core`) and is shared by the standalone
 app in `standalone/` + `src/`. The MCP server and Node-side generators live in
 `mcp-server.js` + `lib/`; `lib/schemas.js` is the single source of truth for the
 input shape (imported by both the tools and the local example generators).

@@ -19,8 +19,8 @@
 // draw-on uses SVG `pathLength` normalization instead of measuring
 // getTotalLength() at build time.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { tr } from '@aws-live-diagram/core';
-import { cardKit } from '@aws-live-diagram/core/react';
+import { tr } from '@aws-sample-live-diagram/core';
+import { cardKit } from '@aws-sample-live-diagram/core/react';
 import { resolveIcon, iconFilter } from '@/lib/icons';
 
 type Any = any;

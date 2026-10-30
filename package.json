@@ -1,6 +1,6 @@
 {
   "name": "sample-architecture-diagram-mcp-server",
-  "version": "2.1.2",
+  "version": "2.1.3",
   "description": "MCP server that generates self-contained interactive AWS architecture diagrams (HTML + draw.io), with IaC and neutral element-JSON handoff for downstream apps.",
   "type": "module",
   "license": "MIT-0",
@@ -42,7 +42,7 @@
   ],
   "scripts": {
     "build:standalone": "vite build --config vite.config.ts",
-    "build:core": "npm run build --workspace @aws-live-diagram/core",
+    "build:core": "npm run build --workspace @aws-sample-live-diagram/core",
     "fetch-icons": "./scripts/fetch-icons.sh",
     "test": "vitest run",
     "test:watch": "vitest",
