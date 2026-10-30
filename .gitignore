@@ -1,5 +1,9 @@
 node_modules/
 
+# Built core (tsup) — rebuilt by `npm test` / `build:standalone` (pre-scripts)
+# and by the release workflow before `npm pack`; never committed.
+packages/diagram-core/dist/
+
 # AWS Architecture Icons are NOT redistributed with this repo (see their
 # Terms of Use). Run scripts/fetch-icons.sh to populate these locally.
 assets/icons/

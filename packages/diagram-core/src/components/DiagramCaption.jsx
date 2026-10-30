@@ -16,8 +16,9 @@
 import React from "react";
 import { tr } from "../i18n.js";
 import { wsTail } from "./cardKit.jsx";
+import { AWS_ORANGE } from "../tones.js";
 
-const ORANGE = "#FF9900";
+const ORANGE = AWS_ORANGE;
 
 /** Normalize the author shape into { eyebrow, title, text, meta[] } (or null). */
 export function resolveCaption(caption, lang = "en") {

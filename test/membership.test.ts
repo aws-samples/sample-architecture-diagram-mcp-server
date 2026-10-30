@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
 import { describe, it, expect } from 'vitest';
-import { resolveGroupsAndMembership } from '@/lib/membership';
+import { resolveGroupsAndMembership } from '@aws-sample-live-diagram/core';
 
 describe('resolveGroupsAndMembership — implicit (subnet-derived)', () => {
   it('derives AWS Cloud → VPC → public/private subnet from subnet fields', () => {

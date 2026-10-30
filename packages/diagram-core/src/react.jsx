@@ -17,3 +17,7 @@ export { DiagramCaption, resolveCaption } from "./components/DiagramCaption.jsx"
 export * as cardKit from "./components/cardKit.jsx";
 export { LiveDiagram, default as LiveDiagramDefault } from "./components/LiveDiagram.jsx";
 export { LiveDiagramEditor } from "./components/LiveDiagramEditor.jsx";
+// Workflow / data-flow / lifecycle graphs — the React twin of the MCP's flow player.
+export { FlowPlayer, default as FlowPlayerDefault } from "./components/FlowPlayer.jsx";
+// Animated UML sequence: the MCP's sequence tab and downstream apps.
+export { SequencePlayer, default as SequencePlayerDefault } from "./components/SequencePlayer.jsx";

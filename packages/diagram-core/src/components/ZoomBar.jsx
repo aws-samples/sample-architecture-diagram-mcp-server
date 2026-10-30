@@ -5,6 +5,7 @@
 // `ui(key)` and `langLabel(code)` so the host owns the chrome i18n table.
 import { useReactFlow, getNodesBounds, getViewportForBounds } from "@xyflow/react";
 import { useState, useEffect, useRef } from "react";
+import { AWS_ORANGE } from "../tones.js";
 
 const noopUi = (k) => k;
 const defLangLabel = (l) => (l || "").toUpperCase();
@@ -99,7 +100,7 @@ async function exportShareCard(nodes, dark, title, subtitle) {
   ctx.fillStyle = grad; ctx.fillRect(0, H - scrimH, W, scrimH);
 
   // AWS-orange accent bar sitting just above the text block.
-  ctx.fillStyle = "#FF9900";
+  ctx.fillStyle = AWS_ORANGE;
   ctx.fillRect(PAD, blockTop - 26, 48, 6);
 
   ctx.fillStyle = txt; ctx.font = titleFont; ctx.textBaseline = "alphabetic";
@@ -156,7 +157,7 @@ function LangMenu({ lang, languages, onLang, langLabel, ui, btn, dark }) {
                   display: "flex", alignItems: "center", gap: 8, width: "100%", textAlign: "left",
                   padding: "8px 10px", border: "none", borderRadius: 6, cursor: "pointer", fontSize: 13,
                   background: active ? "rgba(255,153,0,0.14)" : "transparent",
-                  color: active ? "#FF9900" : "var(--txt)", fontWeight: active ? 700 : 500,
+                  color: active ? AWS_ORANGE : "var(--txt)", fontWeight: active ? 700 : 500,
                 }}>
                 <span style={{ width: 16, display: "inline-flex", justifyContent: "center" }}>{active ? "✓" : ""}</span>
                 {langLabel(l)}
@@ -243,9 +244,9 @@ export default function ZoomBar({
         <button
           className={attention ? "ld-play-attention" : undefined}
           style={playing
-            ? { ...btn, borderColor: "#FF9900", color: "#FF9900", background: "rgba(255,153,0,0.1)" }
+            ? { ...btn, borderColor: AWS_ORANGE, color: AWS_ORANGE, background: "rgba(255,153,0,0.1)" }
             : attention
-              ? { ...btn, borderColor: "#FF9900", color: "#FF9900", background: "rgba(255,153,0,0.12)" }
+              ? { ...btn, borderColor: AWS_ORANGE, color: AWS_ORANGE, background: "rgba(255,153,0,0.12)" }
               : btn}
           onClick={onPlay} title={playing ? ui("pause", lang) : ui("play", lang)}>
           {playing

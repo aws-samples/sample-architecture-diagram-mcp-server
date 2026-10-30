@@ -8,20 +8,7 @@
   /* Theme tokens mirror the architecture "sample diagram" chrome (StandaloneApp):
      one dark/light switch driving --card-bg / --txt / --txt-muted / --border / --dot,
      plus the SVG-diagram palette (--navy/--orange/--msg/…). */
-  :root, [data-theme="light"]{
-    --bg:#f4f6f9; --grid:rgba(0,0,0,.035);
-    --txt:#1e293b; --txt-muted:#64748b; --border:#e2e8f0;
-    --card-bg:rgba(255,255,255,.94); --pill-bg:rgba(255,255,255,.95); --dot:rgba(15,23,42,.1);
-    --navy:#232f3e; --orange:#ff9900; --msg:#2f4a63; --ret:#8a94a3;
-    --accent:#ff9900; --info:#2f6fed; --success:#1a7f37; --warn:#b7791f; --danger:#d13212; --neutral:#5f6b7a;
-  }
-  [data-theme="dark"]{
-    --bg:#0f1420; --grid:rgba(255,255,255,.04);
-    --txt:#e2e8f0; --txt-muted:#94a3b8; --border:rgba(255,255,255,.14);
-    --card-bg:rgba(24,28,40,.92); --pill-bg:rgba(26,29,39,.95); --dot:rgba(255,255,255,.12);
-    --navy:#2b3a4d; --orange:#ff9900; --msg:#8fb2da; --ret:#6b7684;
-    --accent:#ff9900; --info:#5b8def; --success:#3fb950; --warn:#d29922; --danger:#f85149; --neutral:#93a1b0;
-  }
+  /*__THEME_CSS__*/
   *{box-sizing:border-box}
   /* Accessibility: honor the OS "reduce motion" setting. Neutralize CSS
      transitions/animations (pan/zoom, edge draws, label fades). JS-driven
@@ -201,7 +188,7 @@
 <script>
 const SEQ = JSON.parse(document.getElementById('seq-data').textContent);
 const ICONS = JSON.parse(document.getElementById('icon-data').textContent);
-const TONE = { accent:'#ff9900', info:'#2f6fed', success:'#1a7f37', warn:'#b7791f', danger:'#d13212', neutral:'#5f6b7a' };
+const TONE = /*__TONES__*/null; // PLAYER_TONES of @aws-sample-live-diagram/core
 document.getElementById('h-title').textContent = SEQ.title || 'Sequence diagram';
 document.getElementById('h-sub').textContent = SEQ.subtitle || '';
 document.title = SEQ.title || 'Sequence diagram';

@@ -30,7 +30,7 @@ import StepCard from "./StepCard.jsx";
 import NodeModal from "./NodeModal.jsx";
 import ZoomBar from "./ZoomBar.jsx";
 import DiagramCaption, { resolveCaption } from "./DiagramCaption.jsx";
-import { TONE_COLORS, resolveToneColor } from "../tones.js";
+import { TONE_COLORS, resolveToneColor, AWS_ORANGE } from "../tones.js";
 import { tr, trAll } from "../i18n.js";
 import { resolveGroupsAndMembership } from "../membership.js";
 import { DEFAULT_GEOMETRY } from "../layout.js";
@@ -463,7 +463,7 @@ function DeltaControls({ view, onView, summary, vars }) {
               title={`${v.label} (D cycles)`}
               style={{ cursor: "pointer", padding: "5px 15px", borderRadius: 999, border: "none",
                 font: "inherit", fontSize: 12.5, fontWeight: 700, letterSpacing: 0.2,
-                background: on ? "#FF9900" : "transparent", color: on ? "#111" : txt, transition: "background .2s, color .2s" }}>
+                background: on ? AWS_ORANGE : "transparent", color: on ? "#111" : txt, transition: "background .2s, color .2s" }}>
               {v.label}
             </button>
           );

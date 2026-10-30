@@ -9,8 +9,11 @@
 
 /** @typedef {"accent"|"info"|"success"|"warn"|"danger"|"neutral"|"survive"|"severed"|"degrade"} Tone */
 
+/** AWS orange — the brand accent every renderer defaults to. */
+export const AWS_ORANGE = "#FF9900";
+
 export const TONE_COLORS = {
-  accent:  "#FF9900", // AWS orange — default highlight
+  accent:  AWS_ORANGE, // AWS orange — default highlight
   info:    "#3B82F6", // blue — informational
   success: "#10B981", // green
   warn:    "#F59E0B", // amber
@@ -44,3 +47,18 @@ export const resolveToneColor = (tone, color) =>
 
 export const toneColor = (t) => (t && TONE_COLORS[t]) || TONE_COLORS.accent;
 export const toneMeta = (t) => (t && TONE_META[t]) || TONE_META.accent;
+
+// Diagram palette — the flow / sequence players (MCP HTML and React) and the
+// Studio's typed diagrams. Deeper AWS-console hues than the walkthrough accents
+// above, readable as strokes on both light and dark canvases. The players use
+// the first six; purple/teal/pink extend it for typed diagrams.
+export const DIAGRAM_TONES = {
+  accent: AWS_ORANGE, info: "#2f6fed", success: "#1a7f37", warn: "#b7791f", danger: "#d13212", neutral: "#5f6b7a",
+  purple: "#8c4fff", teal: "#11a5c3", pink: "#dd344c",
+};
+export const PLAYER_TONE_NAMES = ["accent", "info", "success", "warn", "danger", "neutral"];
+export const PLAYER_TONES = Object.fromEntries(PLAYER_TONE_NAMES.map(k => [k, DIAGRAM_TONES[k]]));
+
+// A diagram tone name (or a raw #hex) → color; falls back to `fallback`.
+export const diagramToneColor = (tone, fallback = DIAGRAM_TONES.info) =>
+  (tone && (DIAGRAM_TONES[tone] || (/^#[0-9a-f]{3,8}$/i.test(tone) ? tone : null))) || fallback;

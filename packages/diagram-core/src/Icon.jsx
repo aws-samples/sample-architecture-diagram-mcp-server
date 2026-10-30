@@ -16,6 +16,7 @@
 //   "Arch_*.png" / "Res_*.png" / "Region_32.png"          → flat diagram icon (→ iconBase)
 import { useState } from "react";
 import { DARK_VARIANT_BASES } from "./darkVariants.js";
+import { AWS_ORANGE } from "./tones.js";
 
 const DEFAULT_ICON_BASE = "/diagram-icons/";
 const identity = (u) => u;
@@ -41,7 +42,7 @@ function isMonochrome(ref) {
  * @param {Function}[props.resolveAsset]  (servedPath) => url. Default: identity (served path passes through).
  * @param {string}  [props.iconBase]      base dir for flat refs. Default "/diagram-icons/".
  */
-export function Icon({ src, size, className, alt = "", color = "#FF9900", style, resolveAsset = identity, iconBase = DEFAULT_ICON_BASE }) {
+export function Icon({ src, size, className, alt = "", color = AWS_ORANGE, style, resolveAsset = identity, iconBase = DEFAULT_ICON_BASE }) {
   const [failed, setFailed] = useState(false);
   if (!src) return null;
 

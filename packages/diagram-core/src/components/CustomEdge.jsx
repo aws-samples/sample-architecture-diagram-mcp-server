@@ -12,7 +12,7 @@
 // dotActive/dotIdle, markerId, surfaceVar, labelFontSize.
 import { memo } from "react";
 import { BaseEdge, EdgeLabelRenderer, getSmoothStepPath, getStraightPath } from "@xyflow/react";
-import { TONE_COLORS } from "../tones.js";
+import { TONE_COLORS, AWS_ORANGE } from "../tones.js";
 
 const TYPE_STYLE = {
   network: { stroke: "#4a90d9" },
@@ -74,7 +74,7 @@ function CustomEdge({ id, sourceX, sourceY, targetX, targetY, sourcePosition, ta
   const ts = (connType && TYPE_STYLE[connType]) || { stroke: "#4a90d9", dash: data?.dashed ? "6 4" : undefined };
 
   const tone = data?.tone;
-  const activeColor = (active && tone && TONE_COLORS[tone]) || "#FF9900";
+  const activeColor = (active && tone && TONE_COLORS[tone]) || AWS_ORANGE;
   // A severed link: data.severed marks it permanently cut (independent of step
   // mode); tone === 'severed' cuts it for the active beat. Either way it reads
   // as broken — dashed line, no flow dot, and a ✕ badge on the midpoint.
@@ -135,7 +135,7 @@ function CustomEdge({ id, sourceX, sourceY, targetX, targetY, sourcePosition, ta
         markerStart={data?.bidirectional ? `url(#${markerId})` : undefined}
       />
       {showDot && (
-        <circle r={active ? dotActive : dotIdle} fill={active ? activeColor : "#FF9900"} opacity={opacity}>
+        <circle r={active ? dotActive : dotIdle} fill={active ? activeColor : AWS_ORANGE} opacity={opacity}>
           {/* Per-edge period gives a lively, staggered look on screen. When
               data.flowPeriod is set (e.g. by the GIF rasterizer), EVERY edge
               shares that exact period so a captured loop closes seamlessly —

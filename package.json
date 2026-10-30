@@ -28,6 +28,9 @@
   "files": [
     "mcp-server.js",
     "lib/",
+    "packages/diagram-core/src/playerTheme.js",
+    "packages/diagram-core/src/flowLayout.js",
+    "packages/diagram-core/src/tones.js",
     "dist/index.html",
     "scripts/fetch-icons.sh",
     "skills/",
@@ -46,7 +49,9 @@
     "fetch-icons": "./scripts/fetch-icons.sh",
     "test": "vitest run",
     "test:watch": "vitest",
-    "start": "node mcp-server.js"
+    "start": "node mcp-server.js",
+    "pretest": "npm run build:core",
+    "prebuild:standalone": "npm run build:core"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.2",

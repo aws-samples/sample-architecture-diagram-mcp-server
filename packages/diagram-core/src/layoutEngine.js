@@ -356,6 +356,10 @@ export function compoundLayout(serviceNodes, edges, membership, opts = {}) {
     }
   }
 
+  // Boxes were sized deepest-first (a parent wraps its children's boxes); emit
+  // them outermost-first, as the ELK path does, so inner groups draw on top.
+  const depthOf = (id) => groupDepth(id, groupById);
+  groupNodes.sort((a, b) => depthOf(a.id) - depthOf(b.id));
   return [...groupNodes, ...positioned];
 }
 

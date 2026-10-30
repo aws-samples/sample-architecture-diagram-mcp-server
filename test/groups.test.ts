@@ -1,8 +1,10 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
 import { describe, it, expect } from 'vitest';
-import { compoundLayout, type GroupSpec } from '@/lib/compoundLayout';
-import { resolveVariant, variantKey, GROUP_VARIANTS, ALL_GROUP_ICONS } from '@/lib/groupVariants';
+import { compoundLayout } from '@aws-sample-live-diagram/core/layout-engine';
+import { resolveVariant, variantKey, GROUP_VARIANTS, ALL_GROUP_ICONS } from '@aws-sample-live-diagram/core';
+
+type GroupSpec = { id: string; label: string; variant?: string; parent?: string };
 
 const node = (id: string) => ({ id, type: 'aws', position: { x: 0, y: 0 }, data: {} }) as any;
 
@@ -35,7 +37,7 @@ describe('groupVariants registry', () => {
 describe('compoundLayout — data-driven groups', () => {
   it('renders a group node only when it has members', () => {
     const groups: GroupSpec[] = [{ id: 'vpc', label: 'VPC', variant: 'vpc' }];
-    const out = compoundLayout([node('a')], [], { a: 'vpc' }, 'TB', groups);
+    const out = compoundLayout([node('a')], [], { a: 'vpc' }, { direction: 'TB', groups: groups });
     const grp = out.find(n => n.type === 'group');
     expect(grp?.id).toBe('vpc');
     expect(grp?.data.variant).toBe('vpc');
@@ -43,7 +45,7 @@ describe('compoundLayout — data-driven groups', () => {
 
   it('skips empty groups (no members)', () => {
     const groups: GroupSpec[] = [{ id: 'empty', label: 'Empty', variant: 'vpc' }];
-    const out = compoundLayout([node('a')], [], {}, 'TB', groups);
+    const out = compoundLayout([node('a')], [], {}, { direction: 'TB', groups: groups });
     expect(out.find(n => n.type === 'group')).toBeUndefined();
   });
 
@@ -52,7 +54,7 @@ describe('compoundLayout — data-driven groups', () => {
       { id: 'vpcA', label: 'VPC A', variant: 'vpc' },
       { id: 'vpcB', label: 'VPC B', variant: 'vpc' },
     ];
-    const out = compoundLayout([node('a'), node('b')], [], { a: 'vpcA', b: 'vpcB' }, 'TB', groups);
+    const out = compoundLayout([node('a'), node('b')], [], { a: 'vpcA', b: 'vpcB' }, { direction: 'TB', groups: groups });
     const grpIds = out.filter(n => n.type === 'group').map(n => n.id).sort();
     expect(grpIds).toEqual(['vpcA', 'vpcB']);
   });
@@ -65,7 +67,7 @@ describe('compoundLayout — data-driven groups', () => {
       { id: 'sub', label: 'Private Subnet', parent: 'vpc', variant: 'private-subnet' },
       { id: 'az', label: 'us-east-1a', parent: 'sub', variant: 'availability-zone' },
     ];
-    const out = compoundLayout([node('fn')], [], { fn: 'az' }, 'TB', groups);
+    const out = compoundLayout([node('fn')], [], { fn: 'az' }, { direction: 'TB', groups: groups });
     const grpIds = out.filter(n => n.type === 'group').map(n => n.id);
     // all 5 ancestors render (each contains the chain down to the node)
     expect(grpIds).toHaveLength(5);
@@ -75,12 +77,12 @@ describe('compoundLayout — data-driven groups', () => {
 
   it('tolerates a parent reference to a missing group (no crash, no cycle)', () => {
     const groups: GroupSpec[] = [{ id: 'vpc', label: 'VPC', parent: 'ghost', variant: 'vpc' }];
-    const out = compoundLayout([node('a')], [], { a: 'vpc' }, 'TB', groups);
+    const out = compoundLayout([node('a')], [], { a: 'vpc' }, { direction: 'TB', groups: groups });
     expect(out.find(n => n.type === 'group')?.id).toBe('vpc');
   });
 
   it('back-compat: no groups passed → no group overlays, services still positioned', () => {
-    const out = compoundLayout([node('a'), node('b')], [{ id: 'e', source: 'a', target: 'b' } as any], {}, 'TB', []);
+    const out = compoundLayout([node('a'), node('b')], [{ id: 'e', source: 'a', target: 'b' } as any], {}, { direction: 'TB', groups: [] });
     expect(out.filter(n => n.type === 'group')).toHaveLength(0);
     expect(out.filter(n => n.type === 'aws')).toHaveLength(2);
   });
@@ -92,7 +94,7 @@ describe('compoundLayout — radial', () => {
   it('puts the most-connected node at the center and fans the rest around it', () => {
     const nodes = ['hub', 's1', 's2', 's3', 's4'].map(svc);
     const edges = ['s1', 's2', 's3', 's4'].map((t, i) => ({ id: 'e' + i, source: 'hub', target: t } as any));
-    const out = compoundLayout(nodes, edges, {}, 'RADIAL', []);
+    const out = compoundLayout(nodes, edges, {}, { direction: 'RADIAL', groups: [] });
     const positions = Object.fromEntries(out.map(n => [n.id, n.position]));
     // hub near a central point; spokes spread on a ring around it (varied angles)
     const spokeXs = ['s1', 's2', 's3', 's4'].map(id => positions[id].x);
@@ -102,7 +104,7 @@ describe('compoundLayout — radial', () => {
   });
 
   it('falls back to dagre when groups are present (radial ignored with containers)', () => {
-    const out = compoundLayout([svc('a')], [], { a: 'vpc' }, 'RADIAL', [{ id: 'vpc', label: 'VPC', variant: 'vpc' }]);
+    const out = compoundLayout([svc('a')], [], { a: 'vpc' }, { direction: 'RADIAL', groups: [{ id: 'vpc', label: 'VPC', variant: 'vpc' }] });
     expect(out.find(n => n.type === 'group')?.id).toBe('vpc'); // container rendered
   });
 });
