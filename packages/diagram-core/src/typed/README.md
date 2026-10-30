@@ -1,16 +1,17 @@
 # Typed diagrams — contract
 
-A **typed diagram** is a Studio diagram whose body has `kind: '<type>'` (e.g. `er`, `gantt`).
+A **typed diagram** is a diagram document whose body has `kind: '<type>'` (e.g. `er`, `gantt`).
 Architecture diagrams (no `kind`) and sequence diagrams (`kind: 'sequence'`) have their own modules.
-Each type is exactly **two files**. Everything else (editor, deck/blog/workshop block, gallery,
-Lambda validation, studio-deck MCP tools, exports) is generic and driven by these files.
+Each type is exactly **two files** in `@aws-sample-live-diagram/core`. Everything else (the MCP's
+`kind: 'typed'` tabs, and in a host app such as the slides Studio: editor, deck/blog block, gallery,
+server-side validation, exports) is generic and driven by these files.
 
 | File | What |
 |---|---|
-| `src/lib/diagramTypes/<kind>.js` | **Spec** — pure JS, no imports except other pure files. Runs in browser, Node (MCP, codegen) and is exported as JSON to the Lambda. |
-| `src/decks/_shared/diagramTypes/<kind>.jsx` | **View** — React SVG renderer. |
+| `src/typed/<kind>.js` | **Spec** — pure JS, no imports except other pure files. Runs in browser, Node (MCP, codegen) and is exported as JSON to the Lambda. |
+| `src/typed/views/<kind>.jsx` | **View** — React SVG renderer. |
 
-Both are already registered in `index.js` / `index.jsx`. **Edit only your two files.**
+Register the spec in `src/typed/index.js` and the view in `src/typed/views/index.jsx`.
 
 Reference implementation: `quadrant.js` + `quadrant.jsx`.
 
@@ -39,15 +40,15 @@ The editor is generated from the schema. Hints:
 
 ## View (`<kind>.jsx`) — `export default function XView({ doc, step = null, fit })`
 
-- Render through **`<DiagramSvg width height title desc fit>`** (from `./DiagramSvg`) — this is the
+- Render through **`<DiagramSvg width height title desc fit>`** (from `./DiagramSvg.jsx`) — this is the
   accessibility contract (role=img + title/desc, instance-unique ids). Pass
-  `title={doc.title || spec.label}` and `desc={describeTypedDiagram(doc)}` (from `../../../lib/diagramTypes`).
+  `title={doc.title || spec.label}` and `desc={describeTypedDiagram(doc)}` (from `../index.js`).
 - Colours: **only tokens** — CSS vars `var(--dg-bg|--dg-panel|--dg-ink|--dg-muted|--dg-line|--dg-grid|--dg-accent)`,
   `toneColor(tone)` for semantic tones, `paletteColor(i)` for categorical series. Never hardcode a light-only or
   dark-only colour: the same SVG must read in light and dark. Text on a strong colour fill: `#fff`.
 - Layout must be **deterministic** (no DOM measuring): use `textW(s, size)` / `wrapText(s, maxW, size)`.
-  Compute `width`/`height` from the content (viewBox grows with the data). `dagre` (sync) and `d3`
-  (scales/shapes, no DOM) are available; do not use `elkjs` (async).
+  Compute `width`/`height` from the content (viewBox grows with the data). `dagre` (sync) and `d3-shape`
+  (no DOM) are available (peer dependencies); do not use `elkjs` (async).
 - Defs (markers, gradients, clipPaths): ids via `useSvgIds()` — never a fixed id.
 - Reveal: when `step != null`, elements with order index `>= step` get `opacity: 0` (class `dg-step` animates).
 - Font sizes 11–18 in viewBox units; min stroke 1.2. Labels must not overlap or overflow their boxes for
@@ -56,7 +57,7 @@ The editor is generated from the schema. Hints:
 
 ## Testing your type
 
-The dev server runs at `http://localhost:5173` (do not start another one).
+In the slides Studio, serve the core from source (`npm run dev:core`) and use its gallery:
 
 ```bash
 # validation of empty() + samples, and render errors, plus screenshots (light | dark side by side)
