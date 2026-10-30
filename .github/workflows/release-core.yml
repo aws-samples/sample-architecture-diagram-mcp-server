@@ -1,0 +1,37 @@
+name: Release diagram-core
+
+# Attaches the @aws-sample-live-diagram/core tarball (npm pack) to each GitHub
+# Release, so consumers install a pinned build from the release URL instead of
+# vendoring a copy of dist/.
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  pack:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # upload the release asset
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 20.x
+          cache: npm
+      - run: npm ci
+      - run: npm run build:core
+      - name: Pack and upload
+        working-directory: packages/diagram-core
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          TGZ=$(npm pack --silent)
+          sha256sum "$TGZ" > "$TGZ.sha256"
+          gh release upload "$TAG" "$TGZ" "$TGZ.sha256" --clobber --repo "$GITHUB_REPOSITORY"

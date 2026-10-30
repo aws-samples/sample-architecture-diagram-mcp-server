@@ -1,6 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
-// @aws-live-diagram/core/react — the shared React components. Kept in a separate
+// @aws-sample-live-diagram/core/react — the shared React components. Kept in a separate
 // entry from the pure primitives so importing the vocabulary (tones, variants,
 // layout) never pulls React into a non-React consumer.
 export { Icon, default as IconDefault } from "./Icon.jsx";

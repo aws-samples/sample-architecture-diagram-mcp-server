@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
 // The self-contained HTML app is now a thin adapter over the shared
-// @aws-live-diagram/core LiveDiagram — the SAME component the slides deck
+// @aws-sample-live-diagram/core LiveDiagram — the SAME component the slides deck
 // renders with, so the generated HTML matches that visual language (severed ✕
 // edges, edge pills, cardKit walkthrough, node/group/edge renderers).
 //
@@ -12,10 +12,10 @@
 //     theme='self' → the ZoomBar dock drives play/zoom/theme/language);
 //   • the UI-chrome i18n table (ui / LANG_LABEL) for the dock + node modal.
 import { useState } from 'react';
-import { LiveDiagram } from '@aws-live-diagram/core/react';
-import { HORIZONTAL_GEOMETRY } from '@aws-live-diagram/core';
+import { LiveDiagram } from '@aws-sample-live-diagram/core/react';
+import { HORIZONTAL_GEOMETRY } from '@aws-sample-live-diagram/core';
 import { makeUi, makeLangLabel } from '@/lib/i18n';
-import { DiagramCaption } from '@aws-live-diagram/core/react';
+import { DiagramCaption } from '@aws-sample-live-diagram/core/react';
 import { McpIcon } from './McpIcon';
 import { TabShell } from './TabShell';
 import { TAB_STYLE } from './tabStyle';

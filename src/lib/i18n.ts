@@ -15,10 +15,10 @@
 
 export type Lang = string;
 
-// The content resolver `tr()` now lives in the shared @aws-live-diagram/core
+// The content resolver `tr()` now lives in the shared @aws-sample-live-diagram/core
 // package (single source of truth, also consumed by the slides deck). The UI
 // CHROME table below (modal headings, toolbar tooltips) stays MCP-local.
-export { tr } from "@aws-live-diagram/core";
+export { tr } from "@aws-sample-live-diagram/core";
 
 // UI chrome strings. Add a language by adding a column; unknown languages fall
 // back to English. Keep keys stable — components look them up by key.

@@ -4,6 +4,14 @@ All notable changes to the AWS Architecture Diagram MCP server are documented he
 
 ## [Unreleased]
 
+## [2.1.3] — 2026-10-30
+
+- The shared render package is renamed `@aws-live-diagram/core` →
+  `@aws-sample-live-diagram/core` (same entry points: `.`, `./react`,
+  `./layout-engine`).
+- `diagram-core` 1.2.0 is attached to each GitHub Release as an npm tarball
+  (`aws-sample-live-diagram-core-<version>.tgz` + `.sha256`), so apps can depend on a
+  pinned release URL instead of vendoring `dist/`.
 - `diagram-core`: `stepLayout: "below"` stacks the walkthrough card under the
   canvas. The `attached` and `below` layouts keep step zoom and refit whenever
   the canvas box changes, so the focused nodes are no longer clipped behind
