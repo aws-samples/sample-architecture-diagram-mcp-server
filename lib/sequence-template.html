@@ -525,7 +525,7 @@ function partiesHtml(e, inv){
   if(!e) return '';
   const ico = i => {
     const p=P[i];
-    if(p.icon && ICONS[p.icon]) return '<img class="pico" src="'+ICONS[p.icon]+'" alt="">';
+    if(p.icon && ICONS[p.icon]) return '<img class="pico" src="'+esc(ICONS[p.icon])+'" alt="">';
     if(p.actor) return '<svg class="pico" viewBox="0 0 16 16"><circle cx="8" cy="3.4" r="2.2"/><path d="M8 5.6V10.5M4.6 7.6h6.8M8 10.5l-2.4 3.4M8 10.5l2.4 3.4"/></svg>';
     return '';
   };

@@ -616,14 +616,16 @@ __export(cardKit_exports, {
   NumberedSteps: () => NumberedSteps,
   Section: () => Section,
   mdInline: () => mdInline,
-  resolveVariant: () => resolveVariant
+  resolveVariant: () => resolveVariant,
+  splitLead: () => splitLead,
+  wsTail: () => wsTail
 });
 import { useState as useState2 } from "react";
 import { Fragment as Fragment4, jsx as jsx5, jsxs as jsxs5 } from "react/jsx-runtime";
 function mdInline(str) {
   if (typeof str !== "string") return str;
   const out = [];
-  const re = /(\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)|\*\*([^*]+)\*\*|`([^`]+)`|\*([^*]+)\*)/g;
+  const re = /(\[([^[\]]+)\]\((https?:\/\/[^()[\]\s]+)\)|\*\*([^*]+)\*\*|`([^`]+)`|\*([^*]+)\*)/g;
   let last = 0, m, k = 0;
   while (m = re.exec(str)) {
     if (m.index > last) out.push(str.slice(last, m.index));
@@ -763,6 +765,25 @@ function NumberedSteps({ items, color, Icon: Icon2 }) {
   }) });
 }
 var GLYPH_COLOR = { "\u2713": "#10B981", "\u2715": "#EF4444", "\u2248": "#F59E0B", "\u25B3": "#F59E0B" };
+var LT = /[\n\r\u2028\u2029]/;
+function wsTail(a) {
+  if (!/^\s/.test(a)) return null;
+  const v = a.trimStart();
+  if (v) return LT.test(v) ? null : v;
+  const c = a.length >= 2 ? a.slice(-1) : "";
+  return c && !LT.test(c) ? c : null;
+}
+function splitLead(t) {
+  if (typeof t !== "string") return null;
+  for (let p = 2; p < t.length; p++) {
+    if (t[p] !== "\u2014" && t[p] !== ":") continue;
+    const j = Math.max(2, t.slice(0, p).trimEnd().length);
+    if (j > 40 || LT.test(t.slice(0, j))) return null;
+    const text = wsTail(t.slice(p + 1));
+    if (text != null) return { strong: t.slice(0, j), text };
+  }
+  return null;
+}
 function Bullets({ items, color, Icon: Icon2 }) {
   if (!items?.length) return null;
   return /* @__PURE__ */ jsx5("ul", { className: "flex flex-col gap-1.5 mt-0.5 p-0 list-none", children: items.map((b, i) => {
@@ -770,10 +791,10 @@ function Bullets({ items, color, Icon: Icon2 }) {
     const mk = o.color || o.glyph && GLYPH_COLOR[o.glyph] || color;
     let strong = o.strong, text = o.text;
     if (!strong) {
-      const m = /^(.{2,40}?)\s*[—:]\s+(.+)$/.exec(o.text);
+      const m = splitLead(o.text);
       if (m) {
-        strong = m[1];
-        text = m[2];
+        strong = m.strong;
+        text = m.text;
       }
     }
     return /* @__PURE__ */ jsxs5("li", { className: "flex items-start gap-[9px] text-[13px] leading-snug text-[color:var(--txt,#e2e8f0)] opacity-90", children: [
@@ -1432,8 +1453,10 @@ function resolveCaption(caption, lang = "en") {
   return { eyebrow, title, text, meta };
 }
 function splitStat(s) {
-  const m = /^\s*([^:]{2,22}):\s+(.+)$/.exec(s);
-  return m ? { label: m[1], value: m[2] } : { label: null, value: s };
+  const str = String(s), i = str.indexOf(":");
+  const k = Math.min(str.length - str.trimStart().length, i - 2);
+  const value = i >= 2 && i - k <= 22 ? wsTail(str.slice(i + 1)) : null;
+  return value != null ? { label: str.slice(k, i), value } : { label: null, value: s };
 }
 function DiagramCaption({ caption, lang = "en", vars = {} }) {
   const c = resolveCaption(caption, lang);

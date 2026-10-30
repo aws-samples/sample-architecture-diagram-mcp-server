@@ -19,7 +19,7 @@ import { resolveVariant } from "../groupVariants.js";
 export function mdInline(str) {
   if (typeof str !== "string") return str;
   const out = [];
-  const re = /(\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)|\*\*([^*]+)\*\*|`([^`]+)`|\*([^*]+)\*)/g;
+  const re = /(\[([^[\]]+)\]\((https?:\/\/[^()[\]\s]+)\)|\*\*([^*]+)\*\*|`([^`]+)`|\*([^*]+)\*)/g;
   let last = 0, m, k = 0;
   while ((m = re.exec(str))) {
     if (m.index > last) out.push(str.slice(last, m.index));
@@ -163,6 +163,33 @@ export function NumberedSteps({ items, color, Icon }) {
 
 const GLYPH_COLOR = { "✓": "#10B981", "✕": "#EF4444", "≈": "#F59E0B", "△": "#F59E0B" };
 
+// Line terminators — what `.` refuses to match.
+const LT = /[\n\r\u2028\u2029]/;
+
+// What /\s+(.+)$/ captures from `a`, scanned instead of backtracked.
+export function wsTail(a) {
+  if (!/^\s/.test(a)) return null;
+  const v = a.trimStart();
+  if (v) return LT.test(v) ? null : v;
+  const c = a.length >= 2 ? a.slice(-1) : "";
+  return c && !LT.test(c) ? c : null;
+}
+
+// "Lead — detail" / "Lead: detail" → bold lead (2–40 chars) + detail. Same
+// result as /^(.{2,40}?)\s*[—:]\s+(.+)$/, which backtracks quadratically on
+// long runs of spaces in author text.
+export function splitLead(t) {
+  if (typeof t !== "string") return null;
+  for (let p = 2; p < t.length; p++) {
+    if (t[p] !== "—" && t[p] !== ":") continue;
+    const j = Math.max(2, t.slice(0, p).trimEnd().length);
+    if (j > 40 || LT.test(t.slice(0, j))) return null;
+    const text = wsTail(t.slice(p + 1));
+    if (text != null) return { strong: t.slice(0, j), text };
+  }
+  return null;
+}
+
 export function Bullets({ items, color, Icon }) {
   if (!items?.length) return null;
   return (
@@ -172,8 +199,8 @@ export function Bullets({ items, color, Icon }) {
         const mk = o.color || (o.glyph && GLYPH_COLOR[o.glyph]) || color;
         let strong = o.strong, text = o.text;
         if (!strong) {
-          const m = /^(.{2,40}?)\s*[—:]\s+(.+)$/.exec(o.text);
-          if (m) { strong = m[1]; text = m[2]; }
+          const m = splitLead(o.text);
+          if (m) { strong = m.strong; text = m.text; }
         }
         return (
           <li key={i} className="flex items-start gap-[9px] text-[13px] leading-snug text-[color:var(--txt,#e2e8f0)] opacity-90">
