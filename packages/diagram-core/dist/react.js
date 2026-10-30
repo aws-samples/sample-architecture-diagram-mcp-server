@@ -1658,9 +1658,22 @@ function DiagramCanvas({
   search = "",
   showMap = false,
   lens = 0,
-  deltaView = null
+  deltaView = null,
+  cardTrack = false
 }) {
   const { fitView } = useReactFlow2();
+  const flowRef = useRef2(null);
+  const [box, setBox] = useState4("");
+  useEffect2(() => {
+    const el = flowRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(([e]) => {
+      const r = e?.contentRect;
+      if (r) setBox(`${Math.round(r.width)}x${Math.round(r.height)}`);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   const direction = dirOverride || data.direction || "TB";
   const straight = (edgeStyle || data.edgeStyle) === "straight";
   const geom = { ...DEFAULT_GEOMETRY, ...geometry || {} };
@@ -1801,7 +1814,7 @@ function DiagramCanvas({
   useEffect2(() => {
     const t = setTimeout(() => fitView({ padding: fitPadding, ...fitMaxZoom != null ? { maxZoom: fitMaxZoom } : {} }), 60);
     return () => clearTimeout(t);
-  }, [baseNodes, fitView, fitPadding, fitMaxZoom, stepFocus ? activeStep : 0, deltaView]);
+  }, [baseNodes, fitView, fitPadding, fitMaxZoom, stepFocus ? activeStep : 0, deltaView, box]);
   useEffect2(() => {
     if (!stepZoom || !anyActive) return;
     const step = steps?.[Math.min(activeStep, (steps?.length || 1) - 1)];
@@ -1810,16 +1823,17 @@ function DiagramCanvas({
     const laidOut = new Set(baseNodes.map((n) => n.id));
     const present = focusIds.filter((id) => laidOut.has(id));
     const cardSide = step?.cardSide;
-    const sidePad = cardSide === "top" ? { top: "40%", bottom: "8%", left: "8%", right: "8%" } : cardSide === "left" ? { left: "38%", right: "6%", top: "10%", bottom: "10%" } : cardSide === "right" ? { right: "38%", left: "6%", top: "10%", bottom: "10%" } : 0.35;
+    const sidePad = cardTrack ? 0.2 : cardSide === "top" ? { top: "40%", bottom: "8%", left: "8%", right: "8%" } : cardSide === "left" ? { left: "38%", right: "6%", top: "10%", bottom: "10%" } : cardSide === "right" ? { right: "38%", left: "6%", top: "10%", bottom: "10%" } : 0.35;
     const t = setTimeout(() => {
       if (present.length) fitView({ nodes: present.map((id) => ({ id })), padding: sidePad, duration: 700, maxZoom: maxZoom2 });
       else fitView({ padding: fitPadding, duration: 700, ...fitMaxZoom != null ? { maxZoom: fitMaxZoom } : {} });
     }, 120);
     return () => clearTimeout(t);
-  }, [stepZoom, anyActive, activeStep, steps, fitView, fitPadding, fitMaxZoom, stepMaxZoom, baseNodes]);
+  }, [stepZoom, anyActive, activeStep, steps, fitView, fitPadding, fitMaxZoom, stepMaxZoom, baseNodes, cardTrack, box]);
   return /* @__PURE__ */ jsxs10(
     ReactFlow,
     {
+      ref: flowRef,
       nodes,
       edges,
       nodeTypes: NODE_TYPES,
@@ -2276,7 +2290,8 @@ function LiveDiagram({
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [chrome, searchOpen, togglePresent, deltaMode]);
-  const attached = effectiveStepLayout === "attached" && !cardExpanded;
+  const attached = (effectiveStepLayout === "attached" || effectiveStepLayout === "below") && !cardExpanded;
+  const below = attached && effectiveStepLayout === "below";
   const showAttachedCard = attached && hasWalk && step >= 0;
   const attachedFrameRef = useRef2(null);
   const [attachedNarrow, setAttachedNarrow] = useState4(false);
@@ -2304,7 +2319,8 @@ function LiveDiagram({
       fitPadding,
       stepFocus,
       spacing,
-      stepZoom: attached ? false : stepZoom,
+      stepZoom,
+      cardTrack: attached,
       geometry,
       nodeLayout,
       vars: vars || {},
@@ -2337,11 +2353,11 @@ function LiveDiagram({
           frameRef.current = el;
         },
         className: `ld-frame ld-attached ${themeClass} ${className}`.trim(),
-        style: attachedNarrow ? {
+        style: attachedNarrow || below ? {
           width: "100%",
           height: "100%",
           display: "grid",
-          gridTemplateRows: showAttachedCard ? "minmax(0,1fr) minmax(0,45%)" : "minmax(0,1fr) 0px",
+          gridTemplateRows: showAttachedCard ? `minmax(0,1fr) minmax(0,${below ? "var(--ld-below-card-h, 34%)" : "45%"})` : "minmax(0,1fr) 0px",
           gap: showAttachedCard ? "var(--ld-attached-gap, 12px)" : 0,
           transition: "grid-template-rows .35s cubic-bezier(.22,.61,.36,1), gap .35s"
         } : {
@@ -2359,14 +2375,14 @@ function LiveDiagram({
             minWidth: 0,
             minHeight: 0,
             height: "100%",
-            maxHeight: attachedNarrow ? "45%" : void 0,
+            maxHeight: attachedNarrow && !below ? "45%" : void 0,
             overflow: "hidden"
           }, children: /* @__PURE__ */ jsx10(AnimatePresence3, { children: showAttachedCard && /* @__PURE__ */ jsx10(
             motion3.div,
             {
-              initial: { opacity: 0, x: 24 },
-              animate: { opacity: 1, x: 0 },
-              exit: { opacity: 0, x: 24 },
+              initial: below ? { opacity: 0, y: 24 } : { opacity: 0, x: 24 },
+              animate: { opacity: 1, x: 0, y: 0 },
+              exit: below ? { opacity: 0, y: 24 } : { opacity: 0, x: 24 },
               transition: { duration: 0.3 },
               style: { height: "100%", overflowY: "auto", pointerEvents: "auto" },
               children: /* @__PURE__ */ jsx10(
