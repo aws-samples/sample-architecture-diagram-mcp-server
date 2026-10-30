@@ -1,7 +1,7 @@
 {
   "name": "aws-architecture-diagram",
   "description": "Interactive AWS architecture, UML sequence, walkthrough and delta diagrams as self-contained HTML — MCP server plus the skill that drives it.",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "homepage": "https://github.com/aws-samples/sample-architecture-diagram-mcp-server",
   "license": "MIT-0",
   "keywords": ["aws", "architecture", "diagram", "sequence-diagram", "mcp"]

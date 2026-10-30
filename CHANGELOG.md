@@ -4,6 +4,34 @@ All notable changes to the AWS Architecture Diagram MCP server are documented he
 
 ## [Unreleased]
 
+## [2.1.2] — 2026-10-30
+
+- **Security** — dependency advisories cleared: `@modelcontextprotocol/sdk`
+  1.32.2, `zod` 4 (memory exhaustion on oversized collections), `hono`,
+  `proxy-addr`, `body-parser`, `qs`, `fast-uri`, `ip-address`, `vite`,
+  `source-map-js` and `vitest`. `npm audit` reports 0 vulnerabilities. The tool
+  schemas move to the two-argument `z.record(key, value)` form that zod 4 requires.
+- **Fix** — `setup_icons` / `scripts/fetch-icons.sh` find the renamed AWS icon
+  package (`Icon-package_<date>.zip`), gain `--latest` to download it, and refresh
+  a stale shared icon cache.
+- **Hardening** — the bullet lead split (`Lead — detail`), the caption stat split
+  (`Label: value`) and the inline-markdown link pattern no longer backtrack
+  quadratically on long author text (CodeQL `js/polynomial-redos`); icon `src`
+  values are escaped in the flow and sequence players and limited to inlined
+  `data:image/` or same-origin paths in the React renderer (`js/xss-through-dom`).
+
+## [2.1.1] — 2026-09-28
+
+- The doc tab gets a document layout and the walkthrough a sidebar.
+- Long names and pills read in full; the author can pick the pill side.
+- **Fix** — the icon for Users and the other external actors resolves.
+
+## [2.1.0] — 2026-09-28
+
+- Optional `caption` header band so a diagram explains itself when opened cold.
+- Icons install once per machine into the shared `~/.aws-architecture-icons`.
+- Ships the skill, Claude Code plugin and marketplace manifests.
+
 - **Multi-tab documents** — `generate_html_diagram` accepts `sequence` (shortcut) or
   an explicit `tabs[]`, turning the single self-contained HTML into a small document
   with a tab rail (Architecture / Sequence / free-form doc tabs), modeled on the

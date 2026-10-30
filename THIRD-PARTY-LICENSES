@@ -17,11 +17,11 @@ COMPONENTS UNDER THE MIT LICENSE
 The following components are licensed under the MIT License (reproduced once
 at the end of this section):
 
-  - @modelcontextprotocol/sdk 1.29.0
+  - @modelcontextprotocol/sdk 1.32.2
     Copyright (c) 2024 Anthropic, PBC
     https://github.com/modelcontextprotocol/typescript-sdk
 
-  - zod 3.25.76
+  - zod 4.6.7
     Copyright (c) 2020 Colin McDonnell
     https://github.com/colinhacks/zod
 
