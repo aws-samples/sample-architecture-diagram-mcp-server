@@ -99,6 +99,7 @@ export const TAB_STYLE = `
      numbered card per section (a responsive grid, so a register of ten decisions
      scans instead of scrolling as a wall of paragraphs). */
   .ld-doc { overflow: auto; padding: 34px 30px 56px; }
+  .ld-typed-flow { position: relative; min-height: 0; }
   .ld-doc-inner { max-width: 1080px; margin: 0 auto; }
 
   .ld-doc-head { padding-bottom: 20px; margin-bottom: 24px; border-bottom: 1px solid var(--border); }

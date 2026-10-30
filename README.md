@@ -52,7 +52,9 @@ containers, and flip the theme, all offline:
   `render_diagram_media` sequence output — play/step/keyboard, activation bars,
   `alt`/`opt`/`loop`/`par` fragments, participant groups, notes, tone/badge
   narration cards with source `proof` links, PNG/SVG export), and free-form
-  `doc` tabs (sections, bullets, code). Tabs deep-link via the URL hash. See
+  `doc` tabs (sections, bullets, code), and `typed` tabs — any of 15 typed
+  diagrams (Gantt, ER, swimlane, timeline, Kanban, journey, Wardley, decision
+  workflow, …). Tabs deep-link via the URL hash. See
   [Multi-tab documents](#multi-tab-documents-sequence--doc-tabs).
 - **Collapsible containers** — every group header has a fold toggle; collapse a VPC
   or account to a small box and the layout re-flows (start dense diagrams pre-collapsed
@@ -378,8 +380,9 @@ already authored as its own file drops in unchanged.
   export. Activation bars are auto-derived unless a message sets
   `activate`/`deactivate` (then explicit mode); `autoActivate: false` hides them.
 - For full control pass `tabs[]` instead, mixing `kind: "architecture"`,
-  `"sequence"` and `"doc"` (prose `sections[]` with `title`, `body`, `bullets`,
-  `code`). Labels default per kind (Architecture / Arquitetura / …); `slug` sets
+  `"sequence"`, `"doc"` (prose `sections[]` with `title`, `body`, `bullets`,
+  `code`) and `"typed"` (`diagram: { kind: "gantt" | "er" | "workflow" | …, … }`,
+  validated against the core's typed specs). Labels default per kind (Architecture / Arquitetura / …); `slug` sets
   the URL hash so a tab is linkable.
 - Incrementally, the draft tools do the same: `diagram_add_sequence` and
   `diagram_add_doc_tab` before `diagram_render`.

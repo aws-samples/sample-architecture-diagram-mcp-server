@@ -151,3 +151,35 @@ describe('schemas', () => {
     expect(() => sequenceSchema.parse({ participants: [], events: [{ kind: 'loopy' }] })).toThrow();
   });
 });
+
+// Typed tabs: a typed diagram document (the core's ./typed registry) rendered by
+// the core's typed-react views; the body is validated with the same spec.
+describe('typed tabs', () => {
+  const gantt = {
+    kind: 'gantt', title: 'Plano',
+    tasks: [{ id: 'a', label: 'Descoberta', start: '2026-11-02', end: '2026-11-06' }],
+  };
+  it('accepts a valid typed diagram and labels the tab', async () => {
+    const { getDiagramType } = await import('../packages/diagram-core/src/typed/index.js');
+    const spec = getDiagramType('gantt');
+    const doc = { ...spec.empty('Plano') };
+    const tabs = resolveTabs({ tabs: [{ id: 'a', kind: 'architecture' }, { id: 'g', kind: 'typed', diagram: doc }] });
+    expect(tabs?.[1].kind).toBe('typed');
+    expect(tabs?.[1].label).toEqual({ en: 'Diagram', pt: 'Diagrama', es: 'Diagrama' });
+  });
+  it('rejects an unknown kind and an invalid body with the spec messages', () => {
+    expect(() => resolveTabs({ tabs: [{ id: 'x', kind: 'typed', diagram: { kind: 'pizza' } }] })).toThrow(/unknown typed diagram kind "pizza"/);
+    expect(() => resolveTabs({ tabs: [{ id: 'g', kind: 'typed', diagram: { ...gantt, tasks: [{ id: 'a' }] } }] })).toThrow(/invalid gantt diagram/);
+    expect(() => resolveTabs({ tabs: [{ id: 'g', kind: 'typed' }] })).toThrow(/requires `diagram`/);
+  });
+  it('resolves workflow node icons from `service` and inlines them', () => {
+    const flow = { kind: 'workflow', title: 'F', nodes: [{ id: 's', label: 'Fn', service: 'AWS Lambda' }], edges: [] };
+    const tabs = resolveTabs({ tabs: [{ id: 'w', kind: 'typed', diagram: flow }] });
+    expect(tabs?.[0].diagram.nodes[0].icon).toMatch(/Lambda/);
+    const html = generateHtml('T', '', [{ id: 'a', service: 'AWS Lambda' }], [], { tabs: [{ id: 'a', kind: 'architecture' }, { id: 'w', kind: 'typed', diagram: flow }] });
+    expect(html).toContain('"kind":"typed"');
+  });
+  it('the tab schema accepts kind typed with a diagram', () => {
+    expect(tabSchema.safeParse({ id: 'g', kind: 'typed', diagram: gantt }).success).toBe(true);
+  });
+});

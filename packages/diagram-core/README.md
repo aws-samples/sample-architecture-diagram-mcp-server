@@ -8,7 +8,7 @@ self-contained HTML and in any app that embeds it.
 Install a pinned build from a GitHub Release (attached by the release workflow):
 
 ```bash
-npm install https://github.com/aws-samples/sample-architecture-diagram-mcp-server/releases/download/v2.1.4/aws-sample-live-diagram-core-1.3.0.tgz
+npm install https://github.com/aws-samples/sample-architecture-diagram-mcp-server/releases/download/v2.2.0/aws-sample-live-diagram-core-1.4.0.tgz
 ```
 
 ## Entry points
@@ -17,9 +17,11 @@ npm install https://github.com/aws-samples/sample-architecture-diagram-mcp-serve
 |---|---|---|
 | `@aws-sample-live-diagram/core` | Pure vocabulary: tones (`TONE_COLORS`, `DIAGRAM_TONES`, `PLAYER_TONES`, `STATUS_COLORS`, `AWS_ORANGE`), player theme tokens (`PLAYER_THEME`, `playerThemeCss`), group variants, membership, i18n (`tr`, `UI_STRINGS`, `makeUi`), geometry, diagram model, flow layout (`layoutFlow`, `flowFrame`) | none |
 | `@aws-sample-live-diagram/core/layout-engine` | ELK / dagre compound layout (`layoutWithFallback`) | `elkjs`, `dagre` |
+| `@aws-sample-live-diagram/core/typed` | Typed diagrams — specs, validator and registry for 15 kinds (`er`, `gantt`, `swimlane`, `tree`, `timeline`, `kanban`, `journey`, `quadrant`, `venn`, `layers`, `fishbone`, `wardley`, `flywheel`, `class`, `workflow`): `DIAGRAM_TYPES`, `validateTypedDiagram`, `describeTypedDiagram`, `exportTypeContracts` (JSON for a server-side validator). See `src/typed/README.md` | none |
+| `@aws-sample-live-diagram/core/typed-react` | Typed-diagram SVG views: `TypedDiagramView`, `DIAGRAM_VIEWS` | `react`, `dagre`, `d3-shape` |
 | `@aws-sample-live-diagram/core/react` | React components: `LiveDiagram` (architecture, walkthrough), `LiveDiagramEditor`, `FlowPlayer` (workflow / data-flow / lifecycle), `SequencePlayer` (UML sequence), `StepCard`, `DiagramCaption`, `cardKit`, `Icon`, node/edge/group components | `react`, `@xyflow/react`, `framer-motion` |
 
-React, React Flow, framer-motion, ELK and dagre are peer dependencies (provided
+React, React Flow, framer-motion, ELK, dagre and d3-shape are peer dependencies (provided
 by the host app). The pure vocabulary lives once, in `dist/index.js`; the other
 entries import it from there.
 

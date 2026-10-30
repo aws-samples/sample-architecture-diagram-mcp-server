@@ -4,6 +4,20 @@ All notable changes to the AWS Architecture Diagram MCP server are documented he
 
 ## [Unreleased]
 
+## [2.2.0] — 2026-10-30
+
+- **Typed diagrams in the core and in the MCP's HTML.** The 15 typed diagram
+  kinds (ER, Gantt, swimlane, tree, timeline, Kanban, journey, quadrant, Venn,
+  layers, fishbone, Wardley, flywheel, UML class, and the new decision
+  `workflow`) move into `diagram-core` 1.4.0: specs, validator and registry in
+  `./typed` (pure, also exportable as JSON contracts for a server-side
+  validator) and the SVG views in `./typed-react`. A multi-tab document gains
+  `kind: "typed"` tabs (`diagram: { kind, … }`), validated with the same specs
+  before rendering.
+- **Fix** — the sequence player sets its own text color (it inherited the
+  host's, unreadable on a light card inside a dark page); flow and sequence
+  players keep a `.light` / `.force-light` island light inside a dark page.
+
 ## [2.1.4] — 2026-10-30
 
 - **`diagram-core` 1.3.0 — the players move into the core.** `FlowPlayer`

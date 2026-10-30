@@ -4,7 +4,8 @@
 // the cost-calculator app uses (Tailwind/Catalyst style: a fixed left rail of
 // views, a collapse toggle, the panel filling the rest), deep-linkable through
 // the URL hash, so ONE self-contained file can carry the live architecture, its
-// animated UML sequence and prose sections instead of shipping three files.
+// animated UML sequence, typed diagrams (gantt, ER, swimlane, workflow…) and
+// prose sections instead of shipping several files.
 //
 // A LEFT rail rather than a top bar: view names are prose ("Fluxo de autorização
 // do cidadão"), and a horizontal bar has no room for them — it truncates to an
@@ -16,7 +17,9 @@
 // switching remounts it instead of leaving it laid out against a 0×0 box.
 import { useEffect, useMemo, useState } from 'react';
 import { tr } from '@aws-sample-live-diagram/core';
-import { cardKit } from '@aws-sample-live-diagram/core/react';
+import { cardKit, FlowPlayer } from '@aws-sample-live-diagram/core/react';
+import { TypedDiagramView } from '@aws-sample-live-diagram/core/typed-react';
+import { resolveIcon } from '@/lib/icons';
 import { McpIcon } from './McpIcon';
 import { SequenceDiagram } from './SequenceDiagram';
 
@@ -25,7 +28,7 @@ type Any = any;
 const slugOf = (t: Any) => String(t.slug || t.id);
 
 // Built-in glyph per tab kind, used when the author passes no `icon`.
-const GLYPH: Record<string, string> = { architecture: '◫', sequence: '⇄', doc: '☰' };
+const GLYPH: Record<string, string> = { architecture: '◫', sequence: '⇄', doc: '☰', typed: '▦' };
 
 function Bullets({ items, lang }: Any) {
   if (!items?.length) return null;
@@ -52,6 +55,29 @@ function Bullets({ items, lang }: Any) {
 // headline + lede) over one numbered card per section. The number is derived from
 // the order — a decision register is referred to by number in review — and a
 // section may carry an optional `badge` for its status ("Aprovada", "Trade-off").
+// A typed diagram (the core's typed-react views). A workflow is a player — full
+// bleed, with its own walkthrough controls; every other kind is a static SVG laid
+// out like a document page under the tab's title.
+function TypedPanel({ tab, lang }: Any) {
+  const doc = tab.diagram;
+  if (doc?.kind === 'workflow') {
+    return <div className="ld-typed-flow"><FlowPlayer flow={doc} iconUrl={resolveIcon} controls /></div>;
+  }
+  return (
+    <div className="ld-doc">
+      <div className="ld-doc-inner">
+        {(tab.title || tab.subtitle || doc?.title) && (
+          <div className="ld-doc-head">
+            <h2>{tr(tab.title, lang) || doc?.title}</h2>
+            {(tab.subtitle || doc?.subtitle) && <p>{cardKit.mdInline(tr(tab.subtitle, lang) || doc?.subtitle)}</p>}
+          </div>
+        )}
+        <TypedDiagramView doc={doc} iconUrl={resolveIcon} />
+      </div>
+    </div>
+  );
+}
+
 function DocPanel({ tab, lang }: Any) {
   const sections: Any[] = tab.sections || [];
   return (
@@ -171,6 +197,7 @@ export function TabShell({ tabs, lang, ArchSlot, ui, title, subtitle }: Any) {
           <SequenceDiagram key={active.id} seq={seqPayload} lang={lang} active ui={ui} />
         )}
         {active?.kind === 'doc' && <DocPanel key={active.id} tab={active} lang={lang} />}
+        {active?.kind === 'typed' && <TypedPanel key={active.id} tab={active} lang={lang} />}
       </div>
     </div>
   );

@@ -50,7 +50,7 @@ const SEQ_CSS = `
   ${playerThemeCss('.ld-seqp', '.ld-seqp[data-theme="dark"],:where(.dark) .ld-seqp:not([data-theme="light"])', ':where(.dark .light,.dark .force-light) .ld-seqp:not([data-theme="dark"])')}
   .ld-frame .ld-seqp { --bg: inherit; --txt: inherit; --txt-muted: inherit; --border: inherit; --card-bg: inherit; --dot: inherit; --chip-bg: inherit; --pill-bg: inherit; }
 
-  .ld-seqp { position: relative; flex: 1; min-width: 0; min-height: 0; overflow: hidden; background: var(--bg); }
+  .ld-seqp { position: relative; flex: 1; min-width: 0; min-height: 0; overflow: hidden; background: var(--bg); color: var(--txt); }
   .ld-seqp .sq-stage { position: absolute; inset: 0; overflow: hidden; cursor: grab; touch-action: none; }
   .ld-seqp .sq-stage.grabbing { cursor: grabbing; }
   .ld-seqp .sq-stage > svg { transform-origin: 0 0; display: block; }

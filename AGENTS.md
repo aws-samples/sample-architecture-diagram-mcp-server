@@ -121,6 +121,22 @@ output — author it once, embed it either way.
 - Keep the two views CONSISTENT: every sequence participant should exist as a node
   (or group) in the architecture, using the same wording.
 
+## Typed diagrams in the same document
+
+A `kind: 'typed'` tab carries one typed diagram: `{ id, kind: 'typed', label?,
+diagram: { kind, title?, … } }` with `diagram.kind` one of `er`, `gantt`,
+`swimlane`, `tree`, `timeline`, `kanban`, `journey`, `quadrant`, `venn`,
+`layers`, `fishbone`, `wardley`, `flywheel`, `class`, `workflow`. Each kind's
+fields follow its spec in `packages/diagram-core/src/typed/<kind>.js` (the same
+specs a downstream app validates with); an invalid body fails the render with
+the spec's messages, so fix it and render again.
+
+- Use a typed tab for what the architecture canvas is not: a migration plan
+  (`gantt`), a data model (`er`), a cross-team process (`swimlane`), a decision
+  tree (`workflow` — decisions, branches that converge, narrated `steps`).
+- A `workflow` tab is the same document `generate_workflow_diagram` takes
+  (nodes, edges, steps); node icons resolve from `service`.
+
 ## Group variants
 
 `aws-cloud`, `region`, `vpc`, `public-subnet`, `private-subnet`,
