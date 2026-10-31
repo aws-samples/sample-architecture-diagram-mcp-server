@@ -481,7 +481,7 @@ server.tool("list_shapes", "List common AWS4 drawio shape names for the .drawio 
   async ({ category }) => {
     // Curated per AWS official service categories. Every 48px architecture icon
     // shipped in assets/icons is represented here by its canonical shape key
-    // (aliases like `dms`, `iam`, `firehose` also resolve — see shape-icons.json).
+    // (aliases like `dms`, `iam`, `firehose` also resolve — see the core SHAPE_ICONS).
     const shapes = {
       compute: ["ec2", "lambda", "fargate", "batch", "lightsail", "lightsail_for_research", "elastic_beanstalk", "outposts", "outposts_family", "outposts_servers", "parallel_computing_service", "parallel_cluster", "ec2_auto_scaling", "auto_scaling", "application_auto_scaling", "app_runner", "ec2_image_builder", "elastic_fabric_adapter", "nitro_enclaves", "bottlerocket", "elastic_vmware_service", "elastic_inference", "serverless_application_repository", "simspace_weaver", "nice_enginframe"],
       containers: ["ecs", "eks", "ecr", "red_hat_openshift", "eks_anywhere", "ecs_anywhere", "eks_cloud", "eks_distro"],

@@ -4,6 +4,21 @@ All notable changes to the AWS Architecture Diagram MCP server are documented he
 
 ## [Unreleased]
 
+## [2.3.0] — 2026-10-31
+
+- **Icon catalogs and resolver in the core** (`diagram-core` 1.6.0):
+  `SERVICE_ICONS`, `SHAPE_ICONS`, `iconForService`, `iconForShape`,
+  `withServiceIcon`, `iconFilterKind`. `lib/service-icons.json` and
+  `lib/shape-icons.json` move into the core as data; the MCP keeps only the
+  fuzzy layer over the icon files on disk. `LiveDiagram`, `SequencePlayer` and
+  `FlowPlayer` fill a missing `icon` from `service`, so a host no longer has to.
+- **Document schemas in the core**: `diagramSchema`/`validateDiagram`
+  (architecture) and `sequenceDocSchema`/`validateSequence` (UML sequence) —
+  JSON Schema + dependency-free validators with referential integrity. A new
+  test keeps them in step with the MCP's zod tool schemas; it found and fixed
+  two gaps: the MCP now accepts `fragments[].tone` (the player already drew it),
+  and the core schema accepts `{ en, pt }` text where the MCP does.
+
 ## [2.2.2] — 2026-10-31
 
 - **Fix: the installed MCP starts.** Run through `npx` or from a release

@@ -107,7 +107,7 @@ find "$TMP" -name '._*' -delete 2>/dev/null || true
 echo "Collecting 48px architecture, resource and category icons into $ICONS ..."
 # Flatten: copy all 48px PNGs, stripping the nested category directories.
 # Arch-Category_*_48.png are used as fallbacks for niche services without a
-# dedicated icon (see lib/service-icons.json).
+# dedicated icon (see the core SERVICE_ICONS).
 find "$TMP" -type f \( -name 'Arch_*_48.png' -o -name 'Res_*_48.png' -o -name 'Arch-Category_*_48.png' \) -exec cp {} "$ICONS/" \;
 
 echo "Collecting group icons (AWS Cloud, VPC, subnets, Region) ..."

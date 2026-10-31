@@ -8,14 +8,14 @@ self-contained HTML and in any app that embeds it.
 Install a pinned build from a GitHub Release (attached by the release workflow):
 
 ```bash
-npm install https://github.com/aws-samples/sample-architecture-diagram-mcp-server/releases/download/v2.2.1/aws-sample-live-diagram-core-1.5.0.tgz
+npm install https://github.com/aws-samples/sample-architecture-diagram-mcp-server/releases/download/v2.3.0/aws-sample-live-diagram-core-1.6.0.tgz
 ```
 
 ## Entry points
 
 | Entry | What | Runtime deps |
 |---|---|---|
-| `@aws-sample-live-diagram/core` | Pure vocabulary: tones (`TONE_COLORS`, `DIAGRAM_TONES`, `PLAYER_TONES`, `STATUS_COLORS`, `AWS_ORANGE`), player theme tokens (`PLAYER_THEME`, `playerThemeCss`), group variants, membership, i18n (`tr`, `UI_STRINGS`, `makeUi`), geometry, diagram model, flow and sequence layouts (`layoutFlow`, `flowFrame`, `layoutSequence`) | none |
+| `@aws-sample-live-diagram/core` | Pure vocabulary: tones (`TONE_COLORS`, `DIAGRAM_TONES`, `PLAYER_TONES`, `STATUS_COLORS`, `AWS_ORANGE`), player theme tokens (`PLAYER_THEME`, `playerThemeCss`), group variants, membership, i18n (`tr`, `UI_STRINGS`, `makeUi`), geometry, diagram model, flow and sequence layouts (`layoutFlow`, `flowFrame`, `layoutSequence`), icon catalogs + resolver (`SERVICE_ICONS`, `SHAPE_ICONS`, `iconForService(name, files?)`, `iconForShape`, `withServiceIcon`, `iconFilterKind`), document schemas + validators (`diagramSchema`/`validateDiagram`, `sequenceDocSchema`/`validateSequence`) | none |
 | `@aws-sample-live-diagram/core/layout-engine` | ELK / dagre compound layout (`layoutWithFallback`) | `elkjs`, `dagre` |
 | `@aws-sample-live-diagram/core/typed` | Typed diagrams — specs, validator and registry for 15 kinds (`er`, `gantt`, `swimlane`, `tree`, `timeline`, `kanban`, `journey`, `quadrant`, `venn`, `layers`, `fishbone`, `wardley`, `flywheel`, `class`, `workflow`): `DIAGRAM_TYPES`, `validateTypedDiagram`, `describeTypedDiagram`, `exportTypeContracts` (JSON for a server-side validator). See `src/typed/README.md` | none |
 | `@aws-sample-live-diagram/core/typed-react` | Typed-diagram SVG views: `TypedDiagramView`, `DIAGRAM_VIEWS` | `react`, `dagre`, `d3-shape` |
@@ -24,6 +24,25 @@ npm install https://github.com/aws-samples/sample-architecture-diagram-mcp-serve
 React, React Flow, framer-motion, ELK, dagre and d3-shape are peer dependencies (provided
 by the host app). The pure vocabulary lives once, in `dist/index.js`; the other
 entries import it from there.
+
+## Icons
+
+A service, participant or flow node with `service` and no `icon` renders the
+catalog icon in every component (`LiveDiagram`, `SequencePlayer`,
+`FlowPlayer`), the same way the MCP resolves it. `iconForService` tries the exact
+name, then the name without the Amazon/AWS prefix; pass the icon file names the
+host serves as `files` to also match free text (every token of an icon's name
+must appear in the query). The host still maps an icon file to a URL
+(`iconUrl`).
+
+## Document schemas
+
+`diagramSchema` (architecture: services, connections, groups) and
+`sequenceDocSchema` (UML sequence) are JSON Schemas of the documents the MCP's
+`generate_html_diagram` and `generate_sequence_diagram` take; `validateDiagram`
+and `validateSequence` check types and referential integrity (unknown ids,
+duplicate ids, group parent cycles) and return `{ valid, errors }`. A test in
+the MCP keeps them in step with its tool schemas.
 
 ## Players
 

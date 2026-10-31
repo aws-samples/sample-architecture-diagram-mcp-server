@@ -18,6 +18,10 @@ export * from "./diagramModel.js";
 export { layoutFlow, flowActiveSet, flowFrame } from "./flowLayout.js";
 // UML sequence layout — shared by <SequencePlayer> and the MCP's HTML player. Pure.
 export { layoutSequence, sequenceHeadBoxW } from "./sequenceLayout.js";
+// Icon catalogs (service name / AWS4 shape → icon file) and the resolver. Pure data.
+export { SERVICE_ICONS, SHAPE_ICONS, DARK_VARIANT_BASES, MONO_INVERT_RES, iconForService, iconForShape, withServiceIcon, iconFilterKind, normTokens } from "./icons.js";
+// Architecture + UML sequence document schemas (JSON Schema) and validators. Pure.
+export * from "./schemas/index.js";
 // NOTE: layoutEngine (elkLayout/compoundLayout) is NOT re-exported here — it
 // pulls elkjs + dagre. Import it from "@aws-sample-live-diagram/core/layout-engine" so
 // the pure "." entry stays dependency-free.

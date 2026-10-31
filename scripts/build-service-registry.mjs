@@ -3,7 +3,7 @@
 // service DISPLAY NAME (the same key diagrams, cost items and IaC all use):
 //
 //   "Amazon EC2": {
-//     icon: "Arch_Amazon-EC2_48.png",       // from service-icons.json
+//     icon: "Arch_Amazon-EC2_48.png",       // from the core SERVICE_ICONS
 //     cfn: "AWS::EC2::Instance",             // primary CFN type (cfn-types.json)
 //     cfnTypes: ["AWS::EC2::Instance", …],   // all deployable types for the ns
 //   }
@@ -17,11 +17,12 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+import { SERVICE_ICONS } from "../packages/diagram-core/src/serviceIcons.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const LIB = join(__dirname, "..", "lib");
 
-const icons = JSON.parse(readFileSync(join(LIB, "service-icons.json"), "utf8"));
+const icons = SERVICE_ICONS;
 let cfn = {};
 try {
   cfn = JSON.parse(readFileSync(join(LIB, "cfn-types.json"), "utf8")).services || {};

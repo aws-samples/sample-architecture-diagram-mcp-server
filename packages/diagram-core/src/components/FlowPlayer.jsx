@@ -19,6 +19,7 @@
 // store, a page) drives it the same way the HTML player's buttons do.
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { layoutFlow, flowActiveSet, flowFrame } from "../flowLayout.js";
+import { withServiceIcon } from "../icons.js";
 import { PLAYER_TONES as TONE, AWS_ORANGE } from "../tones.js";
 import { playerThemeCss } from "../playerTheme.js";
 
@@ -198,7 +199,7 @@ export function FlowPlayer({
   const { w: SW, h: SH } = useSize(ref);
   const type = flow?.type || "workflow";
   const defKind = DEFAULT_KIND[type] || "box";
-  const doc = useMemo(() => ({ ...flow, nodes: (flow?.nodes || []).map(n => ({ ...n, kind: n.kind || defKind })) }), [flow, defKind]);
+  const doc = useMemo(() => ({ ...flow, nodes: (flow?.nodes || []).map(n => ({ ...withServiceIcon(n), kind: n.kind || defKind })) }), [flow, defKind]);
   const iconOf = (n) => (n.icon && iconUrl ? iconUrl(n.icon) : null);
   const L = useMemo(() => layoutFlow(doc, { hasIcon: n => !!(n.icon && iconUrl && iconUrl(n.icon)) }), [doc, iconUrl]);
   const STEPS = doc.steps || [];

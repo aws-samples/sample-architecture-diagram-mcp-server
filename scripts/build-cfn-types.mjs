@@ -20,6 +20,7 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { SERVICE_ICONS } from '../packages/diagram-core/src/serviceIcons.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
@@ -181,7 +182,7 @@ const norm = (s) => s.replace(/^(Amazon|AWS)\s+/i, '').replace(/[^a-z0-9]/gi, ''
 
 function build() {
   const catalog = loadCatalog();
-  const serviceIcons = JSON.parse(readFileSync(join(ROOT, 'lib', 'service-icons.json'), 'utf8'));
+  const serviceIcons = SERVICE_ICONS;
   const serviceNames = Object.keys(serviceIcons);
 
   // Index catalog by namespace: "S3" -> ["AWS::S3::Bucket", ...]

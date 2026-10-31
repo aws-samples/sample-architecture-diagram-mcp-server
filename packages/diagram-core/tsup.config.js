@@ -15,12 +15,13 @@ const PEERS = ["react", "react/jsx-runtime", "framer-motion", "@xyflow/react", "
 // instead of bundling a second copy — and without the hashed shared chunks
 // esbuild's code splitting would emit.
 //   index.js          pure vocabulary (tones, i18n, group variants, membership,
-//                     layout, diagram model, flow + sequence layouts, player theme)
+//                     layout, diagram model, flow + sequence layouts, player theme,
+//                     icon catalogs + resolver, document schemas)
 //   layout-engine.js  ELK/dagre compound layout
 //   react.js          shared React components
 //   typed.js          typed-diagram specs + registry (pure)
 //   typed-react.js    typed-diagram SVG views
-const PURE = ["tones", "i18n", "groupVariants", "membership", "layout", "diagramModel", "flowLayout", "playerTheme", "sequenceLayout"];
+const PURE = ["tones", "i18n", "groupVariants", "membership", "layout", "diagramModel", "flowLayout", "playerTheme", "sequenceLayout", "icons", "serviceIcons", "darkVariants", "schemas/index", "schemas/sequence", "schemas/architecture"];
 const OWNER = new Map([
   ...PURE.map((m) => [resolve(SRC, `${m}.js`), "./index.js"]),
   [resolve(SRC, "index.js"), "./index.js"],

@@ -37,6 +37,7 @@ import { tr, ui as defaultUi } from '../i18n.js';
 import { PLAYER_TONES as TONE, AWS_ORANGE } from '../tones.js';
 import { playerThemeCss } from '../playerTheme.js';
 import { layoutSequence } from '../sequenceLayout.js';
+import { withServiceIcon } from '../icons.js';
 import * as cardKit from './cardKit.jsx';
 
 // Icon resolution is the host's (the MCP inlines data URIs, the deck serves a
@@ -371,9 +372,11 @@ const PREFERS_REDUCED = typeof window !== 'undefined' && !!window.matchMedia
  * @param active whether this tab is the visible one (gates the keyboard map)
  */
 export function SequencePlayer({
-  seq, lang = 'en', active = true, ui = undefined, cur: curProp = undefined, onCur = undefined,
+  seq: seqProp, lang = 'en', active = true, ui = undefined, cur: curProp = undefined, onCur = undefined,
   iconUrl = undefined, iconFilter = undefined, controls = true, card = true, theme = undefined, className = '', style = undefined,
 }) {
+  // A participant with a `service` and no `icon` gets the catalog icon (as in the MCP).
+  const seq = useMemo(() => (seqProp?.participants ? { ...seqProp, participants: seqProp.participants.map(p => withServiceIcon(p)) } : seqProp), [seqProp]);
   const L = useMemo(() => layoutSequence(seq, { tones: TONE }), [seq]);
   const { P, EV, W, H, cx, rowY, eventParticipants } = L;
   const icons = useMemo(() => ({ url: iconUrl || (() => null), filter: iconFilter || (() => 'none') }), [iconUrl, iconFilter]);

@@ -11,6 +11,7 @@
 //                    bidirectional?, showLabel? }
 //   groups[]:      { id, label?, parent?, variant?, icon?, pill?, pillOverlay?, pillSide? }
 import { tr } from "./i18n.js";
+import { iconForService } from "./icons.js";
 
 /**
  * Build the `data` object an `aws` React-Flow node expects, from a service.
@@ -20,7 +21,8 @@ import { tr } from "./i18n.js";
 export function buildServiceNodeData(s, { lang = "en", vars = {}, Icon, geom = {}, nodeLayout = "horizontal" } = {}) {
   return {
     label: tr(s.label != null ? s.label : s.service, lang),
-    icon: s.icon,
+    // No `icon`: the catalog icon for `service` (serialization keeps the source, see __src).
+    icon: s.icon || iconForService(s.service) || undefined,
     sub: s.category,
     role: tr(s.role, lang),
     pill: tr(s.pill, lang),

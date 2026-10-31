@@ -110,3 +110,25 @@ describe('the published MCP is self-contained', () => {
     expect([plugin.version, market.metadata?.version ?? v, ...market.plugins.map((x: { version: string }) => x.version)]).toEqual([v, v, ...market.plugins.map(() => v)]);
   });
 });
+
+// Icon catalogs + resolver are core vocabulary: every renderer resolves a
+// `service` the same way the MCP does.
+describe('core icons', () => {
+  it('resolves exact, prefix-insensitive and i18n service names', async () => {
+    const { iconForService, iconForShape, withServiceIcon, iconFilterKind } = await import('../packages/diagram-core/src/icons.js');
+    expect(iconForService('AWS Lambda')).toBe('Arch_AWS-Lambda_48.png');
+    expect(iconForService('Lambda')).toBe('Arch_AWS-Lambda_48.png');
+    expect(iconForService({ en: 'Amazon S3', pt: 'Amazon S3' })).toBe('Arch_Amazon-Simple-Storage-Service_48.png');
+    expect(iconForService('Frontend (ECS Fargate)')).toBeNull();
+    expect(iconForService('Frontend (ECS Fargate)', ['Arch_AWS-Fargate_48.png', 'Arch-Category_Containers_48.png'])).toBe('Arch_AWS-Fargate_48.png');
+    expect(iconForShape('DMS')).toBe('Arch_AWS-Database-Migration-Service_48.png');
+    expect(withServiceIcon({ id: 'a', service: 'AWS Lambda' }).icon).toBe('Arch_AWS-Lambda_48.png');
+    expect(withServiceIcon({ id: 'a', service: 'AWS Lambda', icon: 'x.png' }).icon).toBe('x.png');
+    expect([iconFilterKind('aws-icons/user.svg'), iconFilterKind('Res_User_48.png'), iconFilterKind('Res_Users_48.png')]).toEqual(['mono', 'mono', 'none']);
+  });
+  it('the built "." entry carries the icon vocabulary', async () => {
+    const m = await import('../packages/diagram-core/dist/index.js');
+    expect(Object.keys(m.SERVICE_ICONS).length).toBeGreaterThan(300);
+    expect(typeof m.iconForService).toBe('function');
+  });
+});
