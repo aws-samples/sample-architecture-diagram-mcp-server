@@ -1,6 +1,6 @@
 {
   "name": "sample-architecture-diagram-mcp-server",
-  "version": "2.2.1",
+  "version": "2.2.2",
   "description": "MCP server that generates self-contained interactive AWS architecture diagrams (HTML + draw.io), with IaC and neutral element-JSON handoff for downstream apps.",
   "type": "module",
   "license": "MIT-0",
@@ -28,11 +28,8 @@
   "files": [
     "mcp-server.js",
     "lib/",
-    "packages/diagram-core/src/sequenceLayout.js",
+    "packages/diagram-core/src/*.js",
     "packages/diagram-core/src/typed/*.js",
-    "packages/diagram-core/src/playerTheme.js",
-    "packages/diagram-core/src/flowLayout.js",
-    "packages/diagram-core/src/tones.js",
     "dist/index.html",
     "scripts/fetch-icons.sh",
     "skills/",
@@ -58,6 +55,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.2",
+    "dagre": "^0.8.5",
     "elkjs": "^0.9.3",
     "zod": "^4.6.7"
   },
@@ -74,7 +72,6 @@
     "@vitejs/plugin-react": "^4.5.2",
     "@xyflow/react": "^12.10.2",
     "d3-shape": "^3.2.0",
-    "dagre": "^0.8.5",
     "framer-motion": "^12.42.2",
     "highlight.js": "^11.11.1",
     "html-to-image": "^1.11.13",

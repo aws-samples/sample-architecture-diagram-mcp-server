@@ -4,6 +4,18 @@ All notable changes to the AWS Architecture Diagram MCP server are documented he
 
 ## [Unreleased]
 
+## [2.2.2] — 2026-10-31
+
+- **Fix: the installed MCP starts.** Run through `npx` or from a release
+  tarball, the server crashed with `ERR_MODULE_NOT_FOUND` for
+  `@aws-sample-live-diagram/core` (only present in a clone's workspace). The
+  runtime now imports the core's sources by path, ships them all in `files`,
+  and `dagre` (pulled by the shared layout engine) moved to `dependencies`. A
+  test walks the runtime's imports so this cannot regress.
+- **Fix** — `serverInfo.version` is read from `package.json` (it said 2.1.0);
+  the plugin and marketplace manifests were still at 2.1.3. A test keeps them
+  in sync with the package.
+
 ## [2.2.1] — 2026-10-30
 
 - **One sequence layout.** `diagram-core` 1.5.0 exports `layoutSequence` (pure):

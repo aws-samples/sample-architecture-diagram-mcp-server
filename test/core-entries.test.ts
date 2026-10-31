@@ -6,8 +6,8 @@
 // every name they import is actually exported, and that the MCP's HTML players
 // receive the shared layout + palette with no placeholder left behind.
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'fs';
-import { join } from 'path';
+import { readFileSync, readdirSync } from 'fs';
+import { join, relative, resolve, dirname } from 'path';
 import * as core from '@aws-sample-live-diagram/core';
 import { generateFlowHtml } from '../lib/flow-generator.js';
 import { generateSequenceHtml } from '../lib/sequence-generator.js';
@@ -66,5 +66,47 @@ describe('HTML players take layout + palette from the core', () => {
     const L = core.layoutFlow(flow, {});
     expect(L.W).toBeGreaterThan(0);
     expect(L.edges[0].label).toMatchObject({ w: expect.any(Number) });
+  });
+});
+
+// The published MCP (npx, release tarball) has no @aws-sample-live-diagram/core
+// install: its runtime code must import the core's sources by path, and every
+// such file must be inside package.json `files`.
+describe('the published MCP is self-contained', () => {
+  const root = join(__dirname, '..');
+  const runtime = ['mcp-server.js', ...readdirSync(join(root, 'lib')).filter(f => f.endsWith('.js')).map(f => `lib/${f}`)];
+  const files: string[] = JSON.parse(readFileSync(join(root, 'package.json'), 'utf-8')).files;
+  const shipped = (p: string) => files.some(g => g.endsWith('/') ? p.startsWith(g)
+    : g.includes('*') ? new RegExp('^' + g.replace(/[.]/g, '\\.').replace('*', '[^/]+') + '$').test(p) : p === g);
+  it('runtime code never imports the core by package name', () => {
+    const bare = runtime.filter(f => /from ["']@aws-sample-live-diagram\/core/.test(readFileSync(join(root, f), 'utf-8')));
+    expect(bare).toEqual([]);
+  });
+  it('every core source the runtime imports (transitively) is shipped', () => {
+    const seen = new Set<string>(), queue = [...runtime];
+    while (queue.length) {
+      const f = queue.pop()!;
+      if (seen.has(f)) continue; seen.add(f);
+      for (const m of readFileSync(join(root, f), 'utf-8').matchAll(/from ["'](\.{1,2}\/[^"']+\.js)["']/g)) {
+        queue.push(relative(root, resolve(dirname(join(root, f)), m[1])));
+      }
+    }
+    const missing = [...seen].filter(f => f.startsWith('packages/') && !shipped(f));
+    expect(missing).toEqual([]);
+    // …and every bare package those files import is a runtime dependency.
+    const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf-8'));
+    const deps = new Set(Object.keys(pkg.dependencies));
+    const bare = new Set<string>();
+    for (const f of seen) for (const m of readFileSync(join(root, f), 'utf-8').matchAll(/from ["']([^."'][^"']*)["']/g)) {
+      const name = m[1].startsWith('@') ? m[1].split('/').slice(0, 2).join('/') : m[1].split('/')[0];
+      if (!name.startsWith('node:') && !['fs', 'path', 'url', 'os', 'child_process', 'crypto', 'zlib', 'util'].includes(name)) bare.add(name);
+    }
+    expect([...bare].filter(n => !deps.has(n))).toEqual([]);
+  });
+  it('the plugin manifests carry the package version', () => {
+    const v = JSON.parse(readFileSync(join(root, 'package.json'), 'utf-8')).version;
+    const plugin = JSON.parse(readFileSync(join(root, '.claude-plugin/plugin.json'), 'utf-8'));
+    const market = JSON.parse(readFileSync(join(root, '.claude-plugin/marketplace.json'), 'utf-8'));
+    expect([plugin.version, market.metadata?.version ?? v, ...market.plugins.map((x: { version: string }) => x.version)]).toEqual([v, v, ...market.plugins.map(() => v)]);
   });
 });
