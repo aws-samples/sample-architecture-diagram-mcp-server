@@ -132,3 +132,23 @@ describe('core icons', () => {
     expect(typeof m.iconForService).toBe('function');
   });
 });
+
+describe('core players fill a missing icon from service', () => {
+  it('SequencePlayer and FlowPlayer resolve service → icon', async () => {
+    const React = (await import('react')).default;
+    const { renderToString } = await import('react-dom/server');
+    const { SequencePlayer, FlowPlayer } = await import('../packages/diagram-core/dist/react.js');
+    const iconUrl = (r: string) => `/i/${r}`;
+    const pick = (h: string) => [...new Set([...h.matchAll(/\/i\/([^"&]+)/g)].map(m => m[1]))].sort();
+    const seq = { participants: [{ id: 'a', label: 'App', service: 'AWS Lambda' }, { id: 'b', label: 'DB', service: 'Amazon DynamoDB' }], events: [{ kind: 'message', id: 'm1', from: 'a', to: 'b', label: 'put' }] };
+    expect(pick(renderToString(React.createElement(SequencePlayer, { seq, iconUrl })))).toEqual(['Arch_AWS-Lambda_48.png', 'Arch_Amazon-DynamoDB_48.png'].sort());
+    const flow = { type: 'workflow', nodes: [{ id: 'n', label: 'Fn', service: 'AWS Lambda' }], edges: [] };
+    expect(pick(renderToString(React.createElement(FlowPlayer, { flow, iconUrl })))).toEqual(['Arch_AWS-Lambda_48.png']);
+  });
+  it('architecture nodes too, without writing the derived icon back', async () => {
+    const { buildServiceNode, serializeDiagram } = await import('../packages/diagram-core/src/diagramModel.js');
+    const node = buildServiceNode({ id: 'f', service: 'AWS Lambda' }, {});
+    expect(node.data.icon).toBe('Arch_AWS-Lambda_48.png');
+    expect(serializeDiagram([node], []).services[0].icon).toBeUndefined();
+  });
+});
