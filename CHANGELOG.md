@@ -18,6 +18,21 @@ All notable changes to the AWS Architecture Diagram MCP server are documented he
   test keeps them in step with the MCP's zod tool schemas; it found and fixed
   two gaps: the MCP now accepts `fragments[].tone` (the player already drew it),
   and the core schema accepts `{ en, pt }` text where the MCP does.
+- **Canvas theme in the core**: `DIAGRAM_THEME` + `diagramThemeCss()` /
+  `diagramBaseCss()` — the light/dark tokens of `LiveDiagram` (the MCP's HTML
+  and the slides host each kept their own copy).
+- **Fix: `Icon` no longer inverts colored `Res_*` glyphs in dark mode** (only
+  the navy ones without a `*_Dark` sibling, `MONO_INVERT_RES`); it also swaps
+  pathed diagram icons and host-listed logos (`brandDarkVariants`) and takes
+  named sizes (`sizes`) — the slides deck's Icon is now a wrapper around it.
+- **Accessible descriptions**: `describeArchitecture` / `describeSequence`
+  (en/pt/es, i18n text); `LiveDiagram` and `SequencePlayer` render as a figure
+  described by a visually hidden summary (`describe={false}` to opt out).
+- **One inline mini-markdown grammar**: `parseInline` / `inlineHtml` /
+  `safeHref` (`**` / `__` bold, `*` / `_` italic at word boundaries,
+  `` `code` ``, links through `safeHref`, linear on hostile input). The card
+  text, the flow player and the slides deck's RichText and blog text all parse
+  with it; each keeps its own styling.
 
 ## [2.2.2] — 2026-10-31
 

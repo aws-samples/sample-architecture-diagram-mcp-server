@@ -21,7 +21,7 @@ const PEERS = ["react", "react/jsx-runtime", "framer-motion", "@xyflow/react", "
 //   react.js          shared React components
 //   typed.js          typed-diagram specs + registry (pure)
 //   typed-react.js    typed-diagram SVG views
-const PURE = ["tones", "i18n", "groupVariants", "membership", "layout", "diagramModel", "flowLayout", "playerTheme", "sequenceLayout", "icons", "serviceIcons", "darkVariants", "schemas/index", "schemas/sequence", "schemas/architecture"];
+const PURE = ["tones", "i18n", "groupVariants", "membership", "layout", "diagramModel", "flowLayout", "playerTheme", "diagramTheme", "a11y", "inline", "sequenceLayout", "icons", "serviceIcons", "darkVariants", "schemas/index", "schemas/sequence", "schemas/architecture"];
 const OWNER = new Map([
   ...PURE.map((m) => [resolve(SRC, `${m}.js`), "./index.js"]),
   [resolve(SRC, "index.js"), "./index.js"],

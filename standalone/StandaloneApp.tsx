@@ -13,7 +13,7 @@
 //   • the UI-chrome i18n table (ui / LANG_LABEL) for the dock + node modal.
 import { useState } from 'react';
 import { LiveDiagram } from '@aws-sample-live-diagram/core/react';
-import { HORIZONTAL_GEOMETRY } from '@aws-sample-live-diagram/core';
+import { HORIZONTAL_GEOMETRY, diagramThemeCss, diagramBaseCss } from '@aws-sample-live-diagram/core';
 import { makeUi, makeLangLabel } from '@/lib/i18n';
 import { DiagramCaption } from '@aws-sample-live-diagram/core/react';
 import { McpIcon } from './McpIcon';
@@ -51,13 +51,8 @@ interface Props {
 const CHROME_STYLE = `
   html, body, #root { height: 100%; margin: 0; }
   .ld-frame { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
-  .ld-frame.light { --bg: #f8fafc; --surface: #ffffff; --node-bg: #ffffff; --txt: #1e293b; --txt-muted: #64748b; --border: rgba(0,0,0,0.06); --icon-filter: none; --card-bg: rgba(255,255,255,0.96); --card-solid: #ffffff; --dot: rgba(0,0,0,0.12); --chip-bg: rgba(100,116,139,0.1); --pill-bg: rgba(255,255,255,0.95); background: var(--bg); color: var(--txt); }
-  .ld-frame.dark { --bg: #0f1117; --surface: #1a1d27; --node-bg: #1e2230; --txt: #e2e8f0; --txt-muted: #94a3b8; --border: rgba(255,255,255,0.06); --icon-filter: brightness(0) invert(1); --card-bg: rgba(24,28,40,0.94); --card-solid: #181c28; --dot: rgba(255,255,255,0.12); --chip-bg: rgba(148,163,184,0.14); --pill-bg: rgba(26,29,39,0.95); background: var(--bg); color: var(--txt); }
-  .ld-frame .react-flow__node-group { pointer-events: none; }
-  .ld-frame .react-flow__renderer, .ld-frame .react-flow { background: transparent; }
-  /* Fluid fold: nodes/containers glide to their new spot when a group collapses
-     or expands (re-layout), instead of snapping. */
-  .ld-frame .react-flow__node { transition: transform .5s cubic-bezier(.22,.61,.36,1), width .5s cubic-bezier(.22,.61,.36,1), height .5s cubic-bezier(.22,.61,.36,1); }
+  ${diagramThemeCss('.ld-frame.light', '.ld-frame.dark', { extra: { light: 'background: var(--bg); color: var(--txt)', dark: 'background: var(--bg); color: var(--txt)' } })}
+  ${diagramBaseCss('.ld-frame')}
   .ld-frame.react-flow__pane-moving .react-flow__node { transition: none; }
   /* Pulsing glow on the walkthrough play button before the tour has started,
      to invite the viewer to press it. */

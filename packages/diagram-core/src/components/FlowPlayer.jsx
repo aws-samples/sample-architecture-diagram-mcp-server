@@ -20,6 +20,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { layoutFlow, flowActiveSet, flowFrame } from "../flowLayout.js";
 import { withServiceIcon } from "../icons.js";
+import { inlineHtml } from "../inline.js";
 import { PLAYER_TONES as TONE, AWS_ORANGE } from "../tones.js";
 import { playerThemeCss } from "../playerTheme.js";
 
@@ -31,12 +32,7 @@ const GUTTER = 396;
 // attribute values; only http(s)/mailto proof links become anchors).
 const esc = (s) => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 const safeUrl = (u) => /^(https?:|mailto:)/i.test(String(u || "").trim()) ? String(u).trim() : "";
-function md(s) {
-  return esc(s)
-    .replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>")
-    .replace(/`([^`]+)`/g, "<code>$1</code>")
-    .replace(/\*([^*]+)\*/g, "<i>$1</i>");
-}
+const md = (s) => inlineHtml(s == null ? "" : s);
 function lineFrag(lines) {
   if (lines == null) return "";
   if (Array.isArray(lines)) return lines.length > 1 ? "#L" + lines[0] + "-L" + lines[1] : "#L" + lines[0];

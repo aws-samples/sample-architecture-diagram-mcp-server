@@ -17,7 +17,7 @@
 //
 // It renders through the shared AwsNode/GroupNode/CustomEdge and drives the
 // shared StepCard for the walkthrough overlay.
-import { useMemo, useEffect, useState, useCallback, useRef } from "react";
+import { useMemo, useEffect, useState, useCallback, useRef, useId } from "react";
 import {
   ReactFlow, ReactFlowProvider, Background, BackgroundVariant, MiniMap, useReactFlow,
 } from "@xyflow/react";
@@ -36,6 +36,7 @@ import { resolveGroupsAndMembership } from "../membership.js";
 import { DEFAULT_GEOMETRY } from "../layout.js";
 import { layoutWithFallback } from "../layoutEngine.js";
 import { buildServiceNode, buildBaseEdge } from "../diagramModel.js";
+import { describeArchitecture, SR_ONLY_STYLE } from "../a11y.js";
 
 const NODE_TYPES = { aws: AwsNode, group: GroupNode };
 const EDGE_TYPES = { custom: CustomEdge };
@@ -505,6 +506,9 @@ export function LiveDiagram({
   nodeModal = true, startStep = -1, startCardScale = 0,
   // Zoom bounds/caps — forwarded to the canvas (see DiagramCanvas jsdoc).
   minZoom = 0.1, maxZoom = 3, fitMaxZoom = undefined, stepMaxZoom = 2.2,
+  // Accessible description (a screen-reader summary of the components, groups
+  // and connections; the canvas stays interactive, so no role=img). false = off.
+  describe = true,
 }) {
   // flowDots=false turns off the animated dot travelling along every edge, for a
   // static-arrow look. Merged into edgeTuning (spread onto each edge's data), so
@@ -613,6 +617,12 @@ export function LiveDiagram({
   // fullscreen Esc fires `fullscreenchange`, which resets `presenting`).
   const [presenting, setPresenting] = useState(false);
   const frameRef = useRef(null);
+  // Accessible description: the frame is a figure described by a visually
+  // hidden summary (components, groups, connections).
+  const descId = `ld-desc-${useId().replace(/[:]/g, "")}`;
+  const summary = useMemo(() => (describe ? describeArchitecture(data, { lang }) : ""), [describe, data, lang]);
+  const a11y = summary ? { role: "figure", "aria-describedby": descId } : {};
+  const desc = summary ? <span id={descId} style={SR_ONLY_STYLE}>{summary}</span> : null;
   const togglePresent = useCallback(() => {
     const el = frameRef.current;
     const doc = typeof document !== "undefined" ? document : null;
@@ -700,6 +710,7 @@ export function LiveDiagram({
       <ReactFlowProvider>
         <div ref={(el) => { attachedFrameRef.current = el; frameRef.current = el; }}
           className={`ld-frame ld-attached ${themeClass} ${className}`.trim()}
+          {...a11y}
           style={attachedNarrow || below
             ? { width: "100%", height: "100%", display: "grid",
                 gridTemplateRows: showAttachedCard ? `minmax(0,1fr) minmax(0,${below ? "var(--ld-below-card-h, 34%)" : "45%"})` : "minmax(0,1fr) 0px",
@@ -709,6 +720,7 @@ export function LiveDiagram({
                 gridTemplateColumns: showAttachedCard ? "minmax(0,1fr) var(--ld-attached-card-w, 340px)" : "minmax(0,1fr) 0px",
                 gap: showAttachedCard ? "var(--ld-attached-gap, 16px)" : 0,
                 transition: "grid-template-columns .35s cubic-bezier(.22,.61,.36,1), gap .35s" }}>
+          {desc}
           <div style={{ position: "relative", minWidth: 0, minHeight: 0, height: "100%" }}>{canvas}</div>
           <div style={{ position: "relative", minWidth: 0, minHeight: 0, height: "100%",
             maxHeight: attachedNarrow && !below ? "45%" : undefined, overflow: "hidden" }}>
@@ -837,10 +849,11 @@ export function LiveDiagram({
     // transitions. The diagram stays fully navigable; only motion is removed.
     <MotionConfig reducedMotion="user">
     <ReactFlowProvider>
-      <div ref={frameRef} className={`ld-frame ${themeClass} ${className}`.trim()}
+      <div ref={frameRef} className={`ld-frame ${themeClass} ${className}`.trim()} {...a11y}
         style={{ width: "100%", height: "100%", position: "relative",
           ...(cap ? { display: "flex", flexDirection: "column" } : null),
           background: presenting ? `var(${vars.bg || "--bg"}, #fff)` : undefined }}>
+        {desc}
         {cap && <DiagramCaption caption={caption} lang={lang} vars={vars || {}} />}
         {cap
           ? <div style={{ position: "relative", flex: "1 1 auto", minHeight: 0 }}>{body}</div>

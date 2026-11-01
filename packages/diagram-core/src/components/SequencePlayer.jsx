@@ -32,12 +32,13 @@
 //   controls, card      show the pill toolbar / the narration card (default on)
 //   theme               'light' | 'dark' to force; else a `.dark` ancestor (or
 //                       the MCP's .ld-frame.dark) decides
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { tr, ui as defaultUi } from '../i18n.js';
 import { PLAYER_TONES as TONE, AWS_ORANGE } from '../tones.js';
 import { playerThemeCss } from '../playerTheme.js';
 import { layoutSequence } from '../sequenceLayout.js';
 import { withServiceIcon } from '../icons.js';
+import { describeSequence, SR_ONLY_STYLE } from '../a11y.js';
 import * as cardKit from './cardKit.jsx';
 
 // Icon resolution is the host's (the MCP inlines data URIs, the deck serves a
@@ -378,6 +379,9 @@ export function SequencePlayer({
   // A participant with a `service` and no `icon` gets the catalog icon (as in the MCP).
   const seq = useMemo(() => (seqProp?.participants ? { ...seqProp, participants: seqProp.participants.map(p => withServiceIcon(p)) } : seqProp), [seqProp]);
   const L = useMemo(() => layoutSequence(seq, { tones: TONE }), [seq]);
+  // Accessible description: a visually hidden summary of participants and steps.
+  const descId = `ld-seqdesc-${useId().replace(/[:]/g, '')}`;
+  const summary = useMemo(() => describeSequence(seq, { lang }), [seq, lang]);
   const { P, EV, W, H, cx, rowY, eventParticipants } = L;
   const icons = useMemo(() => ({ url: iconUrl || (() => null), filter: iconFilter || (() => 'none') }), [iconUrl, iconFilter]);
 
@@ -632,7 +636,8 @@ export function SequencePlayer({
 
   return (
     <IconCtx.Provider value={icons}>
-    <div className={`ld-seqp ${className}`} data-theme={theme} style={{ ['--active']: activeColor, ...style }}>
+    <div className={`ld-seqp ${className}`} data-theme={theme} style={{ ['--active']: activeColor, ...style }} role="figure" aria-describedby={descId}>
+      <span id={descId} style={SR_ONLY_STYLE}>{summary}</span>
       <style>{SEQ_CSS}</style>
       <div ref={stageRef} className="sq-stage"
         onPointerDown={onPointerDown} onPointerMove={onPointerMove}

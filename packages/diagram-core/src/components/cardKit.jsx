@@ -11,29 +11,23 @@
 // pieces that render one (IconTile / CardHeader / Bullets / Chips).
 import { useState } from "react";
 import { resolveVariant } from "../groupVariants.js";
+import { parseInline } from "../inline.js";
 
-// Minimal inline-markdown renderer for card text: **bold**, `code`, *italic*,
-// and [label](https://url) links (open in a new tab; http/https only).
-// Returns an array of React nodes; safe (no HTML injection — plain spans/anchors only).
-// Keeps author text readable while allowing light emphasis and inline code.
+// Inline mini-markdown for card text — the shared grammar (../inline.js:
+// **bold**, __bold__, `code`, *italic* / _italic_, [label](url) through
+// safeHref). Returns React nodes; safe (plain spans/anchors, no HTML injection).
 export function mdInline(str) {
   if (typeof str !== "string") return str;
-  const out = [];
-  const re = /(\[([^[\]]+)\]\((https?:\/\/[^()[\]\s]+)\)|\*\*([^*]+)\*\*|`([^`]+)`|\*([^*]+)\*)/g;
-  let last = 0, m, k = 0;
-  while ((m = re.exec(str))) {
-    if (m.index > last) out.push(str.slice(last, m.index));
-    if (m[2] != null && m[3] != null) out.push(
-      <a key={k++} href={m[3]} target="_blank" rel="noopener noreferrer"
-        className="underline decoration-dotted underline-offset-2 text-[color:var(--accent,#22c55e)] hover:opacity-80">{m[2]}</a>);
-    else if (m[4] != null) out.push(<strong key={k++} className="font-bold text-[color:var(--txt,#e2e8f0)]">{m[4]}</strong>);
-    else if (m[5] != null) out.push(
-      <code key={k++} className="font-mono text-[0.92em] px-1 py-px rounded bg-[color:var(--chip-bg,rgba(148,163,184,0.16))] border border-[color:var(--border,rgba(255,255,255,0.12))]">{m[5]}</code>);
-    else if (m[6] != null) out.push(<em key={k++} className="italic">{m[6]}</em>);
-    last = m.index + m[0].length;
-  }
-  if (last < str.length) out.push(str.slice(last));
-  return out;
+  return parseInline(str).map((t, k) => {
+    if (t.type === "link") return (
+      <a key={k} href={t.href} {...(/^https?:/i.test(t.href) ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+        className="underline decoration-dotted underline-offset-2 text-[color:var(--accent,#22c55e)] hover:opacity-80">{t.text}</a>);
+    if (t.type === "strong" || t.type === "strong2") return <strong key={k} className="font-bold text-[color:var(--txt,#e2e8f0)]">{t.text}</strong>;
+    if (t.type === "code") return (
+      <code key={k} className="font-mono text-[0.92em] px-1 py-px rounded bg-[color:var(--chip-bg,rgba(148,163,184,0.16))] border border-[color:var(--border,rgba(255,255,255,0.12))]">{t.text}</code>);
+    if (t.type === "em") return <em key={k} className="italic">{t.text}</em>;
+    return t.text;
+  });
 }
 
 // Fenced code block for the card — a labeled request/snippet (e.g. the POST).
