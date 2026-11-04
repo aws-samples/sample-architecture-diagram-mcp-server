@@ -92,7 +92,8 @@ describe('specs validate against the generated schemas', () => {
     expect(validate('diagram', rich).ok).toBe(true);
     await client.callTool({ name: 'generate_html_diagram', arguments: { ...rich, outputPath: join(tmp, 'r.html') } });
     const written = JSON.parse(readFileSync(join(tmp, 'r.spec.json'), 'utf-8'));
-    expect(written.$schema).toBe(`${SCHEMA_BASE}spec.schema.json`);
+    // No unresolvable URL by default (the $ids are identifiers, not a published location).
+    expect(written.$schema).toBeUndefined();
     const r = validate('spec', written);
     expect(r.ok, JSON.stringify(r.errors)).toBe(true);
   });

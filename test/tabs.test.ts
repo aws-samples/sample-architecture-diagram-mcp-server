@@ -175,7 +175,9 @@ describe('typed tabs', () => {
   it('resolves workflow node icons from `service` and inlines them', () => {
     const flow = { kind: 'workflow', title: 'F', nodes: [{ id: 's', label: 'Fn', service: 'AWS Lambda' }], edges: [] };
     const tabs = resolveTabs({ tabs: [{ id: 'w', kind: 'typed', diagram: flow }] });
-    expect(tabs?.[0].diagram.nodes[0].icon).toMatch(/Lambda/);
+    // A lone tab gets the architecture tab in front (it used to vanish otherwise).
+    expect(tabs?.[0].kind).toBe('architecture');
+    expect(tabs?.[1].diagram.nodes[0].icon).toMatch(/Lambda/);
     const html = generateHtml('T', '', [{ id: 'a', service: 'AWS Lambda' }], [], { tabs: [{ id: 'a', kind: 'architecture' }, { id: 'w', kind: 'typed', diagram: flow }] });
     expect(html).toContain('"kind":"typed"');
   });
