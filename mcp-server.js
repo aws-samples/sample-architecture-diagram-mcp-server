@@ -19,6 +19,9 @@ import { participantSchema, messageSchema, noteSchema, eventSchema, fragmentSche
 import { generateFlowHtml, flowIconResolutionReport } from "./lib/flow-generator.js";
 import { flowNodeSchema, flowEdgeSchema, flowStepSchema } from "./lib/flow-schemas.js";
 import { diagramElementsJson, writeSidecarJson, renderSpecAsync, writeSpecJson, formatLayoutWarnings } from "./lib/render-spec.js";
+import { listComponents, describeComponent, listLayouts, saveLayout, updateLayout, validateLayout, resolveLayout, buildBundle, PREVIEW_SPEC } from "./lib/layouts.js";
+import { layoutSchema, layoutRefSchema, patchOpSchema, slotEnum } from "./lib/layout-schemas.js";
+import { CLI_COMMANDS, runCli, renderSpecFile } from "./lib/cli.js";
 
 const PKG = JSON.parse(readFileSync(new URL("./package.json", import.meta.url), "utf-8"));
 const server = new McpServer({ name: PKG.name, version: PKG.version });
@@ -185,6 +188,87 @@ server.tool(
       seqTabs.length ? `sequence: ${seqTabs.reduce((n, t) => n + (t.sequence?.participants?.length || 0), 0)} participants / ${seqTabs.reduce((n, t) => n + (t.sequence?.events?.length || 0), 0)} events` : null,
     ].filter(Boolean);
     return { content: [{ type: "text", text: `Interactive diagram saved: ${outputPath}${r.layout ? ` (layout: ${r.layout})` : ""}${extras.length ? "\nIncluded: " + extras.join(", ") : ""}${jsonPath ? `\nElements JSON: ${jsonPath}` : ""}\nOpen in browser for animated data flow visualization.${formatValidationReport(report)}${formatLayoutWarnings(warnings)}${iconSetNotice()}` }] };
+  }
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Layouts — compose the page from the component catalog (lib/layouts.js). A
+// spec's `layout` picks a preset, a saved layout or an inline one; these tools
+// browse the catalog and create, change, check, preview and build layouts.
+// ─────────────────────────────────────────────────────────────────────────────
+const jsonText = (v) => ({ content: [{ type: "text", text: JSON.stringify(v, null, 2) }] });
+const toolError = (e) => ({ content: [{ type: "text", text: `Error: ${e.message}` }], isError: true });
+
+server.tool("list_components",
+  "List the components a layout can mount: id, slot (dock, stepCard, nodeModal, header), built-in or custom, and what each does. Use describe_component for one component's props schema.",
+  { slot: slotEnum.optional().describe("Only this slot.") },
+  async ({ slot }) => jsonText(listComponents().filter(c => !slot || c.slot === slot).map(c => ({ id: c.id, slot: c.slot, builtin: c.builtin, version: c.version, description: c.description })))
+);
+
+server.tool("describe_component",
+  "One component of the catalog, with the JSON Schema of its props.",
+  { id: z.string() },
+  async ({ id }) => { try { return jsonText(describeComponent(id)); } catch (e) { return toolError(e); } }
+);
+
+server.tool("list_layouts",
+  "List the layouts a spec can name in `layout`: the presets (default = the standard page, cost = cost estimate up front) and the saved layouts (DIAGRAM_LAYOUTS_DIR or ~/.aws-architecture-diagram/layouts).",
+  {},
+  async () => jsonText(listLayouts())
+);
+
+server.tool("create_layout",
+  "Save a layout under a name so specs can use it as `layout: \"<name>\"`. Start from a preset with `extends` and change it with `patch` (add / remove / move / replace a component, or set its props), or give whole `slots`; add `theme` tokens, a CSS file and `branding` (local logo/favicon files, inlined). Validated before saving; presets are read-only.",
+  { layout: layoutSchema.describe("The layout; `name` is required."), overwrite: z.boolean().optional() },
+  async ({ layout, overwrite }) => { try { return jsonText(saveLayout(layout, { overwrite: !!overwrite })); } catch (e) { return toolError(e); } }
+);
+
+server.tool("update_layout",
+  "Change a saved layout: append `patch` ops and/or replace top-level keys with `set` (null deletes a key). Validated before saving.",
+  { name: z.string(), patch: z.array(patchOpSchema).optional(), set: layoutSchema.partial().optional().describe("Top-level keys to replace (description, extends, slots, theme, branding).") },
+  async ({ name, patch, set }) => { try { return jsonText(updateLayout(name, { patch: patch || [], set: set || {} })); } catch (e) { return toolError(e); } }
+);
+
+server.tool("validate_layout",
+  "Resolve a layout without rendering: checks component ids, slots, props, extends chain and files, and reports the components per slot and whether it needs a bundle (custom components).",
+  { layout: layoutRefSchema, baseDir: z.string().optional().describe("Folder relative asset paths of an inline layout resolve from (default: current directory).") },
+  async ({ layout, baseDir }) => jsonText(validateLayout(layout, { baseDir }))
+);
+
+server.tool("preview_layout",
+  "Render a small generic diagram (edge, API, data; caption, walkthrough, cost link, two languages) with a layout, to see it without writing a spec.",
+  { layout: layoutRefSchema, outputPath: z.string().describe("Output .html path"), baseDir: z.string().optional() },
+  async ({ layout, outputPath, baseDir }) => {
+    try {
+      const r = await renderSpecAsync(PREVIEW_SPEC, { layoutOverride: layout, baseDir: baseDir || dirname(resolvePath(outputPath)) });
+      writeFileSync(outputPath, r.html, "utf-8");
+      return { content: [{ type: "text", text: `Preview saved: ${outputPath} (layout: ${r.layout})${formatLayoutWarnings(r.warnings)}` }] };
+    } catch (e) { return toolError(e); }
+  }
+);
+
+server.tool("build_bundle",
+  "Build the page that includes a layout's custom components (Vite build of the standalone page, cached by a hash of the components, the base page and the package version). Layouts with only built-in components need no build. Requires a clone of the repository with dev dependencies installed; the npm package cannot build.",
+  { layout: layoutRefSchema, force: z.boolean().optional(), baseDir: z.string().optional() },
+  async ({ layout, force, baseDir }) => {
+    try { const r = resolveLayout(layout, { baseDir }); return jsonText({ layout: r.name, custom: r.custom.map(c => c.id), ...(await buildBundle(r.custom, { force: !!force })) }); }
+    catch (e) { return toolError(e); }
+  }
+);
+
+server.tool("render_from_spec",
+  "Re-render a diagram from a spec file — the <name>.spec.json written next to every generated HTML, or any file with the generate_html_diagram input. Validates it, applies its layout (or `layout` here), and writes the HTML, the elements JSON and (unless writeSpec:false or it is the input itself) the spec next to it.",
+  {
+    specPath: z.string().describe("Path to the spec JSON."),
+    outPath: z.string().optional().describe("Output .html (default: the spec path with .html)."),
+    layout: z.string().optional().describe("Layout name, or a path to a layout .json, overriding the spec's."),
+    writeSpec: z.boolean().optional(),
+  },
+  async ({ specPath, outPath, layout, writeSpec }) => {
+    try {
+      const r = await renderSpecFile(specPath, { outPath, layout, writeSpec: writeSpec !== false });
+      return { content: [{ type: "text", text: `Interactive diagram saved: ${r.out}${r.layout ? ` (layout: ${r.layout})` : ""}${r.jsonPath ? `\nElements JSON: ${r.jsonPath}` : ""}${r.specOut ? `\nSpec JSON: ${r.specOut}` : ""}${formatValidationReport(r.report)}${formatLayoutWarnings(r.warnings)}${iconSetNotice()}` }] };
+    } catch (e) { return toolError(e); }
   }
 );
 
@@ -881,6 +965,12 @@ function registerFlowType(type) {
 
 // First-run hint: if no icons are available, tell the user how to add them.
 // stderr only — never stdout — so the stdio MCP protocol stays clean.
+// With a command as the first argument this is the CLI (render, layout, …);
+// with no arguments it is the stdio MCP server.
+if (CLI_COMMANDS.includes(process.argv[2])) {
+  process.exit(await runCli(process.argv.slice(2)));
+}
+
 try {
   if (!hasIcons(iconRoot())) {
     console.error(
