@@ -107,6 +107,26 @@
             ]
           }
         },
+        "pricingByEnv": {
+          "description": "Cost/sizing rows per environment of `costs` ({ prod: {…}, poc: {…} }): the node modal shows the selected environment's rows (falling back to `pricing`).",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            }
+          }
+        },
         "label": {
           "description": "Short display label shown under the node icon (in the diagram, not the modal).",
           "$ref": "../common/lang-text.schema.json"

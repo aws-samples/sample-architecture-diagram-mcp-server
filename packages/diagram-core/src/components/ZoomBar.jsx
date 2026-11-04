@@ -4,7 +4,7 @@
 // language switch, theme toggle, collapse. UI-chrome strings are injected via
 // `ui(key)` and `langLabel(code)` so the host owns the chrome i18n table.
 import { useReactFlow, getNodesBounds, getViewportForBounds } from "@xyflow/react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useId } from "react";
 import { AWS_ORANGE } from "../tones.js";
 import { getRegisteredComponent, normalizeSlotEntries } from "../componentRegistry.js";
 
@@ -180,12 +180,59 @@ const TOOL_ITEMS = new Set(["zoom", "png", "shareCard"]);
 // A logo is only ever an inlined image (data:image/...), never a remote URL.
 const safeLogo = (u) => (typeof u === "string" && /^data:image\/(png|jpeg|gif|webp|svg\+xml);base64,[A-Za-z0-9+/=]+$/.test(u) ? u : undefined);
 
+// Split cost button: the main link opens the selected estimate; the caret opens
+// a menu of every estimate (each a link, tagged with its environment) and, when
+// there are several environments, a switch that changes which one the dock,
+// the step pills and the node modal use.
+function CostSplit({ costUrl, costLabel, label, costs, costEnv, envList, onCostEnv, btn, dark }) {
+  const [open, setOpen] = useState(false);
+  const menuId = useId();
+  const current = costs.find((c) => c.url === costUrl);
+  const orange = { textDecoration: "none", borderColor: "#FF990066", color: AWS_ORANGE, background: "rgba(255,153,0,0.1)", fontWeight: 700, whiteSpace: "nowrap" };
+  return (
+    <div key="costs" style={{ position: "relative", display: "flex", flex: "0 0 auto" }} data-ld-cost-split="">
+      <a href={costUrl} target="_blank" rel="noopener noreferrer" title={label} data-ld-cost="dock"
+        style={{ ...btn, ...orange, gap: 6, maxWidth: 240, borderTopRightRadius: 0, borderBottomRightRadius: 0 }}>
+        <span data-ld-cost-label="" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", minWidth: 0 }}>{label}</span>
+        {current?.env && <span data-ld-cost-env="" style={{ fontSize: 10, padding: "1px 5px", borderRadius: 5, background: "rgba(255,153,0,0.18)" }}>{current.env}</span>}
+      </a>
+      <button type="button" aria-haspopup="menu" aria-expanded={open} aria-controls={menuId} title="estimates" onClick={() => setOpen((o) => !o)}
+        style={{ ...btn, ...orange, padding: "0 8px", borderLeft: 0, borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}>▾</button>
+      {open && (
+        <div id={menuId} role="menu" style={{ position: "absolute", bottom: "calc(100% + 8px)", right: 0, minWidth: 240, maxWidth: 360, padding: 6, borderRadius: 12,
+          border: "1px solid var(--border)", background: dark ? "rgba(26,29,39,0.98)" : "rgba(255,255,255,0.98)", boxShadow: "0 8px 28px rgba(0,0,0,0.28)", zIndex: 40 }}>
+          {envList.length > 1 && (
+            <div role="group" aria-label="environment" style={{ display: "flex", flexWrap: "wrap", gap: 4, padding: "4px 4px 8px", borderBottom: "1px solid var(--border)", marginBottom: 4 }}>
+              {envList.map((e) => (
+                <button key={e} type="button" role="menuitemradio" aria-checked={e === costEnv} onClick={() => onCostEnv?.(e)}
+                  style={{ border: "1px solid var(--border)", borderRadius: 7, padding: "3px 9px", fontSize: 11.5, fontWeight: 700, cursor: "pointer",
+                    background: e === costEnv ? "rgba(255,153,0,0.16)" : "transparent", color: e === costEnv ? AWS_ORANGE : "var(--txt)" }}>{e}</button>
+              ))}
+            </div>
+          )}
+          {costs.map((c) => (
+            <a key={c.id} role="menuitem" href={c.url} target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)}
+              style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "7px 9px", borderRadius: 8, textDecoration: "none", color: "var(--txt)", fontSize: 12.5, fontWeight: c.url === costUrl ? 700 : 500 }}>
+              <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.label || c.id}</span>
+              {c.env && <span style={{ flex: "0 0 auto", fontSize: 10, fontWeight: 700, padding: "1px 6px", borderRadius: 5, border: "1px solid var(--border)", color: "var(--txt-muted)" }}>{c.env}</span>}
+            </a>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function ZoomBar({
   title, subtitle, dark, visible, onToggle, onTheme,
   hasWalk, playing, onPlay, onReset, attention = false,
   lang = "en", languages = [], onLang,
   ui = noopUi, langLabel = defLangLabel,
   costUrl = undefined, costLabel = undefined, showTitle = true,
+  // Several estimates (costs.js): every entry ({ id, env, label, url }), the
+  // selected environment, the environments, and the switch. With more than one
+  // entry the cost button becomes a split button with a menu.
+  costs = undefined, costEnv = undefined, costEnvs: envList = undefined, onCostEnv = undefined,
   // Layout: dock entries in order ("title" | "dock.title" | { component, props }),
   // and an optional brand mark (inlined logo + product name). Default: DOCK_ITEMS.
   items = undefined, branding = undefined,
@@ -275,9 +322,12 @@ export default function ZoomBar({
     ] : null,
     // Cost CTA: only a link to an external estimate (e.g. an AWS Pricing
     // Calculator URL) — the diagram itself never prices anything.
+    // Several estimates: a split button — the selected one, and a menu with the
+    // others (label + environment tag) and an environment switch.
+    costs: (p) => costUrl ? <CostSplit key="costs" {...{ costUrl, costLabel, costs: costs || [], costEnv, envList: envList || [], onCostEnv, btn, dark, label: costLabel || (p.label != null ? p.label : ui("cost", lang)) }} /> : null,
     // One line, always: a long label is clipped with an ellipsis (full text in
     // the tooltip) instead of wrapping and growing the dock taller.
-    cost: (p) => costUrl ? (
+    cost: (p) => (costs?.length > 1 && costUrl) ? render.costs(p) : costUrl ? (
       <a key="cost" href={costUrl} target="_blank" rel="noopener noreferrer" title={costLabel || p.label || ui("cost", lang)}
         data-ld-cost="dock"
         style={{ ...btn, textDecoration: "none", gap: 6, borderColor: "#FF990066", color: AWS_ORANGE, background: "rgba(255,153,0,0.1)", fontWeight: 700, whiteSpace: "nowrap", flex: "0 0 auto", maxWidth: 240 }}>

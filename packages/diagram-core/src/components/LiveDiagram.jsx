@@ -30,6 +30,7 @@ import StepCard from "./StepCard.jsx";
 import NodeModal from "./NodeModal.jsx";
 import ZoomBar from "./ZoomBar.jsx";
 import { safeHttpUrl } from "../inline.js";
+import { resolveCosts, costEnvs, initialCostEnv, dockCost, envFromHash, hashWithEnv } from "../costs.js";
 import DiagramCaption, { resolveCaption } from "./DiagramCaption.jsx";
 import { TONE_COLORS, resolveToneColor, AWS_ORANGE } from "../tones.js";
 import { tr, trAll } from "../i18n.js";
@@ -391,7 +392,7 @@ function StepFlow({ steps, activeStep, dark, lang, onPick }) {
 // CSS transform anchored to the pinned corner so positioning is unaffected.
 function StepOverlay({ steps, activeStep, lang, Icon, stepLayout, dark, onPick,
   expanded = false, cardScale = 1, onToggleExpand, expandLabel, collapseLabel,
-  onTextBigger, onTextSmaller, canTextBigger, canTextSmaller, textSmallerLabel, textLargerLabel, costLabel, parts }) {
+  onTextBigger, onTextSmaller, canTextBigger, canTextSmaller, textSmallerLabel, textLargerLabel, costLabel, parts, costs, costEnv }) {
   if (!(Array.isArray(steps) && steps.length > 0 && activeStep >= 0)) return null;
   const step = steps[Math.min(activeStep, steps.length - 1)] || {};
   // Expand forces the full-page overlay; otherwise honour the step's own side.
@@ -401,7 +402,7 @@ function StepOverlay({ steps, activeStep, lang, Icon, stepLayout, dark, onPick,
     expandLabel={expandLabel} collapseLabel={collapseLabel}
     onTextBigger={onTextBigger} onTextSmaller={onTextSmaller}
     canTextBigger={canTextBigger} canTextSmaller={canTextSmaller}
-    textSmallerLabel={textSmallerLabel} textLargerLabel={textLargerLabel} costLabel={costLabel} parts={parts} />;
+    textSmallerLabel={textSmallerLabel} textLargerLabel={textLargerLabel} costLabel={costLabel} parts={parts} costs={costs} costEnv={costEnv} />;
 
   // Text-size scale (pinned layouts only — the full/expanded card is already large).
   const scale = expanded ? 1 : cardScale;
@@ -530,12 +531,22 @@ export function LiveDiagram({
     : edgeTuning;
   // ── Walkthrough control: controlled (host activeStep) vs auto (internal) ──
   const hasWalk = Array.isArray(steps) && steps.length > 0;
-  const costStep = hasWalk ? steps.find(s => s?.costUrl) : undefined;
-  const costUrl = safeHttpUrl(costUrlProp || data?.costUrl || costStep?.costUrl);
-  const costLabelRaw = costUrlProp || data?.costUrl
-    ? (costLabelProp ?? data?.costLabel)
-    : costStep?.costLabel;
-  const costLabel = costLabelRaw != null ? tr(costLabelRaw, lang) : undefined;
+  // Cost estimates (costs.js): the spec's `costs` plus the costUrl shortcut, the
+  // selected environment (persisted as #env=… in the URL hash), and — below,
+  // once the active beat is known — the entry the dock links to.
+  const costList = useMemo(() => resolveCosts(data || {}, { costUrl: costUrlProp, costLabel: costLabelProp }), [data, costUrlProp, costLabelProp]);
+  const costEnvList = useMemo(() => costEnvs(costList), [costList]);
+  const [costEnv, setCostEnvState] = useState(() => {
+    const fromHash = typeof window !== "undefined" ? envFromHash(window.location.hash) : undefined;
+    return fromHash && costEnvList.includes(fromHash) ? fromHash : initialCostEnv(costList);
+  });
+  const setCostEnv = useCallback((env) => {
+    setCostEnvState(env);
+    if (typeof window !== "undefined" && window.history?.replaceState) {
+      window.history.replaceState(null, "", hashWithEnv(window.location.hash, env) || window.location.pathname + window.location.search);
+    }
+  }, []);
+  const costsShown = useMemo(() => costList.map(c => ({ ...c, label: c.label != null ? tr(c.label, lang) : undefined })), [costList, lang]);
   const showTitle = showTitleProp ?? (data?.showTitle !== false);
   const layout = layoutProp ?? data?.layout;
   const dockItems = layout?.dock;
@@ -551,6 +562,9 @@ export function LiveDiagram({
     Number.isInteger(startStep) ? Math.max(-1, Math.min(startStep, (steps?.length ?? 0) - 1)) : -1);
   const [playing, setPlaying] = useState(false);
   const step = control === "auto" ? internalStep : (activeStep ?? -1);
+  const dockEntry = dockCost(costList, steps, step, costEnv);
+  const costUrl = dockEntry?.url;
+  const costLabel = dockEntry?.label != null ? tr(dockEntry.label, lang) : undefined;
 
   // ── Collapsible groups (d3-treemap-style fold): a Set of collapsed group ids.
   const [collapsed, setCollapsed] = useState(() => new Set(defaultCollapsed || []));
@@ -772,14 +786,14 @@ export function LiveDiagram({
                     canTextBigger={chrome && cardScaleIdx < CARD_SCALES.length - 1}
                     canTextSmaller={chrome && cardScaleIdx > 0}
                     textSmallerLabel={ui ? ui("textSmaller", lang) : undefined} textLargerLabel={ui ? ui("textLarger", lang) : undefined}
-                    costLabel={ui ? ui("cost", lang) : undefined} parts={cardParts} />
+                    costLabel={ui ? ui("cost", lang) : undefined} parts={cardParts} costs={costList} costEnv={costEnv} />
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
           {chrome && (
             <>
-              {nodeModal && <NodeModal node={detailNode} onClose={() => setDetailNode(null)} Icon={Icon} strings={ui ? { iac: ui("iac", lang), pricing: ui("pricing", lang) } : undefined} sections={modalSections} lang={lang} />}
+              {nodeModal && <NodeModal node={detailNode} onClose={() => setDetailNode(null)} Icon={Icon} strings={ui ? { iac: ui("iac", lang), pricing: ui("pricing", lang) } : undefined} sections={modalSections} lang={lang} env={costEnv} envs={costEnvList} />}
               <ZoomBar
                 title={tr(title, lang)} subtitle={tr(subtitle, lang)}
                 dark={effectiveDark} visible={dockVisible} onToggle={() => setDockVisible(v => !v)}
@@ -790,6 +804,7 @@ export function LiveDiagram({
                 onReset={() => { setPlaying(false); setInternalStep(-1); }}
                 lang={lang} languages={languages} onLang={onLangChange} ui={ui} langLabel={langLabel}
                 costUrl={costUrl} costLabel={costLabel} showTitle={showTitle}
+                costs={costsShown} costEnv={costEnv} costEnvs={costEnvList} onCostEnv={setCostEnv}
                 items={dockItems} branding={branding}
               />
             </>
@@ -830,7 +845,7 @@ export function LiveDiagram({
           canTextBigger={chrome && !cardExpanded && cardScaleIdx < CARD_SCALES.length - 1}
           canTextSmaller={chrome && !cardExpanded && cardScaleIdx > 0}
           textSmallerLabel={ui ? ui("textSmaller", lang) : undefined} textLargerLabel={ui ? ui("textLarger", lang) : undefined}
-          costLabel={ui ? ui("cost", lang) : undefined} parts={cardParts} />
+          costLabel={ui ? ui("cost", lang) : undefined} parts={cardParts} costs={costList} costEnv={costEnv} />
         {/* External StepFlow pill removed — the navigation rail now lives inside
             the card (see StepCard), so the two elements read as one. */}
         {chrome && searchOpen && (
@@ -862,7 +877,7 @@ export function LiveDiagram({
         )}
         {chrome && !presenting && (
           <>
-            {nodeModal && <NodeModal node={detailNode} onClose={() => setDetailNode(null)} Icon={Icon} strings={ui ? { iac: ui("iac", lang), pricing: ui("pricing", lang) } : undefined} sections={modalSections} lang={lang} />}
+            {nodeModal && <NodeModal node={detailNode} onClose={() => setDetailNode(null)} Icon={Icon} strings={ui ? { iac: ui("iac", lang), pricing: ui("pricing", lang) } : undefined} sections={modalSections} lang={lang} env={costEnv} envs={costEnvList} />}
             <ZoomBar
               title={tr(title, lang)} subtitle={tr(subtitle, lang)}
               dark={effectiveDark} visible={dockVisible} onToggle={() => setDockVisible(v => !v)}
@@ -873,6 +888,7 @@ export function LiveDiagram({
               onReset={() => { setPlaying(false); setInternalStep(-1); }}
               lang={lang} languages={languages} onLang={onLangChange} ui={ui} langLabel={langLabel}
               costUrl={costUrl} costLabel={costLabel} showTitle={showTitle}
+              costs={costsShown} costEnv={costEnv} costEnvs={costEnvList} onCostEnv={setCostEnv}
                 items={dockItems} branding={branding}
             />
           </>

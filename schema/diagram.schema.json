@@ -143,6 +143,42 @@
       "description": "Label for the dock's cost button (default: the localized 'Cost estimate').",
       "$ref": "./common/lang-text.schema.json"
     },
+    "costs": {
+      "description": "Several estimate links — one per environment or sizing scenario. The dock shows the selected environment's (the `default` entry first) as a split button whose menu lists the others and switches the environment (step pills with cost \"@env\" and the node modal's per-environment pricing follow; the choice is kept in the URL as #env=…). costUrl/costLabel stay as a shortcut for a single entry. Links only — nothing is priced.",
+      "maxItems": 20,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,59}$"
+          },
+          "env": {
+            "description": "Environment / scenario tag, e.g. 'prod', 'poc', 'dr'.",
+            "type": "string",
+            "maxLength": 40
+          },
+          "label": {
+            "description": "Button / pill / menu label, e.g. 'Production estimate'.",
+            "$ref": "./common/lang-text.schema.json"
+          },
+          "url": {
+            "$ref": "./common/http-url.schema.json"
+          },
+          "default": {
+            "description": "The estimate the page opens on (at most one).",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "url"
+        ],
+        "additionalProperties": false
+      }
+    },
     "showTitle": {
       "description": "Show the title/subtitle in the toolbar dock. Default true. false hides them in the dock only; the HTML <title>, the share-card PNG and the sidecar JSON keep them (useful when a `caption` band or the host page already shows the title).",
       "type": "boolean"

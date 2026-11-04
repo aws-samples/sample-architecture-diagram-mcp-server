@@ -218,6 +218,51 @@
         }
       ]
     },
+    "dock.costs": {
+      "title": "dock.costs",
+      "description": "Estimate split button: the selected environment's estimate, a menu listing every entry of spec.costs (label + environment tag) and an environment switch. dock.cost turns into this automatically when costs has more than one entry.",
+      "x-slot": "dock",
+      "oneOf": [
+        {
+          "const": "dock.costs"
+        },
+        {
+          "type": "object",
+          "required": [
+            "component"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "component": {
+              "const": "dock.costs"
+            },
+            "props": {
+              "type": "object",
+              "properties": {
+                "label": {
+                  "description": "Button label when the entry has none.",
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    },
     "dock.language": {
       "title": "dock.language",
       "description": "Language menu (only when the spec offers more than one language).",
@@ -3637,6 +3682,9 @@
           },
           {
             "$ref": "#/$defs/dock.cost"
+          },
+          {
+            "$ref": "#/$defs/dock.costs"
           },
           {
             "$ref": "#/$defs/dock.language"

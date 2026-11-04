@@ -8,6 +8,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { CardShell, CardHeader, Body, Section, KeyValues } from "./cardKit.jsx";
 import { getRegisteredComponent, normalizeSlotEntries } from "../componentRegistry.js";
 import { tr } from "../i18n.js";
+import { modalPricing } from "../costs.js";
 
 const CATEGORY_COLORS = {
   compute: "#ED7100", storage: "#7AA116", database: "#C925D1",
@@ -21,7 +22,7 @@ const rowsOf = (o) => o ? Object.entries(o).map(([k, v]) => [k, String(v)]) : []
 // reorder or add registered custom sections).
 export const NODE_MODAL_SECTIONS = ["role", "iac", "pricing"];
 
-export default function NodeModal({ node: rawNode, onClose, Icon, strings, sections = undefined, lang = undefined }) {
+export default function NodeModal({ node: rawNode, onClose, Icon, strings, sections = undefined, lang = undefined, env = undefined, envs = undefined }) {
   // Accept a React Flow node ({ id, type, data: { label, role, config, … } }) as
   // well as the flat service object: the canvas hands over the clicked RF node,
   // whose fields live in `data` (reading them off the node itself left the modal
@@ -37,7 +38,8 @@ export default function NodeModal({ node: rawNode, onClose, Icon, strings, secti
       {node && (() => {
         const color = CATEGORY_COLORS[node.category || "general"] || CATEGORY_COLORS.general;
         const iac = rowsOf(node.config?.iac);
-        const pricing = rowsOf(node.config?.pricing);
+        // Per-environment rows (config.pricingByEnv) for the selected environment.
+        const pricing = rowsOf(modalPricing(node.config, env, envs || []));
         const closeBtn = (
           <button onClick={onClose} aria-label="Close" className="bg-transparent border-0 text-[color:var(--txt-muted,#94a3b8)] text-xl leading-none cursor-pointer p-0 hover:text-[color:var(--txt,#e2e8f0)]">✕</button>
         );

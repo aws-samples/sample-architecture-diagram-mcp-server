@@ -273,6 +273,26 @@
                   ]
                 }
               },
+              "pricingByEnv": {
+                "description": "Cost/sizing rows per environment of `costs` ({ prod: {…}, poc: {…} }): the node modal shows the selected environment's rows (falling back to `pricing`).",
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {
+                    "type": [
+                      "string",
+                      "number",
+                      "boolean"
+                    ]
+                  }
+                }
+              },
               "label": {
                 "description": "Short display label shown under the node icon (in the diagram, not the modal).",
                 "anyOf": [
@@ -981,6 +1001,11 @@
                 "label"
               ]
             }
+          },
+          "cost": {
+            "description": "This beat's estimate: the id of an entry in the spec's `costs`, or \"@env\" for the selected environment's estimate. Shown as the card's cost pill (with its environment tag).",
+            "type": "string",
+            "maxLength": 60
           },
           "costUrl": {
             "description": "Link to an external cost estimate for this beat (e.g. an AWS Pricing Calculator share URL). Renders a clickable pill on the card that opens in a new tab. Only a link — this server does not price anything. Use one estimate per sizing scenario. The first step with a costUrl also feeds the dock button when the top-level `costUrl` is omitted.",

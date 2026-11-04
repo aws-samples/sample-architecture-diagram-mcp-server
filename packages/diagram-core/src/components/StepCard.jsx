@@ -12,6 +12,7 @@ import { getRegisteredComponent, normalizeSlotEntries } from "../componentRegist
 import { CardShell, CardHeader, Body, Bullets, Section, Chips, CodeBlock, NumberedSteps, CostLink } from "./cardKit.jsx";
 import { CodeBlocks } from "./CodeBlocks.jsx";
 import { codeBlocksOf } from "../codeBlocks.js";
+import { stepCost } from "../costs.js";
 
 function resolveBullets(items, lang) {
   if (!items) return undefined;
@@ -24,7 +25,7 @@ function resolveBullets(items, lang) {
 export const STEP_CARD_PARTS = ["title", "body", "bullets", "process", "code", "sections", "chips", "costPill"];
 
 export default function StepCard({ steps, activeStep, lang = "en", Icon, onPick, expanded = false, onToggleExpand, expandLabel = "Expandir", collapseLabel = "Recolher",
-  onTextBigger, onTextSmaller, canTextBigger = false, canTextSmaller = false, textSmallerLabel = "A−", textLargerLabel = "A+", costLabel: defaultCostLabel = "Cost estimate", parts = undefined }) {
+  onTextBigger, onTextSmaller, canTextBigger = false, canTextSmaller = false, textSmallerLabel = "A−", textLargerLabel = "A+", costLabel: defaultCostLabel = "Cost estimate", parts = undefined, costs = undefined, costEnv = undefined }) {
   const idx = Math.min(Math.max(activeStep, 0), steps.length - 1);
   const step = steps[idx] || {};
   const tone = step.tone || "accent";
@@ -144,7 +145,12 @@ export default function StepCard({ steps, activeStep, lang = "en", Icon, onPick,
                 </Section>
               )) : null;
               case "chips": return chips ? <Chips key="chips" chips={chips} color={color} Icon={Icon} /> : null;
-              case "costPill": return step.costUrl ? <CostLink key="costPill" url={step.costUrl} label={step.costLabel != null ? tr(step.costLabel, lang) : (props.label != null ? tr(props.label, lang) : defaultCostLabel)} color={color} /> : null;
+              case "costPill": {
+                // The beat's estimate: its `cost` id ("@env" = the selected
+                // environment's), else its own costUrl.
+                const ce = stepCost(costs || [], step, costEnv);
+                return ce ? <CostLink key="costPill" url={ce.url} label={ce.label != null ? tr(ce.label, lang) : (props.label != null ? tr(props.label, lang) : defaultCostLabel)} color={color} tag={ce.env} /> : null;
+              }
               default: {
                 const Custom = getRegisteredComponent(component);
                 return Custom ? <Custom key={component} {...props} step={step} lang={lang} color={color} /> : null;

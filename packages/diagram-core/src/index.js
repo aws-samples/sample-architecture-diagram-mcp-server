@@ -27,6 +27,8 @@ export * from "./schemas/index.js";
 export { describeArchitecture, describeSequence, SR_ONLY_STYLE } from "./a11y.js";
 // Inline mini-markdown grammar (tokens, escaped HTML) and the URL sanitizer. Pure.
 export { parseInline, inlineHtml, hasInlineMarkup, safeHref, safeHttpUrl } from "./inline.js";
+// Cost estimate links: several estimates per environment. Pure.
+export { resolveCosts, costEnvs, costForEnv, initialCostEnv, stepCost, dockCost, pricingForEnv, modalPricing, envFromHash, hashWithEnv, costProblems, ENV_COST } from "./costs.js";
 // Code blocks of a beat (codeBlocks / codeSplit: "markers"). Pure.
 export { codeBlocksOf, splitCodeByMarkers, DEFAULT_MAX_LINES as CODE_DEFAULT_MAX_LINES } from "./codeBlocks.js";
 // App-shell values: formulas over spec data + display formatting. Pure.
