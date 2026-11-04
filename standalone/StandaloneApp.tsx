@@ -135,6 +135,9 @@ export function StandaloneApp({ data }: Props) {
         flowDots={data.flowDots}
         title={data.title}
         subtitle={data.subtitle}
+        costUrl={(data as any).costUrl}
+        costLabel={(data as any).costLabel}
+        showTitle={(data as any).showTitle !== false}
         // In a tabbed document the SHELL renders the caption above the rail, so
         // the band frames the whole document (arch + sequence + doc) instead of
         // only the architecture panel — and it doesn't remount on tab switch.

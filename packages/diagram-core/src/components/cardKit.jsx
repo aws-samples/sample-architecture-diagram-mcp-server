@@ -11,7 +11,7 @@
 // pieces that render one (IconTile / CardHeader / Bullets / Chips).
 import { useState } from "react";
 import { resolveVariant } from "../groupVariants.js";
-import { parseInline } from "../inline.js";
+import { parseInline, safeHttpUrl } from "../inline.js";
 
 // Inline mini-markdown for card text — the shared grammar (../inline.js:
 // **bold**, __bold__, `code`, *italic* / _italic_, [label](url) through
@@ -123,6 +123,27 @@ export function Body({ children, big }) {
   // Higher-contrast body: use the primary text colour (not muted) so the lead
   // paragraph reads cleanly on both light and dark card surfaces.
   return <p className={`${big ? "text-[15px]" : "text-[13.5px]"} leading-relaxed m-0 text-[color:var(--txt,#e2e8f0)] opacity-90`}>{typeof children === "string" ? mdInline(children) : children}</p>;
+}
+
+// Cost CTA: a clickable pill that opens an external estimate (e.g. an AWS
+// Pricing Calculator link) in a new tab. A link only — nothing is priced here.
+// Only an absolute http(s) URL is rendered — the host may hand us untrusted data.
+export function CostLink({ url, label, color }) {
+  url = safeHttpUrl(url);
+  if (!url) return null;
+  return (
+    <a href={url} target="_blank" rel="noopener noreferrer" data-ld-cost="step"
+      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-[12.5px] font-bold no-underline transition-opacity hover:opacity-80 self-start"
+      style={{ color: "#fff", background: color || "#FF9900", boxShadow: `0 2px 10px ${(color || "#FF9900")}55` }}>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="8" y2="10"/><line x1="12" y1="10" x2="12" y2="10"/><line x1="16" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="8" y2="14"/><line x1="12" y1="14" x2="12" y2="14"/><line x1="16" y1="14" x2="16" y2="18"/><line x1="8" y1="18" x2="12" y2="18"/>
+      </svg>
+      {label}
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ opacity: 0.85 }}>
+        <path d="M7 17 17 7M9 7h8v8"/>
+      </svg>
+    </a>
+  );
 }
 
 // Numbered process list — a sequence of steps, each a colored numbered bubble +

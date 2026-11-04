@@ -29,6 +29,7 @@ import CustomEdge from "./CustomEdge.jsx";
 import StepCard from "./StepCard.jsx";
 import NodeModal from "./NodeModal.jsx";
 import ZoomBar from "./ZoomBar.jsx";
+import { safeHttpUrl } from "../inline.js";
 import DiagramCaption, { resolveCaption } from "./DiagramCaption.jsx";
 import { TONE_COLORS, resolveToneColor, AWS_ORANGE } from "../tones.js";
 import { tr, trAll } from "../i18n.js";
@@ -390,7 +391,7 @@ function StepFlow({ steps, activeStep, dark, lang, onPick }) {
 // CSS transform anchored to the pinned corner so positioning is unaffected.
 function StepOverlay({ steps, activeStep, lang, Icon, stepLayout, dark, onPick,
   expanded = false, cardScale = 1, onToggleExpand, expandLabel, collapseLabel,
-  onTextBigger, onTextSmaller, canTextBigger, canTextSmaller, textSmallerLabel, textLargerLabel }) {
+  onTextBigger, onTextSmaller, canTextBigger, canTextSmaller, textSmallerLabel, textLargerLabel, costLabel }) {
   if (!(Array.isArray(steps) && steps.length > 0 && activeStep >= 0)) return null;
   const step = steps[Math.min(activeStep, steps.length - 1)] || {};
   // Expand forces the full-page overlay; otherwise honour the step's own side.
@@ -400,7 +401,7 @@ function StepOverlay({ steps, activeStep, lang, Icon, stepLayout, dark, onPick,
     expandLabel={expandLabel} collapseLabel={collapseLabel}
     onTextBigger={onTextBigger} onTextSmaller={onTextSmaller}
     canTextBigger={canTextBigger} canTextSmaller={canTextSmaller}
-    textSmallerLabel={textSmallerLabel} textLargerLabel={textLargerLabel} />;
+    textSmallerLabel={textSmallerLabel} textLargerLabel={textLargerLabel} costLabel={costLabel} />;
 
   // Text-size scale (pinned layouts only — the full/expanded card is already large).
   const scale = expanded ? 1 : cardScale;
@@ -502,6 +503,13 @@ export function LiveDiagram({
   // a string (the description), or { title, text, meta[] } — any of them a
   // per-language map. Omit for the classic bare canvas.
   caption = undefined,
+  // Cost CTA: a link to an external estimate (e.g. an AWS Pricing Calculator
+  // URL) shown as a dock button. Falls back to data.costUrl, then to the first
+  // walkthrough step that declares one. The diagram never prices anything.
+  costUrl: costUrlProp = undefined, costLabel: costLabelProp = undefined,
+  // showTitle=false hides the title/subtitle in the dock only (the share-card
+  // PNG still uses them). Falls back to data.showTitle; default true.
+  showTitle: showTitleProp = undefined,
   collapsible = false, defaultCollapsed = [], zoomOnScroll = false,
   nodeModal = true, startStep = -1, startCardScale = 0,
   // Zoom bounds/caps — forwarded to the canvas (see DiagramCanvas jsdoc).
@@ -518,6 +526,13 @@ export function LiveDiagram({
     : edgeTuning;
   // ── Walkthrough control: controlled (host activeStep) vs auto (internal) ──
   const hasWalk = Array.isArray(steps) && steps.length > 0;
+  const costStep = hasWalk ? steps.find(s => s?.costUrl) : undefined;
+  const costUrl = safeHttpUrl(costUrlProp || data?.costUrl || costStep?.costUrl);
+  const costLabelRaw = costUrlProp || data?.costUrl
+    ? (costLabelProp ?? data?.costLabel)
+    : costStep?.costLabel;
+  const costLabel = costLabelRaw != null ? tr(costLabelRaw, lang) : undefined;
+  const showTitle = showTitleProp ?? (data?.showTitle !== false);
   // startStep: which beat to open on. -1 (default) = show the whole-diagram
   // overview first; 0+ opens directly on that beat (so a wide diagram lands
   // already zoomed into a legible region instead of a tiny fit-all view).
@@ -739,7 +754,8 @@ export function LiveDiagram({
                     onTextSmaller={chrome ? () => setCardScaleIdx(i => Math.max(i - 1, 0)) : undefined}
                     canTextBigger={chrome && cardScaleIdx < CARD_SCALES.length - 1}
                     canTextSmaller={chrome && cardScaleIdx > 0}
-                    textSmallerLabel={ui ? ui("textSmaller", lang) : undefined} textLargerLabel={ui ? ui("textLarger", lang) : undefined} />
+                    textSmallerLabel={ui ? ui("textSmaller", lang) : undefined} textLargerLabel={ui ? ui("textLarger", lang) : undefined}
+                    costLabel={ui ? ui("cost", lang) : undefined} />
                 </motion.div>
               )}
             </AnimatePresence>
@@ -756,6 +772,7 @@ export function LiveDiagram({
                 onPlay={() => { setPlaying(p => { if (!p) setInternalStep(s => (s < 0 || s >= steps.length - 1 ? 0 : s)); return !p; }); }}
                 onReset={() => { setPlaying(false); setInternalStep(-1); }}
                 lang={lang} languages={languages} onLang={onLangChange} ui={ui} langLabel={langLabel}
+                costUrl={costUrl} costLabel={costLabel} showTitle={showTitle}
               />
             </>
           )}
@@ -794,7 +811,8 @@ export function LiveDiagram({
           onTextSmaller={chrome ? () => setCardScaleIdx(i => Math.max(i - 1, 0)) : undefined}
           canTextBigger={chrome && !cardExpanded && cardScaleIdx < CARD_SCALES.length - 1}
           canTextSmaller={chrome && !cardExpanded && cardScaleIdx > 0}
-          textSmallerLabel={ui ? ui("textSmaller", lang) : undefined} textLargerLabel={ui ? ui("textLarger", lang) : undefined} />
+          textSmallerLabel={ui ? ui("textSmaller", lang) : undefined} textLargerLabel={ui ? ui("textLarger", lang) : undefined}
+          costLabel={ui ? ui("cost", lang) : undefined} />
         {/* External StepFlow pill removed — the navigation rail now lives inside
             the card (see StepCard), so the two elements read as one. */}
         {chrome && searchOpen && (
@@ -836,6 +854,7 @@ export function LiveDiagram({
               onPlay={() => { setPlaying(p => { if (!p) setInternalStep(s => (s < 0 || s >= steps.length - 1 ? 0 : s)); return !p; }); }}
               onReset={() => { setPlaying(false); setInternalStep(-1); }}
               lang={lang} languages={languages} onLang={onLangChange} ui={ui} langLabel={langLabel}
+              costUrl={costUrl} costLabel={costLabel} showTitle={showTitle}
             />
           </>
         )}

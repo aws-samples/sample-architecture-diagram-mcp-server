@@ -106,6 +106,14 @@ decisions, converging branches, loop-backs and a narrated walkthrough:
   (`title`, `services[]`, `connections[]`, `groups[]`, per-node `config`) from an
   existing file. This is the contract a downstream cost app (e.g. `aws-cost-app-mcp`)
   or inventory/docs tool consumes. This server makes no pricing calls itself.
+- **Cost estimate links** — `costUrl` (+ `costLabel`) adds a toolbar button that
+  opens an existing estimate (e.g. an AWS Pricing Calculator share link) in a new
+  tab; a walkthrough step can carry its own `costUrl` to show a link pill on its
+  card (one estimate per sizing scenario). Only http(s) links are accepted. These
+  are plain links: the server still prices nothing.
+- **`showTitle: false`** — hide the title/subtitle in the toolbar dock (e.g. when a
+  `caption` band already shows it). The HTML `<title>`, the share-card PNG and the
+  sidecar JSON keep the title.
 
 ## AWS diagram guidelines
 

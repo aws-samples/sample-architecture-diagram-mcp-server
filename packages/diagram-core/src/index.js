@@ -26,7 +26,7 @@ export * from "./schemas/index.js";
 // Plain-text summaries of architecture / sequence documents (a11y, exports). Pure.
 export { describeArchitecture, describeSequence, SR_ONLY_STYLE } from "./a11y.js";
 // Inline mini-markdown grammar (tokens, escaped HTML) and the URL sanitizer. Pure.
-export { parseInline, inlineHtml, hasInlineMarkup, safeHref } from "./inline.js";
+export { parseInline, inlineHtml, hasInlineMarkup, safeHref, safeHttpUrl } from "./inline.js";
 // NOTE: layoutEngine (elkLayout/compoundLayout) is NOT re-exported here — it
 // pulls elkjs + dagre. Import it from "@aws-sample-live-diagram/core/layout-engine" so
 // the pure "." entry stays dependency-free.

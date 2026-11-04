@@ -8,7 +8,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { TONE_META, resolveToneColor } from "../tones.js";
 import { tr } from "../i18n.js";
-import { CardShell, CardHeader, Body, Bullets, Section, Chips, CodeBlock, NumberedSteps } from "./cardKit.jsx";
+import { CardShell, CardHeader, Body, Bullets, Section, Chips, CodeBlock, NumberedSteps, CostLink } from "./cardKit.jsx";
 
 function resolveBullets(items, lang) {
   if (!items) return undefined;
@@ -17,7 +17,7 @@ function resolveBullets(items, lang) {
 }
 
 export default function StepCard({ steps, activeStep, lang = "en", Icon, onPick, expanded = false, onToggleExpand, expandLabel = "Expandir", collapseLabel = "Recolher",
-  onTextBigger, onTextSmaller, canTextBigger = false, canTextSmaller = false, textSmallerLabel = "A−", textLargerLabel = "A+" }) {
+  onTextBigger, onTextSmaller, canTextBigger = false, canTextSmaller = false, textSmallerLabel = "A−", textLargerLabel = "A+", costLabel: defaultCostLabel = "Cost estimate" }) {
   const idx = Math.min(Math.max(activeStep, 0), steps.length - 1);
   const step = steps[idx] || {};
   const tone = step.tone || "accent";
@@ -132,6 +132,7 @@ export default function StepCard({ steps, activeStep, lang = "en", Icon, onPick,
           ))}
 
           {chips && <Chips chips={chips} color={color} Icon={Icon} />}
+          {step.costUrl && <CostLink url={step.costUrl} label={step.costLabel != null ? tr(step.costLabel, lang) : defaultCostLabel} color={color} />}
         </motion.div>
       </AnimatePresence>
     </CardShell>

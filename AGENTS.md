@@ -35,6 +35,13 @@ agent that turns a described architecture into a diagram.
   sidecar `.json` (or `export_diagram_json`) — to a cost app such as
   `aws-cost-app-mcp` (a separate MCP), which resolves calculator keys and prices
   via calculator.aws (no AWS credentials).
+  If an estimate already exists, link it: top-level `costUrl` (+ `costLabel`)
+  adds a dock button; a step's `costUrl` adds a link pill on that beat's card —
+  use one estimate per sizing scenario (e.g. PoC on one beat, production on
+  another, production as the top-level link). http(s) URLs only; it is a link,
+  not a price.
+- **`showTitle: false`** hides the title/subtitle in the dock only — use it when
+  a `caption` band already says what the diagram is.
 
 ## Making a diagram into media (GIF / PNG / SVG)
 

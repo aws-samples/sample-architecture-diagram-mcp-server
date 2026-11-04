@@ -18,6 +18,14 @@ export function safeHref(url) {
   return s && SAFE.test(s) ? s : undefined;
 }
 
+// Stricter variant for links that leave the document (a cost estimate): only an
+// absolute http(s) URL, never a relative path, mailto: or script scheme.
+export function safeHttpUrl(url) {
+  if (typeof url !== "string") return undefined;
+  const s = url.trim();
+  return /^https?:\/\/\S+$/i.test(s) ? s : undefined;
+}
+
 // Link label/url exclude brackets and parens so the scan stays linear on hostile
 // input (nested '[' runs, unterminated links).
 const PATTERN = /(`[^`]+`|\[[^[\]]+\]\([^()[\]\s]+\)|\*\*[^*]+\*\*|(?<![\w])__[^_]+__(?![\w])|\*[^*\s][^*]*\*|(?<![\w])_[^_\s][^_]*_(?![\w]))/g;
