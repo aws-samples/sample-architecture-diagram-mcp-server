@@ -79,10 +79,25 @@ describe('CLI', () => {
   it('render writes html, elements json and spec json; layout list works', () => {
     const specFile = join(tmp, 'cli.json');
     writeFileSync(specFile, JSON.stringify(spec));
+    const before = readFileSync(specFile, 'utf-8');
     const out = execFileSync(process.execPath, [join(ROOT, 'mcp-server.js'), 'render', specFile, '--layout', 'cost'], { env: env(), encoding: 'utf-8' });
     expect(out).toContain('(layout: cost)');
-    for (const f of ['cli.html', 'cli.json', 'cli.spec.json']) expect(existsSync(join(tmp, f))).toBe(true);
+    for (const f of ['cli.html', 'cli.elements.json', 'cli.spec.json']) expect(existsSync(join(tmp, f))).toBe(true);
+    // Regression: the elements JSON used to be written to cli.json — the INPUT.
+    expect(readFileSync(specFile, 'utf-8')).toBe(before);
     expect(execFileSync(process.execPath, [join(ROOT, 'mcp-server.js'), 'layout', 'list'], { env: env(), encoding: 'utf-8' })).toContain('"cost"');
+  });
+  it('refuses an --out that would overwrite the input spec, and creates missing --out folders', () => {
+    const specFile = join(tmp, 'keep.json');
+    writeFileSync(specFile, JSON.stringify(spec));
+    let code = 0, err = '';
+    try { execFileSync(process.execPath, [join(ROOT, 'mcp-server.js'), 'render', specFile, '--out', join(tmp, 'keep.elements.html').replace('.elements.html', '.html').replace('keep.html', 'keep.json')], { env: env(), encoding: 'utf-8', stdio: 'pipe' }); } catch (e) { code = (e as { status: number }).status; err = String((e as { stderr: string }).stderr); }
+    expect(code).toBe(1);
+    expect(err).toMatch(/is the input spec/);
+    expect(JSON.parse(readFileSync(specFile, 'utf-8')).title).toBe(spec.title);
+    const deep = join(tmp, 'new', 'dir', 'x.html');
+    execFileSync(process.execPath, [join(ROOT, 'mcp-server.js'), 'render', specFile, '--out', deep], { env: env(), encoding: 'utf-8' });
+    expect(existsSync(deep)).toBe(true);
   });
   it('fails with a message and exit code 1 on a bad command', () => {
     let code = 0;
