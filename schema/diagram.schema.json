@@ -143,6 +143,64 @@
       "description": "Label for the dock's cost button (default: the localized 'Cost estimate').",
       "$ref": "./common/lang-text.schema.json"
     },
+    "titleBehavior": {
+      "description": "Let the title get out of the way: hide the dock title and/or the caption band always, or after an interaction / a timeout / while the walkthrough runs.",
+      "type": "object",
+      "properties": {
+        "mode": {
+          "description": "always (default): the title stays; hidden: never shown; auto: hidden after the trigger.",
+          "type": "string",
+          "enum": [
+            "always",
+            "hidden",
+            "auto"
+          ]
+        },
+        "trigger": {
+          "description": "auto mode: first pointer/wheel/key interaction (default), a timeout, or while a walkthrough beat is active.",
+          "type": "string",
+          "enum": [
+            "interaction",
+            "timeout",
+            "walkthrough"
+          ]
+        },
+        "timeoutMs": {
+          "description": "timeout trigger delay (default 4000).",
+          "type": "integer",
+          "minimum": 500,
+          "maximum": 120000
+        },
+        "target": {
+          "description": "What hides: the dock title and/or the caption band (default ['dock']). The presentation mode (F) hides both.",
+          "minItems": 1,
+          "maxItems": 2,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "dock",
+              "caption"
+            ]
+          }
+        },
+        "restoreOnHover": {
+          "description": "Show the dock title again while the pointer is over the dock.",
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "dock": {
+      "type": "object",
+      "properties": {
+        "startCollapsed": {
+          "description": "Open with the dock collapsed to its small ▲ button.",
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
     "costs": {
       "description": "Several estimate links — one per environment or sizing scenario. The dock shows the selected environment's (the `default` entry first) as a split button whose menu lists the others and switches the environment (step pills with cost \"@env\" and the node modal's per-environment pricing follow; the choice is kept in the URL as #env=…). costUrl/costLabel stay as a shortcut for a single entry. Links only — nothing is priced.",
       "maxItems": 20,

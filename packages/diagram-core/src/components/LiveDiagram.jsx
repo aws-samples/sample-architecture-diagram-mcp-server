@@ -37,6 +37,12 @@ import ZoomBar from "./ZoomBar.jsx";
 export const DOCK_RESPONSIVE_CSS = `
 .ld-dock-host { display: contents; }
 .ld-dock-host > div { max-width: calc(100% - 24px) !important; flex-wrap: wrap !important; justify-content: center !important; row-gap: 6px; box-sizing: border-box; }
+/* titleBehavior / presentation: fade the dock title and/or the caption out. */
+.ld-dock-host > div > div[style*="0 0 300px"], .ld-caption { transition: opacity .25s ease, visibility .25s; }
+html[data-ld-title-hidden~="dock"] .ld-dock-host > div > div[style*="0 0 300px"],
+html[data-ld-title-hidden~="dock"] .ld-dock-host > div > div[style*="0 0 300px"] + div { opacity: 0; visibility: hidden; width: 0; flex: 0 0 0 !important; margin: 0 !important; overflow: hidden; }
+html[data-ld-title-hidden~="caption"] .ld-caption { opacity: 0; visibility: hidden; height: 0; padding-top: 0 !important; padding-bottom: 0 !important; overflow: hidden; border: 0 !important; }
+html[data-ld-title-restore][data-ld-title-hidden~="dock"] .ld-dock-host > div:hover > div[style*="0 0 300px"] { opacity: 1; visibility: visible; width: auto; flex: 0 0 300px !important; }
 @media (max-width: 1100px) {
   .ld-dock-host > div > div[style*="0 0 300px"] { flex: 1 1 160px !important; max-width: 240px !important; }
   .ld-dock-host > div > div[style*="0 0 300px"] > div:first-child { -webkit-line-clamp: 1 !important; }
@@ -646,7 +652,8 @@ export function LiveDiagram({
     : theme === "self" ? (selfDark ? "dark" : "light") : "";
 
   const [detailNode, setDetailNode] = useState(null);
-  const [dockVisible, setDockVisible] = useState(true);
+  // dock.startCollapsed: open on the small ▲ button instead of the full dock.
+  const [dockVisible, setDockVisible] = useState(() => !(data?.dock?.startCollapsed));
 
   // ── Step-card viewer controls: expand-to-full toggle + text-size scale ──
   const CARD_SCALES = [1, 1.15, 1.3, 1.45];
@@ -682,6 +689,27 @@ export function LiveDiagram({
   // controls, take the whole screen via the Fullscreen API. Esc exits (native
   // fullscreen Esc fires `fullscreenchange`, which resets `presenting`).
   const [presenting, setPresenting] = useState(false);
+  // titleBehavior: hide the title (dock) and/or the caption band — always, or
+  // after the first interaction / a timeout / while the walkthrough runs; the
+  // presentation mode hides the same targets. Applied as a data attribute on
+  // <html> (CSS in DOCK_RESPONSIVE_CSS) so the caption rendered by a host
+  // (tabbed shell) follows too; hidden elements are visibility:hidden (out of
+  // the accessibility tree), with a short fade.
+  const tb = data?.titleBehavior;
+  const tbMode = tb?.mode || "always";
+  const tbTargets = Array.isArray(tb?.target) && tb.target.length ? tb.target : ["dock"];
+  const [tbFired, setTbFired] = useState(false);
+  useEffect(() => {
+    if (tbMode !== "auto" || tbFired) return;
+    const trigger = tb?.trigger || "interaction";
+    if (trigger === "timeout") { const t = setTimeout(() => setTbFired(true), Math.max(500, +tb?.timeoutMs || 4000)); return () => clearTimeout(t); }
+    if (trigger === "interaction") {
+      const on = () => setTbFired(true);
+      const evs = ["pointerdown", "wheel", "keydown"];
+      evs.forEach((e) => window.addEventListener(e, on, { once: true, passive: true }));
+      return () => evs.forEach((e) => window.removeEventListener(e, on));
+    }
+  }, [tbMode, tbFired, tb?.trigger, tb?.timeoutMs]);
   const frameRef = useRef(null);
   // Accessible description: the frame is a figure described by a visually
   // hidden summary (components, groups, connections).
@@ -689,6 +717,16 @@ export function LiveDiagram({
   const summary = useMemo(() => (describe ? describeArchitecture(data, { lang }) : ""), [describe, data, lang]);
   const a11y = summary ? { role: "figure", "aria-describedby": descId } : {};
   const desc = summary ? <span id={descId} style={SR_ONLY_STYLE}>{summary}</span> : null;
+  const tbHidden = tbMode === "hidden" || presenting
+    || (tbMode === "auto" && ((tb?.trigger || "interaction") === "walkthrough" ? step >= 0 : tbFired));
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const el = document.documentElement;
+    const targets = presenting ? [...new Set([...tbTargets, "dock", "caption"])] : tbTargets;
+    if (tbHidden) el.setAttribute("data-ld-title-hidden", targets.join(" ")); else el.removeAttribute("data-ld-title-hidden");
+    if (tb?.restoreOnHover) el.setAttribute("data-ld-title-restore", ""); else el.removeAttribute("data-ld-title-restore");
+    return () => { el.removeAttribute("data-ld-title-hidden"); el.removeAttribute("data-ld-title-restore"); };
+  }, [tbHidden, presenting, tbTargets.join(" "), tb?.restoreOnHover]);
   const togglePresent = useCallback(() => {
     const el = frameRef.current;
     const doc = typeof document !== "undefined" ? document : null;
