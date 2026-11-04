@@ -67,9 +67,10 @@ agent that turns a described architecture into a diagram.
    - Anything else (multi-VPC, multi-account, AZs, on-prem) → declare `groups`
      (with `parent` for nesting) and point each service at one via `parentId`.
    - Third-party / on-prem actors → `external: true`.
-6. **Capture the WHY** — add `adr` (context/decision/consequences) and
-   `wellArchitected` pillar notes when the user gave rationale. These flow into
-   the IaC handoff so generated infra honors the intent.
+6. **Capture the WHY in the walkthrough** — when the user gave rationale, put
+   it in `steps` (the beat's `body`, `bullets`, `chips`) or in a `kind: 'doc'`
+   tab (a decision record). The old `adr` / `wellArchitected` fields are no
+   longer rendered: the generator drops them.
 7. **Do NOT ask this server to generate IaC.** The IaC button emits a spec for
    the official `awslabs.aws-iac-mcp-server`; hand off to that.
 8. **Add a `caption` when the file will be read without you.** The diagram's
@@ -151,7 +152,7 @@ the spec's messages, so fix it and render again.
   `~/.aws-architecture-icons`, so it is needed once per machine, not once per
   install. If it finds no zip it returns the download link: relay that to the
   user, then call it again.
-- Layouts: `TB` (default), `LR`, `RADIAL`. Radial is for flat hub-and-spoke and
-  ignores groups.
-- Keep process/step detail in `connections[].label` and `adr`, not as extra
+- Layouts: `LR` (default) or `TB` for the architecture canvas; flow diagrams
+  default to `TB`.
+- Keep process/step detail in `connections[].label` and walkthrough beats, not as extra
   floating text — the canvas stays clean (AWS diagram guideline).

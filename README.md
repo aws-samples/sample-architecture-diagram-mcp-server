@@ -25,6 +25,21 @@ containers, and flip the theme, all offline:
 |:---:|:---:|:---:|
 | ![Language switch](docs/lang-switch.gif) | ![Collapsible containers](docs/collapse.gif) | ![Theme toggle](docs/theme.gif) |
 
+One file can also be a small document: a caption band that frames it when
+opened cold, and a tab rail with the architecture, an animated UML sequence, a
+typed diagram (here an ER data model) and a prose tab for decisions:
+
+![Tabbed document with caption](docs/document.png)
+
+| Animated UML sequence tab | Typed diagram tab (ER) |
+|:---:|:---:|
+| ![Sequence tab](docs/sequence.gif) | ![Typed ER tab](docs/typed-tab.png) |
+
+Workflows, data-flow diagrams and state machines get their own player, with
+decisions, converging branches, loop-backs and a narrated walkthrough:
+
+![Workflow player](docs/workflow.png)
+
 > **Disclaimer:** Provided for illustration and documentation purposes, "as is"
 > without warranty. The diagrams and any IaC or pricing it helps produce are
 > starting points — review, test, and harden them (security, cost, and
@@ -56,6 +71,22 @@ containers, and flip the theme, all offline:
   diagrams (Gantt, ER, swimlane, timeline, Kanban, journey, Wardley, decision
   workflow, …). Tabs deep-link via the URL hash. See
   [Multi-tab documents](#multi-tab-documents-sequence--doc-tabs).
+- **Workflow, data-flow and lifecycle diagrams** — `generate_workflow_diagram`,
+  `generate_dataflow_diagram` and `generate_lifecycle_diagram` (or the incremental
+  `<type>_create` → `_add_nodes` / `_add_edges` / `_add_steps` → `_render`) draw a
+  directed graph with typed node shapes (decision diamonds, datastores, states),
+  labeled branches and loop-backs, and an optional narrated walkthrough. Same
+  self-contained HTML, theme and SVG/PNG export as the other players.
+- **Caption band** — `caption` (`eyebrow`, `title`, `text`, `meta[]`) renders a
+  header above the canvas, so a file opened cold (email attachment, wiki link)
+  says what it is, its version and its owner. In a tabbed document it frames every tab.
+- **Validation before render** — `validate_diagram` reports unresolved icons,
+  dangling connection endpoints and orphaned `parentId`/step references;
+  `generate_html_diagram`, `diagram_render` and `diagram_delta` run the same check
+  and list what they found.
+- **Accessible** — the architecture canvas and the sequence player render as a
+  figure with a generated text summary for screen readers (`describe={false}`
+  in React to opt out).
 - **Collapsible containers** — every group header has a fold toggle; collapse a VPC
   or account to a small box and the layout re-flows (start dense diagrams pre-collapsed
   with `defaultCollapsed`).
@@ -194,6 +225,12 @@ Icons need no extra step per install — the plugin reads the shared
 | `sequence_add_fragments` | Append combined fragments (`alt` / `opt` / `loop` / …) anchored by event id |
 | `sequence_add_groups` | Append participant groups (bands) to a sequence draft |
 | `sequence_render` | Render a sequence draft to a self-contained HTML file |
+| `generate_workflow_diagram` | Interactive workflow / flowchart (start, task, decision, subprocess, wait, end) in one call |
+| `generate_dataflow_diagram` | Data-flow diagram (external, process, datastore) in one call |
+| `generate_lifecycle_diagram` | Lifecycle / state machine (initial, state, choice, final) in one call |
+| `workflow_create` · `dataflow_create` · `lifecycle_create` | Start an incremental flow draft; returns a `flowId` |
+| `<type>_add_nodes` · `<type>_add_edges` · `<type>_add_steps` | Append nodes, edges and walkthrough beats to a flow draft (`<type>` = `workflow`, `dataflow` or `lifecycle`) |
+| `<type>_render` | Render a flow draft to a self-contained HTML file |
 | `render_diagram_media` | Screenshot/record a generated HTML diagram to PNG, animated GIF or animated SVG |
 | `auto_generate_diagram` | Fully auto-laid-out `.drawio` file |
 | `generate_diagram` | `.drawio` with manual x/y positioning |
@@ -204,6 +241,8 @@ Icons need no extra step per install — the plugin reads the shared
 | `list_service_configs` | IaC config fields per service |
 | `export_iac_json` | Extract an AWS IaC MCP handoff payload (resources + dependencies) from a diagram |
 | `export_diagram_json` | Extract the diagram's elements as neutral JSON (title, services, connections, groups) for downstream apps |
+
+That is 47 tools in all: the flow rows above stand for 18 (three types × six tools).
 
 For a diagram built up in stages (e.g. as an agent reasons through an
 architecture), use the **incremental builder**: `diagram_create` →
@@ -396,6 +435,7 @@ single-canvas diagram.
 npm run build:core         # build the shared @aws-sample-live-diagram/core render package
 npm run build:standalone   # rebuild dist/index.html (the HTML template)
 npm test                    # run the vitest unit suite
+npm run typecheck           # check the standalone app against the core's types
 node mcp-server.js          # run the MCP server over stdio
 ```
 
@@ -412,6 +452,14 @@ input shape (imported by both the tools and the local example generators).
 the built `dist/index.html`. Tests (`test/`) cover the pure generators — icon
 resolution, draw.io XML, service-config integrity, the core entries — and
 `npm run typecheck` checks the standalone app against the core's types.
+
+To test what users actually install (a clone hides a missing `files` entry or
+dependency), pack it and run the tarball:
+
+```bash
+npm pack
+npx --package=file:./sample-architecture-diagram-mcp-server-<version>.tgz sample-architecture-diagram-mcp-server
+```
 
 ## Containers & nesting
 
@@ -443,7 +491,7 @@ consistent.
 ```
 
 Remaining limit: services
-without a mapped icon render as a category-colored initial (300+ services mapped;
+without a mapped icon render as a category-colored initial (350+ services mapped;
 run `resolve_icon` to check coverage).
 
 ## License
