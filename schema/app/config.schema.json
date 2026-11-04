@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/app/config.schema.json",
+  "type": "object",
+  "properties": {
+    "sidebar": {
+      "description": "Sidebar components in order (default: brand, language, nav, summary). sidebar.summary is pinned to the bottom.",
+      "maxItems": 10,
+      "type": "array",
+      "items": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "component": {
+                "type": "string"
+              },
+              "props": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {}
+              }
+            },
+            "required": [
+              "component"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      }
+    },
+    "pages": {
+      "minItems": 1,
+      "maxItems": 20,
+      "type": "array",
+      "items": {
+        "$ref": "./page.schema.json"
+      }
+    },
+    "startPage": {
+      "type": "string"
+    },
+    "example": {
+      "description": "Generic example data used by preview_layout when the spec has none.",
+      "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "./data.schema.json"
+        },
+        "metrics": {
+          "$ref": "./metrics.schema.json"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "pages"
+  ],
+  "additionalProperties": false
+}

@@ -147,6 +147,14 @@
       "description": "Show the title/subtitle in the toolbar dock. Default true. false hides them in the dock only; the HTML <title>, the share-card PNG and the sidecar JSON keep them (useful when a `caption` band or the host page already shows the title).",
       "type": "boolean"
     },
+    "data": {
+      "description": "App-shell inputs (layout shell 'app'): initial values form cards edit and formulas read. Ignored by the document page.",
+      "$ref": "./app/data.schema.json"
+    },
+    "metrics": {
+      "description": "App-shell formulas by name over `data` and other metrics: JSON expressions ({ ref } / { op, args }), never code. Ignored by the document page.",
+      "$ref": "./app/metrics.schema.json"
+    },
     "layout": {
       "description": "Which components the page shows, where, and how it looks: a preset ('default', 'cost'), a saved layout name (see list_layouts), or an inline layout { extends?, slots?, patch?, theme?, branding? }. Omit for the standard page (identical to before layouts existed).",
       "$ref": "./layout-ref.schema.json"

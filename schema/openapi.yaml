@@ -1214,6 +1214,24 @@ components:
       $ref: "./layout/theme.schema.json"
     LayoutBranding:
       $ref: "./layout/branding.schema.json"
+    AppExpr:
+      $ref: "./app/expr.schema.json"
+    AppFormat:
+      $ref: "./app/format.schema.json"
+    AppDisplay:
+      $ref: "./app/display.schema.json"
+    AppText:
+      $ref: "./app/text.schema.json"
+    AppField:
+      $ref: "./app/field.schema.json"
+    AppPage:
+      $ref: "./app/page.schema.json"
+    AppConfig:
+      $ref: "./app/config.schema.json"
+    AppData:
+      $ref: "./app/data.schema.json"
+    AppMetrics:
+      $ref: "./app/metrics.schema.json"
     Layout:
       $ref: "./layout.schema.json"
     LayoutRef:

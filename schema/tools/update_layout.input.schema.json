@@ -774,6 +774,226 @@
             }
           },
           "additionalProperties": false
+        },
+        "shell": {
+          "description": "Page family. 'document' (default): caption + tab rail + canvas + dock, exactly as before. 'app': a sidebar + pages app assembled from the app-shell components (see `app`).",
+          "type": "string",
+          "enum": [
+            "document",
+            "app"
+          ]
+        },
+        "app": {
+          "description": "The app shell (shell: 'app'): sidebar components, pages with their components, start page, and generic example data for previews.",
+          "type": "object",
+          "properties": {
+            "sidebar": {
+              "description": "Sidebar components in order (default: brand, language, nav, summary). sidebar.summary is pinned to the bottom.",
+              "maxItems": 10,
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "component": {
+                        "type": "string"
+                      },
+                      "props": {
+                        "type": "object",
+                        "propertyNames": {
+                          "type": "string"
+                        },
+                        "additionalProperties": {}
+                      }
+                    },
+                    "required": [
+                      "component"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              }
+            },
+            "pages": {
+              "minItems": 1,
+              "maxItems": 20,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9][a-z0-9-]{0,40}$"
+                  },
+                  "label": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "object",
+                        "propertyNames": {
+                          "type": "string"
+                        },
+                        "additionalProperties": {
+                          "type": "string"
+                        }
+                      }
+                    ]
+                  },
+                  "icon": {
+                    "type": "string",
+                    "maxLength": 120,
+                    "description": "A glyph (database, architecture, settings, chart, server, cpu, backup, swap, cloud, info, pin, clock, moon, sun, chevronLeft, chevronRight, chevronUp, chevronDown) or an AWS service name for its official icon."
+                  },
+                  "badge": {
+                    "description": "Value shown at the right of the nav item, e.g. a monthly total.",
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/__schema1"
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "value": {
+                            "$ref": "#/definitions/__schema1"
+                          },
+                          "format": {
+                            "type": "object",
+                            "properties": {
+                              "style": {
+                                "type": "string",
+                                "enum": [
+                                  "number",
+                                  "currency",
+                                  "percent"
+                                ]
+                              },
+                              "currency": {
+                                "description": "ISO 4217 code, e.g. USD, BRL, EUR (default USD).",
+                                "type": "string",
+                                "pattern": "^[A-Z]{3}$"
+                              },
+                              "compact": {
+                                "description": "Compact notation: 29.7k, 1.2M.",
+                                "type": "boolean"
+                              },
+                              "digits": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 6
+                              },
+                              "prefix": {
+                                "type": "string",
+                                "maxLength": 20
+                              },
+                              "suffix": {
+                                "description": "e.g. '/mo'.",
+                                "type": "string",
+                                "maxLength": 30
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        },
+                        "required": [
+                          "value"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
+                  },
+                  "components": {
+                    "maxItems": 40,
+                    "type": "array",
+                    "items": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "component": {
+                              "type": "string"
+                            },
+                            "props": {
+                              "type": "object",
+                              "propertyNames": {
+                                "type": "string"
+                              },
+                              "additionalProperties": {}
+                            }
+                          },
+                          "required": [
+                            "component"
+                          ],
+                          "additionalProperties": false
+                        }
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "id",
+                  "label",
+                  "components"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "startPage": {
+              "type": "string"
+            },
+            "example": {
+              "description": "Generic example data used by preview_layout when the spec has none.",
+              "type": "object",
+              "properties": {
+                "data": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z_][A-Za-z0-9_.-]{0,79}$"
+                  },
+                  "additionalProperties": {
+                    "anyOf": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "string",
+                        "maxLength": 500
+                      },
+                      {
+                        "type": "boolean"
+                      }
+                    ]
+                  },
+                  "description": "App-shell inputs: initial values a form card edits (bind) and formulas read ({ ref })."
+                },
+                "metrics": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z_][A-Za-z0-9_.-]{0,79}$"
+                  },
+                  "additionalProperties": {
+                    "$ref": "#/definitions/__schema1"
+                  },
+                  "description": "App-shell formulas by name, e.g. { total: { op: 'sum', args: [{ ref: 'a' }, { ref: 'b' }] } }."
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "pages"
+          ],
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -811,6 +1031,69 @@
           "additionalProperties": {
             "$ref": "#/definitions/__schema0"
           }
+        }
+      ]
+    },
+    "__schema1": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "string",
+          "maxLength": 300
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "ref": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_.-]{0,79}$",
+              "description": "A key of spec.data or the name of a spec.metrics formula."
+            }
+          },
+          "required": [
+            "ref"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "type": "string",
+              "enum": [
+                "sum",
+                "sub",
+                "mul",
+                "div",
+                "min",
+                "max",
+                "round",
+                "pct",
+                "if",
+                "eq",
+                "gt",
+                "lt"
+              ],
+              "description": "sum, sub, mul, div, min, max, round [x, digits], pct [part, whole], if [cond, then, else], eq, gt, lt"
+            },
+            "args": {
+              "maxItems": 32,
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/__schema1"
+              }
+            }
+          },
+          "required": [
+            "op",
+            "args"
+          ],
+          "additionalProperties": false
         }
       ]
     }

@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/app/data.schema.json",
+  "type": "object",
+  "propertyNames": {
+    "type": "string",
+    "pattern": "^[A-Za-z_][A-Za-z0-9_.-]{0,79}$"
+  },
+  "additionalProperties": {
+    "anyOf": [
+      {
+        "type": "number"
+      },
+      {
+        "type": "string",
+        "maxLength": 500
+      },
+      {
+        "type": "boolean"
+      }
+    ]
+  },
+  "description": "App-shell inputs: initial values a form card edits (bind) and formulas read ({ ref })."
+}

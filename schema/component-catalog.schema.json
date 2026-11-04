@@ -623,6 +623,2968 @@
           }
         }
       ]
+    },
+    "sidebar.brand": {
+      "title": "sidebar.brand",
+      "description": "Sidebar brand header: logo (layout branding) or glyph, title, truncated subtitle, dark/light toggle.",
+      "x-slot": "sidebar",
+      "oneOf": [
+        {
+          "const": "sidebar.brand"
+        },
+        {
+          "type": "object",
+          "required": [
+            "component"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "component": {
+              "const": "sidebar.brand"
+            },
+            "props": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "subtitle": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "icon": {
+                  "type": "string",
+                  "maxLength": 120,
+                  "description": "A glyph (database, architecture, settings, chart, server, cpu, backup, swap, cloud, info, pin, clock, moon, sun, chevronLeft, chevronRight, chevronUp, chevronDown) or an AWS service name for its official icon."
+                },
+                "themeToggle": {
+                  "type": "boolean"
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    },
+    "sidebar.language": {
+      "title": "sidebar.language",
+      "description": "Sidebar language segmented control (only when the spec offers more than one language).",
+      "x-slot": "sidebar",
+      "oneOf": [
+        {
+          "const": "sidebar.language"
+        },
+        {
+          "type": "object",
+          "required": [
+            "component"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "component": {
+              "const": "sidebar.language"
+            },
+            "props": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    },
+    "sidebar.nav": {
+      "title": "sidebar.nav",
+      "description": "Sidebar navigation: one item per page with icon, label and an optional value badge.",
+      "x-slot": "sidebar",
+      "oneOf": [
+        {
+          "const": "sidebar.nav"
+        },
+        {
+          "type": "object",
+          "required": [
+            "component"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "component": {
+              "const": "sidebar.nav"
+            },
+            "props": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    },
+    "sidebar.summary": {
+      "title": "sidebar.summary",
+      "description": "Sidebar summary card pinned to the bottom: eyebrow, big value, context line, optional select (edits data), breakdown rows, totals, footer rows; collapsible.",
+      "x-slot": "sidebar",
+      "oneOf": [
+        {
+          "const": "sidebar.summary"
+        },
+        {
+          "type": "object",
+          "required": [
+            "component"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "component": {
+              "const": "sidebar.summary"
+            },
+            "props": {
+              "type": "object",
+              "properties": {
+                "eyebrow": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "value": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/__schema0"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "$ref": "#/$defs/__schema0"
+                        },
+                        "format": {
+                          "type": "object",
+                          "properties": {
+                            "style": {
+                              "type": "string",
+                              "enum": [
+                                "number",
+                                "currency",
+                                "percent"
+                              ]
+                            },
+                            "currency": {
+                              "description": "ISO 4217 code, e.g. USD, BRL, EUR (default USD).",
+                              "type": "string",
+                              "pattern": "^[A-Z]{3}$"
+                            },
+                            "compact": {
+                              "description": "Compact notation: 29.7k, 1.2M.",
+                              "type": "boolean"
+                            },
+                            "digits": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 6
+                            },
+                            "prefix": {
+                              "type": "string",
+                              "maxLength": 20
+                            },
+                            "suffix": {
+                              "description": "e.g. '/mo'.",
+                              "type": "string",
+                              "maxLength": 30
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "value"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "tone": {
+                  "type": "string",
+                  "enum": [
+                    "green",
+                    "accent",
+                    "orange",
+                    "blue",
+                    "purple",
+                    "muted",
+                    "text"
+                  ]
+                },
+                "context": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/__schema0"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "$ref": "#/$defs/__schema0"
+                        },
+                        "format": {
+                          "type": "object",
+                          "properties": {
+                            "style": {
+                              "type": "string",
+                              "enum": [
+                                "number",
+                                "currency",
+                                "percent"
+                              ]
+                            },
+                            "currency": {
+                              "description": "ISO 4217 code, e.g. USD, BRL, EUR (default USD).",
+                              "type": "string",
+                              "pattern": "^[A-Z]{3}$"
+                            },
+                            "compact": {
+                              "description": "Compact notation: 29.7k, 1.2M.",
+                              "type": "boolean"
+                            },
+                            "digits": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 6
+                            },
+                            "prefix": {
+                              "type": "string",
+                              "maxLength": 20
+                            },
+                            "suffix": {
+                              "description": "e.g. '/mo'.",
+                              "type": "string",
+                              "maxLength": 30
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "value"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "select": {
+                  "type": "object",
+                  "properties": {
+                    "bind": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z_][A-Za-z0-9_.-]{0,79}$"
+                    },
+                    "label": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        }
+                      ]
+                    },
+                    "options": {
+                      "minItems": 1,
+                      "maxItems": 50,
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "value": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "maxLength": 120
+                              },
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "boolean"
+                              }
+                            ]
+                          },
+                          "label": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "object",
+                                "propertyNames": {
+                                  "type": "string"
+                                },
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              }
+                            ]
+                          },
+                          "sub": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "object",
+                                "propertyNames": {
+                                  "type": "string"
+                                },
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "value",
+                          "label"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "bind",
+                    "options"
+                  ],
+                  "additionalProperties": false
+                },
+                "unit": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "rows": {
+                  "maxItems": 12,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "label": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "object",
+                            "propertyNames": {
+                              "type": "string"
+                            },
+                            "additionalProperties": {
+                              "type": "string"
+                            }
+                          }
+                        ]
+                      },
+                      "sub": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "object",
+                            "propertyNames": {
+                              "type": "string"
+                            },
+                            "additionalProperties": {
+                              "type": "string"
+                            }
+                          }
+                        ]
+                      },
+                      "chip": {
+                        "type": "string",
+                        "maxLength": 12
+                      },
+                      "value": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/$defs/__schema0"
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "value": {
+                                "$ref": "#/$defs/__schema0"
+                              },
+                              "format": {
+                                "type": "object",
+                                "properties": {
+                                  "style": {
+                                    "type": "string",
+                                    "enum": [
+                                      "number",
+                                      "currency",
+                                      "percent"
+                                    ]
+                                  },
+                                  "currency": {
+                                    "description": "ISO 4217 code, e.g. USD, BRL, EUR (default USD).",
+                                    "type": "string",
+                                    "pattern": "^[A-Z]{3}$"
+                                  },
+                                  "compact": {
+                                    "description": "Compact notation: 29.7k, 1.2M.",
+                                    "type": "boolean"
+                                  },
+                                  "digits": {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 6
+                                  },
+                                  "prefix": {
+                                    "type": "string",
+                                    "maxLength": 20
+                                  },
+                                  "suffix": {
+                                    "description": "e.g. '/mo'.",
+                                    "type": "string",
+                                    "maxLength": 30
+                                  }
+                                },
+                                "additionalProperties": false
+                              }
+                            },
+                            "required": [
+                              "value"
+                            ],
+                            "additionalProperties": false
+                          }
+                        ]
+                      },
+                      "tone": {
+                        "type": "string",
+                        "enum": [
+                          "green",
+                          "accent",
+                          "orange",
+                          "blue",
+                          "purple",
+                          "muted",
+                          "text"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "label",
+                      "value"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "totals": {
+                  "maxItems": 6,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "label": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "object",
+                            "propertyNames": {
+                              "type": "string"
+                            },
+                            "additionalProperties": {
+                              "type": "string"
+                            }
+                          }
+                        ]
+                      },
+                      "value": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/$defs/__schema0"
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "value": {
+                                "$ref": "#/$defs/__schema0"
+                              },
+                              "format": {
+                                "type": "object",
+                                "properties": {
+                                  "style": {
+                                    "type": "string",
+                                    "enum": [
+                                      "number",
+                                      "currency",
+                                      "percent"
+                                    ]
+                                  },
+                                  "currency": {
+                                    "description": "ISO 4217 code, e.g. USD, BRL, EUR (default USD).",
+                                    "type": "string",
+                                    "pattern": "^[A-Z]{3}$"
+                                  },
+                                  "compact": {
+                                    "description": "Compact notation: 29.7k, 1.2M.",
+                                    "type": "boolean"
+                                  },
+                                  "digits": {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 6
+                                  },
+                                  "prefix": {
+                                    "type": "string",
+                                    "maxLength": 20
+                                  },
+                                  "suffix": {
+                                    "description": "e.g. '/mo'.",
+                                    "type": "string",
+                                    "maxLength": 30
+                                  }
+                                },
+                                "additionalProperties": false
+                              }
+                            },
+                            "required": [
+                              "value"
+                            ],
+                            "additionalProperties": false
+                          }
+                        ]
+                      },
+                      "tone": {
+                        "type": "string",
+                        "enum": [
+                          "green",
+                          "accent",
+                          "orange",
+                          "blue",
+                          "purple",
+                          "muted",
+                          "text"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "label",
+                      "value"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "footer": {
+                  "maxItems": 6,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "icon": {
+                        "type": "string",
+                        "maxLength": 120,
+                        "description": "A glyph (database, architecture, settings, chart, server, cpu, backup, swap, cloud, info, pin, clock, moon, sun, chevronLeft, chevronRight, chevronUp, chevronDown) or an AWS service name for its official icon."
+                      },
+                      "label": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "object",
+                            "propertyNames": {
+                              "type": "string"
+                            },
+                            "additionalProperties": {
+                              "type": "string"
+                            }
+                          }
+                        ]
+                      },
+                      "value": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/$defs/__schema0"
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "value": {
+                                "$ref": "#/$defs/__schema0"
+                              },
+                              "format": {
+                                "type": "object",
+                                "properties": {
+                                  "style": {
+                                    "type": "string",
+                                    "enum": [
+                                      "number",
+                                      "currency",
+                                      "percent"
+                                    ]
+                                  },
+                                  "currency": {
+                                    "description": "ISO 4217 code, e.g. USD, BRL, EUR (default USD).",
+                                    "type": "string",
+                                    "pattern": "^[A-Z]{3}$"
+                                  },
+                                  "compact": {
+                                    "description": "Compact notation: 29.7k, 1.2M.",
+                                    "type": "boolean"
+                                  },
+                                  "digits": {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 6
+                                  },
+                                  "prefix": {
+                                    "type": "string",
+                                    "maxLength": 20
+                                  },
+                                  "suffix": {
+                                    "description": "e.g. '/mo'.",
+                                    "type": "string",
+                                    "maxLength": 30
+                                  }
+                                },
+                                "additionalProperties": false
+                              }
+                            },
+                            "required": [
+                              "value"
+                            ],
+                            "additionalProperties": false
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "label",
+                      "value"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "collapsed": {
+                  "type": "boolean"
+                }
+              },
+              "additionalProperties": false,
+              "$defs": {
+                "__schema0": {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "string",
+                      "maxLength": 300
+                    },
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "ref": {
+                          "type": "string",
+                          "pattern": "^[A-Za-z_][A-Za-z0-9_.-]{0,79}$",
+                          "description": "A key of spec.data or the name of a spec.metrics formula."
+                        }
+                      },
+                      "required": [
+                        "ref"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "op": {
+                          "type": "string",
+                          "enum": [
+                            "sum",
+                            "sub",
+                            "mul",
+                            "div",
+                            "min",
+                            "max",
+                            "round",
+                            "pct",
+                            "if",
+                            "eq",
+                            "gt",
+                            "lt"
+                          ],
+                          "description": "sum, sub, mul, div, min, max, round [x, digits], pct [part, whole], if [cond, then, else], eq, gt, lt"
+                        },
+                        "args": {
+                          "maxItems": 32,
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/$defs/__schema0"
+                          }
+                        }
+                      },
+                      "required": [
+                        "op",
+                        "args"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "page.header": {
+      "title": "page.header",
+      "description": "Page header: eyebrow, icon + large title, subtitle.",
+      "x-slot": "page",
+      "oneOf": [
+        {
+          "const": "page.header"
+        },
+        {
+          "type": "object",
+          "required": [
+            "component"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "component": {
+              "const": "page.header"
+            },
+            "props": {
+              "type": "object",
+              "properties": {
+                "eyebrow": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "title": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "subtitle": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "icon": {
+                  "type": "string",
+                  "maxLength": 120,
+                  "description": "A glyph (database, architecture, settings, chart, server, cpu, backup, swap, cloud, info, pin, clock, moon, sun, chevronLeft, chevronRight, chevronUp, chevronDown) or an AWS service name for its official icon."
+                }
+              },
+              "required": [
+                "title"
+              ],
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    },
+    "page.form": {
+      "title": "page.form",
+      "description": "Form card: title with icon and info tooltip; fields (segmented, number, select, meter, note) bound to spec.data.",
+      "x-slot": "page",
+      "oneOf": [
+        {
+          "const": "page.form"
+        },
+        {
+          "type": "object",
+          "required": [
+            "component"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "component": {
+              "const": "page.form"
+            },
+            "props": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "icon": {
+                  "type": "string",
+                  "maxLength": 120,
+                  "description": "A glyph (database, architecture, settings, chart, server, cpu, backup, swap, cloud, info, pin, clock, moon, sun, chevronLeft, chevronRight, chevronUp, chevronDown) or an AWS service name for its official icon."
+                },
+                "tone": {
+                  "type": "string",
+                  "enum": [
+                    "green",
+                    "accent",
+                    "orange",
+                    "blue",
+                    "purple",
+                    "muted",
+                    "text"
+                  ]
+                },
+                "info": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "fields": {
+                  "maxItems": 20,
+                  "type": "array",
+                  "items": {
+                    "oneOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "kind": {
+                            "type": "string",
+                            "const": "segmented"
+                          },
+                          "bind": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z_][A-Za-z0-9_.-]{0,79}$"
+                          },
+                          "label": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "object",
+                                "propertyNames": {
+                                  "type": "string"
+                                },
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              }
+                            ]
+                          },
+                          "info": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "object",
+                                "propertyNames": {
+                                  "type": "string"
+                                },
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              }
+                            ]
+                          },
+                          "options": {
+                            "minItems": 1,
+                            "maxItems": 6,
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "value": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string",
+                                      "maxLength": 120
+                                    },
+                                    {
+                                      "type": "number"
+                                    },
+                                    {
+                                      "type": "boolean"
+                                    }
+                                  ]
+                                },
+                                "label": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "object",
+                                      "propertyNames": {
+                                        "type": "string"
+                                      },
+                                      "additionalProperties": {
+                                        "type": "string"
+                                      }
+                                    }
+                                  ]
+                                },
+                                "sub": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "object",
+                                      "propertyNames": {
+                                        "type": "string"
+                                      },
+                                      "additionalProperties": {
+                                        "type": "string"
+                                      }
+                                    }
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "value",
+                                "label"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "kind",
+                          "bind",
+                          "options"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "kind": {
+                            "type": "string",
+                            "const": "number"
+                          },
+                          "bind": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z_][A-Za-z0-9_.-]{0,79}$"
+                          },
+                          "label": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "object",
+                                "propertyNames": {
+                                  "type": "string"
+                                },
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              }
+                            ]
+                          },
+                          "info": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "object",
+                                "propertyNames": {
+                                  "type": "string"
+                                },
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              }
+                            ]
+                          },
+                          "min": {
+                            "type": "number"
+                          },
+                          "max": {
+                            "type": "number"
+                          },
+                          "step": {
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          }
+                        },
+                        "required": [
+                          "kind",
+                          "bind"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "kind": {
+                            "type": "string",
+                            "const": "select"
+                          },
+                          "bind": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z_][A-Za-z0-9_.-]{0,79}$"
+                          },
+                          "label": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "object",
+                                "propertyNames": {
+                                  "type": "string"
+                                },
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              }
+                            ]
+                          },
+                          "info": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "object",
+                                "propertyNames": {
+                                  "type": "string"
+                                },
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              }
+                            ]
+                          },
+                          "options": {
+                            "minItems": 1,
+                            "maxItems": 50,
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "value": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string",
+                                      "maxLength": 120
+                                    },
+                                    {
+                                      "type": "number"
+                                    },
+                                    {
+                                      "type": "boolean"
+                                    }
+                                  ]
+                                },
+                                "label": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "object",
+                                      "propertyNames": {
+                                        "type": "string"
+                                      },
+                                      "additionalProperties": {
+                                        "type": "string"
+                                      }
+                                    }
+                                  ]
+                                },
+                                "sub": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "object",
+                                      "propertyNames": {
+                                        "type": "string"
+                                      },
+                                      "additionalProperties": {
+                                        "type": "string"
+                                      }
+                                    }
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "value",
+                                "label"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "kind",
+                          "bind",
+                          "options"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "kind": {
+                            "type": "string",
+                            "const": "meter"
+                          },
+                          "label": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "object",
+                                "propertyNames": {
+                                  "type": "string"
+                                },
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              }
+                            ]
+                          },
+                          "info": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "object",
+                                "propertyNames": {
+                                  "type": "string"
+                                },
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              }
+                            ]
+                          },
+                          "caption": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "object",
+                                "propertyNames": {
+                                  "type": "string"
+                                },
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              }
+                            ]
+                          },
+                          "value": {
+                            "$ref": "#/$defs/__schema0"
+                          },
+                          "max": {
+                            "$ref": "#/$defs/__schema0"
+                          },
+                          "display": {
+                            "anyOf": [
+                              {
+                                "$ref": "#/$defs/__schema0"
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "value": {
+                                    "$ref": "#/$defs/__schema0"
+                                  },
+                                  "format": {
+                                    "type": "object",
+                                    "properties": {
+                                      "style": {
+                                        "type": "string",
+                                        "enum": [
+                                          "number",
+                                          "currency",
+                                          "percent"
+                                        ]
+                                      },
+                                      "currency": {
+                                        "description": "ISO 4217 code, e.g. USD, BRL, EUR (default USD).",
+                                        "type": "string",
+                                        "pattern": "^[A-Z]{3}$"
+                                      },
+                                      "compact": {
+                                        "description": "Compact notation: 29.7k, 1.2M.",
+                                        "type": "boolean"
+                                      },
+                                      "digits": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 6
+                                      },
+                                      "prefix": {
+                                        "type": "string",
+                                        "maxLength": 20
+                                      },
+                                      "suffix": {
+                                        "description": "e.g. '/mo'.",
+                                        "type": "string",
+                                        "maxLength": 30
+                                      }
+                                    },
+                                    "additionalProperties": false
+                                  }
+                                },
+                                "required": [
+                                  "value"
+                                ],
+                                "additionalProperties": false
+                              }
+                            ]
+                          },
+                          "legend": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "object",
+                                "propertyNames": {
+                                  "type": "string"
+                                },
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              }
+                            ]
+                          },
+                          "right": {
+                            "anyOf": [
+                              {
+                                "$ref": "#/$defs/__schema0"
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "value": {
+                                    "$ref": "#/$defs/__schema0"
+                                  },
+                                  "format": {
+                                    "type": "object",
+                                    "properties": {
+                                      "style": {
+                                        "type": "string",
+                                        "enum": [
+                                          "number",
+                                          "currency",
+                                          "percent"
+                                        ]
+                                      },
+                                      "currency": {
+                                        "description": "ISO 4217 code, e.g. USD, BRL, EUR (default USD).",
+                                        "type": "string",
+                                        "pattern": "^[A-Z]{3}$"
+                                      },
+                                      "compact": {
+                                        "description": "Compact notation: 29.7k, 1.2M.",
+                                        "type": "boolean"
+                                      },
+                                      "digits": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 6
+                                      },
+                                      "prefix": {
+                                        "type": "string",
+                                        "maxLength": 20
+                                      },
+                                      "suffix": {
+                                        "description": "e.g. '/mo'.",
+                                        "type": "string",
+                                        "maxLength": 30
+                                      }
+                                    },
+                                    "additionalProperties": false
+                                  }
+                                },
+                                "required": [
+                                  "value"
+                                ],
+                                "additionalProperties": false
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "kind",
+                          "value",
+                          "max"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "kind": {
+                            "type": "string",
+                            "const": "note"
+                          },
+                          "text": {
+                            "anyOf": [
+                              {
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "object",
+                                    "propertyNames": {
+                                      "type": "string"
+                                    },
+                                    "additionalProperties": {
+                                      "type": "string"
+                                    }
+                                  }
+                                ]
+                              },
+                              {
+                                "anyOf": [
+                                  {
+                                    "$ref": "#/$defs/__schema0"
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "value": {
+                                        "$ref": "#/$defs/__schema0"
+                                      },
+                                      "format": {
+                                        "type": "object",
+                                        "properties": {
+                                          "style": {
+                                            "type": "string",
+                                            "enum": [
+                                              "number",
+                                              "currency",
+                                              "percent"
+                                            ]
+                                          },
+                                          "currency": {
+                                            "description": "ISO 4217 code, e.g. USD, BRL, EUR (default USD).",
+                                            "type": "string",
+                                            "pattern": "^[A-Z]{3}$"
+                                          },
+                                          "compact": {
+                                            "description": "Compact notation: 29.7k, 1.2M.",
+                                            "type": "boolean"
+                                          },
+                                          "digits": {
+                                            "type": "integer",
+                                            "minimum": 0,
+                                            "maximum": 6
+                                          },
+                                          "prefix": {
+                                            "type": "string",
+                                            "maxLength": 20
+                                          },
+                                          "suffix": {
+                                            "description": "e.g. '/mo'.",
+                                            "type": "string",
+                                            "maxLength": 30
+                                          }
+                                        },
+                                        "additionalProperties": false
+                                      }
+                                    },
+                                    "required": [
+                                      "value"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "kind",
+                          "text"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "title",
+                "fields"
+              ],
+              "additionalProperties": false,
+              "$defs": {
+                "__schema0": {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "string",
+                      "maxLength": 300
+                    },
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "ref": {
+                          "type": "string",
+                          "pattern": "^[A-Za-z_][A-Za-z0-9_.-]{0,79}$",
+                          "description": "A key of spec.data or the name of a spec.metrics formula."
+                        }
+                      },
+                      "required": [
+                        "ref"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "op": {
+                          "type": "string",
+                          "enum": [
+                            "sum",
+                            "sub",
+                            "mul",
+                            "div",
+                            "min",
+                            "max",
+                            "round",
+                            "pct",
+                            "if",
+                            "eq",
+                            "gt",
+                            "lt"
+                          ],
+                          "description": "sum, sub, mul, div, min, max, round [x, digits], pct [part, whole], if [cond, then, else], eq, gt, lt"
+                        },
+                        "args": {
+                          "maxItems": 32,
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/$defs/__schema0"
+                          }
+                        }
+                      },
+                      "required": [
+                        "op",
+                        "args"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "page.result": {
+      "title": "page.result",
+      "description": "Result panel: KPI grid, breakdown rows (sub-label, chip), subtotal, adjustments (e.g. a discount), highlighted total, callout.",
+      "x-slot": "page",
+      "oneOf": [
+        {
+          "const": "page.result"
+        },
+        {
+          "type": "object",
+          "required": [
+            "component"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "component": {
+              "const": "page.result"
+            },
+            "props": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "icon": {
+                  "type": "string",
+                  "maxLength": 120,
+                  "description": "A glyph (database, architecture, settings, chart, server, cpu, backup, swap, cloud, info, pin, clock, moon, sun, chevronLeft, chevronRight, chevronUp, chevronDown) or an AWS service name for its official icon."
+                },
+                "tone": {
+                  "type": "string",
+                  "enum": [
+                    "green",
+                    "accent",
+                    "orange",
+                    "blue",
+                    "purple",
+                    "muted",
+                    "text"
+                  ]
+                },
+                "kpis": {
+                  "maxItems": 8,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "label": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "object",
+                            "propertyNames": {
+                              "type": "string"
+                            },
+                            "additionalProperties": {
+                              "type": "string"
+                            }
+                          }
+                        ]
+                      },
+                      "value": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/$defs/__schema0"
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "value": {
+                                "$ref": "#/$defs/__schema0"
+                              },
+                              "format": {
+                                "type": "object",
+                                "properties": {
+                                  "style": {
+                                    "type": "string",
+                                    "enum": [
+                                      "number",
+                                      "currency",
+                                      "percent"
+                                    ]
+                                  },
+                                  "currency": {
+                                    "description": "ISO 4217 code, e.g. USD, BRL, EUR (default USD).",
+                                    "type": "string",
+                                    "pattern": "^[A-Z]{3}$"
+                                  },
+                                  "compact": {
+                                    "description": "Compact notation: 29.7k, 1.2M.",
+                                    "type": "boolean"
+                                  },
+                                  "digits": {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 6
+                                  },
+                                  "prefix": {
+                                    "type": "string",
+                                    "maxLength": 20
+                                  },
+                                  "suffix": {
+                                    "description": "e.g. '/mo'.",
+                                    "type": "string",
+                                    "maxLength": 30
+                                  }
+                                },
+                                "additionalProperties": false
+                              }
+                            },
+                            "required": [
+                              "value"
+                            ],
+                            "additionalProperties": false
+                          }
+                        ]
+                      },
+                      "tone": {
+                        "type": "string",
+                        "enum": [
+                          "green",
+                          "accent",
+                          "orange",
+                          "blue",
+                          "purple",
+                          "muted",
+                          "text"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "label",
+                      "value"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "rows": {
+                  "maxItems": 30,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "label": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "object",
+                            "propertyNames": {
+                              "type": "string"
+                            },
+                            "additionalProperties": {
+                              "type": "string"
+                            }
+                          }
+                        ]
+                      },
+                      "sub": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "object",
+                            "propertyNames": {
+                              "type": "string"
+                            },
+                            "additionalProperties": {
+                              "type": "string"
+                            }
+                          }
+                        ]
+                      },
+                      "chip": {
+                        "type": "string",
+                        "maxLength": 12
+                      },
+                      "value": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/$defs/__schema0"
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "value": {
+                                "$ref": "#/$defs/__schema0"
+                              },
+                              "format": {
+                                "type": "object",
+                                "properties": {
+                                  "style": {
+                                    "type": "string",
+                                    "enum": [
+                                      "number",
+                                      "currency",
+                                      "percent"
+                                    ]
+                                  },
+                                  "currency": {
+                                    "description": "ISO 4217 code, e.g. USD, BRL, EUR (default USD).",
+                                    "type": "string",
+                                    "pattern": "^[A-Z]{3}$"
+                                  },
+                                  "compact": {
+                                    "description": "Compact notation: 29.7k, 1.2M.",
+                                    "type": "boolean"
+                                  },
+                                  "digits": {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 6
+                                  },
+                                  "prefix": {
+                                    "type": "string",
+                                    "maxLength": 20
+                                  },
+                                  "suffix": {
+                                    "description": "e.g. '/mo'.",
+                                    "type": "string",
+                                    "maxLength": 30
+                                  }
+                                },
+                                "additionalProperties": false
+                              }
+                            },
+                            "required": [
+                              "value"
+                            ],
+                            "additionalProperties": false
+                          }
+                        ]
+                      },
+                      "tone": {
+                        "type": "string",
+                        "enum": [
+                          "green",
+                          "accent",
+                          "orange",
+                          "blue",
+                          "purple",
+                          "muted",
+                          "text"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "label",
+                      "value"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "subtotal": {
+                  "type": "object",
+                  "properties": {
+                    "label": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        }
+                      ]
+                    },
+                    "value": {
+                      "anyOf": [
+                        {
+                          "$ref": "#/$defs/__schema0"
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "value": {
+                              "$ref": "#/$defs/__schema0"
+                            },
+                            "format": {
+                              "type": "object",
+                              "properties": {
+                                "style": {
+                                  "type": "string",
+                                  "enum": [
+                                    "number",
+                                    "currency",
+                                    "percent"
+                                  ]
+                                },
+                                "currency": {
+                                  "description": "ISO 4217 code, e.g. USD, BRL, EUR (default USD).",
+                                  "type": "string",
+                                  "pattern": "^[A-Z]{3}$"
+                                },
+                                "compact": {
+                                  "description": "Compact notation: 29.7k, 1.2M.",
+                                  "type": "boolean"
+                                },
+                                "digits": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 6
+                                },
+                                "prefix": {
+                                  "type": "string",
+                                  "maxLength": 20
+                                },
+                                "suffix": {
+                                  "description": "e.g. '/mo'.",
+                                  "type": "string",
+                                  "maxLength": 30
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          },
+                          "required": [
+                            "value"
+                          ],
+                          "additionalProperties": false
+                        }
+                      ]
+                    },
+                    "tone": {
+                      "type": "string",
+                      "enum": [
+                        "green",
+                        "accent",
+                        "orange",
+                        "blue",
+                        "purple",
+                        "muted",
+                        "text"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "label",
+                    "value"
+                  ],
+                  "additionalProperties": false
+                },
+                "adjustments": {
+                  "maxItems": 8,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "label": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "object",
+                            "propertyNames": {
+                              "type": "string"
+                            },
+                            "additionalProperties": {
+                              "type": "string"
+                            }
+                          }
+                        ]
+                      },
+                      "value": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/$defs/__schema0"
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "value": {
+                                "$ref": "#/$defs/__schema0"
+                              },
+                              "format": {
+                                "type": "object",
+                                "properties": {
+                                  "style": {
+                                    "type": "string",
+                                    "enum": [
+                                      "number",
+                                      "currency",
+                                      "percent"
+                                    ]
+                                  },
+                                  "currency": {
+                                    "description": "ISO 4217 code, e.g. USD, BRL, EUR (default USD).",
+                                    "type": "string",
+                                    "pattern": "^[A-Z]{3}$"
+                                  },
+                                  "compact": {
+                                    "description": "Compact notation: 29.7k, 1.2M.",
+                                    "type": "boolean"
+                                  },
+                                  "digits": {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 6
+                                  },
+                                  "prefix": {
+                                    "type": "string",
+                                    "maxLength": 20
+                                  },
+                                  "suffix": {
+                                    "description": "e.g. '/mo'.",
+                                    "type": "string",
+                                    "maxLength": 30
+                                  }
+                                },
+                                "additionalProperties": false
+                              }
+                            },
+                            "required": [
+                              "value"
+                            ],
+                            "additionalProperties": false
+                          }
+                        ]
+                      },
+                      "tone": {
+                        "type": "string",
+                        "enum": [
+                          "green",
+                          "accent",
+                          "orange",
+                          "blue",
+                          "purple",
+                          "muted",
+                          "text"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "label",
+                      "value"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "total": {
+                  "type": "object",
+                  "properties": {
+                    "label": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        }
+                      ]
+                    },
+                    "value": {
+                      "anyOf": [
+                        {
+                          "$ref": "#/$defs/__schema0"
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "value": {
+                              "$ref": "#/$defs/__schema0"
+                            },
+                            "format": {
+                              "type": "object",
+                              "properties": {
+                                "style": {
+                                  "type": "string",
+                                  "enum": [
+                                    "number",
+                                    "currency",
+                                    "percent"
+                                  ]
+                                },
+                                "currency": {
+                                  "description": "ISO 4217 code, e.g. USD, BRL, EUR (default USD).",
+                                  "type": "string",
+                                  "pattern": "^[A-Z]{3}$"
+                                },
+                                "compact": {
+                                  "description": "Compact notation: 29.7k, 1.2M.",
+                                  "type": "boolean"
+                                },
+                                "digits": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 6
+                                },
+                                "prefix": {
+                                  "type": "string",
+                                  "maxLength": 20
+                                },
+                                "suffix": {
+                                  "description": "e.g. '/mo'.",
+                                  "type": "string",
+                                  "maxLength": 30
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          },
+                          "required": [
+                            "value"
+                          ],
+                          "additionalProperties": false
+                        }
+                      ]
+                    },
+                    "tone": {
+                      "type": "string",
+                      "enum": [
+                        "green",
+                        "accent",
+                        "orange",
+                        "blue",
+                        "purple",
+                        "muted",
+                        "text"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "label",
+                    "value"
+                  ],
+                  "additionalProperties": false
+                },
+                "callout": {
+                  "type": "object",
+                  "properties": {
+                    "text": {
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "object",
+                              "propertyNames": {
+                                "type": "string"
+                              },
+                              "additionalProperties": {
+                                "type": "string"
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "anyOf": [
+                            {
+                              "$ref": "#/$defs/__schema0"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "value": {
+                                  "$ref": "#/$defs/__schema0"
+                                },
+                                "format": {
+                                  "type": "object",
+                                  "properties": {
+                                    "style": {
+                                      "type": "string",
+                                      "enum": [
+                                        "number",
+                                        "currency",
+                                        "percent"
+                                      ]
+                                    },
+                                    "currency": {
+                                      "description": "ISO 4217 code, e.g. USD, BRL, EUR (default USD).",
+                                      "type": "string",
+                                      "pattern": "^[A-Z]{3}$"
+                                    },
+                                    "compact": {
+                                      "description": "Compact notation: 29.7k, 1.2M.",
+                                      "type": "boolean"
+                                    },
+                                    "digits": {
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 6
+                                    },
+                                    "prefix": {
+                                      "type": "string",
+                                      "maxLength": 20
+                                    },
+                                    "suffix": {
+                                      "description": "e.g. '/mo'.",
+                                      "type": "string",
+                                      "maxLength": 30
+                                    }
+                                  },
+                                  "additionalProperties": false
+                                }
+                              },
+                              "required": [
+                                "value"
+                              ],
+                              "additionalProperties": false
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "tone": {
+                      "type": "string",
+                      "enum": [
+                        "warn",
+                        "info"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "text"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "title"
+              ],
+              "additionalProperties": false,
+              "$defs": {
+                "__schema0": {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "string",
+                      "maxLength": 300
+                    },
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "ref": {
+                          "type": "string",
+                          "pattern": "^[A-Za-z_][A-Za-z0-9_.-]{0,79}$",
+                          "description": "A key of spec.data or the name of a spec.metrics formula."
+                        }
+                      },
+                      "required": [
+                        "ref"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "op": {
+                          "type": "string",
+                          "enum": [
+                            "sum",
+                            "sub",
+                            "mul",
+                            "div",
+                            "min",
+                            "max",
+                            "round",
+                            "pct",
+                            "if",
+                            "eq",
+                            "gt",
+                            "lt"
+                          ],
+                          "description": "sum, sub, mul, div, min, max, round [x, digits], pct [part, whole], if [cond, then, else], eq, gt, lt"
+                        },
+                        "args": {
+                          "maxItems": 32,
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/$defs/__schema0"
+                          }
+                        }
+                      },
+                      "required": [
+                        "op",
+                        "args"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "page.section": {
+      "title": "page.section",
+      "description": "Section band: icon + title with an optional About toggle and an eyebrow line.",
+      "x-slot": "page",
+      "oneOf": [
+        {
+          "const": "page.section"
+        },
+        {
+          "type": "object",
+          "required": [
+            "component"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "component": {
+              "const": "page.section"
+            },
+            "props": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "icon": {
+                  "type": "string",
+                  "maxLength": 120,
+                  "description": "A glyph (database, architecture, settings, chart, server, cpu, backup, swap, cloud, info, pin, clock, moon, sun, chevronLeft, chevronRight, chevronUp, chevronDown) or an AWS service name for its official icon."
+                },
+                "tone": {
+                  "type": "string",
+                  "enum": [
+                    "green",
+                    "accent",
+                    "orange",
+                    "blue",
+                    "purple",
+                    "muted",
+                    "text"
+                  ]
+                },
+                "about": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "aboutLabel": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "eyebrow": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "title"
+              ],
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    },
+    "page.services": {
+      "title": "page.services",
+      "description": "Service cards: icon (AWS service), name, tag, value on the right, description.",
+      "x-slot": "page",
+      "oneOf": [
+        {
+          "const": "page.services"
+        },
+        {
+          "type": "object",
+          "required": [
+            "component"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "component": {
+              "const": "page.services"
+            },
+            "props": {
+              "type": "object",
+              "properties": {
+                "columns": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 4
+                },
+                "items": {
+                  "maxItems": 40,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "object",
+                            "propertyNames": {
+                              "type": "string"
+                            },
+                            "additionalProperties": {
+                              "type": "string"
+                            }
+                          }
+                        ]
+                      },
+                      "service": {
+                        "type": "string",
+                        "maxLength": 120
+                      },
+                      "tag": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "object",
+                            "propertyNames": {
+                              "type": "string"
+                            },
+                            "additionalProperties": {
+                              "type": "string"
+                            }
+                          }
+                        ]
+                      },
+                      "value": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/$defs/__schema0"
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "value": {
+                                "$ref": "#/$defs/__schema0"
+                              },
+                              "format": {
+                                "type": "object",
+                                "properties": {
+                                  "style": {
+                                    "type": "string",
+                                    "enum": [
+                                      "number",
+                                      "currency",
+                                      "percent"
+                                    ]
+                                  },
+                                  "currency": {
+                                    "description": "ISO 4217 code, e.g. USD, BRL, EUR (default USD).",
+                                    "type": "string",
+                                    "pattern": "^[A-Z]{3}$"
+                                  },
+                                  "compact": {
+                                    "description": "Compact notation: 29.7k, 1.2M.",
+                                    "type": "boolean"
+                                  },
+                                  "digits": {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 6
+                                  },
+                                  "prefix": {
+                                    "type": "string",
+                                    "maxLength": 20
+                                  },
+                                  "suffix": {
+                                    "description": "e.g. '/mo'.",
+                                    "type": "string",
+                                    "maxLength": 30
+                                  }
+                                },
+                                "additionalProperties": false
+                              }
+                            },
+                            "required": [
+                              "value"
+                            ],
+                            "additionalProperties": false
+                          }
+                        ]
+                      },
+                      "tone": {
+                        "type": "string",
+                        "enum": [
+                          "green",
+                          "accent",
+                          "orange",
+                          "blue",
+                          "purple",
+                          "muted",
+                          "text"
+                        ]
+                      },
+                      "text": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "object",
+                            "propertyNames": {
+                              "type": "string"
+                            },
+                            "additionalProperties": {
+                              "type": "string"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "title"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": [
+                "items"
+              ],
+              "additionalProperties": false,
+              "$defs": {
+                "__schema0": {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "string",
+                      "maxLength": 300
+                    },
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "ref": {
+                          "type": "string",
+                          "pattern": "^[A-Za-z_][A-Za-z0-9_.-]{0,79}$",
+                          "description": "A key of spec.data or the name of a spec.metrics formula."
+                        }
+                      },
+                      "required": [
+                        "ref"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "op": {
+                          "type": "string",
+                          "enum": [
+                            "sum",
+                            "sub",
+                            "mul",
+                            "div",
+                            "min",
+                            "max",
+                            "round",
+                            "pct",
+                            "if",
+                            "eq",
+                            "gt",
+                            "lt"
+                          ],
+                          "description": "sum, sub, mul, div, min, max, round [x, digits], pct [part, whole], if [cond, then, else], eq, gt, lt"
+                        },
+                        "args": {
+                          "maxItems": 32,
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/$defs/__schema0"
+                          }
+                        }
+                      },
+                      "required": [
+                        "op",
+                        "args"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "page.text": {
+      "title": "page.text",
+      "description": "A paragraph (a value or formula result as text).",
+      "x-slot": "page",
+      "oneOf": [
+        {
+          "const": "page.text"
+        },
+        {
+          "type": "object",
+          "required": [
+            "component"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "component": {
+              "const": "page.text"
+            },
+            "props": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "anyOf": [
+                    {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "anyOf": [
+                        {
+                          "$ref": "#/$defs/__schema0"
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "value": {
+                              "$ref": "#/$defs/__schema0"
+                            },
+                            "format": {
+                              "type": "object",
+                              "properties": {
+                                "style": {
+                                  "type": "string",
+                                  "enum": [
+                                    "number",
+                                    "currency",
+                                    "percent"
+                                  ]
+                                },
+                                "currency": {
+                                  "description": "ISO 4217 code, e.g. USD, BRL, EUR (default USD).",
+                                  "type": "string",
+                                  "pattern": "^[A-Z]{3}$"
+                                },
+                                "compact": {
+                                  "description": "Compact notation: 29.7k, 1.2M.",
+                                  "type": "boolean"
+                                },
+                                "digits": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 6
+                                },
+                                "prefix": {
+                                  "type": "string",
+                                  "maxLength": 20
+                                },
+                                "suffix": {
+                                  "description": "e.g. '/mo'.",
+                                  "type": "string",
+                                  "maxLength": 30
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          },
+                          "required": [
+                            "value"
+                          ],
+                          "additionalProperties": false
+                        }
+                      ]
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "text"
+              ],
+              "additionalProperties": false,
+              "$defs": {
+                "__schema0": {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "string",
+                      "maxLength": 300
+                    },
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "ref": {
+                          "type": "string",
+                          "pattern": "^[A-Za-z_][A-Za-z0-9_.-]{0,79}$",
+                          "description": "A key of spec.data or the name of a spec.metrics formula."
+                        }
+                      },
+                      "required": [
+                        "ref"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "op": {
+                          "type": "string",
+                          "enum": [
+                            "sum",
+                            "sub",
+                            "mul",
+                            "div",
+                            "min",
+                            "max",
+                            "round",
+                            "pct",
+                            "if",
+                            "eq",
+                            "gt",
+                            "lt"
+                          ],
+                          "description": "sum, sub, mul, div, min, max, round [x, digits], pct [part, whole], if [cond, then, else], eq, gt, lt"
+                        },
+                        "args": {
+                          "maxItems": 32,
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/$defs/__schema0"
+                          }
+                        }
+                      },
+                      "required": [
+                        "op",
+                        "args"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "page.architecture": {
+      "title": "page.architecture",
+      "description": "The live architecture canvas of this spec (services/connections/steps), optionally with its dock.",
+      "x-slot": "page",
+      "oneOf": [
+        {
+          "const": "page.architecture"
+        },
+        {
+          "type": "object",
+          "required": [
+            "component"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "component": {
+              "const": "page.architecture"
+            },
+            "props": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "icon": {
+                  "type": "string",
+                  "maxLength": 120,
+                  "description": "A glyph (database, architecture, settings, chart, server, cpu, backup, swap, cloud, info, pin, clock, moon, sun, chevronLeft, chevronRight, chevronUp, chevronDown) or an AWS service name for its official icon."
+                },
+                "height": {
+                  "type": "string",
+                  "maxLength": 40,
+                  "pattern": "^[0-9a-z%().+\\-*/ ]+$"
+                },
+                "dock": {
+                  "type": "boolean"
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    },
+    "page.grid": {
+      "title": "page.grid",
+      "description": "Responsive card grid (1–4 columns) holding other page components.",
+      "x-slot": "page",
+      "oneOf": [
+        {
+          "const": "page.grid"
+        },
+        {
+          "type": "object",
+          "required": [
+            "component"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "component": {
+              "const": "page.grid"
+            },
+            "props": {
+              "type": "object",
+              "properties": {
+                "columns": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 4
+                },
+                "items": {
+                  "maxItems": 24,
+                  "type": "array",
+                  "items": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "component": {
+                            "type": "string"
+                          },
+                          "props": {
+                            "type": "object",
+                            "propertyNames": {
+                              "type": "string"
+                            },
+                            "additionalProperties": {}
+                          }
+                        },
+                        "required": [
+                          "component"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "items"
+              ],
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
     }
   },
   "type": "object",

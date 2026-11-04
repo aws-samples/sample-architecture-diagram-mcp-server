@@ -59,6 +59,18 @@
     },
     "branding": {
       "$ref": "./layout/branding.schema.json"
+    },
+    "shell": {
+      "description": "Page family. 'document' (default): caption + tab rail + canvas + dock, exactly as before. 'app': a sidebar + pages app assembled from the app-shell components (see `app`).",
+      "type": "string",
+      "enum": [
+        "document",
+        "app"
+      ]
+    },
+    "app": {
+      "description": "The app shell (shell: 'app'): sidebar components, pages with their components, start page, and generic example data for previews.",
+      "$ref": "./app/config.schema.json"
     }
   },
   "additionalProperties": false

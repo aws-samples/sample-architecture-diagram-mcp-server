@@ -15,6 +15,7 @@ export { registerComponent, getRegisteredComponent, registeredComponentIds, norm
 // Exported on its own too: in a TABBED document the shell renders the caption
 // above the tab rail (not inside the diagram frame), so it needs the component.
 export { DiagramCaption, resolveCaption } from "./components/DiagramCaption.jsx";
+export { AppShell, APP_COMPONENTS, APP_SIDEBAR_DEFAULT, APP_GLYPHS, APP_SHELL_CSS } from "./components/AppShell.jsx";
 export * as cardKit from "./components/cardKit.jsx";
 export { LiveDiagram, default as LiveDiagramDefault } from "./components/LiveDiagram.jsx";
 export { LiveDiagramEditor } from "./components/LiveDiagramEditor.jsx";
