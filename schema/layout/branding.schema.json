@@ -9,14 +9,14 @@
       "maxLength": 80
     },
     "logo": {
-      "description": "Local image (png, jpg, gif, webp, svg; ≤ 512 KB) inlined for dock.brand.",
+      "description": "Local image (png, jpg, gif, webp, svg; ≤ 512 KB) inlined for dock.brand — or a data:image/…;base64 URI.",
       "type": "string",
-      "maxLength": 400
+      "maxLength": 700000
     },
     "favicon": {
-      "description": "Local image inlined as the page icon.",
+      "description": "Local image inlined as the page icon — or a data:image/…;base64 URI.",
       "type": "string",
-      "maxLength": 400
+      "maxLength": 700000
     }
   },
   "additionalProperties": false

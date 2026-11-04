@@ -66,7 +66,10 @@ describe('layout tools', () => {
     const r = await client.callTool({ name: 'generate_html_diagram', arguments: { ...spec, layout: 'lean', outputPath: out } });
     expect(textOf(r)).toContain('(layout: lean)');
     expect(archDataOf(readFileSync(out, 'utf-8')).layout!.dock).not.toContain('dock.shareCard');
-    expect(JSON.parse(readFileSync(join(tmp, 'l.spec.json'), 'utf-8')).layout).toBe('lean');
+    // Portable: a saved layout is written inline (it may not exist on the next machine).
+    const written = JSON.parse(readFileSync(join(tmp, 'l.spec.json'), 'utf-8')).layout;
+    expect(written.name).toBe('lean');
+    expect(written.slots.dock).toBeTruthy();
     const bad = await client.callTool({ name: 'create_layout', arguments: { layout: { name: 'cost' } } });
     expect(bad.isError).toBe(true);
     const nb = await client.callTool({ name: 'build_bundle', arguments: { layout: 'lean' } });

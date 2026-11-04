@@ -550,6 +550,11 @@
                   "description": "A local CSS file injected into the page <head> (after the theme tokens).",
                   "type": "string",
                   "maxLength": 400
+                },
+                "cssText": {
+                  "description": "CSS text injected after `css` (a portable spec carries its layout CSS here). Local only: url(https://…) and remote @import are rejected.",
+                  "type": "string",
+                  "maxLength": 200000
                 }
               },
               "additionalProperties": false
@@ -563,14 +568,14 @@
                   "maxLength": 80
                 },
                 "logo": {
-                  "description": "Local image (png, jpg, gif, webp, svg; ≤ 512 KB) inlined for dock.brand.",
+                  "description": "Local image (png, jpg, gif, webp, svg; ≤ 512 KB) inlined for dock.brand — or a data:image/…;base64 URI.",
                   "type": "string",
-                  "maxLength": 400
+                  "maxLength": 700000
                 },
                 "favicon": {
-                  "description": "Local image inlined as the page icon.",
+                  "description": "Local image inlined as the page icon — or a data:image/…;base64 URI.",
                   "type": "string",
-                  "maxLength": 400
+                  "maxLength": 700000
                 }
               },
               "additionalProperties": false
