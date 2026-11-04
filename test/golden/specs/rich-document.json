@@ -1,0 +1,49 @@
+{
+  "title": "Order service",
+  "subtitle": "Reference architecture",
+  "caption": { "eyebrow": "Reference architecture", "title": "Order service", "text": "Orders flow through the edge to an API and a database.", "meta": ["Version: v1", "prod"] },
+  "lang": "en",
+  "languages": ["en", "pt"],
+  "direction": "LR",
+  "services": [
+    { "id": "users", "service": "Users", "category": "general", "external": true },
+    { "id": "cdn", "service": "Amazon CloudFront", "category": "networking", "role": { "en": "Edge cache", "pt": "Cache de borda" }, "pill": "edge" },
+    { "id": "alb", "service": "Elastic Load Balancing", "category": "networking", "parentId": "pub", "label": "ALB" },
+    { "id": "app", "service": "Amazon Elastic Container Service", "category": "compute", "parentId": "priv", "config": { "iac": { "cpu": 512 }, "pricing": { "tasks": 2 } } },
+    { "id": "db", "service": "Amazon Aurora", "category": "database", "parentId": "data", "role": "Orders" }
+  ],
+  "connections": [
+    { "id": "e1", "source": "users", "target": "cdn", "type": "network", "label": "HTTPS" },
+    { "id": "e2", "source": "cdn", "target": "alb", "type": "network" },
+    { "id": "e3", "source": "alb", "target": "app", "type": "network", "label": "8080" },
+    { "id": "e4", "source": "app", "target": "db", "type": "data", "label": "5432", "bidirectional": true }
+  ],
+  "groups": [
+    { "id": "cloud", "label": "AWS Cloud", "variant": "aws-cloud" },
+    { "id": "vpc", "label": "VPC", "variant": "vpc", "parent": "cloud" },
+    { "id": "pub", "label": "Public subnet", "variant": "public-subnet", "parent": "vpc" },
+    { "id": "priv", "label": "Private subnet", "variant": "private-subnet", "parent": "vpc", "pill": "app" },
+    { "id": "data", "label": "Data subnet", "variant": "private-subnet", "parent": "vpc" }
+  ],
+  "steps": [
+    { "cardSide": "full", "eyebrow": "Overview", "title": "Overview", "sections": [{ "title": "Scope", "body": "What this shows.", "bullets": ["a", "b"] }] },
+    { "eyebrow": "1 · Edge", "title": "Edge", "body": "Requests **arrive**.", "nodes": ["users", "cdn"], "edges": ["e1"], "tone": "info", "chips": [{ "label": "TLS", "ok": true }] },
+    { "eyebrow": "2 · Data", "title": "Data", "code": "SELECT 1;", "codeLabel": "SQL", "nodes": ["app", "db"], "edges": ["e4"], "process": [{ "label": "Read", "text": "replica" }] }
+  ],
+  "stepZoom": true,
+  "defaultCollapsed": ["data"],
+  "tabs": [
+    { "id": "arch", "kind": "architecture" },
+    { "id": "seq", "kind": "sequence", "sequence": {
+      "participants": [{ "id": "u", "label": "User", "actor": true }, { "id": "a", "label": "App", "service": "Amazon Elastic Container Service" }, { "id": "d", "label": "DB", "service": "Amazon Aurora" }],
+      "events": [
+        { "kind": "message", "id": "m1", "from": "u", "to": "a", "label": "POST /orders" },
+        { "kind": "message", "id": "m2", "from": "a", "to": "d", "label": "INSERT" },
+        { "kind": "message", "id": "m3", "from": "d", "to": "a", "label": "ok", "arrow": "reply" },
+        { "kind": "note", "id": "n1", "over": ["a", "d"], "label": "one transaction" }
+      ],
+      "fragments": [{ "kind": "opt", "label": "valid", "startId": "m2", "endId": "m3" }]
+    } },
+    { "id": "doc", "kind": "doc", "title": "Decisions", "sections": [{ "title": "Aurora", "badge": "Accepted", "body": "Relational orders.", "bullets": ["joins"], "code": "engine: aurora-postgresql", "codeLabel": "yaml" }] }
+  ]
+}

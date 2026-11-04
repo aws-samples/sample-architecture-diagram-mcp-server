@@ -11,7 +11,8 @@ import { generateHtml } from '../lib/html-generator.js';
 import { htmlDiagramInputSchema, stepSchema } from '../lib/schemas.js';
 import { safeHttpUrl } from '../packages/diagram-core/src/inline.js';
 
-const archDataOf = (html: string): any => JSON.parse(html.match(/id="arch-data"[^>]*>([\s\S]*?)<\/script>/)![1]);
+interface ArchData { costUrl?: string; costLabel?: string; showTitle?: boolean; steps: { costUrl?: string }[] }
+const archDataOf = (html: string): ArchData => JSON.parse(html.match(/id="arch-data"[^>]*>([\s\S]*?)<\/script>/)![1]);
 const services = [{ id: 'fn', service: 'AWS Lambda', category: 'compute' }];
 const URL_A = 'https://calculator.aws/#/estimate?id=aaa';
 const URL_B = 'https://calculator.aws/#/estimate?id=bbb';
@@ -72,7 +73,7 @@ describe('rendered UI (SSR)', () => {
   it('ZoomBar: cost button, and showTitle=false hides only the dock title', async () => {
     const { ZoomBar } = await import('../packages/diagram-core/dist/react.js');
     const { ReactFlowProvider } = await import('@xyflow/react');
-    const render = (props: any) => renderToString(React.createElement(ReactFlowProvider, null,
+    const render = (props: Record<string, unknown>) => renderToString(React.createElement(ReactFlowProvider, null,
       React.createElement(ZoomBar, { title: 'Dock title', subtitle: 'Dock sub', visible: true, ...props })));
     const withCost = render({ costUrl: URL_A, costLabel: 'Prod estimate' });
     expect(withCost).toContain('data-ld-cost="dock"');
