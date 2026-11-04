@@ -5,7 +5,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import { writeFileSync, readFileSync, existsSync, readdirSync } from "fs";
-import { join } from "path";
+import { join, dirname, resolve as resolvePath } from "path";
 import { execFileSync } from "child_process";
 import { computeLayout } from "./lib/layout.js";
 import { generateDrawio } from "./lib/drawio-xml.js";
@@ -18,6 +18,7 @@ import { generateSequenceHtml, seqIconResolutionReport } from "./lib/sequence-ge
 import { participantSchema, messageSchema, noteSchema, eventSchema, fragmentSchema, groupSchema as seqGroupSchema } from "./lib/sequence-schemas.js";
 import { generateFlowHtml, flowIconResolutionReport } from "./lib/flow-generator.js";
 import { flowNodeSchema, flowEdgeSchema, flowStepSchema } from "./lib/flow-schemas.js";
+import { diagramElementsJson, writeSidecarJson, renderSpecAsync, writeSpecJson, formatLayoutWarnings } from "./lib/render-spec.js";
 
 const PKG = JSON.parse(readFileSync(new URL("./package.json", import.meta.url), "utf-8"));
 const server = new McpServer({ name: PKG.name, version: PKG.version });
@@ -34,50 +35,6 @@ function iconSetNotice() {
   if (hasIcons(iconRoot())) return "";
   return "\n\n⚠️ The AWS Architecture Icons are not installed, so every node will render as a category-colored initial."
     + "\nFix (once per machine): call setup_icons — it picks up an Icon-package*.zip (or older Asset-Package*.zip) from ~/Downloads, or returns the download link to relay to the user.";
-}
-
-// Neutral element JSON — the machine-readable diagram contract that downstream
-// apps consume (cost estimation, inventory, docs). Built from the same arch-data
-// the HTML embeds, so the sidecar `.json` and export_diagram_json agree. Language
-// maps (e.g. { en, pt }) are preserved as-is; consumers pick their locale.
-function diagramElementsJson(data, region = "us-east-1") {
-  return {
-    title: data.title,
-    ...(data.subtitle ? { subtitle: data.subtitle } : {}),
-    region,
-    direction: data.direction || "LR",
-    services: (data.services || []).map(s => ({
-      id: s.id,
-      service: s.service,
-      ...(s.label ? { label: s.label } : {}),
-      ...(s.role ? { role: s.role } : {}),
-      category: s.category || "general",
-      ...(s.external ? { external: true } : {}),
-      ...(s.parentId ? { parentId: s.parentId } : {}),
-      ...(s.subnet ? { subnet: s.subnet } : {}),
-      ...(s.config ? { config: s.config } : {}),
-    })),
-    connections: (data.connections || []).map(c => ({
-      id: c.id, source: c.source, target: c.target,
-      ...(c.type ? { type: c.type } : {}),
-      ...(c.label ? { label: c.label } : {}),
-    })),
-    groups: data.groups || [],
-  };
-}
-
-// Write the neutral element JSON next to a generated .html (same basename, .json).
-// Best-effort: a sidecar failure never fails the diagram write.
-function writeSidecarJson(outputPath, title, subtitle, services, connections, options) {
-  try {
-    const jsonPath = outputPath.replace(/\.html?$/i, "") + ".json";
-    const payload = diagramElementsJson(
-      { title, subtitle, services, connections, direction: options.direction, groups: options.groups },
-      options.region || "us-east-1"
-    );
-    writeFileSync(jsonPath, JSON.stringify(payload, null, 2), "utf-8");
-    return jsonPath;
-  } catch { return null; }
 }
 
 // v2.0: Full auto-layout — just pass services + connections, positions computed automatically
@@ -188,7 +145,7 @@ server.tool(
     direction: z.enum(["LR", "TB"]).optional().describe("Layout flow direction: LR (left→right, default) or TB (top→bottom)."),
     lang: z.string().optional().describe("Language the content is authored in (ISO 639-1, e.g. 'en', 'pt', 'es'). Default 'en'. The UI chrome (modal headings, tooltips) adapts to it."),
     languages: z.array(z.string()).optional().describe("Offer a language switch in the toolbar. List every language you provide text for — ANY ISO 639-1 code works, not just en/pt (e.g. ['en','es','ja','fr']). When set with >1 entry, ALL author text fields (title, subtitle, service/role, group label, step title/eyebrow/body/badge, bullets, chips, sections) may be a per-language map { en: '…', ja: '…' } instead of a plain string, and the toolbar lets the viewer switch. Omit for single-language diagrams."),
-    uiStrings: z.record(z.string(), z.record(z.string(), z.string())).optional().describe("Localize the built-in UI chrome (toolbar tooltips + node-modal headings) for languages beyond the built-in en/pt/es — keyed by UI key then language, e.g. { restart: { ja: 'ウォークスルーを再開' }, theme: { ja: 'テーマ切替' } }. Keys: iac, pricing, architecture, restart, play, pause, theme, collapse, expand, language, cost. Omitted (key,lang) falls back to the built-in table, then English."),
+    uiStrings: z.record(z.string(), z.record(z.string(), z.string())).optional().describe("Localize the built-in UI chrome (toolbar tooltips + node-modal headings) for languages beyond the built-in en/pt/es — keyed by UI key then language, e.g. { restart: { ja: 'ウォークスルーを再開' }, theme: { ja: 'テーマ切替' } }. Keys: iac, pricing, architecture, restart, play, pause, theme, collapse, expand, language. Omitted (key,lang) falls back to the built-in table, then English."),
     langLabels: z.record(z.string(), z.string()).optional().describe("Display label per language for its toolbar switch button, e.g. { en: 'EN', ja: '日本語', 'zh-CN': '中文' }. Defaults to a built-in for en/pt/es/fr/de, else the uppercased code."),
     steps: z.array(stepSchema).optional().describe("Guided walkthrough beats. Arrow keys / the dock's play button step through them; each shows an overlay card and can tint+zoom a subset of the diagram."),
     startStep: z.number().int().optional().describe("Which beat the diagram opens on: -1 (default) shows the whole-diagram overview first; 0+ opens directly on that beat, so a wide/dense diagram lands already zoomed into a legible region (requires stepZoom to frame it)."),
@@ -204,13 +161,18 @@ server.tool(
     costUrl: htmlDiagramInputSchema.shape.costUrl,
     costLabel: htmlDiagramInputSchema.shape.costLabel,
     showTitle: htmlDiagramInputSchema.shape.showTitle,
+    layout: htmlDiagramInputSchema.shape.layout,
+    writeSpec: z.boolean().optional().describe("Also write <name>.spec.json — the validated input, re-renderable with render_from_spec / the `render` CLI. Default true; false skips it."),
   },
-  async ({ title, subtitle, caption, outputPath, services, connections, groups, direction, steps, startStep, startCardScale, stepZoom, stepFocus, lang, languages, uiStrings, langLabels, flowDots, flowPeriod, collapsible, defaultCollapsed, sequence, tabs, costUrl, costLabel, showTitle }) => {
-    // Validate + auto-repair the IR before rendering; the repaired model is what
-    // reaches the generator (dangling edges dropped, missing refs cleaned, etc.).
-    const { report, repaired } = validateDiagram({ services, connections, groups, steps });
-    const html = generateHtml(title, subtitle || "", repaired.services, repaired.connections, { caption, groups: repaired.groups, direction, steps: repaired.steps, startStep, startCardScale, stepZoom, stepFocus, lang, languages, uiStrings, langLabels, flowDots, flowPeriod, collapsible, defaultCollapsed, sequence, tabs, costUrl, costLabel, showTitle });
-    writeFileSync(outputPath, html, "utf-8");
+  async ({ outputPath, writeSpec, ...spec }) => {
+    // Validate + auto-repair the IR before rendering (renderSpec); the repaired
+    // model is what reaches the generator (dangling edges dropped, refs cleaned).
+    let r;
+    try { r = await renderSpecAsync(spec, { baseDir: dirname(resolvePath(outputPath)) }); } catch (e) { return { content: [{ type: "text", text: `Error: ${e.message}` }], isError: true }; }
+    const { report, repaired, warnings } = r;
+    const { title, subtitle, direction, sequence, tabs } = r.spec;
+    writeFileSync(outputPath, r.html, "utf-8");
+    if (writeSpec !== false) { try { writeSpecJson(outputPath, r.spec); } catch { /* best-effort, like the sidecar */ } }
     const jsonPath = writeSidecarJson(outputPath, title, subtitle, repaired.services, repaired.connections, { groups: repaired.groups, direction });
     // When `sequence`/`tabs` is present the output is a multi-tab document; report
     // the resolved rail so the agent sees what the viewer will actually get.
@@ -222,7 +184,7 @@ server.tool(
       resolvedTabs?.length ? `${resolvedTabs.length} tabs (${resolvedTabs.map(t => t.kind).join(", ")})` : null,
       seqTabs.length ? `sequence: ${seqTabs.reduce((n, t) => n + (t.sequence?.participants?.length || 0), 0)} participants / ${seqTabs.reduce((n, t) => n + (t.sequence?.events?.length || 0), 0)} events` : null,
     ].filter(Boolean);
-    return { content: [{ type: "text", text: `Interactive diagram saved: ${outputPath}${extras.length ? "\nIncluded: " + extras.join(", ") : ""}${jsonPath ? `\nElements JSON: ${jsonPath}` : ""}\nOpen in browser for animated data flow visualization.${formatValidationReport(report)}${iconSetNotice()}` }] };
+    return { content: [{ type: "text", text: `Interactive diagram saved: ${outputPath}${r.layout ? ` (layout: ${r.layout})` : ""}${extras.length ? "\nIncluded: " + extras.join(", ") : ""}${jsonPath ? `\nElements JSON: ${jsonPath}` : ""}\nOpen in browser for animated data flow visualization.${formatValidationReport(report)}${formatLayoutWarnings(warnings)}${iconSetNotice()}` }] };
   }
 );
 
@@ -590,10 +552,10 @@ const draftSummary = (id, d) => `draft ${id}: ${d.services.length} service(s), $
 
 server.tool("diagram_create",
   "Start an incremental diagram draft. Returns a draftId; feed it to diagram_add_services / diagram_add_connections / diagram_add_groups / diagram_add_steps in any order, then diagram_render to write the HTML. Use this when building a diagram in stages; use generate_html_diagram for a single-shot build.",
-  { title: z.string(), subtitle: z.string().optional(), caption: captionSchema.optional().describe("OPTIONAL header band above the canvas (string, or { title, text, meta[] }) so the file explains itself when opened cold. Omit for the bare canvas."), direction: z.enum(["LR", "TB"]).optional(), stepZoom: z.boolean().optional(), stepFocus: z.boolean().optional(), startStep: z.number().int().optional().describe("Beat to open on: -1 (default) overview first; 0+ opens zoomed on that beat."), startCardScale: z.number().int().min(0).max(3).optional().describe("Initial walkthrough-card text size (0–3, default 0); 1–3 opens a larger card."), flowDots: z.boolean().optional().describe("Animate a dot travelling along each connection. Default true. Set false for a static, print-friendly look."), lang: z.string().optional(), languages: z.array(z.string()).optional().describe("Offer a toolbar language switch; ANY language works (en, es, ja, …). When >1, author text fields may be per-language maps { en, ja, … }."), uiStrings: z.record(z.string(), z.record(z.string(), z.string())).optional().describe("Localize the UI chrome (tooltips/modal headings) for languages beyond built-in en/pt/es: { <uiKey>: { <lang>: text } }. Keys: iac, pricing, architecture, restart, play, pause, theme, collapse, expand, language, cost."), langLabels: z.record(z.string(), z.string()).optional().describe("Toolbar switch label per language, e.g. { ja: '日本語' }."), costUrl: htmlDiagramInputSchema.shape.costUrl, costLabel: htmlDiagramInputSchema.shape.costLabel, showTitle: htmlDiagramInputSchema.shape.showTitle },
-  async ({ title, subtitle, caption, direction, stepZoom, stepFocus, startStep, startCardScale, flowDots, lang, languages, uiStrings, langLabels, costUrl, costLabel, showTitle }) => {
+  { title: z.string(), subtitle: z.string().optional(), caption: captionSchema.optional().describe("OPTIONAL header band above the canvas (string, or { title, text, meta[] }) so the file explains itself when opened cold. Omit for the bare canvas."), direction: z.enum(["LR", "TB"]).optional(), stepZoom: z.boolean().optional(), stepFocus: z.boolean().optional(), startStep: z.number().int().optional().describe("Beat to open on: -1 (default) overview first; 0+ opens zoomed on that beat."), startCardScale: z.number().int().min(0).max(3).optional().describe("Initial walkthrough-card text size (0–3, default 0); 1–3 opens a larger card."), flowDots: z.boolean().optional().describe("Animate a dot travelling along each connection. Default true. Set false for a static, print-friendly look."), lang: z.string().optional(), languages: z.array(z.string()).optional().describe("Offer a toolbar language switch; ANY language works (en, es, ja, …). When >1, author text fields may be per-language maps { en, ja, … }."), uiStrings: z.record(z.string(), z.record(z.string(), z.string())).optional().describe("Localize the UI chrome (tooltips/modal headings) for languages beyond built-in en/pt/es: { <uiKey>: { <lang>: text } }. Keys: iac, pricing, architecture, restart, play, pause, theme, collapse, expand, language."), langLabels: z.record(z.string(), z.string()).optional().describe("Toolbar switch label per language, e.g. { ja: '日本語' }."), costUrl: htmlDiagramInputSchema.shape.costUrl, costLabel: htmlDiagramInputSchema.shape.costLabel, showTitle: htmlDiagramInputSchema.shape.showTitle, layout: htmlDiagramInputSchema.shape.layout },
+  async ({ title, subtitle, caption, direction, stepZoom, stepFocus, startStep, startCardScale, flowDots, lang, languages, uiStrings, langLabels, costUrl, costLabel, showTitle, layout }) => {
     const id = `d${++draftSeq}`;
-    drafts.set(id, { title, subtitle: subtitle || "", caption, direction: direction || "LR", services: [], connections: [], groups: [], steps: [], stepZoom: !!stepZoom, stepFocus: !!stepFocus, startStep, startCardScale, flowDots, lang, languages, uiStrings, langLabels, costUrl, costLabel, showTitle });
+    drafts.set(id, { title, subtitle: subtitle || "", caption, direction: direction || "LR", services: [], connections: [], groups: [], steps: [], stepZoom: !!stepZoom, stepFocus: !!stepFocus, startStep, startCardScale, flowDots, lang, languages, uiStrings, langLabels, costUrl, costLabel, showTitle, layout });
     return { content: [{ type: "text", text: `Created ${id}. Add pieces with diagram_add_* (draftId="${id}"), then diagram_render.` }] };
   }
 );
@@ -660,15 +622,19 @@ server.tool("diagram_add_doc_tab",
 
 server.tool("diagram_render",
   "Render an incremental draft to a self-contained HTML file, then discard the draft. Pass keep:true to keep the draft for further edits.",
-  { draftId: z.string(), outputPath: z.string(), keep: z.boolean().optional() },
-  async ({ draftId, outputPath, keep }) => {
+  { draftId: z.string(), outputPath: z.string(), keep: z.boolean().optional(), layout: htmlDiagramInputSchema.shape.layout.describe("Render with this layout instead of the one set on diagram_create."), writeSpec: z.boolean().optional().describe("Also write <name>.spec.json (default true; false skips it).") },
+  async ({ draftId, outputPath, keep, layout, writeSpec }) => {
     const d = getDraft(draftId);
-    const { report, repaired } = validateDiagram({ services: d.services, connections: d.connections, groups: d.groups, steps: d.steps });
-    const html = generateHtml(d.title, d.subtitle, repaired.services, repaired.connections, { caption: d.caption, groups: repaired.groups, direction: d.direction, steps: repaired.steps, stepZoom: d.stepZoom, stepFocus: d.stepFocus, startStep: d.startStep, startCardScale: d.startCardScale, flowDots: d.flowDots, lang: d.lang, languages: d.languages, uiStrings: d.uiStrings, langLabels: d.langLabels, tabs: d.tabs, costUrl: d.costUrl, costLabel: d.costLabel, showTitle: d.showTitle });
-    writeFileSync(outputPath, html, "utf-8");
+    // A draft is a spec: drop unset keys (and the empty arrays a fresh draft starts with).
+    const spec = Object.fromEntries(Object.entries(d).filter(([k, v]) => v !== undefined && !(Array.isArray(v) && v.length === 0 && !["services", "connections"].includes(k))));
+    let r;
+    try { r = await renderSpecAsync(spec, { layoutOverride: layout, baseDir: dirname(resolvePath(outputPath)) }); } catch (e) { return { content: [{ type: "text", text: `Error: ${e.message}` }], isError: true }; }
+    const { report, repaired, warnings } = r;
+    writeFileSync(outputPath, r.html, "utf-8");
+    if (writeSpec !== false) { try { writeSpecJson(outputPath, r.spec); } catch { /* best-effort, like the sidecar */ } }
     const jsonPath = writeSidecarJson(outputPath, d.title, d.subtitle, repaired.services, repaired.connections, { groups: repaired.groups, direction: d.direction });
     if (!keep) drafts.delete(draftId);
-    return { content: [{ type: "text", text: `Rendered ${draftSummary(draftId, d)} → ${outputPath}${jsonPath ? `\nElements JSON: ${jsonPath}` : ""}${keep ? " (draft kept)" : " (draft cleared)"}${formatValidationReport(report)}${iconSetNotice()}` }] };
+    return { content: [{ type: "text", text: `Rendered ${draftSummary(draftId, d)} → ${outputPath}${r.layout ? ` (layout: ${r.layout})` : ""}${jsonPath ? `\nElements JSON: ${jsonPath}` : ""}${keep ? " (draft kept)" : " (draft cleared)"}${formatValidationReport(report)}${formatLayoutWarnings(warnings)}${iconSetNotice()}` }] };
   }
 );
 
