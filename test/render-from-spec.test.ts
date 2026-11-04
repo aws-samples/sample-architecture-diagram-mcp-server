@@ -99,6 +99,40 @@ describe('CLI', () => {
     execFileSync(process.execPath, [join(ROOT, 'mcp-server.js'), 'render', specFile, '--out', deep], { env: env(), encoding: 'utf-8' });
     expect(existsSync(deep)).toBe(true);
   });
+  const run = (args: string[]) => {
+    try { return { code: 0, out: execFileSync(process.execPath, [join(ROOT, 'mcp-server.js'), ...args], { env: env(), encoding: 'utf-8', stdio: 'pipe' }), err: '' }; }
+    catch (e) { const x = e as { status: number; stdout: string; stderr: string }; return { code: x.status, out: String(x.stdout), err: String(x.stderr) }; }
+  };
+  it('unknown spec fields are reported (with their path), not silently dropped', () => {
+    const f = join(tmp, 'unk.json');
+    writeFileSync(f, JSON.stringify({ ...spec, colour: 'red', steps: [{ title: 's', nodes: [], bodyy: 'typo' }] }));
+    const v = run(['validate', f]);
+    expect(v.code).toBe(0);
+    expect(v.out).toMatch(/unknown fields ignored.*colour, steps\.0\.bodyy/);
+    const r = run(['render', f, '--out', join(tmp, 'unk.html')]);
+    expect(r.out).toMatch(/unknown fields ignored.*colour/);
+  });
+  it('strict flags, JSON errors name the file, usage only on usage errors', () => {
+    const f = join(tmp, 'flags.json');
+    writeFileSync(f, JSON.stringify(spec));
+    const bad = run(['render', f, '--oops']);
+    expect(bad.code).toBe(1);
+    expect(bad.err).toMatch(/unknown option --oops/);
+    expect(bad.err).toContain('Usage:');
+    expect(run(['render', f, '--layout']).err).toMatch(/--layout needs a value/);
+    writeFileSync(join(tmp, 'broken.json'), '{nope');
+    const j = run(['render', join(tmp, 'broken.json')]);
+    expect(j.err).toMatch(/broken\.json: invalid JSON/);
+    expect(j.err).not.toContain('Usage:');
+  });
+  it('layout update / delete on saved layouts; presets are read-only', () => {
+    expect(run(['layout', 'new', 'tmp-upd']).code).toBe(0);
+    expect(run(['layout', 'update', 'tmp-upd', '--set', '{"description":"changed"}']).code).toBe(0);
+    expect(run(['layout', 'show', 'tmp-upd']).code).toBe(0);
+    expect(run(['layout', 'delete', 'tmp-upd']).code).toBe(0);
+    expect(run(['layout', 'show', 'tmp-upd']).code).toBe(1);
+    expect(run(['layout', 'delete', 'cost']).err).toMatch(/preset \(read-only\)/);
+  });
   it('fails with a message and exit code 1 on a bad command', () => {
     let code = 0;
     try { execFileSync(process.execPath, [join(ROOT, 'mcp-server.js'), 'layout', 'validate', 'nope'], { env: env(), encoding: 'utf-8', stdio: 'pipe' }); } catch (e) { code = (e as { status: number }).status; }
