@@ -561,6 +561,12 @@ export function LiveDiagram({
   useEffect(() => {
     if (control !== "auto" || !hasWalk) return;
     const onKey = (e) => {
+      // Keys typed into a field, and Space on a focused button/link, belong to
+      // that control (press the button, move the caret) — not to the walkthrough.
+      const t = e.target;
+      const tag = t?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || t?.isContentEditable) return;
+      if (e.key === " " && (tag === "BUTTON" || tag === "A" || t?.getAttribute?.("role") === "button")) return;
       if (e.key === "ArrowRight" || e.key === " " || e.key === "PageDown") { e.preventDefault(); setPlaying(false); setInternalStep(s => Math.min(s + 1, steps.length - 1)); }
       else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); setPlaying(false); setInternalStep(s => Math.max(s - 1, -1)); }
       else if (e.key === "Home") { setPlaying(false); setInternalStep(0); }
