@@ -250,7 +250,13 @@ Icons need no extra step per install — the plugin reads the shared
 | `export_iac_json` | Extract an AWS IaC MCP handoff payload (resources + dependencies) from a diagram |
 | `export_diagram_json` | Extract the diagram's elements as neutral JSON (title, services, connections, groups) for downstream apps |
 
-That is 47 tools in all: the flow rows above stand for 18 (three types × six tools).
+| `render_from_spec` | Re-render a diagram from a spec file (the `<name>.spec.json` written next to every HTML) |
+| `list_components` · `describe_component` | The component catalog a layout can mount, with each component's props schema |
+| `list_layouts` · `create_layout` · `update_layout` · `validate_layout` · `preview_layout` | Presets and saved layouts: create, patch, check, and preview with a generic diagram |
+| `build_bundle` | Build the page for a layout with custom components (clone only) |
+| `get_schema` | Any published contract of the running server (also served as `schema://…` resources) |
+
+That is 57 tools in all: the flow rows above stand for 18 (three types × six tools).
 
 For a diagram built up in stages (e.g. as an agent reasons through an
 architecture), use the **incremental builder**: `diagram_create` →
@@ -437,6 +443,95 @@ already authored as its own file drops in unchanged.
 With fewer than two tabs nothing changes — the output stays the classic
 single-canvas diagram.
 
+## Layouts and components
+
+The interactive page is assembled from components placed in four slots:
+`dock` (the toolbar), `stepCard` (the walkthrough card), `nodeModal` (the
+node detail window) and `header` (the caption band). A **layout** says which
+components go in each slot, in what order and with what props, plus theme
+tokens, a CSS file and branding. Pass it as `layout` in any spec:
+
+```jsonc
+"layout": {
+  "extends": "cost",                       // a preset or a saved layout (default: "default")
+  "patch": [
+    { "op": "remove", "slot": "dock", "component": "dock.shareCard" },
+    { "op": "props",  "slot": "dock", "component": "dock.title", "props": { "width": 220 } },
+    { "op": "add",    "slot": "nodeModal", "component": "nodeModal.role" }
+  ],
+  "theme": { "light": { "bg": "#f7f8fb", "dock-bg": "#ffffff" }, "fontFamily": "Inter, sans-serif", "css": "brand.css" },
+  "branding": { "name": "Platform team", "logo": "logo.svg", "favicon": "logo.png" }
+}
+```
+
+- **Presets:** `default` is the standard page; `cost` moves the cost button and
+  the step card's cost pill right after the title. A spec without `layout` is
+  rendered exactly as before layouts existed.
+- **Patch ops:** `add`, `remove`, `move` (`before` / `after` / `index`),
+  `replace` (`with`), `props`. `slots` replaces a whole slot list.
+- **Catalog:** `list_components` / `describe_component` (CLI: `components`,
+  `component <id>`). Every slot entry and its props are validated; a spec field
+  that no component of the layout renders (e.g. `costUrl` without `dock.cost`)
+  is reported as a layout note.
+- **Theme and branding** are applied at render time, with no build: tokens are
+  the canvas CSS custom properties (`bg`, `surface`, `node-bg`, `txt`,
+  `txt-muted`, `border`, `card-bg`, `dock-bg`, …). Logo, favicon and CSS are
+  local files, inlined; URLs are rejected, so the HTML stays self-contained.
+- **Saved layouts:** `create_layout` / `update_layout` write
+  `~/.aws-architecture-diagram/layouts/<name>.json` (or `DIAGRAM_LAYOUTS_DIR`).
+  Presets are read-only: extend them instead.
+- **Custom components:** put `<file>.jsx` plus `<file>.component.json`
+  (`{ "id": "my.badge", "slot": "dock", "file": "badge.jsx", "props": <JSON Schema> }`)
+  in `~/.aws-architecture-diagram/components` (or `DIAGRAM_COMPONENTS_DIR`) and
+  use the id in a layout. A dock component receives its props plus `ctx`
+  (title, lang, dark, …); a step-card part receives `step`, `lang`, `color`; a
+  node-modal section receives `node`, `color`. They need a page that bundles
+  them: `build_bundle` (CLI `layout build <name>`) runs Vite on this repo's
+  `standalone/` sources and caches the page by a hash of the components, the
+  base page and the package version; rendering builds it on demand when it is
+  missing. This needs a clone with `npm install`; the npm package does not ship
+  the build toolchain.
+
+## Spec files and the CLI
+
+Every architecture render also writes `<name>.spec.json` (opt out with
+`writeSpec: false`): the validated input, with `"$schema"` pointing at
+`schema/spec.schema.json`. Re-render it with `render_from_spec` or the CLI —
+the same binary, with a command as its first argument (with no arguments it is
+still the stdio MCP server; nothing listens on a port):
+
+```bash
+npx sample-architecture-diagram-mcp-server render diagram.spec.json --layout cost --out diagram.html
+npx sample-architecture-diagram-mcp-server layout list
+npx sample-architecture-diagram-mcp-server layout validate my-layout.json
+npx sample-architecture-diagram-mcp-server layout preview cost --out /tmp/preview.html
+npx sample-architecture-diagram-mcp-server components --slot dock
+```
+
+## Contracts
+
+Every input this server accepts is published as JSON Schema 2020-12 and
+OpenAPI 3.1, generated from the definitions the server itself registers
+(`lib/tools.js` → `lib/contracts.js`), so the schema can never disagree with the
+running version:
+
+- **At runtime:** MCP resources `schema://<name>` and the `get_schema` tool
+  (`get_schema({ name: "list" })` lists the names): `diagram`, `sequence`,
+  `flow-workflow` / `flow-dataflow` / `flow-lifecycle`, `typed/<kind>`,
+  `typed-diagram`, `layout`, `layout-ref`, `components`, `spec`, the shared
+  parts (`diagram/*`, `sequence/*`, `flow/*`, `layout/*`, `common/*`),
+  `tools/<tool>` (each tool's input exactly as in `tools/list`) and `openapi`.
+- **In the repository and the package:** `schema/` — the same text, written by
+  `npm run build:schema` (`-- --check` fails when stale; a test does the same).
+  Contracts reference each other with relative `$ref`s and carry a stable `$id`.
+  Typed-diagram schemas are the core's specs as they are, including their
+  `x-*` annotations.
+- **OpenAPI:** `schema/openapi.yaml` has every contract in
+  `components/schemas` and one operation per tool (`operationId` = tool name,
+  request body = the tool input). There is no HTTP server: `x-transport` says
+  the operation is carried by MCP, and `x-cli` gives the CLI command when one
+  exists.
+
 ## Development
 
 ```bash
@@ -444,6 +539,7 @@ npm run build:core         # build the shared @aws-sample-live-diagram/core rend
 npm run build:standalone   # rebuild dist/index.html (the HTML template)
 npm test                    # run the vitest unit suite
 npm run typecheck           # check the standalone app against the core's types
+npm run build:schema        # regenerate schema/ (JSON Schema + OpenAPI) from lib/contracts.js
 node mcp-server.js          # run the MCP server over stdio
 ```
 

@@ -43,6 +43,22 @@ agent that turns a described architecture into a diagram.
 - **`showTitle: false`** hides the title/subtitle in the dock only — use it when
   a `caption` band already says what the diagram is.
 
+## Layouts, spec files and schemas
+
+- **Layout:** to change what the page shows or how it looks, pass `layout` — a
+  preset (`default`, `cost`), a saved name (`list_layouts`), or inline
+  `{ extends, patch, slots, theme, branding }`. Discover components with
+  `list_components` / `describe_component`; check with `validate_layout`; try
+  with `preview_layout`. Save reusable ones with `create_layout`. Omit `layout`
+  for the standard page. Read the "Layout notes" in the render result: they
+  name spec fields the layout does not show.
+- **Re-render:** every render writes `<name>.spec.json`; to change a diagram
+  later, edit that file and call `render_from_spec` instead of rebuilding the
+  whole input. Pass `writeSpec: false` when the extra file is unwanted.
+- **Schemas:** `get_schema({ name })` (or the `schema://<name>` resources)
+  returns this server's own contract for any input — use it instead of
+  guessing a field.
+
 ## Making a diagram into media (GIF / PNG / SVG)
 
 1. `generate_html_diagram(..., flowPeriod: 4)` for a flow GIF, or add `steps`
