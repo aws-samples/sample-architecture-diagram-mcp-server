@@ -666,6 +666,26 @@
                   "type": "string",
                   "maxLength": 300,
                   "pattern": "^[^;{}<>\\\\]*$"
+                },
+                "dock-txt": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "pattern": "^[^;{}<>\\\\]*$"
+                },
+                "dock-muted": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "pattern": "^[^;{}<>\\\\]*$"
+                },
+                "accent": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "pattern": "^[^;{}<>\\\\]*$"
+                },
+                "accent-txt": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "pattern": "^[^;{}<>\\\\]*$"
                 }
               },
               "additionalProperties": false
@@ -734,6 +754,26 @@
                   "pattern": "^[^;{}<>\\\\]*$"
                 },
                 "dock-bg": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "pattern": "^[^;{}<>\\\\]*$"
+                },
+                "dock-txt": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "pattern": "^[^;{}<>\\\\]*$"
+                },
+                "dock-muted": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "pattern": "^[^;{}<>\\\\]*$"
+                },
+                "accent": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "pattern": "^[^;{}<>\\\\]*$"
+                },
+                "accent-txt": {
                   "type": "string",
                   "maxLength": 300,
                   "pattern": "^[^;{}<>\\\\]*$"
