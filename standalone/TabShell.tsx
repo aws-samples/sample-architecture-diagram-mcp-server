@@ -1,8 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
 // Multi-tab chrome for the generated HTML — the same sidebar-and-content shell
-// the cost-calculator app uses (sidebar layout, zinc palette: a fixed left rail
-// of views, a collapse toggle, the panel filling the rest), deep-linkable through
+// the cost-calculator app uses (a fixed left rail of views built with Tailwind
+// utilities, a collapse toggle, the panel filling the rest), deep-linkable through
 // the URL hash, so ONE self-contained file can carry the live architecture, its
 // animated UML sequence, typed diagrams (gantt, ER, swimlane, workflow…) and
 // prose sections instead of shipping several files.
