@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/diagram/caption.schema.json",
+  "anyOf": [
+    {
+      "description": "Shorthand: just the description paragraph.",
+      "$ref": "../common/lang-text.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "eyebrow": {
+          "description": "Small uppercase label above the headline, in AWS orange (e.g. 'Arquitetura alvo', 'Reference architecture', 'RFP anexo II').",
+          "$ref": "../common/lang-text.schema.json"
+        },
+        "title": {
+          "description": "Headline shown above the description (e.g. 'Portal do Cidadão — target architecture').",
+          "$ref": "../common/lang-text.schema.json"
+        },
+        "text": {
+          "description": "One paragraph saying what this diagram shows and for whom.",
+          "$ref": "../common/lang-text.schema.json"
+        },
+        "meta": {
+          "description": "Small dot-separated facts under the text: version, date, environment, author, ticket.",
+          "type": "array",
+          "items": {
+            "$ref": "../common/lang-text.schema.json"
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/tools/list_components.input.schema.json",
+  "title": "list_components input",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "slot": {
+      "description": "Only this slot.",
+      "type": "string",
+      "enum": [
+        "dock",
+        "stepCard",
+        "nodeModal",
+        "header"
+      ]
+    }
+  }
+}

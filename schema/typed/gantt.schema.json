@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/typed/gantt.schema.json",
+  "title": "Gantt",
+  "description": "Cronograma de tarefas com datas, seções, progresso, marcos e dependências.",
+  "x-category": "planning",
+  "x-unique": [
+    "sections[].id",
+    "tasks[].id"
+  ],
+  "x-refs": [
+    {
+      "from": "tasks[].section",
+      "to": "sections[].id"
+    },
+    {
+      "from": "tasks[].dependsOn[]",
+      "to": "tasks[].id"
+    }
+  ],
+  "type": "object",
+  "required": [
+    "kind",
+    "tasks"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "kind": {
+      "const": "gantt"
+    },
+    "title": {
+      "type": "string"
+    },
+    "subtitle": {
+      "type": "string"
+    },
+    "today": {
+      "type": "string",
+      "description": "Data de referência (linha \"hoje\"), AAAA-MM-DD — opcional",
+      "x-label": "Hoje"
+    },
+    "sections": {
+      "type": "array",
+      "maxItems": 20,
+      "x-label": "Seções",
+      "x-item-title": "label",
+      "description": "Agrupamentos de tarefas (fases, frentes)",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "label"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string",
+            "description": "Nome da seção"
+          }
+        }
+      }
+    },
+    "tasks": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 80,
+      "x-label": "Tarefas",
+      "x-item-title": "label",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "start"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string",
+            "description": "Nome da tarefa"
+          },
+          "section": {
+            "type": "string",
+            "x-ref": "sections[].id",
+            "description": "Seção da tarefa"
+          },
+          "start": {
+            "type": "string",
+            "description": "Início (AAAA-MM-DD)"
+          },
+          "end": {
+            "type": "string",
+            "description": "Fim inclusivo (AAAA-MM-DD) — ou use durationDays"
+          },
+          "durationDays": {
+            "type": "number",
+            "description": "Duração em dias corridos (se não houver \"end\")"
+          },
+          "dependsOn": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "x-ref": "tasks[].id"
+            },
+            "description": "Tarefas que precisam terminar antes (fim → início)"
+          },
+          "progress": {
+            "type": "number",
+            "description": "Percentual concluído, 0 a 100"
+          },
+          "milestone": {
+            "type": "boolean",
+            "description": "Marco (losango na data de início)"
+          },
+          "tone": {
+            "type": "string",
+            "enum": [
+              "accent",
+              "info",
+              "success",
+              "warn",
+              "danger",
+              "neutral",
+              "purple",
+              "teal",
+              "pink"
+            ],
+            "description": "Cor da barra (padrão: cor da seção)"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,322 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/typed/workflow.schema.json",
+  "title": "Fluxo (workflow / DFD / ciclo de vida)",
+  "description": "Grafo dirigido com decisões, tarefas e fins, arestas rotuladas e passo a passo narrado — o mesmo fluxo do aws-live-diagram MCP.",
+  "x-category": "process",
+  "x-unique": [
+    "nodes[].id",
+    "edges[].id"
+  ],
+  "x-refs": [
+    {
+      "from": "edges[].from",
+      "to": "nodes[].id"
+    },
+    {
+      "from": "edges[].to",
+      "to": "nodes[].id"
+    },
+    {
+      "from": "steps[].nodes[]",
+      "to": "nodes[].id"
+    },
+    {
+      "from": "steps[].edges[]",
+      "to": "edges[].id"
+    }
+  ],
+  "type": "object",
+  "required": [
+    "kind",
+    "nodes",
+    "edges"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "kind": {
+      "const": "workflow"
+    },
+    "title": {
+      "type": "string"
+    },
+    "subtitle": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "workflow",
+        "dataflow",
+        "lifecycle"
+      ],
+      "x-label": "Tipo",
+      "description": "workflow (padrão), dataflow (DFD) ou lifecycle (estados): define a forma padrão dos nós e a legenda"
+    },
+    "direction": {
+      "type": "string",
+      "enum": [
+        "TB",
+        "LR"
+      ],
+      "x-label": "Direção",
+      "description": "TB: de cima para baixo (padrão); LR: da esquerda para a direita"
+    },
+    "nodes": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 160,
+      "x-label": "Nós",
+      "x-item-title": "label",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "label"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string",
+            "description": "Texto do nó (pode ser vazio em initial/final)"
+          },
+          "sub": {
+            "type": "string",
+            "description": "Segunda linha, menor"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "box",
+              "start",
+              "task",
+              "decision",
+              "subprocess",
+              "wait",
+              "end",
+              "external",
+              "process",
+              "datastore",
+              "initial",
+              "state",
+              "choice",
+              "final"
+            ],
+            "description": "Forma: start/end (cápsula), task, decision (losango), subprocess, wait, datastore (cilindro), initial/final (círculos)"
+          },
+          "service": {
+            "type": "string",
+            "description": "Nome do serviço AWS (informativo; o ícone vem de `icon`)"
+          },
+          "icon": {
+            "type": "string",
+            "description": "Ícone, ex.: Arch_Amazon-Elastic-Kubernetes-Service_48.png"
+          },
+          "tone": {
+            "type": "string",
+            "enum": [
+              "accent",
+              "info",
+              "success",
+              "warn",
+              "danger",
+              "neutral"
+            ],
+            "description": "Cor de destaque"
+          }
+        }
+      }
+    },
+    "edges": {
+      "type": "array",
+      "maxItems": 320,
+      "x-label": "Arestas",
+      "x-item-title": "label",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "from",
+          "to"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "from": {
+            "type": "string",
+            "x-ref": "nodes[].id",
+            "description": "Nó de origem"
+          },
+          "to": {
+            "type": "string",
+            "x-ref": "nodes[].id",
+            "description": "Nó de destino (igual à origem = laço)"
+          },
+          "label": {
+            "type": "string",
+            "description": "Condição ou dado, ex.: [sim]"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "flow",
+              "branch",
+              "back",
+              "async"
+            ],
+            "description": "flow/branch: seta sólida; back: retorno tracejado; async: ponta aberta"
+          },
+          "dashed": {
+            "type": "boolean",
+            "description": "Força linha tracejada"
+          },
+          "tone": {
+            "type": "string",
+            "enum": [
+              "accent",
+              "info",
+              "success",
+              "warn",
+              "danger",
+              "neutral"
+            ],
+            "description": "Cor de destaque"
+          }
+        }
+      }
+    },
+    "steps": {
+      "type": "array",
+      "maxItems": 60,
+      "x-label": "Passo a passo",
+      "x-item-title": "title",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string",
+            "description": "Título do cartão"
+          },
+          "flow": {
+            "type": "string",
+            "description": "Linha pequena sob o título"
+          },
+          "desc": {
+            "type": "string",
+            "x-multiline": true,
+            "description": "Descrição (**negrito**, `código`, *itálico*)"
+          },
+          "nodes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "x-ref": "nodes[].id"
+            },
+            "description": "Nós destacados"
+          },
+          "edges": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "x-ref": "edges[].id"
+            },
+            "description": "Arestas destacadas"
+          },
+          "proof": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "repo": {
+                    "type": "string"
+                  },
+                  "path": {
+                    "type": "string"
+                  },
+                  "ref": {
+                    "type": "string"
+                  },
+                  "lines": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "number"
+                        }
+                      }
+                    ]
+                  },
+                  "url": {
+                    "type": "string"
+                  },
+                  "text": {
+                    "type": "string"
+                  }
+                }
+              }
+            ],
+            "description": "Fonte: texto livre ou {repo, path, ref, lines, url, text}"
+          },
+          "code": {
+            "type": "string",
+            "x-multiline": true
+          },
+          "codeLabel": {
+            "type": "string"
+          },
+          "tone": {
+            "type": "string",
+            "enum": [
+              "accent",
+              "info",
+              "success",
+              "warn",
+              "danger",
+              "neutral"
+            ],
+            "description": "Cor de destaque"
+          },
+          "badge": {
+            "type": "string",
+            "enum": [
+              "gate",
+              "async",
+              "sync",
+              "phase",
+              "fail",
+              "start",
+              "end"
+            ]
+          }
+        }
+      }
+    },
+    "autoplay": {
+      "type": "boolean",
+      "description": "Usado só no HTML do MCP"
+    },
+    "stepMs": {
+      "type": "number",
+      "description": "Usado só no HTML do MCP"
+    }
+  }
+}

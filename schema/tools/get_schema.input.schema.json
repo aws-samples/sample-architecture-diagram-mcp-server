@@ -1,0 +1,15 @@
+{
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/tools/get_schema.input.schema.json",
+  "title": "get_schema input",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Contract name, e.g. 'diagram', 'typed/er', 'layout', 'components', 'tools/generate_html_diagram', 'openapi'. Call with 'list' to get every name."
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

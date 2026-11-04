@@ -1,0 +1,577 @@
+{
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/tools/diagram_add_steps.input.schema.json",
+  "title": "diagram_add_steps input",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "draftId": {
+      "type": "string"
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tone": {
+            "description": "Named accent for this beat's highlight: accent (orange, default), info (blue), success (green), warn (amber), danger (red), neutral (slate). Resilience aliases survive/degrade/severed still work.",
+            "type": "string",
+            "enum": [
+              "accent",
+              "info",
+              "success",
+              "warn",
+              "danger",
+              "neutral",
+              "survive",
+              "degrade",
+              "severed"
+            ]
+          },
+          "color": {
+            "description": "Arbitrary hex accent (e.g. '#8C4FFF') overriding `tone` for this beat's card + highlights.",
+            "type": "string"
+          },
+          "cardSide": {
+            "description": "Where the overlay card sits: right (default), left, top (flows above the canvas), or full (centered full-page modal with a dimmed backdrop — good for an intro/overview beat).",
+            "type": "string",
+            "enum": [
+              "left",
+              "right",
+              "top",
+              "full"
+            ]
+          },
+          "nodes": {
+            "description": "Service ids highlighted (tinted) in this beat.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "edges": {
+            "description": "Connection ids highlighted in this beat.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "groups": {
+            "description": "Group ids tinted (border+glow) in this beat.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "tones": {
+            "description": "Per-node tone override: { nodeId: tone } — use when a beat mixes tones (e.g. one node danger, rest accent).",
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "type": "string",
+              "enum": [
+                "accent",
+                "info",
+                "success",
+                "warn",
+                "danger",
+                "neutral",
+                "survive",
+                "degrade",
+                "severed"
+              ]
+            }
+          },
+          "edgeTones": {
+            "description": "Per-edge tone override: { edgeId: tone }.",
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "type": "string",
+              "enum": [
+                "accent",
+                "info",
+                "success",
+                "warn",
+                "danger",
+                "neutral",
+                "survive",
+                "degrade",
+                "severed"
+              ]
+            }
+          },
+          "groupTones": {
+            "description": "Per-group tone override: { groupId: tone }.",
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "type": "string",
+              "enum": [
+                "accent",
+                "info",
+                "success",
+                "warn",
+                "danger",
+                "neutral",
+                "survive",
+                "degrade",
+                "severed"
+              ]
+            }
+          },
+          "zoom": {
+            "description": "Node/group ids to frame the camera on this beat (requires stepZoom). Empty array = fit the whole diagram.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "maxZoom": {
+            "description": "Max zoom level when framing this beat (default 2.2). Lower it (e.g. 1.4) to keep more context visible.",
+            "type": "number"
+          },
+          "eyebrow": {
+            "description": "Small uppercase label above the card title, e.g. '1 · Ingress'.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "icon": {
+            "description": "Icon reference shown next to the card title (same resolution as service icon).",
+            "type": "string"
+          },
+          "title": {
+            "description": "Card heading for this beat.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "body": {
+            "description": "Card description paragraph. Supports inline markdown: **bold**, `code`, *italic*.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "code": {
+            "description": "A fenced code/snippet block rendered under the body in monospace (e.g. an HTTP request, a CLI command, a YAML fragment). Preserves whitespace/newlines and scrolls horizontally.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "codeLabel": {
+            "description": "Small uppercase label shown on the code block's header bar (e.g. 'REQUEST', 'bash', 'JumpStartModel.yaml').",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "badge": {
+            "description": "Override the tone badge label; false hides it (recommended for architecture walkthroughs — the eyebrow already labels the beat).",
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "boolean",
+                "const": false
+              }
+            ]
+          },
+          "bullets": {
+            "description": "Bullet list under the body. Each item is a plain string, or a styled object {text, strong?, color?, icon?, glyph?} for richer bullets.",
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "text": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        }
+                      ],
+                      "description": "Bullet body text."
+                    },
+                    "strong": {
+                      "description": "Bold lead rendered before the text (e.g. a term being defined). If omitted, a 'Lead — rest' / 'Lead: rest' prefix in `text` is auto-bolded.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        }
+                      ]
+                    },
+                    "color": {
+                      "description": "Hex colour for this bullet's marker + lead (overrides the card tone).",
+                      "type": "string"
+                    },
+                    "icon": {
+                      "description": "Icon reference used as the bullet marker (replaces the dot).",
+                      "type": "string"
+                    },
+                    "glyph": {
+                      "description": "Single-char marker instead of the dot: '✓' (green), '✕' (red), '≈'/'△' (amber), '→', etc.",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "text"
+                  ]
+                }
+              ]
+            }
+          },
+          "process": {
+            "description": "A numbered process list rendered as colored numbered bubbles + label + description (like a migration runbook: SCT → DMS → Cutover). Use for an ordered sequence of stages inside one card.",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "label": {
+                  "description": "Bold colored step name (e.g. 'SCT', 'DMS full load').",
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "text": {
+                  "description": "Step description.",
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "color": {
+                  "description": "Hex accent for this step's number bubble + label (e.g. '#8C4FFF'). Defaults to the beat tone.",
+                  "type": "string"
+                },
+                "ok": {
+                  "description": "If true, the numbered bubble shows a ✓ instead of the number (a completed step).",
+                  "type": "boolean"
+                }
+              }
+            }
+          },
+          "chips": {
+            "description": "Status chips row at the bottom of the card.",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "label": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "ok": {
+                  "description": "Status glyph: true=green ✓, false=red ✗, 'warn'=amber ≈, omit=neutral dot.",
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "string",
+                      "const": "warn"
+                    }
+                  ]
+                },
+                "icon": {
+                  "description": "Icon reference shown inside the chip.",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "label"
+              ]
+            }
+          },
+          "costUrl": {
+            "description": "Link to an external cost estimate for this beat (e.g. an AWS Pricing Calculator share URL). Renders a clickable pill on the card that opens in a new tab. Only a link — this server does not price anything. Use one estimate per sizing scenario. The first step with a costUrl also feeds the dock button when the top-level `costUrl` is omitted.",
+            "type": "string",
+            "pattern": "^https?:\\/\\/\\S+$"
+          },
+          "costLabel": {
+            "description": "Label for this beat's cost pill (default: the localized 'Cost estimate').",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "sections": {
+            "description": "Rich documentation sections (title + body + bullets each). Mainly for a full-page overview beat (cardSide:'full') that reads like a system README — scrolls if long.",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "description": "Section heading (uppercase accent), e.g. 'Data', 'Integrations'.",
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "body": {
+                  "description": "Section paragraph.",
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "bullets": {
+                  "description": "Section bullet list (same string-or-styled-object format as step bullets).",
+                  "type": "array",
+                  "items": {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "object",
+                            "propertyNames": {
+                              "type": "string"
+                            },
+                            "additionalProperties": {
+                              "type": "string"
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "text": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "object",
+                                "propertyNames": {
+                                  "type": "string"
+                                },
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              }
+                            ],
+                            "description": "Bullet body text."
+                          },
+                          "strong": {
+                            "description": "Bold lead rendered before the text (e.g. a term being defined). If omitted, a 'Lead — rest' / 'Lead: rest' prefix in `text` is auto-bolded.",
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "object",
+                                "propertyNames": {
+                                  "type": "string"
+                                },
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              }
+                            ]
+                          },
+                          "color": {
+                            "description": "Hex colour for this bullet's marker + lead (overrides the card tone).",
+                            "type": "string"
+                          },
+                          "icon": {
+                            "description": "Icon reference used as the bullet marker (replaces the dot).",
+                            "type": "string"
+                          },
+                          "glyph": {
+                            "description": "Single-char marker instead of the dot: '✓' (green), '✕' (red), '≈'/'△' (amber), '→', etc.",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "text"
+                        ]
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "draftId",
+    "steps"
+  ]
+}

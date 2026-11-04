@@ -1,0 +1,160 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/diagram.schema.json",
+  "type": "object",
+  "properties": {
+    "title": {
+      "$ref": "./common/lang-text.schema.json"
+    },
+    "subtitle": {
+      "$ref": "./common/lang-text.schema.json"
+    },
+    "caption": {
+      "description": "Optional header band above the canvas describing what the diagram is. Omit for the bare canvas.",
+      "$ref": "./diagram/caption.schema.json"
+    },
+    "services": {
+      "type": "array",
+      "items": {
+        "$ref": "./diagram/service.schema.json"
+      }
+    },
+    "connections": {
+      "type": "array",
+      "items": {
+        "$ref": "./diagram/connection.schema.json"
+      }
+    },
+    "groups": {
+      "description": "Explicit containers for arbitrary topologies. When omitted, a single AWS Cloud → VPC → public/private subnet tree is derived from each service's `subnet`.",
+      "type": "array",
+      "items": {
+        "$ref": "./diagram/group.schema.json"
+      }
+    },
+    "direction": {
+      "description": "Layout flow direction: LR (left→right, default) or TB (top→bottom).",
+      "type": "string",
+      "enum": [
+        "LR",
+        "TB"
+      ]
+    },
+    "lang": {
+      "description": "Language the content is authored in (ISO 639-1, e.g. 'en', 'pt', 'es'). Default 'en'. The UI chrome (modal headings, tooltips) adapts to it.",
+      "type": "string"
+    },
+    "languages": {
+      "description": "Offer a language switch in the toolbar. List every language you provide text for — ANY ISO 639-1 code works, not just en/pt (e.g. ['en','es','ja','fr']). When set with >1 entry, ALL author text fields (title, subtitle, service/role, group label, step title/eyebrow/body/badge, bullets, chips, sections) may be a per-language map { en: '…', ja: '…' } instead of a plain string, and the toolbar lets the viewer switch. Omit for single-language diagrams.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "uiStrings": {
+      "description": "Localize the built-in UI chrome (toolbar tooltips + node-modal headings) for languages beyond the built-in en/pt/es — keyed by UI key then language, e.g. { cost: { ja: '料金見積もり' }, restart: { ja: 'ウォークスルーを再開' }, theme: { ja: 'テーマ切替' } }. Keys: iac, pricing, architecture, restart, play, pause, theme, collapse, expand, language, cost. Any (key,lang) you omit falls back to the built-in table, then English. Only needed when you use a language the built-in chrome doesn't cover.",
+      "type": "object",
+      "propertyNames": {
+        "type": "string"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "propertyNames": {
+          "type": "string"
+        },
+        "additionalProperties": {
+          "type": "string"
+        }
+      }
+    },
+    "langLabels": {
+      "description": "Display label for each language's toolbar switch button, e.g. { en: 'EN', ja: '日本語', 'zh-CN': '中文' }. Defaults to a built-in for en/pt/es/fr/de, else the uppercased code.",
+      "type": "object",
+      "propertyNames": {
+        "type": "string"
+      },
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "steps": {
+      "description": "Guided walkthrough beats. Arrow keys / the dock's play button step through them; each shows an overlay card and can tint+zoom a subset of the diagram.",
+      "type": "array",
+      "items": {
+        "$ref": "./diagram/step.schema.json"
+      }
+    },
+    "stepZoom": {
+      "description": "When steps are present, glide the camera onto each beat's `zoom` (or `nodes`). Default off.",
+      "type": "boolean"
+    },
+    "startStep": {
+      "description": "Which beat the diagram opens on: -1 (default) shows the whole-diagram overview first; 0+ opens directly on that beat, so a wide/dense diagram lands already zoomed into a legible region instead of a tiny fit-all view (requires stepZoom to actually frame it).",
+      "type": "integer",
+      "minimum": -9007199254740991,
+      "maximum": 9007199254740991
+    },
+    "startCardScale": {
+      "description": "Initial text-size step (0–3, default 0) the walkthrough card opens at — set 1–3 to start with a LARGER card; the A−/A+ toolbar buttons still adjust from there.",
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 3
+    },
+    "stepFocus": {
+      "description": "When steps are present, hide non-active nodes each beat to isolate it. Default off (dim instead of hide).",
+      "type": "boolean"
+    },
+    "flowDots": {
+      "description": "Animate a dot travelling along each connection to convey flow direction. Default true. Set false for a static, print-friendly look (arrowheads only, no motion).",
+      "type": "boolean"
+    },
+    "collapsible": {
+      "description": "Show a fold toggle (▸/▾) on every group header so the viewer can collapse/expand containers (d3-zoomable-treemap style); collapsing a group hides its children, shrinks it to a small box, and re-runs the layout. Default true.",
+      "type": "boolean"
+    },
+    "tabs": {
+      "description": "Turn the output into a MULTI-TAB document (tab rail + panels, like the cost-calculator app) instead of a bare canvas: one tab holds the live architecture (kind='architecture'), others hold the animated UML sequence (kind='sequence') or prose (kind='doc'). Omit for the classic single-view diagram.",
+      "type": "array",
+      "items": {
+        "$ref": "./diagram/tab.schema.json"
+      }
+    },
+    "sequence": {
+      "description": "Shortcut for the common two-view document: pass the architecture as usual plus a `sequence`, and a two-tab rail (Architecture + Sequence) is generated automatically — no `tabs` needed.",
+      "$ref": "./diagram/sequence-tab.schema.json"
+    },
+    "defaultCollapsed": {
+      "description": "Group ids that start COLLAPSED on load — good for a dense diagram whose overview should read clean, letting the viewer expand only what they need (e.g. ['vpcdados']).",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "flowPeriod": {
+      "description": "Uniform flow-dot period in seconds: every edge's dot shares this exact period (instead of the default staggered timing) so a GIF captured over `flowPeriod` seconds via render_diagram_media loops seamlessly.",
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "costUrl": {
+      "description": "Link to an external cost estimate (e.g. an AWS Pricing Calculator share URL). Adds a 'Cost estimate' button to the toolbar dock that opens it in a new tab. Only a link — this server does not price anything. When omitted, the first walkthrough step with a `costUrl` is used.",
+      "$ref": "./common/http-url.schema.json"
+    },
+    "costLabel": {
+      "description": "Label for the dock's cost button (default: the localized 'Cost estimate').",
+      "$ref": "./common/lang-text.schema.json"
+    },
+    "showTitle": {
+      "description": "Show the title/subtitle in the toolbar dock. Default true. false hides them in the dock only; the HTML <title>, the share-card PNG and the sidecar JSON keep them (useful when a `caption` band or the host page already shows the title).",
+      "type": "boolean"
+    },
+    "layout": {
+      "description": "Which components the page shows, where, and how it looks: a preset ('default', 'cost'), a saved layout name (see list_layouts), or an inline layout { extends?, slots?, patch?, theme?, branding? }. Omit for the standard page (identical to before layouts existed).",
+      "$ref": "./layout-ref.schema.json"
+    }
+  },
+  "required": [
+    "title",
+    "services",
+    "connections"
+  ]
+}

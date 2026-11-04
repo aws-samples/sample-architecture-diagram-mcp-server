@@ -1,0 +1,727 @@
+{
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/tools/diagram_delta.input.schema.json",
+  "title": "diagram_delta input",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "subtitle": {
+      "type": "string"
+    },
+    "outputPath": {
+      "type": "string",
+      "description": "Output .html file path"
+    },
+    "before": {
+      "type": "object",
+      "properties": {
+        "services": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "service": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  }
+                ],
+                "description": "Canonical AWS service name — THIS DRIVES ICON RESOLUTION, so keep it a clean service name, NOT a free-text label. Use the official full name (e.g. 'Amazon Simple Storage Service', 'Amazon SageMaker', 'NAT Gateway'); short forms ('Amazon S3', 'Amazon EC2') are fine. Do NOT bury it in prose or a component nickname ('Frontend Next.js (ECS Fargate)', 'aigov_lexml_v2 runtime') — that fails to resolve and the node renders as a bare initial. Put the human-readable name in `label` and the description in `role`. For non-AWS/self-hosted components with no AWS icon (vLLM, a model, a 3rd-party app), pass an explicit `icon` (e.g. 'tech-icons/x.svg'). Every node must be labeled."
+              },
+              "shape": {
+                "description": "Optional AWS4 shape name (see list_shapes). Only used as an icon fallback when `service` is free text; the .drawio tools are the ones that really key off shapes.",
+                "type": "string"
+              },
+              "icon": {
+                "description": "Explicit icon reference — overrides name-based resolution. Bare name resolves under icons/ (e.g. 'Arch_Amazon-RDS_48.png'), prefixed path used as-is (e.g. 'aws-icons/custom.svg', 'tech-icons/postgresql.svg'). Set this whenever `service` is free-text or non-AWS so the node still gets a real icon instead of an initial. Call resolve_icon to discover valid names/filenames.",
+                "type": "string"
+              },
+              "category": {
+                "type": "string",
+                "enum": [
+                  "compute",
+                  "storage",
+                  "database",
+                  "networking",
+                  "security",
+                  "integration",
+                  "analytics",
+                  "ai",
+                  "management",
+                  "general"
+                ]
+              },
+              "label": {
+                "description": "Short human-readable display name shown under the node icon (e.g. 'Frontend Next.js', 'Runtime LexML'). Use this for the friendly/custom name so `service` can stay a clean, icon-resolvable AWS service name. Falls back to `service` when omitted.",
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  }
+                ]
+              },
+              "role": {
+                "description": "What this component DOES (the WHY). Shown as the description when the user CLICKS the node to open its detail modal. E.g. 'Authenticates API consumers via JWT', 'Stores order data with single-digit-ms reads'.",
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  }
+                ]
+              },
+              "parentId": {
+                "description": "ID of the group this service belongs to (from the top-level `groups`). Enables arbitrary nesting: multi-VPC, AZs, accounts, on-prem. Takes precedence over `subnet`.",
+                "type": "string"
+              },
+              "subnet": {
+                "description": "Shortcut for single-VPC diagrams: auto-nests under AWS Cloud → VPC → public/private subnet when `groups` is not provided.",
+                "type": "string",
+                "enum": [
+                  "public",
+                  "private"
+                ]
+              },
+              "external": {
+                "type": "boolean"
+              },
+              "isApi": {
+                "type": "boolean"
+              },
+              "pill": {
+                "description": "Short qualifier badge on the node (e.g. 'On-premises', 'In-Region', 'privado', 'GPU'). By default it renders beside the label; set `pillOverlay:true` to anchor it as a colored tag at the top edge of the node card (con18 style).",
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  }
+                ]
+              },
+              "pillOverlay": {
+                "description": "When true, the node's `pill` is drawn as a colored overlay tag inlaid in the top edge of the node card (like the 'On-premises'/'In-Region' badges), instead of inline next to the label.",
+                "type": "boolean"
+              },
+              "pillSide": {
+                "description": "Which end of the top edge the overlay pill sits on (only with `pillOverlay:true`). Default 'left'. Use 'right' to keep the node's tag clear of the tag on the container it sits in.",
+                "type": "string",
+                "enum": [
+                  "left",
+                  "right"
+                ]
+              },
+              "config": {
+                "description": "Per-node detail-modal content (clicking the node opens it) + IaC/pricing handoff. Freely editable per service.",
+                "type": "object",
+                "properties": {
+                  "iac": {
+                    "description": "Configuration rows shown under 'Configuração (IaC)' in the node modal: e.g. { instanceClass: 'db.m7g.xlarge', engine: 'PostgreSQL 15.2', storage: '45 GB gp3' }.",
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": [
+                        "string",
+                        "number",
+                        "boolean"
+                      ]
+                    }
+                  },
+                  "pricing": {
+                    "description": "Rows shown under 'Custo / dimensionamento' in the node modal: e.g. { replicas: 2, 'vCPU': 4, 'RAM': '16 GB', 'est. mensal': 'USD 320' }.",
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": [
+                        "string",
+                        "number",
+                        "boolean"
+                      ]
+                    }
+                  },
+                  "label": {
+                    "description": "Short display label shown under the node icon (in the diagram, not the modal).",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "object",
+                        "propertyNames": {
+                          "type": "string"
+                        },
+                        "additionalProperties": {
+                          "type": "string"
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "required": [
+              "id",
+              "service",
+              "category"
+            ]
+          }
+        },
+        "connections": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "source": {
+                "type": "string"
+              },
+              "target": {
+                "type": "string"
+              },
+              "label": {
+                "description": "Short label rendered as a pill on the edge (e.g. a port/protocol like '5432' or 'HTTPS 443').",
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  }
+                ]
+              },
+              "type": {
+                "description": "Connection semantics, styled distinctly: network (solid), iam (dashed, auth/permission), event (dotted, async/pub-sub), data (solid, read/write).",
+                "type": "string",
+                "enum": [
+                  "network",
+                  "iam",
+                  "event",
+                  "data"
+                ]
+              },
+              "bidirectional": {
+                "description": "Draw an arrowhead at BOTH ends (e.g. sync replication, peering, request/response). Default false = single arrow source→target.",
+                "type": "boolean"
+              },
+              "dashed": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "id",
+              "source",
+              "target"
+            ]
+          }
+        },
+        "groups": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Group id referenced by services' parentId and by child groups' parent."
+              },
+              "label": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  }
+                ],
+                "description": "Display label, e.g. 'VPC A', 'us-east-1a', 'Prod Account'."
+              },
+              "parent": {
+                "description": "Parent group id for nesting (arbitrary depth).",
+                "type": "string"
+              },
+              "variant": {
+                "description": "Container type → official AWS group icon + color.",
+                "type": "string",
+                "enum": [
+                  "aws-cloud",
+                  "region",
+                  "vpc",
+                  "public-subnet",
+                  "private-subnet",
+                  "availability-zone",
+                  "account",
+                  "organization",
+                  "auto-scaling-group",
+                  "group",
+                  "corporate-data-center",
+                  "on-premises"
+                ]
+              },
+              "icon": {
+                "description": "Override the container's header glyph with a specific icon reference (e.g. 'Res_Amazon-Elastic-Kubernetes-Service_EKS-on-Outposts_48.png' to badge an 'EKS Cluster' group). Pass 'none' to show the label only (logical sub-groups like a Kubernetes namespace).",
+                "type": "string"
+              },
+              "pill": {
+                "description": "Small secondary label rendered as a pill in the group header, beside the title (e.g. an instance type 'ml.g6.24xlarge', a count '4x L40S', or a status 'privado'). Use for the sidecar/qualifier that shouldn't crowd the main label.",
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  }
+                ]
+              },
+              "pillOverlay": {
+                "description": "When true, the group's `pill` is drawn as a solid colored tag inlaid in the container's top border line (con18 style), instead of inline in the header row. Good for an instance type badge on an instance-group container.",
+                "type": "boolean"
+              },
+              "pillSide": {
+                "description": "Which end of the top border the overlay pill sits on (only with `pillOverlay:true`). Default 'right', because the header (icon + label) owns the top-left corner; use 'left' on a wide container with a short label, or to stop two nested containers stacking their tags on the same corner.",
+                "type": "string",
+                "enum": [
+                  "left",
+                  "right"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "label"
+            ]
+          }
+        }
+      },
+      "required": [
+        "services",
+        "connections"
+      ],
+      "description": "The 'before' state (current architecture)."
+    },
+    "after": {
+      "type": "object",
+      "properties": {
+        "services": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "service": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  }
+                ],
+                "description": "Canonical AWS service name — THIS DRIVES ICON RESOLUTION, so keep it a clean service name, NOT a free-text label. Use the official full name (e.g. 'Amazon Simple Storage Service', 'Amazon SageMaker', 'NAT Gateway'); short forms ('Amazon S3', 'Amazon EC2') are fine. Do NOT bury it in prose or a component nickname ('Frontend Next.js (ECS Fargate)', 'aigov_lexml_v2 runtime') — that fails to resolve and the node renders as a bare initial. Put the human-readable name in `label` and the description in `role`. For non-AWS/self-hosted components with no AWS icon (vLLM, a model, a 3rd-party app), pass an explicit `icon` (e.g. 'tech-icons/x.svg'). Every node must be labeled."
+              },
+              "shape": {
+                "description": "Optional AWS4 shape name (see list_shapes). Only used as an icon fallback when `service` is free text; the .drawio tools are the ones that really key off shapes.",
+                "type": "string"
+              },
+              "icon": {
+                "description": "Explicit icon reference — overrides name-based resolution. Bare name resolves under icons/ (e.g. 'Arch_Amazon-RDS_48.png'), prefixed path used as-is (e.g. 'aws-icons/custom.svg', 'tech-icons/postgresql.svg'). Set this whenever `service` is free-text or non-AWS so the node still gets a real icon instead of an initial. Call resolve_icon to discover valid names/filenames.",
+                "type": "string"
+              },
+              "category": {
+                "type": "string",
+                "enum": [
+                  "compute",
+                  "storage",
+                  "database",
+                  "networking",
+                  "security",
+                  "integration",
+                  "analytics",
+                  "ai",
+                  "management",
+                  "general"
+                ]
+              },
+              "label": {
+                "description": "Short human-readable display name shown under the node icon (e.g. 'Frontend Next.js', 'Runtime LexML'). Use this for the friendly/custom name so `service` can stay a clean, icon-resolvable AWS service name. Falls back to `service` when omitted.",
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  }
+                ]
+              },
+              "role": {
+                "description": "What this component DOES (the WHY). Shown as the description when the user CLICKS the node to open its detail modal. E.g. 'Authenticates API consumers via JWT', 'Stores order data with single-digit-ms reads'.",
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  }
+                ]
+              },
+              "parentId": {
+                "description": "ID of the group this service belongs to (from the top-level `groups`). Enables arbitrary nesting: multi-VPC, AZs, accounts, on-prem. Takes precedence over `subnet`.",
+                "type": "string"
+              },
+              "subnet": {
+                "description": "Shortcut for single-VPC diagrams: auto-nests under AWS Cloud → VPC → public/private subnet when `groups` is not provided.",
+                "type": "string",
+                "enum": [
+                  "public",
+                  "private"
+                ]
+              },
+              "external": {
+                "type": "boolean"
+              },
+              "isApi": {
+                "type": "boolean"
+              },
+              "pill": {
+                "description": "Short qualifier badge on the node (e.g. 'On-premises', 'In-Region', 'privado', 'GPU'). By default it renders beside the label; set `pillOverlay:true` to anchor it as a colored tag at the top edge of the node card (con18 style).",
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  }
+                ]
+              },
+              "pillOverlay": {
+                "description": "When true, the node's `pill` is drawn as a colored overlay tag inlaid in the top edge of the node card (like the 'On-premises'/'In-Region' badges), instead of inline next to the label.",
+                "type": "boolean"
+              },
+              "pillSide": {
+                "description": "Which end of the top edge the overlay pill sits on (only with `pillOverlay:true`). Default 'left'. Use 'right' to keep the node's tag clear of the tag on the container it sits in.",
+                "type": "string",
+                "enum": [
+                  "left",
+                  "right"
+                ]
+              },
+              "config": {
+                "description": "Per-node detail-modal content (clicking the node opens it) + IaC/pricing handoff. Freely editable per service.",
+                "type": "object",
+                "properties": {
+                  "iac": {
+                    "description": "Configuration rows shown under 'Configuração (IaC)' in the node modal: e.g. { instanceClass: 'db.m7g.xlarge', engine: 'PostgreSQL 15.2', storage: '45 GB gp3' }.",
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": [
+                        "string",
+                        "number",
+                        "boolean"
+                      ]
+                    }
+                  },
+                  "pricing": {
+                    "description": "Rows shown under 'Custo / dimensionamento' in the node modal: e.g. { replicas: 2, 'vCPU': 4, 'RAM': '16 GB', 'est. mensal': 'USD 320' }.",
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": [
+                        "string",
+                        "number",
+                        "boolean"
+                      ]
+                    }
+                  },
+                  "label": {
+                    "description": "Short display label shown under the node icon (in the diagram, not the modal).",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "object",
+                        "propertyNames": {
+                          "type": "string"
+                        },
+                        "additionalProperties": {
+                          "type": "string"
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "required": [
+              "id",
+              "service",
+              "category"
+            ]
+          }
+        },
+        "connections": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "source": {
+                "type": "string"
+              },
+              "target": {
+                "type": "string"
+              },
+              "label": {
+                "description": "Short label rendered as a pill on the edge (e.g. a port/protocol like '5432' or 'HTTPS 443').",
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  }
+                ]
+              },
+              "type": {
+                "description": "Connection semantics, styled distinctly: network (solid), iam (dashed, auth/permission), event (dotted, async/pub-sub), data (solid, read/write).",
+                "type": "string",
+                "enum": [
+                  "network",
+                  "iam",
+                  "event",
+                  "data"
+                ]
+              },
+              "bidirectional": {
+                "description": "Draw an arrowhead at BOTH ends (e.g. sync replication, peering, request/response). Default false = single arrow source→target.",
+                "type": "boolean"
+              },
+              "dashed": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "id",
+              "source",
+              "target"
+            ]
+          }
+        },
+        "groups": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Group id referenced by services' parentId and by child groups' parent."
+              },
+              "label": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  }
+                ],
+                "description": "Display label, e.g. 'VPC A', 'us-east-1a', 'Prod Account'."
+              },
+              "parent": {
+                "description": "Parent group id for nesting (arbitrary depth).",
+                "type": "string"
+              },
+              "variant": {
+                "description": "Container type → official AWS group icon + color.",
+                "type": "string",
+                "enum": [
+                  "aws-cloud",
+                  "region",
+                  "vpc",
+                  "public-subnet",
+                  "private-subnet",
+                  "availability-zone",
+                  "account",
+                  "organization",
+                  "auto-scaling-group",
+                  "group",
+                  "corporate-data-center",
+                  "on-premises"
+                ]
+              },
+              "icon": {
+                "description": "Override the container's header glyph with a specific icon reference (e.g. 'Res_Amazon-Elastic-Kubernetes-Service_EKS-on-Outposts_48.png' to badge an 'EKS Cluster' group). Pass 'none' to show the label only (logical sub-groups like a Kubernetes namespace).",
+                "type": "string"
+              },
+              "pill": {
+                "description": "Small secondary label rendered as a pill in the group header, beside the title (e.g. an instance type 'ml.g6.24xlarge', a count '4x L40S', or a status 'privado'). Use for the sidecar/qualifier that shouldn't crowd the main label.",
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  }
+                ]
+              },
+              "pillOverlay": {
+                "description": "When true, the group's `pill` is drawn as a solid colored tag inlaid in the container's top border line (con18 style), instead of inline in the header row. Good for an instance type badge on an instance-group container.",
+                "type": "boolean"
+              },
+              "pillSide": {
+                "description": "Which end of the top border the overlay pill sits on (only with `pillOverlay:true`). Default 'right', because the header (icon + label) owns the top-left corner; use 'left' on a wide container with a short label, or to stop two nested containers stacking their tags on the same corner.",
+                "type": "string",
+                "enum": [
+                  "left",
+                  "right"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "label"
+            ]
+          }
+        }
+      },
+      "required": [
+        "services",
+        "connections"
+      ],
+      "description": "The 'after' state (proposed / target architecture)."
+    },
+    "direction": {
+      "type": "string",
+      "enum": [
+        "LR",
+        "TB"
+      ]
+    },
+    "defaultView": {
+      "description": "Which view the diagram opens on (default 'delta').",
+      "type": "string",
+      "enum": [
+        "before",
+        "delta",
+        "after"
+      ]
+    },
+    "lang": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "title",
+    "outputPath",
+    "before",
+    "after"
+  ]
+}

@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/typed/fishbone.schema.json",
+  "title": "Espinha de peixe (Ishikawa)",
+  "description": "Diagrama de causa e efeito: categorias de causas convergindo para um problema.",
+  "x-category": "business",
+  "x-unique": [
+    "categories[].id"
+  ],
+  "type": "object",
+  "required": [
+    "kind",
+    "problem",
+    "categories"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "kind": {
+      "const": "fishbone"
+    },
+    "title": {
+      "type": "string"
+    },
+    "subtitle": {
+      "type": "string"
+    },
+    "problem": {
+      "type": "string",
+      "description": "Problema / efeito analisado (cabeça do peixe)",
+      "x-label": "Problema",
+      "x-multiline": true
+    },
+    "categories": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 8,
+      "x-label": "Categorias",
+      "x-item-title": "label",
+      "description": "Espinhas (tipicamente 4 a 6: pessoas, processos, tecnologia, dados…). Alternam acima/abaixo da espinha central.",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "causes"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string",
+            "description": "Nome da categoria"
+          },
+          "causes": {
+            "type": "array",
+            "maxItems": 8,
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "description": "Causa"
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "label"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "label": {
+                      "type": "string",
+                      "description": "Causa"
+                    },
+                    "sub": {
+                      "type": "array",
+                      "maxItems": 4,
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Subcausas (opcional)"
+                    }
+                  }
+                }
+              ]
+            },
+            "x-label": "Causas",
+            "description": "Texto da causa, ou { label, sub[] } com subcausas"
+          }
+        }
+      }
+    }
+  }
+}

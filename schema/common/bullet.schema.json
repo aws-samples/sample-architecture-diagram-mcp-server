@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/common/bullet.schema.json",
+  "anyOf": [
+    {
+      "$ref": "./lang-text.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "text": {
+          "description": "Bullet body text.",
+          "$ref": "./lang-text.schema.json"
+        },
+        "strong": {
+          "description": "Bold lead rendered before the text (e.g. a term being defined). If omitted, a 'Lead — rest' / 'Lead: rest' prefix in `text` is auto-bolded.",
+          "$ref": "./lang-text.schema.json"
+        },
+        "color": {
+          "description": "Hex colour for this bullet's marker + lead (overrides the card tone).",
+          "type": "string"
+        },
+        "icon": {
+          "description": "Icon reference used as the bullet marker (replaces the dot).",
+          "type": "string"
+        },
+        "glyph": {
+          "description": "Single-char marker instead of the dot: '✓' (green), '✕' (red), '≈'/'△' (amber), '→', etc.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "text"
+      ]
+    }
+  ]
+}

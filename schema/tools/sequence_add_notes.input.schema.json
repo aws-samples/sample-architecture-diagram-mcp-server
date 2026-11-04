@@ -1,0 +1,126 @@
+{
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/tools/sequence_add_notes.input.schema.json",
+  "title": "sequence_add_notes input",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "sequenceId": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "over": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Participant id(s) the note spans (1 = single lifeline, 2 = from→to span)."
+          },
+          "label": {
+            "type": "string",
+            "description": "Text inside the note band."
+          },
+          "tone": {
+            "type": "string",
+            "enum": [
+              "accent",
+              "info",
+              "success",
+              "warn",
+              "danger",
+              "neutral"
+            ]
+          },
+          "badge": {
+            "type": "string",
+            "enum": [
+              "gate",
+              "keyless",
+              "async",
+              "sync",
+              "phase",
+              "fail"
+            ]
+          },
+          "title": {
+            "description": "Narration-panel heading (falls back to `label`).",
+            "type": "string"
+          },
+          "flow": {
+            "type": "string"
+          },
+          "desc": {
+            "description": "Panel description (inline markdown).",
+            "type": "string"
+          },
+          "proof": {
+            "description": "Free text (inline markdown) or a structured source ref rendered as a link.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "repo": {
+                    "description": "Repository base URL (e.g. 'https://github.com/aws-samples/sample-architecture-diagram-mcp-server'). Combined with path/ref/lines to build a blob link.",
+                    "type": "string"
+                  },
+                  "path": {
+                    "description": "File path within the repo (e.g. 'lib/sequence-generator.js').",
+                    "type": "string"
+                  },
+                  "ref": {
+                    "description": "Commit SHA, tag, or branch to pin the link to (default 'main'). Pin to a commit for a truly stable reference.",
+                    "type": "string"
+                  },
+                  "lines": {
+                    "description": "Line number, 'start-end' string, or [start,end] — appended as #L.. so the link opens on the exact lines.",
+                    "anyOf": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "number"
+                        }
+                      }
+                    ]
+                  },
+                  "url": {
+                    "description": "Explicit link URL — overrides repo/path/ref/lines construction.",
+                    "type": "string"
+                  },
+                  "text": {
+                    "description": "Link label (defaults to path:lines or the URL).",
+                    "type": "string"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "over",
+          "label"
+        ]
+      }
+    }
+  },
+  "required": [
+    "sequenceId",
+    "notes"
+  ]
+}

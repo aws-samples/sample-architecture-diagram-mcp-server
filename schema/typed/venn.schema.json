@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/typed/venn.schema.json",
+  "title": "Diagrama de Venn",
+  "description": "Dois ou três conjuntos sobrepostos, com itens nas áreas exclusivas e nas interseções.",
+  "x-category": "business",
+  "x-unique": [
+    "sets[].id"
+  ],
+  "x-refs": [
+    {
+      "from": "regions[].sets[]",
+      "to": "sets[].id"
+    }
+  ],
+  "type": "object",
+  "required": [
+    "kind",
+    "sets"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "kind": {
+      "const": "venn"
+    },
+    "title": {
+      "type": "string"
+    },
+    "subtitle": {
+      "type": "string"
+    },
+    "sets": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 3,
+      "x-label": "Conjuntos",
+      "x-item-title": "label",
+      "description": "2 ou 3 conjuntos (círculos)",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "label"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Identificador"
+          },
+          "label": {
+            "type": "string",
+            "description": "Nome do conjunto"
+          },
+          "tone": {
+            "type": "string",
+            "enum": [
+              "accent",
+              "info",
+              "success",
+              "warn",
+              "danger",
+              "neutral",
+              "purple",
+              "teal",
+              "pink"
+            ],
+            "description": "Cor do conjunto"
+          }
+        }
+      }
+    },
+    "regions": {
+      "type": "array",
+      "maxItems": 7,
+      "x-label": "Regiões",
+      "x-item-title": "label",
+      "description": "Conteúdo de cada área: um conjunto = área exclusiva; dois ou três = interseção",
+      "items": {
+        "type": "object",
+        "required": [
+          "sets"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "sets": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 3,
+            "items": {
+              "type": "string",
+              "x-ref": "sets[].id"
+            },
+            "x-label": "Conjuntos",
+            "description": "Conjuntos que formam a área"
+          },
+          "label": {
+            "type": "string",
+            "description": "Título da área (opcional)"
+          },
+          "items": {
+            "type": "array",
+            "maxItems": 8,
+            "items": {
+              "type": "string"
+            },
+            "x-label": "Itens",
+            "description": "Itens listados na área"
+          }
+        }
+      }
+    }
+  }
+}

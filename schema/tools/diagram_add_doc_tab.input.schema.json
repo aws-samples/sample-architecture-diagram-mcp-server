@@ -1,0 +1,261 @@
+{
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/tools/diagram_add_doc_tab.input.schema.json",
+  "title": "diagram_add_doc_tab input",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "draftId": {
+      "type": "string"
+    },
+    "tab": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "label": {
+          "description": "Tab button text. Defaults to a bilingual built-in per kind ('Architecture'/'Arquitetura', 'Sequence'/'Sequência').",
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "propertyNames": {
+                "type": "string"
+              },
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "icon": {
+          "description": "Icon reference for the tab button; falls back to a built-in glyph per kind.",
+          "type": "string"
+        },
+        "slug": {
+          "description": "URL hash for deep-linking this tab (default: the id).",
+          "type": "string"
+        },
+        "title": {
+          "description": "Heading shown at the top of this tab's panel (doc/sequence).",
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "propertyNames": {
+                "type": "string"
+              },
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "subtitle": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "propertyNames": {
+                "type": "string"
+              },
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "diagram": {
+          "description": "Required when kind='typed': a typed diagram document — { kind, title?, … } with kind one of er, gantt, swimlane, tree, timeline, kanban, journey, quadrant, venn, layers, fishbone, wardley, flywheel, class, workflow. Each kind's fields follow its spec in @aws-sample-live-diagram/core (packages/diagram-core/src/typed/<kind>.js); the body is validated before rendering.",
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "additionalProperties": {}
+        },
+        "sections": {
+          "description": "Content when kind='doc' — rendered as a document: a masthead plus one numbered card per section (title + optional badge + body + bullets + code).",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  }
+                ]
+              },
+              "badge": {
+                "description": "Short status chip next to the section title (e.g. 'Aprovada', 'Trade-off', 'Requer revisão').",
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  }
+                ]
+              },
+              "body": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  }
+                ]
+              },
+              "bullets": {
+                "type": "array",
+                "items": {
+                  "anyOf": [
+                    {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "text": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "object",
+                              "propertyNames": {
+                                "type": "string"
+                              },
+                              "additionalProperties": {
+                                "type": "string"
+                              }
+                            }
+                          ],
+                          "description": "Bullet body text."
+                        },
+                        "strong": {
+                          "description": "Bold lead rendered before the text (e.g. a term being defined). If omitted, a 'Lead — rest' / 'Lead: rest' prefix in `text` is auto-bolded.",
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "object",
+                              "propertyNames": {
+                                "type": "string"
+                              },
+                              "additionalProperties": {
+                                "type": "string"
+                              }
+                            }
+                          ]
+                        },
+                        "color": {
+                          "description": "Hex colour for this bullet's marker + lead (overrides the card tone).",
+                          "type": "string"
+                        },
+                        "icon": {
+                          "description": "Icon reference used as the bullet marker (replaces the dot).",
+                          "type": "string"
+                        },
+                        "glyph": {
+                          "description": "Single-char marker instead of the dot: '✓' (green), '✕' (red), '≈'/'△' (amber), '→', etc.",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "text"
+                      ]
+                    }
+                  ]
+                }
+              },
+              "code": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  }
+                ]
+              },
+              "codeLabel": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "draftId",
+    "tab"
+  ]
+}

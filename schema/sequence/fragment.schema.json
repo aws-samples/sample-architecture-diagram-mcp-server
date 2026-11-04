@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/sequence/fragment.schema.json",
+  "type": "object",
+  "properties": {
+    "kind": {
+      "type": "string",
+      "enum": [
+        "alt",
+        "opt",
+        "loop",
+        "par",
+        "break",
+        "critical",
+        "ref",
+        "neg",
+        "assert"
+      ],
+      "description": "UML combined-fragment operator (alt/opt/loop/par/break/critical/ref/neg/assert)."
+    },
+    "label": {
+      "type": "string",
+      "description": "Guard/label shown in the fragment's top-left tab (e.g. 'fornecedor inválido')."
+    },
+    "startId": {
+      "type": "string",
+      "description": "Event id where the fragment begins (inclusive)."
+    },
+    "endId": {
+      "type": "string",
+      "description": "Event id where the fragment ends (inclusive)."
+    },
+    "dividers": {
+      "description": "Interior dividers (e.g. the 'else' of an alt).",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "beforeId": {
+            "type": "string",
+            "description": "Event id before which the divider line is drawn."
+          },
+          "label": {
+            "type": "string",
+            "description": "Divider label (e.g. '[else] fornecedor active')."
+          }
+        },
+        "required": [
+          "beforeId",
+          "label"
+        ]
+      }
+    },
+    "tone": {
+      "description": "Accent color for the fragment frame and tab (default neutral).",
+      "type": "string",
+      "enum": [
+        "accent",
+        "info",
+        "success",
+        "warn",
+        "danger",
+        "neutral"
+      ]
+    }
+  },
+  "required": [
+    "kind",
+    "label",
+    "startId",
+    "endId"
+  ]
+}

@@ -1,0 +1,152 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/typed/journey.schema.json",
+  "title": "Jornada / story map",
+  "description": "Jornada do usuário em etapas, com passos, curva de emoção, dores e oportunidades.",
+  "x-category": "business",
+  "x-unique": [
+    "stages[].id",
+    "steps[].id",
+    "personas[].id"
+  ],
+  "x-refs": [
+    {
+      "from": "steps[].stage",
+      "to": "stages[].id"
+    }
+  ],
+  "type": "object",
+  "required": [
+    "kind",
+    "stages",
+    "steps"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "kind": {
+      "const": "journey"
+    },
+    "title": {
+      "type": "string"
+    },
+    "subtitle": {
+      "type": "string"
+    },
+    "personas": {
+      "type": "array",
+      "maxItems": 6,
+      "x-label": "Personas",
+      "x-item-title": "label",
+      "description": "Personas (opcional). Um passo pode citar a persona no campo \"ator\" pelo id.",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "label"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Identificador"
+          },
+          "label": {
+            "type": "string",
+            "description": "Nome da persona"
+          }
+        }
+      }
+    },
+    "stages": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 10,
+      "x-label": "Etapas",
+      "x-item-title": "label",
+      "description": "Fases da jornada, da esquerda para a direita",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "label"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Identificador"
+          },
+          "label": {
+            "type": "string",
+            "description": "Nome da etapa"
+          }
+        }
+      }
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 30,
+      "x-label": "Passos",
+      "x-item-title": "label",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "stage",
+          "label"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Identificador"
+          },
+          "stage": {
+            "type": "string",
+            "x-ref": "stages[].id",
+            "description": "Etapa a que o passo pertence"
+          },
+          "label": {
+            "type": "string",
+            "x-multiline": true,
+            "description": "O que o usuário faz"
+          },
+          "actor": {
+            "type": "string",
+            "description": "Quem executa (texto livre ou id de uma persona)"
+          },
+          "emotion": {
+            "type": "integer",
+            "enum": [
+              -2,
+              -1,
+              0,
+              1,
+              2
+            ],
+            "description": "Emoção: -2 (muito negativa) a 2 (muito positiva)"
+          },
+          "pains": {
+            "type": "array",
+            "maxItems": 6,
+            "items": {
+              "type": "string"
+            },
+            "x-label": "Dores",
+            "description": "Dores / atritos neste passo"
+          },
+          "opportunities": {
+            "type": "array",
+            "maxItems": 6,
+            "items": {
+              "type": "string"
+            },
+            "x-label": "Oportunidades",
+            "description": "Oportunidades de melhoria"
+          }
+        }
+      }
+    }
+  }
+}

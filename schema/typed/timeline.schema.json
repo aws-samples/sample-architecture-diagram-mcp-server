@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/typed/timeline.schema.json",
+  "title": "Linha do tempo",
+  "description": "Eventos em ordem cronológica sobre um eixo (horizontal ou vertical).",
+  "x-category": "planning",
+  "x-unique": [
+    "events[].id"
+  ],
+  "type": "object",
+  "required": [
+    "kind",
+    "events"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "kind": {
+      "const": "timeline"
+    },
+    "title": {
+      "type": "string"
+    },
+    "subtitle": {
+      "type": "string"
+    },
+    "orientation": {
+      "type": "string",
+      "enum": [
+        "horizontal",
+        "vertical"
+      ],
+      "x-label": "Orientação",
+      "description": "horizontal (padrão): cartões acima/abaixo do eixo; vertical: à esquerda/direita"
+    },
+    "events": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 40,
+      "x-label": "Eventos",
+      "x-item-title": "label",
+      "description": "Eventos na ordem em que aparecem no eixo",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "date",
+          "label"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "description": "Rótulo de data (ex.: 2024, 2024-03, T1/2025)"
+          },
+          "label": {
+            "type": "string",
+            "description": "Título do evento"
+          },
+          "desc": {
+            "type": "string",
+            "x-multiline": true,
+            "description": "Descrição curta (quebra em várias linhas)"
+          },
+          "tone": {
+            "type": "string",
+            "enum": [
+              "accent",
+              "info",
+              "success",
+              "warn",
+              "danger",
+              "neutral",
+              "purple",
+              "teal",
+              "pink"
+            ],
+            "description": "Cor semântica do evento"
+          }
+        }
+      }
+    }
+  }
+}

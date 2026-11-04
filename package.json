@@ -32,6 +32,7 @@
     "packages/diagram-core/src/typed/*.js",
     "packages/diagram-core/src/schemas/*.js",
     "dist/index.html",
+    "schema/",
     "scripts/fetch-icons.sh",
     "skills/",
     "AGENTS.md",
@@ -52,7 +53,8 @@
     "start": "node mcp-server.js",
     "pretest": "npm run build:core",
     "prebuild:standalone": "npm run build:core",
-    "typecheck": "npm run build:core && tsc --noEmit -p tsconfig.json"
+    "typecheck": "npm run build:core && tsc --noEmit -p tsconfig.json",
+    "build:schema": "node scripts/build-schema.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.2",

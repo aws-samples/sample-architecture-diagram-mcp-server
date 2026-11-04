@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/diagram/connection.schema.json",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string"
+    },
+    "target": {
+      "type": "string"
+    },
+    "label": {
+      "description": "Short label rendered as a pill on the edge (e.g. a port/protocol like '5432' or 'HTTPS 443').",
+      "$ref": "../common/lang-text.schema.json"
+    },
+    "type": {
+      "description": "Connection semantics, styled distinctly: network (solid), iam (dashed, auth/permission), event (dotted, async/pub-sub), data (solid, read/write).",
+      "type": "string",
+      "enum": [
+        "network",
+        "iam",
+        "event",
+        "data"
+      ]
+    },
+    "bidirectional": {
+      "description": "Draw an arrowhead at BOTH ends (e.g. sync replication, peering, request/response). Default false = single arrow source→target.",
+      "type": "boolean"
+    },
+    "dashed": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "id",
+    "source",
+    "target"
+  ]
+}

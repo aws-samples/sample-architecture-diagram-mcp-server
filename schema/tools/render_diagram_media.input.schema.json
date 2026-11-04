@@ -1,0 +1,88 @@
+{
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/tools/render_diagram_media.input.schema.json",
+  "title": "render_diagram_media input",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "htmlPath": {
+      "type": "string",
+      "description": "Path to the interactive diagram .html produced by generate_html_diagram or diagram_render."
+    },
+    "pngPath": {
+      "description": "If set, write a static PNG figure here (motion frozen).",
+      "type": "string"
+    },
+    "gifPath": {
+      "description": "If set, write an animated GIF here.",
+      "type": "string"
+    },
+    "svgPath": {
+      "description": "If set, write a self-contained ANIMATED SVG here (vector, flow-dot animation preserved). For your own site/embed — NOT the AWS Blog/WordPress, which blocks SVG upload.",
+      "type": "string"
+    },
+    "mode": {
+      "default": "flow",
+      "description": "GIF content: 'flow' = one looping segment of the animated data flow; 'walkthrough' = one animated segment per guided beat (requires the HTML to have `steps`), concatenated into a looping tour. PNG/SVG are unaffected.",
+      "type": "string",
+      "enum": [
+        "flow",
+        "walkthrough"
+      ]
+    },
+    "theme": {
+      "default": "light",
+      "description": "Render theme.",
+      "type": "string",
+      "enum": [
+        "light",
+        "dark"
+      ]
+    },
+    "width": {
+      "default": 1200,
+      "description": "Capture width in px.",
+      "type": "integer",
+      "minimum": -9007199254740991,
+      "maximum": 9007199254740991
+    },
+    "height": {
+      "default": 675,
+      "description": "Capture height in px.",
+      "type": "integer",
+      "minimum": -9007199254740991,
+      "maximum": 9007199254740991
+    },
+    "scale": {
+      "default": 2,
+      "description": "Device scale factor (PNG @Nx).",
+      "type": "number"
+    },
+    "period": {
+      "default": 4,
+      "description": "flow mode: GIF loop length in seconds; every edge's flow dot shares this exact period so the loop closes seamlessly. (For the sharpest loop, also pass the SAME value as flowPeriod to generate_html_diagram.)",
+      "type": "number"
+    },
+    "frames": {
+      "default": 24,
+      "description": "flow mode: frames captured across one period (GIF smoothness).",
+      "type": "integer",
+      "minimum": -9007199254740991,
+      "maximum": 9007199254740991
+    },
+    "beatDuration": {
+      "default": 2.5,
+      "description": "walkthrough mode: seconds held on each beat.",
+      "type": "number"
+    },
+    "beatFrames": {
+      "default": 15,
+      "description": "walkthrough mode: frames captured per beat.",
+      "type": "integer",
+      "minimum": -9007199254740991,
+      "maximum": 9007199254740991
+    }
+  },
+  "required": [
+    "htmlPath"
+  ]
+}

@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/diagram/service.schema.json",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "service": {
+      "description": "Canonical AWS service name — THIS DRIVES ICON RESOLUTION, so keep it a clean service name, NOT a free-text label. Use the official full name (e.g. 'Amazon Simple Storage Service', 'Amazon SageMaker', 'NAT Gateway'); short forms ('Amazon S3', 'Amazon EC2') are fine. Do NOT bury it in prose or a component nickname ('Frontend Next.js (ECS Fargate)', 'aigov_lexml_v2 runtime') — that fails to resolve and the node renders as a bare initial. Put the human-readable name in `label` and the description in `role`. For non-AWS/self-hosted components with no AWS icon (vLLM, a model, a 3rd-party app), pass an explicit `icon` (e.g. 'tech-icons/x.svg'). Every node must be labeled.",
+      "$ref": "../common/lang-text.schema.json"
+    },
+    "shape": {
+      "description": "Optional AWS4 shape name (see list_shapes). Only used as an icon fallback when `service` is free text; the .drawio tools are the ones that really key off shapes.",
+      "type": "string"
+    },
+    "icon": {
+      "description": "Explicit icon reference — overrides name-based resolution. Bare name resolves under icons/ (e.g. 'Arch_Amazon-RDS_48.png'), prefixed path used as-is (e.g. 'aws-icons/custom.svg', 'tech-icons/postgresql.svg'). Set this whenever `service` is free-text or non-AWS so the node still gets a real icon instead of an initial. Call resolve_icon to discover valid names/filenames.",
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "compute",
+        "storage",
+        "database",
+        "networking",
+        "security",
+        "integration",
+        "analytics",
+        "ai",
+        "management",
+        "general"
+      ]
+    },
+    "label": {
+      "description": "Short human-readable display name shown under the node icon (e.g. 'Frontend Next.js', 'Runtime LexML'). Use this for the friendly/custom name so `service` can stay a clean, icon-resolvable AWS service name. Falls back to `service` when omitted.",
+      "$ref": "../common/lang-text.schema.json"
+    },
+    "role": {
+      "description": "What this component DOES (the WHY). Shown as the description when the user CLICKS the node to open its detail modal. E.g. 'Authenticates API consumers via JWT', 'Stores order data with single-digit-ms reads'.",
+      "$ref": "../common/lang-text.schema.json"
+    },
+    "parentId": {
+      "description": "ID of the group this service belongs to (from the top-level `groups`). Enables arbitrary nesting: multi-VPC, AZs, accounts, on-prem. Takes precedence over `subnet`.",
+      "type": "string"
+    },
+    "subnet": {
+      "description": "Shortcut for single-VPC diagrams: auto-nests under AWS Cloud → VPC → public/private subnet when `groups` is not provided.",
+      "type": "string",
+      "enum": [
+        "public",
+        "private"
+      ]
+    },
+    "external": {
+      "type": "boolean"
+    },
+    "isApi": {
+      "type": "boolean"
+    },
+    "pill": {
+      "description": "Short qualifier badge on the node (e.g. 'On-premises', 'In-Region', 'privado', 'GPU'). By default it renders beside the label; set `pillOverlay:true` to anchor it as a colored tag at the top edge of the node card (con18 style).",
+      "$ref": "../common/lang-text.schema.json"
+    },
+    "pillOverlay": {
+      "description": "When true, the node's `pill` is drawn as a colored overlay tag inlaid in the top edge of the node card (like the 'On-premises'/'In-Region' badges), instead of inline next to the label.",
+      "type": "boolean"
+    },
+    "pillSide": {
+      "description": "Which end of the top edge the overlay pill sits on (only with `pillOverlay:true`). Default 'left'. Use 'right' to keep the node's tag clear of the tag on the container it sits in.",
+      "type": "string",
+      "enum": [
+        "left",
+        "right"
+      ]
+    },
+    "config": {
+      "description": "Per-node detail-modal content (clicking the node opens it) + IaC/pricing handoff. Freely editable per service.",
+      "type": "object",
+      "properties": {
+        "iac": {
+          "description": "Configuration rows shown under 'Configuração (IaC)' in the node modal: e.g. { instanceClass: 'db.m7g.xlarge', engine: 'PostgreSQL 15.2', storage: '45 GB gp3' }.",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "type": [
+              "string",
+              "number",
+              "boolean"
+            ]
+          }
+        },
+        "pricing": {
+          "description": "Rows shown under 'Custo / dimensionamento' in the node modal: e.g. { replicas: 2, 'vCPU': 4, 'RAM': '16 GB', 'est. mensal': 'USD 320' }.",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "type": [
+              "string",
+              "number",
+              "boolean"
+            ]
+          }
+        },
+        "label": {
+          "description": "Short display label shown under the node icon (in the diagram, not the modal).",
+          "$ref": "../common/lang-text.schema.json"
+        }
+      }
+    }
+  },
+  "required": [
+    "id",
+    "service",
+    "category"
+  ]
+}

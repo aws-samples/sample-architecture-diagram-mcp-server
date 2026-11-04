@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/layout/branding.schema.json",
+  "type": "object",
+  "properties": {
+    "name": {
+      "description": "Product/brand name: shown by dock.brand and used as the page <title>.",
+      "type": "string",
+      "maxLength": 80
+    },
+    "logo": {
+      "description": "Local image (png, jpg, gif, webp, svg; ≤ 512 KB) inlined for dock.brand.",
+      "type": "string",
+      "maxLength": 400
+    },
+    "favicon": {
+      "description": "Local image inlined as the page icon.",
+      "type": "string",
+      "maxLength": 400
+    }
+  },
+  "additionalProperties": false
+}

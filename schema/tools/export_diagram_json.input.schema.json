@@ -1,0 +1,20 @@
+{
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/tools/export_diagram_json.input.schema.json",
+  "title": "export_diagram_json input",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "diagramPath": {
+      "type": "string",
+      "description": "Path to the .html diagram file to extract elements from"
+    },
+    "region": {
+      "default": "us-east-1",
+      "description": "AWS region annotation carried into the payload (e.g. us-east-1, sa-east-1)",
+      "type": "string"
+    }
+  },
+  "required": [
+    "diagramPath"
+  ]
+}

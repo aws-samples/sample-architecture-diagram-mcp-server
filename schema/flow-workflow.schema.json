@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/flow-workflow.schema.json",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "workflow"
+    },
+    "title": {
+      "type": "string"
+    },
+    "subtitle": {
+      "type": "string"
+    },
+    "direction": {
+      "description": "Layout flow direction: TB = top→bottom (default), LR = left→right.",
+      "type": "string",
+      "enum": [
+        "TB",
+        "LR"
+      ]
+    },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "$ref": "./flow/node.schema.json"
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "$ref": "./flow/edge.schema.json"
+      }
+    },
+    "steps": {
+      "description": "Optional guided walkthrough. Omit for a static diagram.",
+      "type": "array",
+      "items": {
+        "$ref": "./flow/step.schema.json"
+      }
+    },
+    "autoplay": {
+      "description": "Start playing on load (only when steps exist). Default false.",
+      "type": "boolean"
+    },
+    "stepMs": {
+      "description": "Default ms per step when playing (default 1500).",
+      "type": "integer",
+      "minimum": -9007199254740991,
+      "maximum": 9007199254740991
+    }
+  },
+  "required": [
+    "type",
+    "title",
+    "nodes",
+    "edges"
+  ]
+}

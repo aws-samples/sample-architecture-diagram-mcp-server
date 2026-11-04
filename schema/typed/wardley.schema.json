@@ -1,0 +1,145 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/typed/wardley.schema.json",
+  "title": "Mapa de Wardley",
+  "description": "Cadeia de valor posicionada por visibilidade ao usuário e estágio de evolução.",
+  "x-category": "business",
+  "x-unique": [
+    "components[].id"
+  ],
+  "x-refs": [
+    {
+      "from": "links[].from",
+      "to": "components[].id"
+    },
+    {
+      "from": "links[].to",
+      "to": "components[].id"
+    }
+  ],
+  "type": "object",
+  "required": [
+    "kind",
+    "components",
+    "links"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "kind": {
+      "const": "wardley"
+    },
+    "title": {
+      "type": "string"
+    },
+    "subtitle": {
+      "type": "string"
+    },
+    "components": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 40,
+      "x-label": "Componentes",
+      "x-item-title": "label",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "visibility",
+          "evolution"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string",
+            "description": "Nome do componente"
+          },
+          "visibility": {
+            "type": "number",
+            "description": "Visibilidade: 0 (invisível, base da cadeia) a 1 (visível ao usuário, topo)"
+          },
+          "evolution": {
+            "type": "number",
+            "description": "Evolução: 0 (gênese) → 0,17 sob medida → 0,4 produto → 0,7 commodity → 1"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "component",
+              "anchor",
+              "market"
+            ],
+            "description": "component (padrão), anchor (usuário/necessidade, em negrito) ou market (mercado)"
+          },
+          "evolveTo": {
+            "type": "number",
+            "description": "Posição futura de evolução (0 a 1) — seta tracejada vermelha"
+          },
+          "note": {
+            "type": "string",
+            "description": "Nota curta exibida abaixo do rótulo"
+          }
+        }
+      }
+    },
+    "links": {
+      "type": "array",
+      "maxItems": 80,
+      "x-label": "Dependências",
+      "x-item-title": "from",
+      "description": "Cadeia de valor: \"from\" depende de \"to\" (de cima para baixo)",
+      "items": {
+        "type": "object",
+        "required": [
+          "from",
+          "to"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "from": {
+            "type": "string",
+            "x-ref": "components[].id",
+            "description": "Componente que depende"
+          },
+          "to": {
+            "type": "string",
+            "x-ref": "components[].id",
+            "description": "Componente do qual depende"
+          }
+        }
+      }
+    },
+    "annotations": {
+      "type": "array",
+      "maxItems": 12,
+      "x-label": "Anotações",
+      "x-item-title": "label",
+      "items": {
+        "type": "object",
+        "required": [
+          "x",
+          "y",
+          "label"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "x": {
+            "type": "number",
+            "description": "Posição na evolução (0 a 1)"
+          },
+          "y": {
+            "type": "number",
+            "description": "Posição na visibilidade (0 a 1)"
+          },
+          "label": {
+            "type": "string",
+            "description": "Texto da anotação"
+          }
+        }
+      }
+    }
+  }
+}

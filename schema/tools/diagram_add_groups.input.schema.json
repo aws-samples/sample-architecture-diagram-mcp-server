@@ -1,0 +1,103 @@
+{
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/tools/diagram_add_groups.input.schema.json",
+  "title": "diagram_add_groups input",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "draftId": {
+      "type": "string"
+    },
+    "groups": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Group id referenced by services' parentId and by child groups' parent."
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            ],
+            "description": "Display label, e.g. 'VPC A', 'us-east-1a', 'Prod Account'."
+          },
+          "parent": {
+            "description": "Parent group id for nesting (arbitrary depth).",
+            "type": "string"
+          },
+          "variant": {
+            "description": "Container type → official AWS group icon + color.",
+            "type": "string",
+            "enum": [
+              "aws-cloud",
+              "region",
+              "vpc",
+              "public-subnet",
+              "private-subnet",
+              "availability-zone",
+              "account",
+              "organization",
+              "auto-scaling-group",
+              "group",
+              "corporate-data-center",
+              "on-premises"
+            ]
+          },
+          "icon": {
+            "description": "Override the container's header glyph with a specific icon reference (e.g. 'Res_Amazon-Elastic-Kubernetes-Service_EKS-on-Outposts_48.png' to badge an 'EKS Cluster' group). Pass 'none' to show the label only (logical sub-groups like a Kubernetes namespace).",
+            "type": "string"
+          },
+          "pill": {
+            "description": "Small secondary label rendered as a pill in the group header, beside the title (e.g. an instance type 'ml.g6.24xlarge', a count '4x L40S', or a status 'privado'). Use for the sidecar/qualifier that shouldn't crowd the main label.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "pillOverlay": {
+            "description": "When true, the group's `pill` is drawn as a solid colored tag inlaid in the container's top border line (con18 style), instead of inline in the header row. Good for an instance type badge on an instance-group container.",
+            "type": "boolean"
+          },
+          "pillSide": {
+            "description": "Which end of the top border the overlay pill sits on (only with `pillOverlay:true`). Default 'right', because the header (icon + label) owns the top-left corner; use 'left' on a wide container with a short label, or to stop two nested containers stacking their tags on the same corner.",
+            "type": "string",
+            "enum": [
+              "left",
+              "right"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "label"
+        ]
+      }
+    }
+  },
+  "required": [
+    "draftId",
+    "groups"
+  ]
+}

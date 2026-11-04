@@ -1,0 +1,51 @@
+{
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/tools/sequence_add_groups.input.schema.json",
+  "title": "sequence_add_groups input",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "sequenceId": {
+      "type": "string"
+    },
+    "groups": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string",
+            "description": "Container title shown on the group's top-left tab (e.g. 'AWS Control Plane')."
+          },
+          "participants": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Participant ids enclosed by the box. Should be contiguous columns; the box spans from the leftmost to the rightmost."
+          },
+          "tone": {
+            "description": "Accent color for the container border/tab (default neutral).",
+            "type": "string",
+            "enum": [
+              "accent",
+              "info",
+              "success",
+              "warn",
+              "danger",
+              "neutral"
+            ]
+          }
+        },
+        "required": [
+          "label",
+          "participants"
+        ]
+      }
+    }
+  },
+  "required": [
+    "sequenceId",
+    "groups"
+  ]
+}

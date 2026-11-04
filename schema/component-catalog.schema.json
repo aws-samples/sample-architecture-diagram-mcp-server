@@ -1,0 +1,722 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/component-catalog.schema.json",
+  "title": "Built-in component catalog",
+  "description": "Every built-in component a layout slot can hold, with the schema of its props. Custom components (DIAGRAM_COMPONENTS_DIR) declare their own props schema; list_components shows the installed catalog.",
+  "$defs": {
+    "dock.brand": {
+      "title": "dock.brand",
+      "description": "Brand mark: the layout's branding logo and/or name. Renders nothing without branding.",
+      "x-slot": "dock",
+      "oneOf": [
+        {
+          "const": "dock.brand"
+        },
+        {
+          "type": "object",
+          "required": [
+            "component"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "component": {
+              "const": "dock.brand"
+            },
+            "props": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    },
+    "dock.title": {
+      "title": "dock.title",
+      "description": "Diagram title and subtitle (hidden when the spec sets showTitle: false).",
+      "x-slot": "dock",
+      "oneOf": [
+        {
+          "const": "dock.title"
+        },
+        {
+          "type": "object",
+          "required": [
+            "component"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "component": {
+              "const": "dock.title"
+            },
+            "props": {
+              "type": "object",
+              "properties": {
+                "width": {
+                  "description": "Column width in px (default 300).",
+                  "type": "integer",
+                  "minimum": 120,
+                  "maximum": 600
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    },
+    "dock.zoom": {
+      "title": "dock.zoom",
+      "description": "Zoom out, fit and zoom in buttons.",
+      "x-slot": "dock",
+      "oneOf": [
+        {
+          "const": "dock.zoom"
+        },
+        {
+          "type": "object",
+          "required": [
+            "component"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "component": {
+              "const": "dock.zoom"
+            },
+            "props": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    },
+    "dock.png": {
+      "title": "dock.png",
+      "description": "Download the canvas as PNG.",
+      "x-slot": "dock",
+      "oneOf": [
+        {
+          "const": "dock.png"
+        },
+        {
+          "type": "object",
+          "required": [
+            "component"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "component": {
+              "const": "dock.png"
+            },
+            "props": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    },
+    "dock.shareCard": {
+      "title": "dock.shareCard",
+      "description": "Download a 1200×630 share card (canvas + title).",
+      "x-slot": "dock",
+      "oneOf": [
+        {
+          "const": "dock.shareCard"
+        },
+        {
+          "type": "object",
+          "required": [
+            "component"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "component": {
+              "const": "dock.shareCard"
+            },
+            "props": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    },
+    "dock.walkthrough": {
+      "title": "dock.walkthrough",
+      "description": "Walkthrough restart and play/pause (only when the spec has steps).",
+      "x-slot": "dock",
+      "oneOf": [
+        {
+          "const": "dock.walkthrough"
+        },
+        {
+          "type": "object",
+          "required": [
+            "component"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "component": {
+              "const": "dock.walkthrough"
+            },
+            "props": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    },
+    "dock.cost": {
+      "title": "dock.cost",
+      "description": "Cost estimate link button (only when the spec has costUrl, or a step has one). A link — nothing is priced.",
+      "x-slot": "dock",
+      "oneOf": [
+        {
+          "const": "dock.cost"
+        },
+        {
+          "type": "object",
+          "required": [
+            "component"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "component": {
+              "const": "dock.cost"
+            },
+            "props": {
+              "type": "object",
+              "properties": {
+                "label": {
+                  "description": "Button label when the spec sets no costLabel.",
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    },
+    "dock.language": {
+      "title": "dock.language",
+      "description": "Language menu (only when the spec offers more than one language).",
+      "x-slot": "dock",
+      "oneOf": [
+        {
+          "const": "dock.language"
+        },
+        {
+          "type": "object",
+          "required": [
+            "component"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "component": {
+              "const": "dock.language"
+            },
+            "props": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    },
+    "dock.theme": {
+      "title": "dock.theme",
+      "description": "Light/dark switch.",
+      "x-slot": "dock",
+      "oneOf": [
+        {
+          "const": "dock.theme"
+        },
+        {
+          "type": "object",
+          "required": [
+            "component"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "component": {
+              "const": "dock.theme"
+            },
+            "props": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    },
+    "stepCard.title": {
+      "title": "stepCard.title",
+      "description": "Step icon and title.",
+      "x-slot": "stepCard",
+      "oneOf": [
+        {
+          "const": "stepCard.title"
+        },
+        {
+          "type": "object",
+          "required": [
+            "component"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "component": {
+              "const": "stepCard.title"
+            },
+            "props": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    },
+    "stepCard.body": {
+      "title": "stepCard.body",
+      "description": "Step body paragraph (inline markdown).",
+      "x-slot": "stepCard",
+      "oneOf": [
+        {
+          "const": "stepCard.body"
+        },
+        {
+          "type": "object",
+          "required": [
+            "component"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "component": {
+              "const": "stepCard.body"
+            },
+            "props": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    },
+    "stepCard.bullets": {
+      "title": "stepCard.bullets",
+      "description": "Step bullet list.",
+      "x-slot": "stepCard",
+      "oneOf": [
+        {
+          "const": "stepCard.bullets"
+        },
+        {
+          "type": "object",
+          "required": [
+            "component"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "component": {
+              "const": "stepCard.bullets"
+            },
+            "props": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    },
+    "stepCard.process": {
+      "title": "stepCard.process",
+      "description": "Numbered process list.",
+      "x-slot": "stepCard",
+      "oneOf": [
+        {
+          "const": "stepCard.process"
+        },
+        {
+          "type": "object",
+          "required": [
+            "component"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "component": {
+              "const": "stepCard.process"
+            },
+            "props": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    },
+    "stepCard.code": {
+      "title": "stepCard.code",
+      "description": "Code block (code + codeLabel).",
+      "x-slot": "stepCard",
+      "oneOf": [
+        {
+          "const": "stepCard.code"
+        },
+        {
+          "type": "object",
+          "required": [
+            "component"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "component": {
+              "const": "stepCard.code"
+            },
+            "props": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    },
+    "stepCard.sections": {
+      "title": "stepCard.sections",
+      "description": "Documentation sections.",
+      "x-slot": "stepCard",
+      "oneOf": [
+        {
+          "const": "stepCard.sections"
+        },
+        {
+          "type": "object",
+          "required": [
+            "component"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "component": {
+              "const": "stepCard.sections"
+            },
+            "props": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    },
+    "stepCard.chips": {
+      "title": "stepCard.chips",
+      "description": "Status chips.",
+      "x-slot": "stepCard",
+      "oneOf": [
+        {
+          "const": "stepCard.chips"
+        },
+        {
+          "type": "object",
+          "required": [
+            "component"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "component": {
+              "const": "stepCard.chips"
+            },
+            "props": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    },
+    "stepCard.costPill": {
+      "title": "stepCard.costPill",
+      "description": "Cost estimate link pill for a step with costUrl.",
+      "x-slot": "stepCard",
+      "oneOf": [
+        {
+          "const": "stepCard.costPill"
+        },
+        {
+          "type": "object",
+          "required": [
+            "component"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "component": {
+              "const": "stepCard.costPill"
+            },
+            "props": {
+              "type": "object",
+              "properties": {
+                "label": {
+                  "description": "Pill label when the step sets no costLabel.",
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    },
+    "nodeModal.role": {
+      "title": "nodeModal.role",
+      "description": "The node's role paragraph.",
+      "x-slot": "nodeModal",
+      "oneOf": [
+        {
+          "const": "nodeModal.role"
+        },
+        {
+          "type": "object",
+          "required": [
+            "component"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "component": {
+              "const": "nodeModal.role"
+            },
+            "props": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    },
+    "nodeModal.iac": {
+      "title": "nodeModal.iac",
+      "description": "config.iac rows.",
+      "x-slot": "nodeModal",
+      "oneOf": [
+        {
+          "const": "nodeModal.iac"
+        },
+        {
+          "type": "object",
+          "required": [
+            "component"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "component": {
+              "const": "nodeModal.iac"
+            },
+            "props": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "maxLength": 80
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    },
+    "nodeModal.pricing": {
+      "title": "nodeModal.pricing",
+      "description": "config.pricing rows.",
+      "x-slot": "nodeModal",
+      "oneOf": [
+        {
+          "const": "nodeModal.pricing"
+        },
+        {
+          "type": "object",
+          "required": [
+            "component"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "component": {
+              "const": "nodeModal.pricing"
+            },
+            "props": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "maxLength": 80
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    },
+    "header.caption": {
+      "title": "header.caption",
+      "description": "Caption band above the canvas (spec.caption).",
+      "x-slot": "header",
+      "oneOf": [
+        {
+          "const": "header.caption"
+        },
+        {
+          "type": "object",
+          "required": [
+            "component"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "component": {
+              "const": "header.caption"
+            },
+            "props": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    }
+  },
+  "type": "object",
+  "properties": {
+    "dock": {
+      "type": "array",
+      "items": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/dock.brand"
+          },
+          {
+            "$ref": "#/$defs/dock.title"
+          },
+          {
+            "$ref": "#/$defs/dock.zoom"
+          },
+          {
+            "$ref": "#/$defs/dock.png"
+          },
+          {
+            "$ref": "#/$defs/dock.shareCard"
+          },
+          {
+            "$ref": "#/$defs/dock.walkthrough"
+          },
+          {
+            "$ref": "#/$defs/dock.cost"
+          },
+          {
+            "$ref": "#/$defs/dock.language"
+          },
+          {
+            "$ref": "#/$defs/dock.theme"
+          }
+        ]
+      }
+    },
+    "stepCard": {
+      "type": "array",
+      "items": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/stepCard.title"
+          },
+          {
+            "$ref": "#/$defs/stepCard.body"
+          },
+          {
+            "$ref": "#/$defs/stepCard.bullets"
+          },
+          {
+            "$ref": "#/$defs/stepCard.process"
+          },
+          {
+            "$ref": "#/$defs/stepCard.code"
+          },
+          {
+            "$ref": "#/$defs/stepCard.sections"
+          },
+          {
+            "$ref": "#/$defs/stepCard.chips"
+          },
+          {
+            "$ref": "#/$defs/stepCard.costPill"
+          }
+        ]
+      }
+    },
+    "nodeModal": {
+      "type": "array",
+      "items": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/nodeModal.role"
+          },
+          {
+            "$ref": "#/$defs/nodeModal.iac"
+          },
+          {
+            "$ref": "#/$defs/nodeModal.pricing"
+          }
+        ]
+      }
+    },
+    "header": {
+      "type": "array",
+      "items": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/header.caption"
+          }
+        ]
+      }
+    }
+  }
+}

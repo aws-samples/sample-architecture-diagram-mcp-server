@@ -1,0 +1,211 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/layout/patch-op.schema.json",
+  "oneOf": [
+    {
+      "type": "object",
+      "properties": {
+        "op": {
+          "type": "string",
+          "const": "add"
+        },
+        "slot": {
+          "type": "string",
+          "enum": [
+            "dock",
+            "stepCard",
+            "nodeModal",
+            "header"
+          ]
+        },
+        "component": {
+          "type": "string",
+          "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$"
+        },
+        "props": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "$ref": "../common/json-value.schema.json"
+          }
+        },
+        "before": {
+          "description": "Insert/move before this component.",
+          "type": "string",
+          "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$"
+        },
+        "after": {
+          "description": "Insert/move after this component.",
+          "type": "string",
+          "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$"
+        },
+        "index": {
+          "description": "Insert/move at this index.",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "op",
+        "slot",
+        "component"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "op": {
+          "type": "string",
+          "const": "remove"
+        },
+        "slot": {
+          "type": "string",
+          "enum": [
+            "dock",
+            "stepCard",
+            "nodeModal",
+            "header"
+          ]
+        },
+        "component": {
+          "type": "string",
+          "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$"
+        }
+      },
+      "required": [
+        "op",
+        "slot",
+        "component"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "op": {
+          "type": "string",
+          "const": "move"
+        },
+        "slot": {
+          "type": "string",
+          "enum": [
+            "dock",
+            "stepCard",
+            "nodeModal",
+            "header"
+          ]
+        },
+        "component": {
+          "type": "string",
+          "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$"
+        },
+        "before": {
+          "description": "Insert/move before this component.",
+          "type": "string",
+          "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$"
+        },
+        "after": {
+          "description": "Insert/move after this component.",
+          "type": "string",
+          "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$"
+        },
+        "index": {
+          "description": "Insert/move at this index.",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "op",
+        "slot",
+        "component"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "op": {
+          "type": "string",
+          "const": "replace"
+        },
+        "slot": {
+          "type": "string",
+          "enum": [
+            "dock",
+            "stepCard",
+            "nodeModal",
+            "header"
+          ]
+        },
+        "component": {
+          "type": "string",
+          "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$"
+        },
+        "with": {
+          "type": "string",
+          "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$"
+        },
+        "props": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "$ref": "../common/json-value.schema.json"
+          }
+        }
+      },
+      "required": [
+        "op",
+        "slot",
+        "component",
+        "with"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "op": {
+          "type": "string",
+          "const": "props"
+        },
+        "slot": {
+          "type": "string",
+          "enum": [
+            "dock",
+            "stepCard",
+            "nodeModal",
+            "header"
+          ]
+        },
+        "component": {
+          "type": "string",
+          "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$"
+        },
+        "props": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "$ref": "../common/json-value.schema.json"
+          }
+        }
+      },
+      "required": [
+        "op",
+        "slot",
+        "component",
+        "props"
+      ],
+      "additionalProperties": false
+    }
+  ]
+}

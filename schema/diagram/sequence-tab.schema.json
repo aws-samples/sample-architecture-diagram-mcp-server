@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/diagram/sequence-tab.schema.json",
+  "type": "object",
+  "properties": {
+    "title": {
+      "description": "Heading above the sequence canvas (defaults to the tab's title).",
+      "type": "string"
+    },
+    "subtitle": {
+      "description": "One-line context under the title.",
+      "type": "string"
+    },
+    "participants": {
+      "type": "array",
+      "items": {
+        "$ref": "../sequence/participant.schema.json"
+      },
+      "description": "Lifeline columns, in display order (left→right)."
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "$ref": "../sequence/event.schema.json"
+      },
+      "description": "The flow, in order (kind: 'message' | 'note'). One reveal step each."
+    },
+    "fragments": {
+      "description": "alt/opt/loop/par/break/critical/ref/neg/assert boxes anchored by event ids.",
+      "type": "array",
+      "items": {
+        "$ref": "../sequence/fragment.schema.json"
+      }
+    },
+    "groups": {
+      "description": "Participant grouping boxes (PlantUML `box`) drawn behind the lifelines.",
+      "type": "array",
+      "items": {
+        "$ref": "../sequence/group.schema.json"
+      }
+    },
+    "autoActivate": {
+      "description": "Auto-derive execution/activation bars (default true). Ignored when any message sets activate/deactivate.",
+      "type": "boolean"
+    },
+    "autoplay": {
+      "description": "Start playing as soon as the tab opens. Default false.",
+      "type": "boolean"
+    },
+    "stepMs": {
+      "description": "Default ms per step when playing (default 1300; the slider still adjusts).",
+      "type": "integer",
+      "minimum": -9007199254740991,
+      "maximum": 9007199254740991
+    }
+  },
+  "required": [
+    "participants",
+    "events"
+  ]
+}

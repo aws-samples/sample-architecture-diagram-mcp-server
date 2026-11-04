@@ -1,0 +1,285 @@
+{
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/tools/generate_lifecycle_diagram.input.schema.json",
+  "title": "generate_lifecycle_diagram input",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "subtitle": {
+      "type": "string"
+    },
+    "outputPath": {
+      "type": "string",
+      "description": "Output .html file path"
+    },
+    "direction": {
+      "description": "Flow direction: TB = top→bottom (default), LR = left→right.",
+      "type": "string",
+      "enum": [
+        "TB",
+        "LR"
+      ]
+    },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Stable id referenced by edges (from/to) and steps."
+          },
+          "label": {
+            "type": "string",
+            "description": "Node label. Empty is allowed for initial/final markers."
+          },
+          "sub": {
+            "description": "Second, smaller line under the label (e.g. a qualifier or actor).",
+            "type": "string"
+          },
+          "kind": {
+            "description": "Shape/role. workflow: start|task|decision|subprocess|wait|end; dataflow: external|process|datastore; lifecycle: initial|state|choice|final. Defaults to 'task' (workflow), 'process' (dataflow), 'state' (lifecycle).",
+            "type": "string",
+            "enum": [
+              "box",
+              "start",
+              "task",
+              "decision",
+              "subprocess",
+              "wait",
+              "end",
+              "external",
+              "process",
+              "datastore",
+              "initial",
+              "state",
+              "choice",
+              "final"
+            ]
+          },
+          "service": {
+            "description": "Canonical AWS/service name to AUTO-RESOLVE a small node icon (e.g. 'AWS Lambda', 'Amazon SQS'). Same resolver as the other diagrams — call resolve_icon to confirm.",
+            "type": "string"
+          },
+          "icon": {
+            "description": "Explicit icon reference — overrides `service`. Bare name resolves under icons/ (e.g. 'Arch_AWS-Lambda_48.png'); a prefixed path is used as-is ('tech-icons/vault.svg', 'aws-icons/user.svg').",
+            "type": "string"
+          },
+          "tone": {
+            "description": "Static accent for the node border/fill (independent of the walkthrough).",
+            "type": "string",
+            "enum": [
+              "accent",
+              "info",
+              "success",
+              "warn",
+              "danger",
+              "neutral"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "label"
+        ]
+      },
+      "description": "Graph nodes. Kinds for lifecycle: initial (●) · state · choice (diamond) · final (◎)."
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Stable id referenced by steps."
+          },
+          "from": {
+            "type": "string",
+            "description": "Source node id."
+          },
+          "to": {
+            "type": "string",
+            "description": "Target node id (== from draws a self-loop, e.g. a retry or a self-transition)."
+          },
+          "label": {
+            "description": "Edge label — a guard/branch ('[approved]', '[else]'), a data name ('order.json'), or an event ('onStart').",
+            "type": "string"
+          },
+          "kind": {
+            "description": "flow = solid arrow (default); branch = solid (a labeled decision branch); back = a return/loop-back edge drawn dashed; async = open arrowhead (signal/event).",
+            "type": "string",
+            "enum": [
+              "flow",
+              "branch",
+              "back",
+              "async"
+            ]
+          },
+          "dashed": {
+            "description": "Force a dashed line regardless of kind.",
+            "type": "boolean"
+          },
+          "tone": {
+            "description": "Static accent for the edge (independent of the walkthrough).",
+            "type": "string",
+            "enum": [
+              "accent",
+              "info",
+              "success",
+              "warn",
+              "danger",
+              "neutral"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "from",
+          "to"
+        ]
+      },
+      "description": "Directed edges (from→to). Label edges with the triggering event/transition (e.g. 'onApprove'); self-transitions and loop-backs are drawn as returns."
+    },
+    "steps": {
+      "description": "Optional guided walkthrough — each beat lights up its nodes/edges and drives the narration panel. Omit for a static diagram.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "Optional stable id for the step.",
+            "type": "string"
+          },
+          "nodes": {
+            "description": "Node ids highlighted on this beat.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "edges": {
+            "description": "Edge ids highlighted (drawn/animated) on this beat.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "title": {
+            "description": "Narration-panel heading.",
+            "type": "string"
+          },
+          "flow": {
+            "description": "Small sub-line under the title (e.g. 'Queue → Worker').",
+            "type": "string"
+          },
+          "desc": {
+            "description": "Panel description. Inline markdown: **bold**, `code`, *italic*.",
+            "type": "string"
+          },
+          "proof": {
+            "description": "Panel 'proof' line: free text OR a structured source ref {repo,path,ref,lines,url,text} rendered as a clickable link.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "repo": {
+                    "description": "Repository base URL (e.g. 'https://github.com/aws-samples/sample-architecture-diagram-mcp-server'). Combined with path/ref/lines to build a blob link.",
+                    "type": "string"
+                  },
+                  "path": {
+                    "description": "File path within the repo (e.g. 'lib/sequence-generator.js').",
+                    "type": "string"
+                  },
+                  "ref": {
+                    "description": "Commit SHA, tag, or branch to pin the link to (default 'main'). Pin to a commit for a truly stable reference.",
+                    "type": "string"
+                  },
+                  "lines": {
+                    "description": "Line number, 'start-end' string, or [start,end] — appended as #L.. so the link opens on the exact lines.",
+                    "anyOf": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "number"
+                        }
+                      }
+                    ]
+                  },
+                  "url": {
+                    "description": "Explicit link URL — overrides repo/path/ref/lines construction.",
+                    "type": "string"
+                  },
+                  "text": {
+                    "description": "Link label (defaults to path:lines or the URL).",
+                    "type": "string"
+                  }
+                }
+              }
+            ]
+          },
+          "code": {
+            "description": "Optional fenced snippet under the description (whitespace preserved).",
+            "type": "string"
+          },
+          "codeLabel": {
+            "description": "Uppercase label on the code block header (e.g. 'handler.py').",
+            "type": "string"
+          },
+          "tone": {
+            "description": "Accent for the highlighted nodes/edges on this beat (default accent/orange).",
+            "type": "string",
+            "enum": [
+              "accent",
+              "info",
+              "success",
+              "warn",
+              "danger",
+              "neutral"
+            ]
+          },
+          "badge": {
+            "description": "Semantic badge shown on the step.",
+            "type": "string",
+            "enum": [
+              "gate",
+              "async",
+              "sync",
+              "phase",
+              "fail",
+              "start",
+              "end"
+            ]
+          }
+        }
+      }
+    },
+    "autoplay": {
+      "description": "Start playing on load when steps exist (default false).",
+      "type": "boolean"
+    },
+    "stepMs": {
+      "description": "Default ms per step when playing (default 1500).",
+      "type": "integer",
+      "minimum": -9007199254740991,
+      "maximum": 9007199254740991
+    }
+  },
+  "required": [
+    "title",
+    "outputPath",
+    "nodes",
+    "edges"
+  ]
+}

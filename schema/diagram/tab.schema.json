@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/diagram/tab.schema.json",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Tab id (also the URL hash slug unless `slug` is set)."
+    },
+    "label": {
+      "description": "Tab button text. Defaults to a bilingual built-in per kind ('Architecture'/'Arquitetura', 'Sequence'/'Sequência').",
+      "$ref": "../common/lang-text.schema.json"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "architecture",
+        "sequence",
+        "doc",
+        "typed"
+      ],
+      "description": "architecture = the live diagram (exactly one tab may use it); sequence = the animated UML sequence (requires `sequence`); doc = prose sections; typed = a typed diagram (requires `diagram`)."
+    },
+    "icon": {
+      "description": "Icon reference for the tab button; falls back to a built-in glyph per kind.",
+      "type": "string"
+    },
+    "slug": {
+      "description": "URL hash for deep-linking this tab (default: the id).",
+      "type": "string"
+    },
+    "title": {
+      "description": "Heading shown at the top of this tab's panel (doc/sequence).",
+      "$ref": "../common/lang-text.schema.json"
+    },
+    "subtitle": {
+      "$ref": "../common/lang-text.schema.json"
+    },
+    "sequence": {
+      "description": "Required when kind='sequence'.",
+      "$ref": "./sequence-tab.schema.json"
+    },
+    "diagram": {
+      "description": "Required when kind='typed': a typed diagram document — { kind, title?, … } with kind one of er, gantt, swimlane, tree, timeline, kanban, journey, quadrant, venn, layers, fishbone, wardley, flywheel, class, workflow. Each kind's fields follow its spec in @aws-sample-live-diagram/core (packages/diagram-core/src/typed/<kind>.js); the body is validated before rendering.",
+      "$ref": "../typed-diagram.schema.json"
+    },
+    "sections": {
+      "description": "Content when kind='doc' — rendered as a document: a masthead plus one numbered card per section (title + optional badge + body + bullets + code).",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "$ref": "../common/lang-text.schema.json"
+          },
+          "badge": {
+            "description": "Short status chip next to the section title (e.g. 'Aprovada', 'Trade-off', 'Requer revisão').",
+            "$ref": "../common/lang-text.schema.json"
+          },
+          "body": {
+            "$ref": "../common/lang-text.schema.json"
+          },
+          "bullets": {
+            "type": "array",
+            "items": {
+              "$ref": "../common/bullet.schema.json"
+            }
+          },
+          "code": {
+            "$ref": "../common/lang-text.schema.json"
+          },
+          "codeLabel": {
+            "$ref": "../common/lang-text.schema.json"
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "id",
+    "kind"
+  ]
+}

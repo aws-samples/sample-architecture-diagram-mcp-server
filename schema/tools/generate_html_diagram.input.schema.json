@@ -1,0 +1,2941 @@
+{
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/tools/generate_html_diagram.input.schema.json",
+  "title": "generate_html_diagram input",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "subtitle": {
+      "type": "string"
+    },
+    "caption": {
+      "description": "OPTIONAL header band above the canvas, for a diagram that has to explain itself when opened cold (email attachment, wiki link): a string (the description) or { title, text, meta[] } — meta being small dot-separated facts (version, date, environment, ticket). Omit for the classic bare canvas; title/subtitle alone only show in the small floating dock.",
+      "anyOf": [
+        {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "propertyNames": {
+                "type": "string"
+              },
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          ],
+          "description": "Shorthand: just the description paragraph."
+        },
+        {
+          "type": "object",
+          "properties": {
+            "eyebrow": {
+              "description": "Small uppercase label above the headline, in AWS orange (e.g. 'Arquitetura alvo', 'Reference architecture', 'RFP anexo II').",
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                }
+              ]
+            },
+            "title": {
+              "description": "Headline shown above the description (e.g. 'Portal do Cidadão — target architecture').",
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                }
+              ]
+            },
+            "text": {
+              "description": "One paragraph saying what this diagram shows and for whom.",
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                }
+              ]
+            },
+            "meta": {
+              "description": "Small dot-separated facts under the text: version, date, environment, author, ticket.",
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "outputPath": {
+      "type": "string",
+      "description": "Output .html file path"
+    },
+    "services": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "service": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            ],
+            "description": "Canonical AWS service name — THIS DRIVES ICON RESOLUTION, so keep it a clean service name, NOT a free-text label. Use the official full name (e.g. 'Amazon Simple Storage Service', 'Amazon SageMaker', 'NAT Gateway'); short forms ('Amazon S3', 'Amazon EC2') are fine. Do NOT bury it in prose or a component nickname ('Frontend Next.js (ECS Fargate)', 'aigov_lexml_v2 runtime') — that fails to resolve and the node renders as a bare initial. Put the human-readable name in `label` and the description in `role`. For non-AWS/self-hosted components with no AWS icon (vLLM, a model, a 3rd-party app), pass an explicit `icon` (e.g. 'tech-icons/x.svg'). Every node must be labeled."
+          },
+          "shape": {
+            "description": "Optional AWS4 shape name (see list_shapes). Only used as an icon fallback when `service` is free text; the .drawio tools are the ones that really key off shapes.",
+            "type": "string"
+          },
+          "icon": {
+            "description": "Explicit icon reference — overrides name-based resolution. Bare name resolves under icons/ (e.g. 'Arch_Amazon-RDS_48.png'), prefixed path used as-is (e.g. 'aws-icons/custom.svg', 'tech-icons/postgresql.svg'). Set this whenever `service` is free-text or non-AWS so the node still gets a real icon instead of an initial. Call resolve_icon to discover valid names/filenames.",
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "compute",
+              "storage",
+              "database",
+              "networking",
+              "security",
+              "integration",
+              "analytics",
+              "ai",
+              "management",
+              "general"
+            ]
+          },
+          "label": {
+            "description": "Short human-readable display name shown under the node icon (e.g. 'Frontend Next.js', 'Runtime LexML'). Use this for the friendly/custom name so `service` can stay a clean, icon-resolvable AWS service name. Falls back to `service` when omitted.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "role": {
+            "description": "What this component DOES (the WHY). Shown as the description when the user CLICKS the node to open its detail modal. E.g. 'Authenticates API consumers via JWT', 'Stores order data with single-digit-ms reads'.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "parentId": {
+            "description": "ID of the group this service belongs to (from the top-level `groups`). Enables arbitrary nesting: multi-VPC, AZs, accounts, on-prem. Takes precedence over `subnet`.",
+            "type": "string"
+          },
+          "subnet": {
+            "description": "Shortcut for single-VPC diagrams: auto-nests under AWS Cloud → VPC → public/private subnet when `groups` is not provided.",
+            "type": "string",
+            "enum": [
+              "public",
+              "private"
+            ]
+          },
+          "external": {
+            "type": "boolean"
+          },
+          "isApi": {
+            "type": "boolean"
+          },
+          "pill": {
+            "description": "Short qualifier badge on the node (e.g. 'On-premises', 'In-Region', 'privado', 'GPU'). By default it renders beside the label; set `pillOverlay:true` to anchor it as a colored tag at the top edge of the node card (con18 style).",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "pillOverlay": {
+            "description": "When true, the node's `pill` is drawn as a colored overlay tag inlaid in the top edge of the node card (like the 'On-premises'/'In-Region' badges), instead of inline next to the label.",
+            "type": "boolean"
+          },
+          "pillSide": {
+            "description": "Which end of the top edge the overlay pill sits on (only with `pillOverlay:true`). Default 'left'. Use 'right' to keep the node's tag clear of the tag on the container it sits in.",
+            "type": "string",
+            "enum": [
+              "left",
+              "right"
+            ]
+          },
+          "config": {
+            "description": "Per-node detail-modal content (clicking the node opens it) + IaC/pricing handoff. Freely editable per service.",
+            "type": "object",
+            "properties": {
+              "iac": {
+                "description": "Configuration rows shown under 'Configuração (IaC)' in the node modal: e.g. { instanceClass: 'db.m7g.xlarge', engine: 'PostgreSQL 15.2', storage: '45 GB gp3' }.",
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": [
+                    "string",
+                    "number",
+                    "boolean"
+                  ]
+                }
+              },
+              "pricing": {
+                "description": "Rows shown under 'Custo / dimensionamento' in the node modal: e.g. { replicas: 2, 'vCPU': 4, 'RAM': '16 GB', 'est. mensal': 'USD 320' }.",
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": [
+                    "string",
+                    "number",
+                    "boolean"
+                  ]
+                }
+              },
+              "label": {
+                "description": "Short display label shown under the node icon (in the diagram, not the modal).",
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "required": [
+          "id",
+          "service",
+          "category"
+        ]
+      }
+    },
+    "connections": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "target": {
+            "type": "string"
+          },
+          "label": {
+            "description": "Short label rendered as a pill on the edge (e.g. a port/protocol like '5432' or 'HTTPS 443').",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "type": {
+            "description": "Connection semantics, styled distinctly: network (solid), iam (dashed, auth/permission), event (dotted, async/pub-sub), data (solid, read/write).",
+            "type": "string",
+            "enum": [
+              "network",
+              "iam",
+              "event",
+              "data"
+            ]
+          },
+          "bidirectional": {
+            "description": "Draw an arrowhead at BOTH ends (e.g. sync replication, peering, request/response). Default false = single arrow source→target.",
+            "type": "boolean"
+          },
+          "dashed": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "source",
+          "target"
+        ]
+      }
+    },
+    "groups": {
+      "description": "Explicit containers for arbitrary topologies. When omitted, a single AWS Cloud → VPC → public/private subnet tree is derived from each service's `subnet`.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Group id referenced by services' parentId and by child groups' parent."
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            ],
+            "description": "Display label, e.g. 'VPC A', 'us-east-1a', 'Prod Account'."
+          },
+          "parent": {
+            "description": "Parent group id for nesting (arbitrary depth).",
+            "type": "string"
+          },
+          "variant": {
+            "description": "Container type → official AWS group icon + color.",
+            "type": "string",
+            "enum": [
+              "aws-cloud",
+              "region",
+              "vpc",
+              "public-subnet",
+              "private-subnet",
+              "availability-zone",
+              "account",
+              "organization",
+              "auto-scaling-group",
+              "group",
+              "corporate-data-center",
+              "on-premises"
+            ]
+          },
+          "icon": {
+            "description": "Override the container's header glyph with a specific icon reference (e.g. 'Res_Amazon-Elastic-Kubernetes-Service_EKS-on-Outposts_48.png' to badge an 'EKS Cluster' group). Pass 'none' to show the label only (logical sub-groups like a Kubernetes namespace).",
+            "type": "string"
+          },
+          "pill": {
+            "description": "Small secondary label rendered as a pill in the group header, beside the title (e.g. an instance type 'ml.g6.24xlarge', a count '4x L40S', or a status 'privado'). Use for the sidecar/qualifier that shouldn't crowd the main label.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "pillOverlay": {
+            "description": "When true, the group's `pill` is drawn as a solid colored tag inlaid in the container's top border line (con18 style), instead of inline in the header row. Good for an instance type badge on an instance-group container.",
+            "type": "boolean"
+          },
+          "pillSide": {
+            "description": "Which end of the top border the overlay pill sits on (only with `pillOverlay:true`). Default 'right', because the header (icon + label) owns the top-left corner; use 'left' on a wide container with a short label, or to stop two nested containers stacking their tags on the same corner.",
+            "type": "string",
+            "enum": [
+              "left",
+              "right"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "label"
+        ]
+      }
+    },
+    "direction": {
+      "description": "Layout flow direction: LR (left→right, default) or TB (top→bottom).",
+      "type": "string",
+      "enum": [
+        "LR",
+        "TB"
+      ]
+    },
+    "lang": {
+      "description": "Language the content is authored in (ISO 639-1, e.g. 'en', 'pt', 'es'). Default 'en'. The UI chrome (modal headings, tooltips) adapts to it.",
+      "type": "string"
+    },
+    "languages": {
+      "description": "Offer a language switch in the toolbar. List every language you provide text for — ANY ISO 639-1 code works, not just en/pt (e.g. ['en','es','ja','fr']). When set with >1 entry, ALL author text fields (title, subtitle, service/role, group label, step title/eyebrow/body/badge, bullets, chips, sections) may be a per-language map { en: '…', ja: '…' } instead of a plain string, and the toolbar lets the viewer switch. Omit for single-language diagrams.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "uiStrings": {
+      "description": "Localize the built-in UI chrome (toolbar tooltips + node-modal headings) for languages beyond the built-in en/pt/es — keyed by UI key then language, e.g. { restart: { ja: 'ウォークスルーを再開' }, theme: { ja: 'テーマ切替' } }. Keys: iac, pricing, architecture, restart, play, pause, theme, collapse, expand, language. Omitted (key,lang) falls back to the built-in table, then English.",
+      "type": "object",
+      "propertyNames": {
+        "type": "string"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "propertyNames": {
+          "type": "string"
+        },
+        "additionalProperties": {
+          "type": "string"
+        }
+      }
+    },
+    "langLabels": {
+      "description": "Display label per language for its toolbar switch button, e.g. { en: 'EN', ja: '日本語', 'zh-CN': '中文' }. Defaults to a built-in for en/pt/es/fr/de, else the uppercased code.",
+      "type": "object",
+      "propertyNames": {
+        "type": "string"
+      },
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "steps": {
+      "description": "Guided walkthrough beats. Arrow keys / the dock's play button step through them; each shows an overlay card and can tint+zoom a subset of the diagram.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tone": {
+            "description": "Named accent for this beat's highlight: accent (orange, default), info (blue), success (green), warn (amber), danger (red), neutral (slate). Resilience aliases survive/degrade/severed still work.",
+            "type": "string",
+            "enum": [
+              "accent",
+              "info",
+              "success",
+              "warn",
+              "danger",
+              "neutral",
+              "survive",
+              "degrade",
+              "severed"
+            ]
+          },
+          "color": {
+            "description": "Arbitrary hex accent (e.g. '#8C4FFF') overriding `tone` for this beat's card + highlights.",
+            "type": "string"
+          },
+          "cardSide": {
+            "description": "Where the overlay card sits: right (default), left, top (flows above the canvas), or full (centered full-page modal with a dimmed backdrop — good for an intro/overview beat).",
+            "type": "string",
+            "enum": [
+              "left",
+              "right",
+              "top",
+              "full"
+            ]
+          },
+          "nodes": {
+            "description": "Service ids highlighted (tinted) in this beat.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "edges": {
+            "description": "Connection ids highlighted in this beat.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "groups": {
+            "description": "Group ids tinted (border+glow) in this beat.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "tones": {
+            "description": "Per-node tone override: { nodeId: tone } — use when a beat mixes tones (e.g. one node danger, rest accent).",
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "type": "string",
+              "enum": [
+                "accent",
+                "info",
+                "success",
+                "warn",
+                "danger",
+                "neutral",
+                "survive",
+                "degrade",
+                "severed"
+              ]
+            }
+          },
+          "edgeTones": {
+            "description": "Per-edge tone override: { edgeId: tone }.",
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "type": "string",
+              "enum": [
+                "accent",
+                "info",
+                "success",
+                "warn",
+                "danger",
+                "neutral",
+                "survive",
+                "degrade",
+                "severed"
+              ]
+            }
+          },
+          "groupTones": {
+            "description": "Per-group tone override: { groupId: tone }.",
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "type": "string",
+              "enum": [
+                "accent",
+                "info",
+                "success",
+                "warn",
+                "danger",
+                "neutral",
+                "survive",
+                "degrade",
+                "severed"
+              ]
+            }
+          },
+          "zoom": {
+            "description": "Node/group ids to frame the camera on this beat (requires stepZoom). Empty array = fit the whole diagram.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "maxZoom": {
+            "description": "Max zoom level when framing this beat (default 2.2). Lower it (e.g. 1.4) to keep more context visible.",
+            "type": "number"
+          },
+          "eyebrow": {
+            "description": "Small uppercase label above the card title, e.g. '1 · Ingress'.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "icon": {
+            "description": "Icon reference shown next to the card title (same resolution as service icon).",
+            "type": "string"
+          },
+          "title": {
+            "description": "Card heading for this beat.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "body": {
+            "description": "Card description paragraph. Supports inline markdown: **bold**, `code`, *italic*.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "code": {
+            "description": "A fenced code/snippet block rendered under the body in monospace (e.g. an HTTP request, a CLI command, a YAML fragment). Preserves whitespace/newlines and scrolls horizontally.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "codeLabel": {
+            "description": "Small uppercase label shown on the code block's header bar (e.g. 'REQUEST', 'bash', 'JumpStartModel.yaml').",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "badge": {
+            "description": "Override the tone badge label; false hides it (recommended for architecture walkthroughs — the eyebrow already labels the beat).",
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "boolean",
+                "const": false
+              }
+            ]
+          },
+          "bullets": {
+            "description": "Bullet list under the body. Each item is a plain string, or a styled object {text, strong?, color?, icon?, glyph?} for richer bullets.",
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "text": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        }
+                      ],
+                      "description": "Bullet body text."
+                    },
+                    "strong": {
+                      "description": "Bold lead rendered before the text (e.g. a term being defined). If omitted, a 'Lead — rest' / 'Lead: rest' prefix in `text` is auto-bolded.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        }
+                      ]
+                    },
+                    "color": {
+                      "description": "Hex colour for this bullet's marker + lead (overrides the card tone).",
+                      "type": "string"
+                    },
+                    "icon": {
+                      "description": "Icon reference used as the bullet marker (replaces the dot).",
+                      "type": "string"
+                    },
+                    "glyph": {
+                      "description": "Single-char marker instead of the dot: '✓' (green), '✕' (red), '≈'/'△' (amber), '→', etc.",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "text"
+                  ]
+                }
+              ]
+            }
+          },
+          "process": {
+            "description": "A numbered process list rendered as colored numbered bubbles + label + description (like a migration runbook: SCT → DMS → Cutover). Use for an ordered sequence of stages inside one card.",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "label": {
+                  "description": "Bold colored step name (e.g. 'SCT', 'DMS full load').",
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "text": {
+                  "description": "Step description.",
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "color": {
+                  "description": "Hex accent for this step's number bubble + label (e.g. '#8C4FFF'). Defaults to the beat tone.",
+                  "type": "string"
+                },
+                "ok": {
+                  "description": "If true, the numbered bubble shows a ✓ instead of the number (a completed step).",
+                  "type": "boolean"
+                }
+              }
+            }
+          },
+          "chips": {
+            "description": "Status chips row at the bottom of the card.",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "label": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "ok": {
+                  "description": "Status glyph: true=green ✓, false=red ✗, 'warn'=amber ≈, omit=neutral dot.",
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "string",
+                      "const": "warn"
+                    }
+                  ]
+                },
+                "icon": {
+                  "description": "Icon reference shown inside the chip.",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "label"
+              ]
+            }
+          },
+          "costUrl": {
+            "description": "Link to an external cost estimate for this beat (e.g. an AWS Pricing Calculator share URL). Renders a clickable pill on the card that opens in a new tab. Only a link — this server does not price anything. Use one estimate per sizing scenario. The first step with a costUrl also feeds the dock button when the top-level `costUrl` is omitted.",
+            "type": "string",
+            "pattern": "^https?:\\/\\/\\S+$"
+          },
+          "costLabel": {
+            "description": "Label for this beat's cost pill (default: the localized 'Cost estimate').",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "sections": {
+            "description": "Rich documentation sections (title + body + bullets each). Mainly for a full-page overview beat (cardSide:'full') that reads like a system README — scrolls if long.",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "description": "Section heading (uppercase accent), e.g. 'Data', 'Integrations'.",
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "body": {
+                  "description": "Section paragraph.",
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "bullets": {
+                  "description": "Section bullet list (same string-or-styled-object format as step bullets).",
+                  "type": "array",
+                  "items": {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "object",
+                            "propertyNames": {
+                              "type": "string"
+                            },
+                            "additionalProperties": {
+                              "type": "string"
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "text": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "object",
+                                "propertyNames": {
+                                  "type": "string"
+                                },
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              }
+                            ],
+                            "description": "Bullet body text."
+                          },
+                          "strong": {
+                            "description": "Bold lead rendered before the text (e.g. a term being defined). If omitted, a 'Lead — rest' / 'Lead: rest' prefix in `text` is auto-bolded.",
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "object",
+                                "propertyNames": {
+                                  "type": "string"
+                                },
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              }
+                            ]
+                          },
+                          "color": {
+                            "description": "Hex colour for this bullet's marker + lead (overrides the card tone).",
+                            "type": "string"
+                          },
+                          "icon": {
+                            "description": "Icon reference used as the bullet marker (replaces the dot).",
+                            "type": "string"
+                          },
+                          "glyph": {
+                            "description": "Single-char marker instead of the dot: '✓' (green), '✕' (red), '≈'/'△' (amber), '→', etc.",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "text"
+                        ]
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "startStep": {
+      "description": "Which beat the diagram opens on: -1 (default) shows the whole-diagram overview first; 0+ opens directly on that beat, so a wide/dense diagram lands already zoomed into a legible region (requires stepZoom to frame it).",
+      "type": "integer",
+      "minimum": -9007199254740991,
+      "maximum": 9007199254740991
+    },
+    "startCardScale": {
+      "description": "Initial text-size step (0–3, default 0) the walkthrough card opens at — set 1–3 to start with a LARGER card; the A−/A+ card buttons still adjust from there.",
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 3
+    },
+    "stepZoom": {
+      "description": "When steps are present, glide the camera onto each beat's `zoom` (or `nodes`). Default off.",
+      "type": "boolean"
+    },
+    "stepFocus": {
+      "description": "When steps are present, hide non-active nodes each beat to isolate it. Default off (dim instead of hide).",
+      "type": "boolean"
+    },
+    "flowDots": {
+      "description": "Animate a dot travelling along each connection to convey flow direction. Default true. Set false for a static, print-friendly look (arrowheads only, no motion).",
+      "type": "boolean"
+    },
+    "flowPeriod": {
+      "description": "Uniform flow-dot period in seconds: make EVERY edge's dot share this exact period (instead of the default staggered per-edge timing) so a GIF captured over `flowPeriod` seconds via render_diagram_media loops seamlessly. Set this when the HTML will be turned into a looping GIF.",
+      "type": "number"
+    },
+    "collapsible": {
+      "description": "Show a fold toggle (▸/▾) on every group header so the viewer can collapse/expand containers (d3-zoomable-treemap style); collapsing a group hides its children, shrinks it to a small box, and re-runs the layout. Default true.",
+      "type": "boolean"
+    },
+    "defaultCollapsed": {
+      "description": "Group ids that start COLLAPSED on load — good for a dense diagram whose overview should read clean, letting the viewer expand only what they need (e.g. ['vpcdados']).",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "sequence": {
+      "description": "Add a SECOND VIEW of the same system: an animated UML sequence diagram (participants + ordered messages, alt/opt/loop fragments, notes). Passing it turns the output into a two-tab document (Architecture + Sequence) with a tab rail — no `tabs` needed. Play/→ walks the flow beat by beat.",
+      "type": "object",
+      "properties": {
+        "title": {
+          "description": "Heading above the sequence canvas (defaults to the tab's title).",
+          "type": "string"
+        },
+        "subtitle": {
+          "description": "One-line context under the title.",
+          "type": "string"
+        },
+        "participants": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Stable id referenced by messages (from/to) and notes/fragments."
+              },
+              "label": {
+                "type": "string",
+                "description": "Header label shown on the lifeline (e.g. 'Lambda seed', 'RHBK')."
+              },
+              "sub": {
+                "description": "Second header line, smaller (e.g. a package/qualifier like 'aft-seed-vault-rhbk').",
+                "type": "string"
+              },
+              "service": {
+                "description": "Canonical AWS/service name used to AUTO-RESOLVE the header icon (e.g. 'AWS Lambda', 'Amazon DynamoDB', 'AWS Step Functions'). Same resolver as the architecture path — call resolve_icon to confirm.",
+                "type": "string"
+              },
+              "icon": {
+                "description": "Explicit icon reference — overrides `service` resolution. Bare name resolves under icons/ (e.g. 'Arch_AWS-Lambda_48.png'); a prefixed path is used as-is ('tech-icons/vault.svg', 'tech-icons/keycloak.svg', 'aws-icons/user.svg'). Use for non-AWS/self-hosted lifelines (Vault, Keycloak/RHBK, GitLab, Zabbix).",
+                "type": "string"
+              },
+              "actor": {
+                "description": "Render as a UML stick-figure actor instead of a boxed service (for a human role like SA/Dev).",
+                "type": "boolean"
+              },
+              "stereotype": {
+                "description": "UML stereotype shown above a boxed header in guillemets (e.g. 'boundary', 'control', 'entity', 'service'). Ignored for actors.",
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "label"
+            ]
+          },
+          "description": "Lifeline columns, in display order (left→right)."
+        },
+        "events": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "Stable id (referenced by fragment start/end/divider anchors)."
+                  },
+                  "from": {
+                    "type": "string",
+                    "description": "Source participant id. Ignored when `found` is true (message originates from a boundary dot)."
+                  },
+                  "to": {
+                    "type": "string",
+                    "description": "Target participant id (== from for a self-message). Ignored when `lost` is true (message vanishes at a boundary dot)."
+                  },
+                  "label": {
+                    "description": "Arrow label (the call/return, kept short).",
+                    "type": "string"
+                  },
+                  "style": {
+                    "description": "Legacy: solid (call) or dashed (return). Prefer `arrow`. A bare `style:'dashed'` is treated as arrow:'reply'.",
+                    "type": "string",
+                    "enum": [
+                      "solid",
+                      "dashed"
+                    ]
+                  },
+                  "arrow": {
+                    "description": "UML arrowhead: sync = solid line + filled head (synchronous call, default); async = solid line + open head (asynchronous signal); reply = dashed line + open head (return/response).",
+                    "type": "string",
+                    "enum": [
+                      "sync",
+                      "async",
+                      "reply"
+                    ]
+                  },
+                  "activate": {
+                    "description": "Force-start an execution/activation bar on the `to` participant at this step (explicit-activation mode). If any message sets activate/deactivate, auto-activation is disabled and bars are driven only by these flags.",
+                    "type": "boolean"
+                  },
+                  "deactivate": {
+                    "description": "Force-close the innermost open activation bar on the `from` participant at this step (typically on a reply).",
+                    "type": "boolean"
+                  },
+                  "create": {
+                    "description": "UML create message: the `to` participant is instantiated here — its header drops down to this row and its lifeline starts at this step (nothing drawn above).",
+                    "type": "boolean"
+                  },
+                  "destroy": {
+                    "description": "UML destroy message: the `to` participant is destroyed here — its lifeline ends with an X at this step.",
+                    "type": "boolean"
+                  },
+                  "found": {
+                    "description": "Found message: origin is a filled boundary dot (unknown/external sender); `from` is ignored for geometry.",
+                    "type": "boolean"
+                  },
+                  "lost": {
+                    "description": "Lost message: target is a filled boundary dot (unknown/external receiver); `to` is ignored for geometry.",
+                    "type": "boolean"
+                  },
+                  "tone": {
+                    "description": "Accent for the arrow when it is the active step (default accent/orange).",
+                    "type": "string",
+                    "enum": [
+                      "accent",
+                      "info",
+                      "success",
+                      "warn",
+                      "danger",
+                      "neutral"
+                    ]
+                  },
+                  "badge": {
+                    "description": "Semantic badge shown on the step: gate (can abort), keyless, async, sync, phase, fail.",
+                    "type": "string",
+                    "enum": [
+                      "gate",
+                      "keyless",
+                      "async",
+                      "sync",
+                      "phase",
+                      "fail"
+                    ]
+                  },
+                  "title": {
+                    "description": "Narration-panel heading for this step (falls back to `label`).",
+                    "type": "string"
+                  },
+                  "flow": {
+                    "description": "Small sub-line under the panel title (e.g. 'SA/Dev → CodeCommit').",
+                    "type": "string"
+                  },
+                  "desc": {
+                    "description": "Panel description. Inline markdown: **bold**, `code`, *italic*.",
+                    "type": "string"
+                  },
+                  "proof": {
+                    "description": "Panel 'proof' line: either free text (inline `code` supported) OR a structured source ref {repo,path,ref,lines,url,text} rendered as a clickable link to the exact file@ref/lines.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "repo": {
+                            "description": "Repository base URL (e.g. 'https://github.com/aws-samples/sample-architecture-diagram-mcp-server'). Combined with path/ref/lines to build a blob link.",
+                            "type": "string"
+                          },
+                          "path": {
+                            "description": "File path within the repo (e.g. 'lib/sequence-generator.js').",
+                            "type": "string"
+                          },
+                          "ref": {
+                            "description": "Commit SHA, tag, or branch to pin the link to (default 'main'). Pin to a commit for a truly stable reference.",
+                            "type": "string"
+                          },
+                          "lines": {
+                            "description": "Line number, 'start-end' string, or [start,end] — appended as #L.. so the link opens on the exact lines.",
+                            "anyOf": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "array",
+                                "items": {
+                                  "type": "number"
+                                }
+                              }
+                            ]
+                          },
+                          "url": {
+                            "description": "Explicit link URL — overrides repo/path/ref/lines construction.",
+                            "type": "string"
+                          },
+                          "text": {
+                            "description": "Link label (defaults to path:lines or the URL).",
+                            "type": "string"
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "code": {
+                    "description": "Optional fenced snippet under the description (preserves whitespace).",
+                    "type": "string"
+                  },
+                  "codeLabel": {
+                    "description": "Uppercase label on the code block header (e.g. 'handler.py', 'asl').",
+                    "type": "string"
+                  },
+                  "kind": {
+                    "type": "string",
+                    "const": "message"
+                  }
+                },
+                "required": [
+                  "id",
+                  "from",
+                  "to",
+                  "kind"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "over": {
+                    "minItems": 1,
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Participant id(s) the note spans (1 = single lifeline, 2 = from→to span)."
+                  },
+                  "label": {
+                    "type": "string",
+                    "description": "Text inside the note band."
+                  },
+                  "tone": {
+                    "type": "string",
+                    "enum": [
+                      "accent",
+                      "info",
+                      "success",
+                      "warn",
+                      "danger",
+                      "neutral"
+                    ]
+                  },
+                  "badge": {
+                    "type": "string",
+                    "enum": [
+                      "gate",
+                      "keyless",
+                      "async",
+                      "sync",
+                      "phase",
+                      "fail"
+                    ]
+                  },
+                  "title": {
+                    "description": "Narration-panel heading (falls back to `label`).",
+                    "type": "string"
+                  },
+                  "flow": {
+                    "type": "string"
+                  },
+                  "desc": {
+                    "description": "Panel description (inline markdown).",
+                    "type": "string"
+                  },
+                  "proof": {
+                    "description": "Free text (inline markdown) or a structured source ref rendered as a link.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "repo": {
+                            "description": "Repository base URL (e.g. 'https://github.com/aws-samples/sample-architecture-diagram-mcp-server'). Combined with path/ref/lines to build a blob link.",
+                            "type": "string"
+                          },
+                          "path": {
+                            "description": "File path within the repo (e.g. 'lib/sequence-generator.js').",
+                            "type": "string"
+                          },
+                          "ref": {
+                            "description": "Commit SHA, tag, or branch to pin the link to (default 'main'). Pin to a commit for a truly stable reference.",
+                            "type": "string"
+                          },
+                          "lines": {
+                            "description": "Line number, 'start-end' string, or [start,end] — appended as #L.. so the link opens on the exact lines.",
+                            "anyOf": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "array",
+                                "items": {
+                                  "type": "number"
+                                }
+                              }
+                            ]
+                          },
+                          "url": {
+                            "description": "Explicit link URL — overrides repo/path/ref/lines construction.",
+                            "type": "string"
+                          },
+                          "text": {
+                            "description": "Link label (defaults to path:lines or the URL).",
+                            "type": "string"
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "kind": {
+                    "type": "string",
+                    "const": "note"
+                  }
+                },
+                "required": [
+                  "id",
+                  "over",
+                  "label",
+                  "kind"
+                ]
+              }
+            ]
+          },
+          "description": "The flow, in order (kind: 'message' | 'note'). One reveal step each."
+        },
+        "fragments": {
+          "description": "alt/opt/loop/par/break/critical/ref/neg/assert boxes anchored by event ids.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "alt",
+                  "opt",
+                  "loop",
+                  "par",
+                  "break",
+                  "critical",
+                  "ref",
+                  "neg",
+                  "assert"
+                ],
+                "description": "UML combined-fragment operator (alt/opt/loop/par/break/critical/ref/neg/assert)."
+              },
+              "label": {
+                "type": "string",
+                "description": "Guard/label shown in the fragment's top-left tab (e.g. 'fornecedor inválido')."
+              },
+              "startId": {
+                "type": "string",
+                "description": "Event id where the fragment begins (inclusive)."
+              },
+              "endId": {
+                "type": "string",
+                "description": "Event id where the fragment ends (inclusive)."
+              },
+              "dividers": {
+                "description": "Interior dividers (e.g. the 'else' of an alt).",
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "beforeId": {
+                      "type": "string",
+                      "description": "Event id before which the divider line is drawn."
+                    },
+                    "label": {
+                      "type": "string",
+                      "description": "Divider label (e.g. '[else] fornecedor active')."
+                    }
+                  },
+                  "required": [
+                    "beforeId",
+                    "label"
+                  ]
+                }
+              },
+              "tone": {
+                "description": "Accent color for the fragment frame and tab (default neutral).",
+                "type": "string",
+                "enum": [
+                  "accent",
+                  "info",
+                  "success",
+                  "warn",
+                  "danger",
+                  "neutral"
+                ]
+              }
+            },
+            "required": [
+              "kind",
+              "label",
+              "startId",
+              "endId"
+            ]
+          }
+        },
+        "groups": {
+          "description": "Participant grouping boxes (PlantUML `box`) drawn behind the lifelines.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string",
+                "description": "Container title shown on the group's top-left tab (e.g. 'AWS Control Plane')."
+              },
+              "participants": {
+                "minItems": 1,
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Participant ids enclosed by the box. Should be contiguous columns; the box spans from the leftmost to the rightmost."
+              },
+              "tone": {
+                "description": "Accent color for the container border/tab (default neutral).",
+                "type": "string",
+                "enum": [
+                  "accent",
+                  "info",
+                  "success",
+                  "warn",
+                  "danger",
+                  "neutral"
+                ]
+              }
+            },
+            "required": [
+              "label",
+              "participants"
+            ]
+          }
+        },
+        "autoActivate": {
+          "description": "Auto-derive execution/activation bars (default true). Ignored when any message sets activate/deactivate.",
+          "type": "boolean"
+        },
+        "autoplay": {
+          "description": "Start playing as soon as the tab opens. Default false.",
+          "type": "boolean"
+        },
+        "stepMs": {
+          "description": "Default ms per step when playing (default 1300; the slider still adjusts).",
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "participants",
+        "events"
+      ]
+    },
+    "tabs": {
+      "description": "Full control over the MULTI-TAB document: one tab per view — kind 'architecture' (the live canvas), 'sequence' (animated UML sequence, needs `sequence`), or 'doc' (prose sections). Use this instead of `sequence` when you want custom labels/order or extra prose tabs. Each tab is deep-linkable via the URL hash.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Tab id (also the URL hash slug unless `slug` is set)."
+          },
+          "label": {
+            "description": "Tab button text. Defaults to a bilingual built-in per kind ('Architecture'/'Arquitetura', 'Sequence'/'Sequência').",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "architecture",
+              "sequence",
+              "doc",
+              "typed"
+            ],
+            "description": "architecture = the live diagram (exactly one tab may use it); sequence = the animated UML sequence (requires `sequence`); doc = prose sections; typed = a typed diagram (requires `diagram`)."
+          },
+          "icon": {
+            "description": "Icon reference for the tab button; falls back to a built-in glyph per kind.",
+            "type": "string"
+          },
+          "slug": {
+            "description": "URL hash for deep-linking this tab (default: the id).",
+            "type": "string"
+          },
+          "title": {
+            "description": "Heading shown at the top of this tab's panel (doc/sequence).",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "subtitle": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "sequence": {
+            "description": "Required when kind='sequence'.",
+            "type": "object",
+            "properties": {
+              "title": {
+                "description": "Heading above the sequence canvas (defaults to the tab's title).",
+                "type": "string"
+              },
+              "subtitle": {
+                "description": "One-line context under the title.",
+                "type": "string"
+              },
+              "participants": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Stable id referenced by messages (from/to) and notes/fragments."
+                    },
+                    "label": {
+                      "type": "string",
+                      "description": "Header label shown on the lifeline (e.g. 'Lambda seed', 'RHBK')."
+                    },
+                    "sub": {
+                      "description": "Second header line, smaller (e.g. a package/qualifier like 'aft-seed-vault-rhbk').",
+                      "type": "string"
+                    },
+                    "service": {
+                      "description": "Canonical AWS/service name used to AUTO-RESOLVE the header icon (e.g. 'AWS Lambda', 'Amazon DynamoDB', 'AWS Step Functions'). Same resolver as the architecture path — call resolve_icon to confirm.",
+                      "type": "string"
+                    },
+                    "icon": {
+                      "description": "Explicit icon reference — overrides `service` resolution. Bare name resolves under icons/ (e.g. 'Arch_AWS-Lambda_48.png'); a prefixed path is used as-is ('tech-icons/vault.svg', 'tech-icons/keycloak.svg', 'aws-icons/user.svg'). Use for non-AWS/self-hosted lifelines (Vault, Keycloak/RHBK, GitLab, Zabbix).",
+                      "type": "string"
+                    },
+                    "actor": {
+                      "description": "Render as a UML stick-figure actor instead of a boxed service (for a human role like SA/Dev).",
+                      "type": "boolean"
+                    },
+                    "stereotype": {
+                      "description": "UML stereotype shown above a boxed header in guillemets (e.g. 'boundary', 'control', 'entity', 'service'). Ignored for actors.",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "label"
+                  ]
+                },
+                "description": "Lifeline columns, in display order (left→right)."
+              },
+              "events": {
+                "type": "array",
+                "items": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "description": "Stable id (referenced by fragment start/end/divider anchors)."
+                        },
+                        "from": {
+                          "type": "string",
+                          "description": "Source participant id. Ignored when `found` is true (message originates from a boundary dot)."
+                        },
+                        "to": {
+                          "type": "string",
+                          "description": "Target participant id (== from for a self-message). Ignored when `lost` is true (message vanishes at a boundary dot)."
+                        },
+                        "label": {
+                          "description": "Arrow label (the call/return, kept short).",
+                          "type": "string"
+                        },
+                        "style": {
+                          "description": "Legacy: solid (call) or dashed (return). Prefer `arrow`. A bare `style:'dashed'` is treated as arrow:'reply'.",
+                          "type": "string",
+                          "enum": [
+                            "solid",
+                            "dashed"
+                          ]
+                        },
+                        "arrow": {
+                          "description": "UML arrowhead: sync = solid line + filled head (synchronous call, default); async = solid line + open head (asynchronous signal); reply = dashed line + open head (return/response).",
+                          "type": "string",
+                          "enum": [
+                            "sync",
+                            "async",
+                            "reply"
+                          ]
+                        },
+                        "activate": {
+                          "description": "Force-start an execution/activation bar on the `to` participant at this step (explicit-activation mode). If any message sets activate/deactivate, auto-activation is disabled and bars are driven only by these flags.",
+                          "type": "boolean"
+                        },
+                        "deactivate": {
+                          "description": "Force-close the innermost open activation bar on the `from` participant at this step (typically on a reply).",
+                          "type": "boolean"
+                        },
+                        "create": {
+                          "description": "UML create message: the `to` participant is instantiated here — its header drops down to this row and its lifeline starts at this step (nothing drawn above).",
+                          "type": "boolean"
+                        },
+                        "destroy": {
+                          "description": "UML destroy message: the `to` participant is destroyed here — its lifeline ends with an X at this step.",
+                          "type": "boolean"
+                        },
+                        "found": {
+                          "description": "Found message: origin is a filled boundary dot (unknown/external sender); `from` is ignored for geometry.",
+                          "type": "boolean"
+                        },
+                        "lost": {
+                          "description": "Lost message: target is a filled boundary dot (unknown/external receiver); `to` is ignored for geometry.",
+                          "type": "boolean"
+                        },
+                        "tone": {
+                          "description": "Accent for the arrow when it is the active step (default accent/orange).",
+                          "type": "string",
+                          "enum": [
+                            "accent",
+                            "info",
+                            "success",
+                            "warn",
+                            "danger",
+                            "neutral"
+                          ]
+                        },
+                        "badge": {
+                          "description": "Semantic badge shown on the step: gate (can abort), keyless, async, sync, phase, fail.",
+                          "type": "string",
+                          "enum": [
+                            "gate",
+                            "keyless",
+                            "async",
+                            "sync",
+                            "phase",
+                            "fail"
+                          ]
+                        },
+                        "title": {
+                          "description": "Narration-panel heading for this step (falls back to `label`).",
+                          "type": "string"
+                        },
+                        "flow": {
+                          "description": "Small sub-line under the panel title (e.g. 'SA/Dev → CodeCommit').",
+                          "type": "string"
+                        },
+                        "desc": {
+                          "description": "Panel description. Inline markdown: **bold**, `code`, *italic*.",
+                          "type": "string"
+                        },
+                        "proof": {
+                          "description": "Panel 'proof' line: either free text (inline `code` supported) OR a structured source ref {repo,path,ref,lines,url,text} rendered as a clickable link to the exact file@ref/lines.",
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "repo": {
+                                  "description": "Repository base URL (e.g. 'https://github.com/aws-samples/sample-architecture-diagram-mcp-server'). Combined with path/ref/lines to build a blob link.",
+                                  "type": "string"
+                                },
+                                "path": {
+                                  "description": "File path within the repo (e.g. 'lib/sequence-generator.js').",
+                                  "type": "string"
+                                },
+                                "ref": {
+                                  "description": "Commit SHA, tag, or branch to pin the link to (default 'main'). Pin to a commit for a truly stable reference.",
+                                  "type": "string"
+                                },
+                                "lines": {
+                                  "description": "Line number, 'start-end' string, or [start,end] — appended as #L.. so the link opens on the exact lines.",
+                                  "anyOf": [
+                                    {
+                                      "type": "number"
+                                    },
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "number"
+                                      }
+                                    }
+                                  ]
+                                },
+                                "url": {
+                                  "description": "Explicit link URL — overrides repo/path/ref/lines construction.",
+                                  "type": "string"
+                                },
+                                "text": {
+                                  "description": "Link label (defaults to path:lines or the URL).",
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "code": {
+                          "description": "Optional fenced snippet under the description (preserves whitespace).",
+                          "type": "string"
+                        },
+                        "codeLabel": {
+                          "description": "Uppercase label on the code block header (e.g. 'handler.py', 'asl').",
+                          "type": "string"
+                        },
+                        "kind": {
+                          "type": "string",
+                          "const": "message"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "from",
+                        "to",
+                        "kind"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "over": {
+                          "minItems": 1,
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Participant id(s) the note spans (1 = single lifeline, 2 = from→to span)."
+                        },
+                        "label": {
+                          "type": "string",
+                          "description": "Text inside the note band."
+                        },
+                        "tone": {
+                          "type": "string",
+                          "enum": [
+                            "accent",
+                            "info",
+                            "success",
+                            "warn",
+                            "danger",
+                            "neutral"
+                          ]
+                        },
+                        "badge": {
+                          "type": "string",
+                          "enum": [
+                            "gate",
+                            "keyless",
+                            "async",
+                            "sync",
+                            "phase",
+                            "fail"
+                          ]
+                        },
+                        "title": {
+                          "description": "Narration-panel heading (falls back to `label`).",
+                          "type": "string"
+                        },
+                        "flow": {
+                          "type": "string"
+                        },
+                        "desc": {
+                          "description": "Panel description (inline markdown).",
+                          "type": "string"
+                        },
+                        "proof": {
+                          "description": "Free text (inline markdown) or a structured source ref rendered as a link.",
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "repo": {
+                                  "description": "Repository base URL (e.g. 'https://github.com/aws-samples/sample-architecture-diagram-mcp-server'). Combined with path/ref/lines to build a blob link.",
+                                  "type": "string"
+                                },
+                                "path": {
+                                  "description": "File path within the repo (e.g. 'lib/sequence-generator.js').",
+                                  "type": "string"
+                                },
+                                "ref": {
+                                  "description": "Commit SHA, tag, or branch to pin the link to (default 'main'). Pin to a commit for a truly stable reference.",
+                                  "type": "string"
+                                },
+                                "lines": {
+                                  "description": "Line number, 'start-end' string, or [start,end] — appended as #L.. so the link opens on the exact lines.",
+                                  "anyOf": [
+                                    {
+                                      "type": "number"
+                                    },
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "number"
+                                      }
+                                    }
+                                  ]
+                                },
+                                "url": {
+                                  "description": "Explicit link URL — overrides repo/path/ref/lines construction.",
+                                  "type": "string"
+                                },
+                                "text": {
+                                  "description": "Link label (defaults to path:lines or the URL).",
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "kind": {
+                          "type": "string",
+                          "const": "note"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "over",
+                        "label",
+                        "kind"
+                      ]
+                    }
+                  ]
+                },
+                "description": "The flow, in order (kind: 'message' | 'note'). One reveal step each."
+              },
+              "fragments": {
+                "description": "alt/opt/loop/par/break/critical/ref/neg/assert boxes anchored by event ids.",
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "alt",
+                        "opt",
+                        "loop",
+                        "par",
+                        "break",
+                        "critical",
+                        "ref",
+                        "neg",
+                        "assert"
+                      ],
+                      "description": "UML combined-fragment operator (alt/opt/loop/par/break/critical/ref/neg/assert)."
+                    },
+                    "label": {
+                      "type": "string",
+                      "description": "Guard/label shown in the fragment's top-left tab (e.g. 'fornecedor inválido')."
+                    },
+                    "startId": {
+                      "type": "string",
+                      "description": "Event id where the fragment begins (inclusive)."
+                    },
+                    "endId": {
+                      "type": "string",
+                      "description": "Event id where the fragment ends (inclusive)."
+                    },
+                    "dividers": {
+                      "description": "Interior dividers (e.g. the 'else' of an alt).",
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "beforeId": {
+                            "type": "string",
+                            "description": "Event id before which the divider line is drawn."
+                          },
+                          "label": {
+                            "type": "string",
+                            "description": "Divider label (e.g. '[else] fornecedor active')."
+                          }
+                        },
+                        "required": [
+                          "beforeId",
+                          "label"
+                        ]
+                      }
+                    },
+                    "tone": {
+                      "description": "Accent color for the fragment frame and tab (default neutral).",
+                      "type": "string",
+                      "enum": [
+                        "accent",
+                        "info",
+                        "success",
+                        "warn",
+                        "danger",
+                        "neutral"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "label",
+                    "startId",
+                    "endId"
+                  ]
+                }
+              },
+              "groups": {
+                "description": "Participant grouping boxes (PlantUML `box`) drawn behind the lifelines.",
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "label": {
+                      "type": "string",
+                      "description": "Container title shown on the group's top-left tab (e.g. 'AWS Control Plane')."
+                    },
+                    "participants": {
+                      "minItems": 1,
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Participant ids enclosed by the box. Should be contiguous columns; the box spans from the leftmost to the rightmost."
+                    },
+                    "tone": {
+                      "description": "Accent color for the container border/tab (default neutral).",
+                      "type": "string",
+                      "enum": [
+                        "accent",
+                        "info",
+                        "success",
+                        "warn",
+                        "danger",
+                        "neutral"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "label",
+                    "participants"
+                  ]
+                }
+              },
+              "autoActivate": {
+                "description": "Auto-derive execution/activation bars (default true). Ignored when any message sets activate/deactivate.",
+                "type": "boolean"
+              },
+              "autoplay": {
+                "description": "Start playing as soon as the tab opens. Default false.",
+                "type": "boolean"
+              },
+              "stepMs": {
+                "description": "Default ms per step when playing (default 1300; the slider still adjusts).",
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "participants",
+              "events"
+            ]
+          },
+          "diagram": {
+            "description": "Required when kind='typed': a typed diagram document — { kind, title?, … } with kind one of er, gantt, swimlane, tree, timeline, kanban, journey, quadrant, venn, layers, fishbone, wardley, flywheel, class, workflow. Each kind's fields follow its spec in @aws-sample-live-diagram/core (packages/diagram-core/src/typed/<kind>.js); the body is validated before rendering.",
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind"
+            ],
+            "additionalProperties": {}
+          },
+          "sections": {
+            "description": "Content when kind='doc' — rendered as a document: a masthead plus one numbered card per section (title + optional badge + body + bullets + code).",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "badge": {
+                  "description": "Short status chip next to the section title (e.g. 'Aprovada', 'Trade-off', 'Requer revisão').",
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "body": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "bullets": {
+                  "type": "array",
+                  "items": {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "object",
+                            "propertyNames": {
+                              "type": "string"
+                            },
+                            "additionalProperties": {
+                              "type": "string"
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "text": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "object",
+                                "propertyNames": {
+                                  "type": "string"
+                                },
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              }
+                            ],
+                            "description": "Bullet body text."
+                          },
+                          "strong": {
+                            "description": "Bold lead rendered before the text (e.g. a term being defined). If omitted, a 'Lead — rest' / 'Lead: rest' prefix in `text` is auto-bolded.",
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "object",
+                                "propertyNames": {
+                                  "type": "string"
+                                },
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              }
+                            ]
+                          },
+                          "color": {
+                            "description": "Hex colour for this bullet's marker + lead (overrides the card tone).",
+                            "type": "string"
+                          },
+                          "icon": {
+                            "description": "Icon reference used as the bullet marker (replaces the dot).",
+                            "type": "string"
+                          },
+                          "glyph": {
+                            "description": "Single-char marker instead of the dot: '✓' (green), '✕' (red), '≈'/'△' (amber), '→', etc.",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "text"
+                        ]
+                      }
+                    ]
+                  }
+                },
+                "code": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "codeLabel": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "required": [
+          "id",
+          "kind"
+        ]
+      }
+    },
+    "costUrl": {
+      "description": "Link to an external cost estimate (e.g. an AWS Pricing Calculator share URL). Adds a 'Cost estimate' button to the toolbar dock that opens it in a new tab. Only a link — this server does not price anything. When omitted, the first walkthrough step with a `costUrl` is used.",
+      "type": "string",
+      "pattern": "^https?:\\/\\/\\S+$"
+    },
+    "costLabel": {
+      "description": "Label for the dock's cost button (default: the localized 'Cost estimate').",
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "showTitle": {
+      "description": "Show the title/subtitle in the toolbar dock. Default true. false hides them in the dock only; the HTML <title>, the share-card PNG and the sidecar JSON keep them (useful when a `caption` band or the host page already shows the title).",
+      "type": "boolean"
+    },
+    "layout": {
+      "description": "Which components the page shows, where, and how it looks: a preset ('default', 'cost'), a saved layout name (see list_layouts), or an inline layout { extends?, slots?, patch?, theme?, branding? }. Omit for the standard page (identical to before layouts existed).",
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9._-]*$"
+            },
+            "description": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "extends": {
+              "description": "Layout this one starts from (a preset such as 'default' or 'cost', or a saved layout). Default 'default'.",
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9._-]*$"
+            },
+            "slots": {
+              "description": "Full component list per slot, in order (replaces the inherited list for that slot).",
+              "type": "object",
+              "properties": {
+                "dock": {
+                  "type": "array",
+                  "items": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$"
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "component": {
+                            "type": "string",
+                            "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$",
+                            "description": "Component id from list_components (built-in like dock.cost, or a registered custom one)."
+                          },
+                          "props": {
+                            "description": "Props for this component; validated against its schema.",
+                            "type": "object",
+                            "propertyNames": {
+                              "type": "string"
+                            },
+                            "additionalProperties": {
+                              "$ref": "#/definitions/__schema0"
+                            }
+                          }
+                        },
+                        "required": [
+                          "component"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
+                  }
+                },
+                "stepCard": {
+                  "type": "array",
+                  "items": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$"
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "component": {
+                            "type": "string",
+                            "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$",
+                            "description": "Component id from list_components (built-in like dock.cost, or a registered custom one)."
+                          },
+                          "props": {
+                            "description": "Props for this component; validated against its schema.",
+                            "type": "object",
+                            "propertyNames": {
+                              "type": "string"
+                            },
+                            "additionalProperties": {
+                              "$ref": "#/definitions/__schema0"
+                            }
+                          }
+                        },
+                        "required": [
+                          "component"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
+                  }
+                },
+                "nodeModal": {
+                  "type": "array",
+                  "items": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$"
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "component": {
+                            "type": "string",
+                            "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$",
+                            "description": "Component id from list_components (built-in like dock.cost, or a registered custom one)."
+                          },
+                          "props": {
+                            "description": "Props for this component; validated against its schema.",
+                            "type": "object",
+                            "propertyNames": {
+                              "type": "string"
+                            },
+                            "additionalProperties": {
+                              "$ref": "#/definitions/__schema0"
+                            }
+                          }
+                        },
+                        "required": [
+                          "component"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
+                  }
+                },
+                "header": {
+                  "type": "array",
+                  "items": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$"
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "component": {
+                            "type": "string",
+                            "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$",
+                            "description": "Component id from list_components (built-in like dock.cost, or a registered custom one)."
+                          },
+                          "props": {
+                            "description": "Props for this component; validated against its schema.",
+                            "type": "object",
+                            "propertyNames": {
+                              "type": "string"
+                            },
+                            "additionalProperties": {
+                              "$ref": "#/definitions/__schema0"
+                            }
+                          }
+                        },
+                        "required": [
+                          "component"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
+                  }
+                }
+              },
+              "additionalProperties": false
+            },
+            "patch": {
+              "description": "Edits applied after `slots`: add / remove / move / replace a component, or change its props.",
+              "type": "array",
+              "items": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "op": {
+                        "type": "string",
+                        "const": "add"
+                      },
+                      "slot": {
+                        "type": "string",
+                        "enum": [
+                          "dock",
+                          "stepCard",
+                          "nodeModal",
+                          "header"
+                        ]
+                      },
+                      "component": {
+                        "type": "string",
+                        "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$"
+                      },
+                      "props": {
+                        "type": "object",
+                        "propertyNames": {
+                          "type": "string"
+                        },
+                        "additionalProperties": {
+                          "$ref": "#/definitions/__schema0"
+                        }
+                      },
+                      "before": {
+                        "description": "Insert/move before this component.",
+                        "type": "string",
+                        "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$"
+                      },
+                      "after": {
+                        "description": "Insert/move after this component.",
+                        "type": "string",
+                        "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$"
+                      },
+                      "index": {
+                        "description": "Insert/move at this index.",
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      }
+                    },
+                    "required": [
+                      "op",
+                      "slot",
+                      "component"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "op": {
+                        "type": "string",
+                        "const": "remove"
+                      },
+                      "slot": {
+                        "type": "string",
+                        "enum": [
+                          "dock",
+                          "stepCard",
+                          "nodeModal",
+                          "header"
+                        ]
+                      },
+                      "component": {
+                        "type": "string",
+                        "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$"
+                      }
+                    },
+                    "required": [
+                      "op",
+                      "slot",
+                      "component"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "op": {
+                        "type": "string",
+                        "const": "move"
+                      },
+                      "slot": {
+                        "type": "string",
+                        "enum": [
+                          "dock",
+                          "stepCard",
+                          "nodeModal",
+                          "header"
+                        ]
+                      },
+                      "component": {
+                        "type": "string",
+                        "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$"
+                      },
+                      "before": {
+                        "description": "Insert/move before this component.",
+                        "type": "string",
+                        "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$"
+                      },
+                      "after": {
+                        "description": "Insert/move after this component.",
+                        "type": "string",
+                        "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$"
+                      },
+                      "index": {
+                        "description": "Insert/move at this index.",
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      }
+                    },
+                    "required": [
+                      "op",
+                      "slot",
+                      "component"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "op": {
+                        "type": "string",
+                        "const": "replace"
+                      },
+                      "slot": {
+                        "type": "string",
+                        "enum": [
+                          "dock",
+                          "stepCard",
+                          "nodeModal",
+                          "header"
+                        ]
+                      },
+                      "component": {
+                        "type": "string",
+                        "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$"
+                      },
+                      "with": {
+                        "type": "string",
+                        "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$"
+                      },
+                      "props": {
+                        "type": "object",
+                        "propertyNames": {
+                          "type": "string"
+                        },
+                        "additionalProperties": {
+                          "$ref": "#/definitions/__schema0"
+                        }
+                      }
+                    },
+                    "required": [
+                      "op",
+                      "slot",
+                      "component",
+                      "with"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "op": {
+                        "type": "string",
+                        "const": "props"
+                      },
+                      "slot": {
+                        "type": "string",
+                        "enum": [
+                          "dock",
+                          "stepCard",
+                          "nodeModal",
+                          "header"
+                        ]
+                      },
+                      "component": {
+                        "type": "string",
+                        "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$"
+                      },
+                      "props": {
+                        "type": "object",
+                        "propertyNames": {
+                          "type": "string"
+                        },
+                        "additionalProperties": {
+                          "$ref": "#/definitions/__schema0"
+                        }
+                      }
+                    },
+                    "required": [
+                      "op",
+                      "slot",
+                      "component",
+                      "props"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              }
+            },
+            "theme": {
+              "type": "object",
+              "properties": {
+                "light": {
+                  "type": "object",
+                  "properties": {
+                    "bg": {
+                      "type": "string",
+                      "maxLength": 300,
+                      "pattern": "^[^;{}<>\\\\]*$"
+                    },
+                    "surface": {
+                      "type": "string",
+                      "maxLength": 300,
+                      "pattern": "^[^;{}<>\\\\]*$"
+                    },
+                    "node-bg": {
+                      "type": "string",
+                      "maxLength": 300,
+                      "pattern": "^[^;{}<>\\\\]*$"
+                    },
+                    "txt": {
+                      "type": "string",
+                      "maxLength": 300,
+                      "pattern": "^[^;{}<>\\\\]*$"
+                    },
+                    "txt-muted": {
+                      "type": "string",
+                      "maxLength": 300,
+                      "pattern": "^[^;{}<>\\\\]*$"
+                    },
+                    "border": {
+                      "type": "string",
+                      "maxLength": 300,
+                      "pattern": "^[^;{}<>\\\\]*$"
+                    },
+                    "icon-filter": {
+                      "type": "string",
+                      "maxLength": 300,
+                      "pattern": "^[^;{}<>\\\\]*$"
+                    },
+                    "card-bg": {
+                      "type": "string",
+                      "maxLength": 300,
+                      "pattern": "^[^;{}<>\\\\]*$"
+                    },
+                    "card-solid": {
+                      "type": "string",
+                      "maxLength": 300,
+                      "pattern": "^[^;{}<>\\\\]*$"
+                    },
+                    "dot": {
+                      "type": "string",
+                      "maxLength": 300,
+                      "pattern": "^[^;{}<>\\\\]*$"
+                    },
+                    "chip-bg": {
+                      "type": "string",
+                      "maxLength": 300,
+                      "pattern": "^[^;{}<>\\\\]*$"
+                    },
+                    "pill-bg": {
+                      "type": "string",
+                      "maxLength": 300,
+                      "pattern": "^[^;{}<>\\\\]*$"
+                    },
+                    "dock-bg": {
+                      "type": "string",
+                      "maxLength": 300,
+                      "pattern": "^[^;{}<>\\\\]*$"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "dark": {
+                  "type": "object",
+                  "properties": {
+                    "bg": {
+                      "type": "string",
+                      "maxLength": 300,
+                      "pattern": "^[^;{}<>\\\\]*$"
+                    },
+                    "surface": {
+                      "type": "string",
+                      "maxLength": 300,
+                      "pattern": "^[^;{}<>\\\\]*$"
+                    },
+                    "node-bg": {
+                      "type": "string",
+                      "maxLength": 300,
+                      "pattern": "^[^;{}<>\\\\]*$"
+                    },
+                    "txt": {
+                      "type": "string",
+                      "maxLength": 300,
+                      "pattern": "^[^;{}<>\\\\]*$"
+                    },
+                    "txt-muted": {
+                      "type": "string",
+                      "maxLength": 300,
+                      "pattern": "^[^;{}<>\\\\]*$"
+                    },
+                    "border": {
+                      "type": "string",
+                      "maxLength": 300,
+                      "pattern": "^[^;{}<>\\\\]*$"
+                    },
+                    "icon-filter": {
+                      "type": "string",
+                      "maxLength": 300,
+                      "pattern": "^[^;{}<>\\\\]*$"
+                    },
+                    "card-bg": {
+                      "type": "string",
+                      "maxLength": 300,
+                      "pattern": "^[^;{}<>\\\\]*$"
+                    },
+                    "card-solid": {
+                      "type": "string",
+                      "maxLength": 300,
+                      "pattern": "^[^;{}<>\\\\]*$"
+                    },
+                    "dot": {
+                      "type": "string",
+                      "maxLength": 300,
+                      "pattern": "^[^;{}<>\\\\]*$"
+                    },
+                    "chip-bg": {
+                      "type": "string",
+                      "maxLength": 300,
+                      "pattern": "^[^;{}<>\\\\]*$"
+                    },
+                    "pill-bg": {
+                      "type": "string",
+                      "maxLength": 300,
+                      "pattern": "^[^;{}<>\\\\]*$"
+                    },
+                    "dock-bg": {
+                      "type": "string",
+                      "maxLength": 300,
+                      "pattern": "^[^;{}<>\\\\]*$"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "fontFamily": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "pattern": "^[^;{}<>\\\\]*$"
+                },
+                "css": {
+                  "description": "A local CSS file injected into the page <head> (after the theme tokens).",
+                  "type": "string",
+                  "maxLength": 400
+                }
+              },
+              "additionalProperties": false
+            },
+            "branding": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "description": "Product/brand name: shown by dock.brand and used as the page <title>.",
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "logo": {
+                  "description": "Local image (png, jpg, gif, webp, svg; ≤ 512 KB) inlined for dock.brand.",
+                  "type": "string",
+                  "maxLength": 400
+                },
+                "favicon": {
+                  "description": "Local image inlined as the page icon.",
+                  "type": "string",
+                  "maxLength": 400
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "writeSpec": {
+      "description": "Also write <name>.spec.json — the validated input, re-renderable with render_from_spec / the `render` CLI. Default true; false skips it.",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "title",
+    "outputPath",
+    "services",
+    "connections"
+  ],
+  "definitions": {
+    "__schema0": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/__schema0"
+          }
+        },
+        {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "$ref": "#/definitions/__schema0"
+          }
+        }
+      ]
+    }
+  }
+}

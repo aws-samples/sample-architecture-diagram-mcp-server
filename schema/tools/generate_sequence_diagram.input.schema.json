@@ -1,0 +1,478 @@
+{
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/tools/generate_sequence_diagram.input.schema.json",
+  "title": "generate_sequence_diagram input",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "subtitle": {
+      "type": "string"
+    },
+    "outputPath": {
+      "type": "string",
+      "description": "Output .html file path"
+    },
+    "participants": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Stable id referenced by messages (from/to) and notes/fragments."
+          },
+          "label": {
+            "type": "string",
+            "description": "Header label shown on the lifeline (e.g. 'Lambda seed', 'RHBK')."
+          },
+          "sub": {
+            "description": "Second header line, smaller (e.g. a package/qualifier like 'aft-seed-vault-rhbk').",
+            "type": "string"
+          },
+          "service": {
+            "description": "Canonical AWS/service name used to AUTO-RESOLVE the header icon (e.g. 'AWS Lambda', 'Amazon DynamoDB', 'AWS Step Functions'). Same resolver as the architecture path — call resolve_icon to confirm.",
+            "type": "string"
+          },
+          "icon": {
+            "description": "Explicit icon reference — overrides `service` resolution. Bare name resolves under icons/ (e.g. 'Arch_AWS-Lambda_48.png'); a prefixed path is used as-is ('tech-icons/vault.svg', 'tech-icons/keycloak.svg', 'aws-icons/user.svg'). Use for non-AWS/self-hosted lifelines (Vault, Keycloak/RHBK, GitLab, Zabbix).",
+            "type": "string"
+          },
+          "actor": {
+            "description": "Render as a UML stick-figure actor instead of a boxed service (for a human role like SA/Dev).",
+            "type": "boolean"
+          },
+          "stereotype": {
+            "description": "UML stereotype shown above a boxed header in guillemets (e.g. 'boundary', 'control', 'entity', 'service'). Ignored for actors.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "label"
+        ]
+      },
+      "description": "Lifeline columns (actors + systems), left→right in the order given."
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Stable id (referenced by fragment start/end/divider anchors)."
+              },
+              "from": {
+                "type": "string",
+                "description": "Source participant id. Ignored when `found` is true (message originates from a boundary dot)."
+              },
+              "to": {
+                "type": "string",
+                "description": "Target participant id (== from for a self-message). Ignored when `lost` is true (message vanishes at a boundary dot)."
+              },
+              "label": {
+                "description": "Arrow label (the call/return, kept short).",
+                "type": "string"
+              },
+              "style": {
+                "description": "Legacy: solid (call) or dashed (return). Prefer `arrow`. A bare `style:'dashed'` is treated as arrow:'reply'.",
+                "type": "string",
+                "enum": [
+                  "solid",
+                  "dashed"
+                ]
+              },
+              "arrow": {
+                "description": "UML arrowhead: sync = solid line + filled head (synchronous call, default); async = solid line + open head (asynchronous signal); reply = dashed line + open head (return/response).",
+                "type": "string",
+                "enum": [
+                  "sync",
+                  "async",
+                  "reply"
+                ]
+              },
+              "activate": {
+                "description": "Force-start an execution/activation bar on the `to` participant at this step (explicit-activation mode). If any message sets activate/deactivate, auto-activation is disabled and bars are driven only by these flags.",
+                "type": "boolean"
+              },
+              "deactivate": {
+                "description": "Force-close the innermost open activation bar on the `from` participant at this step (typically on a reply).",
+                "type": "boolean"
+              },
+              "create": {
+                "description": "UML create message: the `to` participant is instantiated here — its header drops down to this row and its lifeline starts at this step (nothing drawn above).",
+                "type": "boolean"
+              },
+              "destroy": {
+                "description": "UML destroy message: the `to` participant is destroyed here — its lifeline ends with an X at this step.",
+                "type": "boolean"
+              },
+              "found": {
+                "description": "Found message: origin is a filled boundary dot (unknown/external sender); `from` is ignored for geometry.",
+                "type": "boolean"
+              },
+              "lost": {
+                "description": "Lost message: target is a filled boundary dot (unknown/external receiver); `to` is ignored for geometry.",
+                "type": "boolean"
+              },
+              "tone": {
+                "description": "Accent for the arrow when it is the active step (default accent/orange).",
+                "type": "string",
+                "enum": [
+                  "accent",
+                  "info",
+                  "success",
+                  "warn",
+                  "danger",
+                  "neutral"
+                ]
+              },
+              "badge": {
+                "description": "Semantic badge shown on the step: gate (can abort), keyless, async, sync, phase, fail.",
+                "type": "string",
+                "enum": [
+                  "gate",
+                  "keyless",
+                  "async",
+                  "sync",
+                  "phase",
+                  "fail"
+                ]
+              },
+              "title": {
+                "description": "Narration-panel heading for this step (falls back to `label`).",
+                "type": "string"
+              },
+              "flow": {
+                "description": "Small sub-line under the panel title (e.g. 'SA/Dev → CodeCommit').",
+                "type": "string"
+              },
+              "desc": {
+                "description": "Panel description. Inline markdown: **bold**, `code`, *italic*.",
+                "type": "string"
+              },
+              "proof": {
+                "description": "Panel 'proof' line: either free text (inline `code` supported) OR a structured source ref {repo,path,ref,lines,url,text} rendered as a clickable link to the exact file@ref/lines.",
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "repo": {
+                        "description": "Repository base URL (e.g. 'https://github.com/aws-samples/sample-architecture-diagram-mcp-server'). Combined with path/ref/lines to build a blob link.",
+                        "type": "string"
+                      },
+                      "path": {
+                        "description": "File path within the repo (e.g. 'lib/sequence-generator.js').",
+                        "type": "string"
+                      },
+                      "ref": {
+                        "description": "Commit SHA, tag, or branch to pin the link to (default 'main'). Pin to a commit for a truly stable reference.",
+                        "type": "string"
+                      },
+                      "lines": {
+                        "description": "Line number, 'start-end' string, or [start,end] — appended as #L.. so the link opens on the exact lines.",
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "type": "number"
+                            }
+                          }
+                        ]
+                      },
+                      "url": {
+                        "description": "Explicit link URL — overrides repo/path/ref/lines construction.",
+                        "type": "string"
+                      },
+                      "text": {
+                        "description": "Link label (defaults to path:lines or the URL).",
+                        "type": "string"
+                      }
+                    }
+                  }
+                ]
+              },
+              "code": {
+                "description": "Optional fenced snippet under the description (preserves whitespace).",
+                "type": "string"
+              },
+              "codeLabel": {
+                "description": "Uppercase label on the code block header (e.g. 'handler.py', 'asl').",
+                "type": "string"
+              },
+              "kind": {
+                "type": "string",
+                "const": "message"
+              }
+            },
+            "required": [
+              "id",
+              "from",
+              "to",
+              "kind"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "over": {
+                "minItems": 1,
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Participant id(s) the note spans (1 = single lifeline, 2 = from→to span)."
+              },
+              "label": {
+                "type": "string",
+                "description": "Text inside the note band."
+              },
+              "tone": {
+                "type": "string",
+                "enum": [
+                  "accent",
+                  "info",
+                  "success",
+                  "warn",
+                  "danger",
+                  "neutral"
+                ]
+              },
+              "badge": {
+                "type": "string",
+                "enum": [
+                  "gate",
+                  "keyless",
+                  "async",
+                  "sync",
+                  "phase",
+                  "fail"
+                ]
+              },
+              "title": {
+                "description": "Narration-panel heading (falls back to `label`).",
+                "type": "string"
+              },
+              "flow": {
+                "type": "string"
+              },
+              "desc": {
+                "description": "Panel description (inline markdown).",
+                "type": "string"
+              },
+              "proof": {
+                "description": "Free text (inline markdown) or a structured source ref rendered as a link.",
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "repo": {
+                        "description": "Repository base URL (e.g. 'https://github.com/aws-samples/sample-architecture-diagram-mcp-server'). Combined with path/ref/lines to build a blob link.",
+                        "type": "string"
+                      },
+                      "path": {
+                        "description": "File path within the repo (e.g. 'lib/sequence-generator.js').",
+                        "type": "string"
+                      },
+                      "ref": {
+                        "description": "Commit SHA, tag, or branch to pin the link to (default 'main'). Pin to a commit for a truly stable reference.",
+                        "type": "string"
+                      },
+                      "lines": {
+                        "description": "Line number, 'start-end' string, or [start,end] — appended as #L.. so the link opens on the exact lines.",
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "type": "number"
+                            }
+                          }
+                        ]
+                      },
+                      "url": {
+                        "description": "Explicit link URL — overrides repo/path/ref/lines construction.",
+                        "type": "string"
+                      },
+                      "text": {
+                        "description": "Link label (defaults to path:lines or the URL).",
+                        "type": "string"
+                      }
+                    }
+                  }
+                ]
+              },
+              "kind": {
+                "type": "string",
+                "const": "note"
+              }
+            },
+            "required": [
+              "id",
+              "over",
+              "label",
+              "kind"
+            ]
+          }
+        ]
+      },
+      "description": "Ordered interactions. Message: { kind:'message', id, from, to, label?, arrow?('sync'|'async'|'reply'), create?, destroy?, found?, lost?, activate?, deactivate?, badge?, title?, flow?, desc?, proof?, code? } or note: { kind:'note', id, over:[ids], label, ... }. Reveal order = array order."
+    },
+    "fragments": {
+      "description": "Combined-fragment boxes (alt/opt/loop/par/break/critical/ref/neg/assert) around a contiguous event range (anchored by startId/endId; dividers for the 'else' of an alt).",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "alt",
+              "opt",
+              "loop",
+              "par",
+              "break",
+              "critical",
+              "ref",
+              "neg",
+              "assert"
+            ],
+            "description": "UML combined-fragment operator (alt/opt/loop/par/break/critical/ref/neg/assert)."
+          },
+          "label": {
+            "type": "string",
+            "description": "Guard/label shown in the fragment's top-left tab (e.g. 'fornecedor inválido')."
+          },
+          "startId": {
+            "type": "string",
+            "description": "Event id where the fragment begins (inclusive)."
+          },
+          "endId": {
+            "type": "string",
+            "description": "Event id where the fragment ends (inclusive)."
+          },
+          "dividers": {
+            "description": "Interior dividers (e.g. the 'else' of an alt).",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "beforeId": {
+                  "type": "string",
+                  "description": "Event id before which the divider line is drawn."
+                },
+                "label": {
+                  "type": "string",
+                  "description": "Divider label (e.g. '[else] fornecedor active')."
+                }
+              },
+              "required": [
+                "beforeId",
+                "label"
+              ]
+            }
+          },
+          "tone": {
+            "description": "Accent color for the fragment frame and tab (default neutral).",
+            "type": "string",
+            "enum": [
+              "accent",
+              "info",
+              "success",
+              "warn",
+              "danger",
+              "neutral"
+            ]
+          }
+        },
+        "required": [
+          "kind",
+          "label",
+          "startId",
+          "endId"
+        ]
+      }
+    },
+    "groups": {
+      "description": "Aggregation containers (PlantUML `box`) grouping contiguous participant columns, e.g. { label:'AWS Control Plane', participants:[ids], tone? }.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string",
+            "description": "Container title shown on the group's top-left tab (e.g. 'AWS Control Plane')."
+          },
+          "participants": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Participant ids enclosed by the box. Should be contiguous columns; the box spans from the leftmost to the rightmost."
+          },
+          "tone": {
+            "description": "Accent color for the container border/tab (default neutral).",
+            "type": "string",
+            "enum": [
+              "accent",
+              "info",
+              "success",
+              "warn",
+              "danger",
+              "neutral"
+            ]
+          }
+        },
+        "required": [
+          "label",
+          "participants"
+        ]
+      }
+    },
+    "autoActivate": {
+      "description": "Auto-derive activation bars (default true). Ignored if any message sets activate/deactivate; set false to hide bars.",
+      "type": "boolean"
+    },
+    "autoplay": {
+      "description": "Start playing on load (default false — opens on step 1).",
+      "type": "boolean"
+    },
+    "stepMs": {
+      "description": "Default ms per step when playing (default 1300).",
+      "type": "integer",
+      "minimum": -9007199254740991,
+      "maximum": 9007199254740991
+    }
+  },
+  "required": [
+    "title",
+    "outputPath",
+    "participants",
+    "events"
+  ]
+}
