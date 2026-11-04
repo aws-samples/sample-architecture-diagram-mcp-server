@@ -7,6 +7,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { CardShell, CardHeader, Body, Section, KeyValues } from "./cardKit.jsx";
 import { getRegisteredComponent, normalizeSlotEntries } from "../componentRegistry.js";
+import { tr } from "../i18n.js";
 
 const CATEGORY_COLORS = {
   compute: "#ED7100", storage: "#7AA116", database: "#C925D1",
@@ -20,7 +21,15 @@ const rowsOf = (o) => o ? Object.entries(o).map(([k, v]) => [k, String(v)]) : []
 // reorder or add registered custom sections).
 export const NODE_MODAL_SECTIONS = ["role", "iac", "pricing"];
 
-export default function NodeModal({ node, onClose, Icon, strings, sections = undefined }) {
+export default function NodeModal({ node: rawNode, onClose, Icon, strings, sections = undefined, lang = undefined }) {
+  // Accept a React Flow node ({ id, type, data: { label, role, config, … } }) as
+  // well as the flat service object: the canvas hands over the clicked RF node,
+  // whose fields live in `data` (reading them off the node itself left the modal
+  // empty). Text fields may be per-language maps.
+  const node = !rawNode ? rawNode : (rawNode.data && rawNode.label === undefined)
+    ? { ...rawNode.data, id: rawNode.id }
+    : rawNode;
+  const t = (v) => (v && typeof v === "object" && !Array.isArray(v) ? tr(v, lang || "en") : v);
   const iacLabel = strings?.iac ?? "Configuration (IaC)";
   const pricingLabel = strings?.pricing ?? "Cost / sizing";
   return (
@@ -44,9 +53,9 @@ export default function NodeModal({ node, onClose, Icon, strings, sections = und
               className="w-[min(92%,460px)]">
               <CardShell color={color}>
                 <div className="flex flex-col gap-3">
-                  <CardHeader icon={node.icon} eyebrow={node.category} title={node.label} color={color} trailing={closeBtn} Icon={Icon} />
+                  <CardHeader icon={node.icon} eyebrow={node.category} title={t(node.label)} color={color} trailing={closeBtn} Icon={Icon} />
                   {(normalizeSlotEntries(sections, "nodeModal") || NODE_MODAL_SECTIONS.map((key) => ({ component: key, key, props: {} }))).map(({ component, key, props }) => {
-                    if (key === "role") return node.role ? <Body key="role">{node.role}</Body> : null;
+                    if (key === "role") return node.role ? <Body key="role">{t(node.role)}</Body> : null;
                     if (key === "iac") return iac.length > 0 ? <Section key="iac" title={props.title || iacLabel} color={color}><KeyValues rows={iac} /></Section> : null;
                     if (key === "pricing") return pricing.length > 0 ? <Section key="pricing" title={props.title || pricingLabel} color={color}><KeyValues rows={pricing} /></Section> : null;
                     const Custom = getRegisteredComponent(component);

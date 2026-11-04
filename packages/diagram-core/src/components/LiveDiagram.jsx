@@ -779,7 +779,7 @@ export function LiveDiagram({
           </div>
           {chrome && (
             <>
-              {nodeModal && <NodeModal node={detailNode} onClose={() => setDetailNode(null)} Icon={Icon} strings={ui ? { iac: ui("iac", lang), pricing: ui("pricing", lang) } : undefined} sections={modalSections} />}
+              {nodeModal && <NodeModal node={detailNode} onClose={() => setDetailNode(null)} Icon={Icon} strings={ui ? { iac: ui("iac", lang), pricing: ui("pricing", lang) } : undefined} sections={modalSections} lang={lang} />}
               <ZoomBar
                 title={tr(title, lang)} subtitle={tr(subtitle, lang)}
                 dark={effectiveDark} visible={dockVisible} onToggle={() => setDockVisible(v => !v)}
@@ -862,7 +862,7 @@ export function LiveDiagram({
         )}
         {chrome && !presenting && (
           <>
-            {nodeModal && <NodeModal node={detailNode} onClose={() => setDetailNode(null)} Icon={Icon} strings={ui ? { iac: ui("iac", lang), pricing: ui("pricing", lang) } : undefined} sections={modalSections} />}
+            {nodeModal && <NodeModal node={detailNode} onClose={() => setDetailNode(null)} Icon={Icon} strings={ui ? { iac: ui("iac", lang), pricing: ui("pricing", lang) } : undefined} sections={modalSections} lang={lang} />}
             <ZoomBar
               title={tr(title, lang)} subtitle={tr(subtitle, lang)}
               dark={effectiveDark} visible={dockVisible} onToggle={() => setDockVisible(v => !v)}
