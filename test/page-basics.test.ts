@@ -40,3 +40,14 @@ describe('spec.json $schema', () => {
     expect(JSON.parse(readFileSync(q, 'utf-8')).$schema).toBe('file:///opt/schema/spec.schema.json');
   });
 });
+
+describe('inline markdown images', () => {
+  it('![alt](src) is not loaded: it reads as a notice, not "!" + a link', async () => {
+    const { parseInline, inlineHtml } = await import('../packages/diagram-core/src/inline.js');
+    expect(parseInline('See ![the chart](https://x.test/a.png) now')).toEqual([
+      { type: 'text', text: 'See ' }, { type: 'text', text: '[image not shown: the chart]' }, { type: 'text', text: ' now' },
+    ]);
+    expect(inlineHtml('![x](https://x.test/a.png)')).not.toContain('<a ');
+    expect(parseInline('Hi! [docs](https://d.test)')[1]).toEqual({ type: 'link', text: 'docs', href: 'https://d.test' });
+  });
+});

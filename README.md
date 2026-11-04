@@ -526,6 +526,16 @@ running version:
   Contracts reference each other with relative `$ref`s and carry a stable `$id`.
   Typed-diagram schemas are the core's specs as they are, including their
   `x-*` annotations.
+- **Two dialects, on purpose:** the document contracts (`diagram`, `layout`,
+  `spec`, …) are JSON Schema 2020-12; the per-tool inputs (`tools/<tool>`) are
+  draft-07, because that is what the MCP TypeScript SDK announces in
+  `tools/list` for Zod tool schemas, and these files must equal that byte for
+  byte (a test checks it). Validate a spec file with `diagram.schema.json` /
+  `spec.schema.json`, or offline with `npx sample-architecture-diagram-mcp-server
+  validate <spec.json>`.
+- **`$id` vs. location:** the `$id`s are stable identifiers, not a published URL.
+  Written `<name>.spec.json` files carry a `$schema` only when
+  `DIAGRAM_SCHEMA_URL` says where the schema is actually served.
 - **OpenAPI:** `schema/openapi.yaml` has every contract in
   `components/schemas` and one operation per tool (`operationId` = tool name,
   request body = the tool input). There is no HTTP server: `x-transport` says

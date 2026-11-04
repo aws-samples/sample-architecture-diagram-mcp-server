@@ -38,7 +38,18 @@ export function parseInline(str) {
     if (!p) continue;
     if (p.length > 1 && p[0] === "`" && p.endsWith("`")) { out.push({ type: "code", text: p.slice(1, -1) }); continue; }
     const link = p.match(/^\[([^[\]]+)\]\(([^()[\]\s]+)\)$/);
-    if (link) { const href = safeHref(link[2]); out.push(href ? { type: "link", text: link[1], href } : { type: "text", text: link[1] }); continue; }
+    if (link) {
+      // "![alt](src)" is an image: the page stays self-contained and never loads
+      // one, so say so instead of printing "!" + a link.
+      const prev = out[out.length - 1];
+      if (prev && prev.type === "text" && prev.text.endsWith("!")) {
+        prev.text = prev.text.slice(0, -1);
+        if (!prev.text) out.pop();
+        out.push({ type: "text", text: `[image not shown: ${link[1]}]` });
+        continue;
+      }
+      const href = safeHref(link[2]); out.push(href ? { type: "link", text: link[1], href } : { type: "text", text: link[1] }); continue;
+    }
     if (p.length > 4 && p.startsWith("**") && p.endsWith("**")) { out.push({ type: "strong", text: p.slice(2, -2) }); continue; }
     if (p.length > 4 && p.startsWith("__") && p.endsWith("__")) { out.push({ type: "strong2", text: p.slice(2, -2) }); continue; }
     if (p.length > 2 && ((p[0] === "*" && p.endsWith("*")) || (p[0] === "_" && p.endsWith("_")))) { out.push({ type: "em", text: p.slice(1, -1) }); continue; }
