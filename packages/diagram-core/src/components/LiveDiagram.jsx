@@ -29,6 +29,26 @@ import CustomEdge from "./CustomEdge.jsx";
 import StepCard from "./StepCard.jsx";
 import NodeModal from "./NodeModal.jsx";
 import ZoomBar from "./ZoomBar.jsx";
+
+// Responsive dock, applied around the ZoomBar (its own markup is unchanged):
+// never wider than the canvas (an embedded canvas, a tab panel, a phone) —
+// the items wrap onto a second row; under 1100px the title keeps one line;
+// under 720px the subtitle goes and the cost button shrinks to its icon/tag.
+export const DOCK_RESPONSIVE_CSS = `
+.ld-dock-host { display: contents; }
+.ld-dock-host > div { max-width: calc(100% - 24px) !important; flex-wrap: wrap !important; justify-content: center !important; row-gap: 6px; box-sizing: border-box; }
+@media (max-width: 1100px) {
+  .ld-dock-host > div > div[style*="0 0 300px"] { flex: 1 1 160px !important; max-width: 240px !important; }
+  .ld-dock-host > div > div[style*="0 0 300px"] > div:first-child { -webkit-line-clamp: 1 !important; }
+  .ld-dock-host > div > div[style*="0 0 300px"] > div + div { -webkit-line-clamp: 1 !important; }
+}
+@media (max-width: 720px) {
+  .ld-dock-host > div { padding: 8px 10px !important; gap: 4px !important; bottom: 12px !important; }
+  .ld-dock-host > div > div[style*="0 0 300px"] > div + div { display: none !important; }
+  .ld-dock-host [data-ld-cost-label] { display: none !important; }
+  .ld-dock-host [data-ld-cost="dock"] { max-width: 64px !important; }
+}
+`;
 import { safeHttpUrl } from "../inline.js";
 import { resolveCosts, costEnvs, initialCostEnv, dockCost, envFromHash, hashWithEnv } from "../costs.js";
 import DiagramCaption, { resolveCaption } from "./DiagramCaption.jsx";
@@ -794,6 +814,7 @@ export function LiveDiagram({
           {chrome && (
             <>
               {nodeModal && <NodeModal node={detailNode} onClose={() => setDetailNode(null)} Icon={Icon} strings={ui ? { iac: ui("iac", lang), pricing: ui("pricing", lang) } : undefined} sections={modalSections} lang={lang} env={costEnv} envs={costEnvList} />}
+              <div className="ld-dock-host"><style>{DOCK_RESPONSIVE_CSS}</style>
               <ZoomBar
                 title={tr(title, lang)} subtitle={tr(subtitle, lang)}
                 dark={effectiveDark} visible={dockVisible} onToggle={() => setDockVisible(v => !v)}
@@ -807,6 +828,7 @@ export function LiveDiagram({
                 costs={costsShown} costEnv={costEnv} costEnvs={costEnvList} onCostEnv={setCostEnv}
                 items={dockItems} branding={branding}
               />
+              </div>
             </>
           )}
         </div>
@@ -878,6 +900,7 @@ export function LiveDiagram({
         {chrome && !presenting && (
           <>
             {nodeModal && <NodeModal node={detailNode} onClose={() => setDetailNode(null)} Icon={Icon} strings={ui ? { iac: ui("iac", lang), pricing: ui("pricing", lang) } : undefined} sections={modalSections} lang={lang} env={costEnv} envs={costEnvList} />}
+            <div className="ld-dock-host"><style>{DOCK_RESPONSIVE_CSS}</style>
             <ZoomBar
               title={tr(title, lang)} subtitle={tr(subtitle, lang)}
               dark={effectiveDark} visible={dockVisible} onToggle={() => setDockVisible(v => !v)}
@@ -891,6 +914,7 @@ export function LiveDiagram({
               costs={costsShown} costEnv={costEnv} costEnvs={costEnvList} onCostEnv={setCostEnv}
                 items={dockItems} branding={branding}
             />
+            </div>
           </>
         )}
     </>
