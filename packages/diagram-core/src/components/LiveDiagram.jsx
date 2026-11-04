@@ -391,7 +391,7 @@ function StepFlow({ steps, activeStep, dark, lang, onPick }) {
 // CSS transform anchored to the pinned corner so positioning is unaffected.
 function StepOverlay({ steps, activeStep, lang, Icon, stepLayout, dark, onPick,
   expanded = false, cardScale = 1, onToggleExpand, expandLabel, collapseLabel,
-  onTextBigger, onTextSmaller, canTextBigger, canTextSmaller, textSmallerLabel, textLargerLabel, costLabel }) {
+  onTextBigger, onTextSmaller, canTextBigger, canTextSmaller, textSmallerLabel, textLargerLabel, costLabel, parts }) {
   if (!(Array.isArray(steps) && steps.length > 0 && activeStep >= 0)) return null;
   const step = steps[Math.min(activeStep, steps.length - 1)] || {};
   // Expand forces the full-page overlay; otherwise honour the step's own side.
@@ -401,7 +401,7 @@ function StepOverlay({ steps, activeStep, lang, Icon, stepLayout, dark, onPick,
     expandLabel={expandLabel} collapseLabel={collapseLabel}
     onTextBigger={onTextBigger} onTextSmaller={onTextSmaller}
     canTextBigger={canTextBigger} canTextSmaller={canTextSmaller}
-    textSmallerLabel={textSmallerLabel} textLargerLabel={textLargerLabel} costLabel={costLabel} />;
+    textSmallerLabel={textSmallerLabel} textLargerLabel={textLargerLabel} costLabel={costLabel} parts={parts} />;
 
   // Text-size scale (pinned layouts only — the full/expanded card is already large).
   const scale = expanded ? 1 : cardScale;
@@ -510,6 +510,10 @@ export function LiveDiagram({
   // showTitle=false hides the title/subtitle in the dock only (the share-card
   // PNG still uses them). Falls back to data.showTitle; default true.
   showTitle: showTitleProp = undefined,
+  // Layout (lib/layouts.js → data.layout): which components fill each slot, in
+  // order, with props — { dock?, stepCard?, nodeModal?, header?, branding? }.
+  // Omitted slots keep the built-in default.
+  layout: layoutProp = undefined,
   collapsible = false, defaultCollapsed = [], zoomOnScroll = false,
   nodeModal = true, startStep = -1, startCardScale = 0,
   // Zoom bounds/caps — forwarded to the canvas (see DiagramCanvas jsdoc).
@@ -533,6 +537,13 @@ export function LiveDiagram({
     : costStep?.costLabel;
   const costLabel = costLabelRaw != null ? tr(costLabelRaw, lang) : undefined;
   const showTitle = showTitleProp ?? (data?.showTitle !== false);
+  const layout = layoutProp ?? data?.layout;
+  const dockItems = layout?.dock;
+  const branding = layout?.branding;
+  const cardParts = layout?.stepCard;
+  const modalSections = layout?.nodeModal;
+  // header slot: an explicit list without "caption" turns the caption band off.
+  const showCaption = !Array.isArray(layout?.header) || layout.header.some(e => (typeof e === "string" ? e : e?.component)?.replace(/^header\./, "") === "caption");
   // startStep: which beat to open on. -1 (default) = show the whole-diagram
   // overview first; 0+ opens directly on that beat (so a wide diagram lands
   // already zoomed into a legible region instead of a tiny fit-all view).
@@ -755,14 +766,14 @@ export function LiveDiagram({
                     canTextBigger={chrome && cardScaleIdx < CARD_SCALES.length - 1}
                     canTextSmaller={chrome && cardScaleIdx > 0}
                     textSmallerLabel={ui ? ui("textSmaller", lang) : undefined} textLargerLabel={ui ? ui("textLarger", lang) : undefined}
-                    costLabel={ui ? ui("cost", lang) : undefined} />
+                    costLabel={ui ? ui("cost", lang) : undefined} parts={cardParts} />
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
           {chrome && (
             <>
-              {nodeModal && <NodeModal node={detailNode} onClose={() => setDetailNode(null)} Icon={Icon} strings={ui ? { iac: ui("iac", lang), pricing: ui("pricing", lang) } : undefined} />}
+              {nodeModal && <NodeModal node={detailNode} onClose={() => setDetailNode(null)} Icon={Icon} strings={ui ? { iac: ui("iac", lang), pricing: ui("pricing", lang) } : undefined} sections={modalSections} />}
               <ZoomBar
                 title={tr(title, lang)} subtitle={tr(subtitle, lang)}
                 dark={effectiveDark} visible={dockVisible} onToggle={() => setDockVisible(v => !v)}
@@ -773,6 +784,7 @@ export function LiveDiagram({
                 onReset={() => { setPlaying(false); setInternalStep(-1); }}
                 lang={lang} languages={languages} onLang={onLangChange} ui={ui} langLabel={langLabel}
                 costUrl={costUrl} costLabel={costLabel} showTitle={showTitle}
+                items={dockItems} branding={branding}
               />
             </>
           )}
@@ -785,7 +797,7 @@ export function LiveDiagram({
   // column — caption row, then canvas row — and every absolute overlay anchors to
   // the CANVAS area, so the dock/search/delta legend never land on top of the
   // text. Absent, the tree is exactly the classic single relative frame.
-  const cap = resolveCaption(caption, lang);
+  const cap = showCaption ? resolveCaption(caption, lang) : null;
   const body = (
     <>
         <DiagramCanvas
@@ -812,7 +824,7 @@ export function LiveDiagram({
           canTextBigger={chrome && !cardExpanded && cardScaleIdx < CARD_SCALES.length - 1}
           canTextSmaller={chrome && !cardExpanded && cardScaleIdx > 0}
           textSmallerLabel={ui ? ui("textSmaller", lang) : undefined} textLargerLabel={ui ? ui("textLarger", lang) : undefined}
-          costLabel={ui ? ui("cost", lang) : undefined} />
+          costLabel={ui ? ui("cost", lang) : undefined} parts={cardParts} />
         {/* External StepFlow pill removed — the navigation rail now lives inside
             the card (see StepCard), so the two elements read as one. */}
         {chrome && searchOpen && (
@@ -844,7 +856,7 @@ export function LiveDiagram({
         )}
         {chrome && !presenting && (
           <>
-            {nodeModal && <NodeModal node={detailNode} onClose={() => setDetailNode(null)} Icon={Icon} strings={ui ? { iac: ui("iac", lang), pricing: ui("pricing", lang) } : undefined} />}
+            {nodeModal && <NodeModal node={detailNode} onClose={() => setDetailNode(null)} Icon={Icon} strings={ui ? { iac: ui("iac", lang), pricing: ui("pricing", lang) } : undefined} sections={modalSections} />}
             <ZoomBar
               title={tr(title, lang)} subtitle={tr(subtitle, lang)}
               dark={effectiveDark} visible={dockVisible} onToggle={() => setDockVisible(v => !v)}
@@ -855,6 +867,7 @@ export function LiveDiagram({
               onReset={() => { setPlaying(false); setInternalStep(-1); }}
               lang={lang} languages={languages} onLang={onLangChange} ui={ui} langLabel={langLabel}
               costUrl={costUrl} costLabel={costLabel} showTitle={showTitle}
+                items={dockItems} branding={branding}
             />
           </>
         )}

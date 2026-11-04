@@ -42,8 +42,29 @@ interface Props {
     // Multi-view document: a tab rail + one panel per view (architecture / the
     // animated UML sequence / prose). Absent => classic single-canvas diagram.
     tabs?: any[];
+    // Cost estimate link (dock button) and the dock title switch.
+    costUrl?: string;
+    costLabel?: string | Record<string, string>;
+    showTitle?: boolean;
+    // Resolved layout (lib/layouts.js): components per slot + branding.
+    layout?: DiagramLayout;
   };
 }
+
+// One mounted component in a layout slot: an id, or { component, props }.
+type SlotEntry = string | { component: string; props?: Record<string, unknown> };
+interface DiagramLayout {
+  dock?: SlotEntry[];
+  stepCard?: SlotEntry[];
+  nodeModal?: SlotEntry[];
+  header?: SlotEntry[];
+  branding?: { logo?: string; name?: string };
+}
+
+const entryId = (e: SlotEntry): string => (typeof e === 'string' ? e : e.component);
+// A layout whose header slot omits "caption" turns the caption band off.
+const headerHasCaption = (layout?: DiagramLayout): boolean => !Array.isArray(layout?.header)
+  || layout.header.some((e) => entryId(e).replace(/^header\./, '') === 'caption');
 
 // MCP node look: horizontal card (icon left, label right), '--*' vars, arrow
 // marker id, and the LCA edge re-anchor OFF (this build ships elkjs that
@@ -135,9 +156,10 @@ export function StandaloneApp({ data }: Props) {
         flowDots={data.flowDots}
         title={data.title}
         subtitle={data.subtitle}
-        costUrl={(data as any).costUrl}
-        costLabel={(data as any).costLabel}
-        showTitle={(data as any).showTitle !== false}
+        costUrl={data.costUrl}
+        costLabel={data.costLabel}
+        showTitle={data.showTitle !== false}
+        layout={data.layout}
         // In a tabbed document the SHELL renders the caption above the rail, so
         // the band frames the whole document (arch + sequence + doc) instead of
         // only the architecture panel — and it doesn't remount on tab switch.
@@ -150,7 +172,8 @@ export function StandaloneApp({ data }: Props) {
         reanchorEdges={false}
         control="auto"
         chrome
-        nodeModal={false}
+        // The node modal stays off unless a layout fills its slot.
+        nodeModal={(data.layout?.nodeModal?.length ?? 0) > 0}
         theme="self"
         zoomOnScroll
         collapsible={(data as any).collapsible !== false}
@@ -166,12 +189,12 @@ export function StandaloneApp({ data }: Props) {
         <>
           <style>{TAB_STYLE}</style>
           <div className={`ld-frame ld-shell ${dark ? 'dark' : 'light'}`}>
-            {data.caption && <DiagramCaption caption={data.caption} lang={lang} />}
+            {data.caption && headerHasCaption(data.layout) && <DiagramCaption caption={data.caption} lang={lang} />}
             {/* The sidebar carries the document identity; when a caption band is
                 present it already says it, so don't print the title twice. */}
             <TabShell tabs={tabs} lang={lang} ui={uiResolver} ArchSlot={() => diagram}
-              title={data.caption ? undefined : data.title}
-              subtitle={data.caption ? undefined : data.subtitle} />
+              title={data.caption && headerHasCaption(data.layout) ? undefined : data.title}
+              subtitle={data.caption && headerHasCaption(data.layout) ? undefined : data.subtitle} />
           </div>
         </>
       ) : diagram}

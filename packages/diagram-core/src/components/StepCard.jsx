@@ -8,6 +8,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { TONE_META, resolveToneColor } from "../tones.js";
 import { tr } from "../i18n.js";
+import { getRegisteredComponent, normalizeSlotEntries } from "../componentRegistry.js";
 import { CardShell, CardHeader, Body, Bullets, Section, Chips, CodeBlock, NumberedSteps, CostLink } from "./cardKit.jsx";
 
 function resolveBullets(items, lang) {
@@ -16,8 +17,12 @@ function resolveBullets(items, lang) {
     : { ...b, text: tr(b.text, lang), strong: b.strong != null ? tr(b.strong, lang) : undefined });
 }
 
+// Card parts, in their default order (a layout's `stepCard` slot may pick,
+// reorder, give props to, or add registered custom parts).
+export const STEP_CARD_PARTS = ["title", "body", "bullets", "process", "code", "sections", "chips", "costPill"];
+
 export default function StepCard({ steps, activeStep, lang = "en", Icon, onPick, expanded = false, onToggleExpand, expandLabel = "Expandir", collapseLabel = "Recolher",
-  onTextBigger, onTextSmaller, canTextBigger = false, canTextSmaller = false, textSmallerLabel = "A−", textLargerLabel = "A+", costLabel: defaultCostLabel = "Cost estimate" }) {
+  onTextBigger, onTextSmaller, canTextBigger = false, canTextSmaller = false, textSmallerLabel = "A−", textLargerLabel = "A+", costLabel: defaultCostLabel = "Cost estimate", parts = undefined }) {
   const idx = Math.min(Math.max(activeStep, 0), steps.length - 1);
   const step = steps[idx] || {};
   const tone = step.tone || "accent";
@@ -117,22 +122,27 @@ export default function StepCard({ steps, activeStep, lang = "en", Icon, onPick,
 
           {/* eyebrow pill omitted here — the active beat in the header step-flow
               rail already shows it; showing it twice was redundant. */}
-          <CardHeader icon={step.icon} title={tr(step.title, lang)} color={color} big={isFull} Icon={Icon} />
-
-          {step.body && <Body big={isFull}>{tr(step.body, lang)}</Body>}
-          {step.bullets && <Bullets items={resolveBullets(step.bullets, lang)} color={color} Icon={Icon} />}
-          {step.process && <NumberedSteps items={step.process.map(p => typeof p === "string" ? { text: tr(p, lang) } : { ...p, label: tr(p.label, lang), text: tr(p.text, lang) })} color={color} Icon={Icon} />}
-          {step.code && <CodeBlock code={tr(step.code, lang)} label={step.codeLabel != null ? tr(step.codeLabel, lang) : undefined} color={color} />}
-
-          {Array.isArray(step.sections) && step.sections.map((sec, si) => (
-            <Section key={si} title={tr(sec.title, lang)} color={color}>
-              {sec.body && <Body>{tr(sec.body, lang)}</Body>}
-              {sec.bullets && <Bullets items={resolveBullets(sec.bullets, lang)} color={color} Icon={Icon} />}
-            </Section>
-          ))}
-
-          {chips && <Chips chips={chips} color={color} Icon={Icon} />}
-          {step.costUrl && <CostLink url={step.costUrl} label={step.costLabel != null ? tr(step.costLabel, lang) : defaultCostLabel} color={color} />}
+          {(normalizeSlotEntries(parts, "stepCard") || STEP_CARD_PARTS.map((key) => ({ component: key, key, props: {} }))).map(({ component, key, props }) => {
+            switch (key) {
+              case "title": return <CardHeader key="title" icon={step.icon} title={tr(step.title, lang)} color={color} big={isFull} Icon={Icon} />;
+              case "body": return step.body ? <Body key="body" big={isFull}>{tr(step.body, lang)}</Body> : null;
+              case "bullets": return step.bullets ? <Bullets key="bullets" items={resolveBullets(step.bullets, lang)} color={color} Icon={Icon} /> : null;
+              case "process": return step.process ? <NumberedSteps key="process" items={step.process.map(p => typeof p === "string" ? { text: tr(p, lang) } : { ...p, label: tr(p.label, lang), text: tr(p.text, lang) })} color={color} Icon={Icon} /> : null;
+              case "code": return step.code ? <CodeBlock key="code" code={tr(step.code, lang)} label={step.codeLabel != null ? tr(step.codeLabel, lang) : undefined} color={color} /> : null;
+              case "sections": return Array.isArray(step.sections) ? step.sections.map((sec, si) => (
+                <Section key={`sec-${si}`} title={tr(sec.title, lang)} color={color}>
+                  {sec.body && <Body>{tr(sec.body, lang)}</Body>}
+                  {sec.bullets && <Bullets items={resolveBullets(sec.bullets, lang)} color={color} Icon={Icon} />}
+                </Section>
+              )) : null;
+              case "chips": return chips ? <Chips key="chips" chips={chips} color={color} Icon={Icon} /> : null;
+              case "costPill": return step.costUrl ? <CostLink key="costPill" url={step.costUrl} label={step.costLabel != null ? tr(step.costLabel, lang) : (props.label != null ? tr(props.label, lang) : defaultCostLabel)} color={color} /> : null;
+              default: {
+                const Custom = getRegisteredComponent(component);
+                return Custom ? <Custom key={component} {...props} step={step} lang={lang} color={color} /> : null;
+              }
+            }
+          })}
         </motion.div>
       </AnimatePresence>
     </CardShell>

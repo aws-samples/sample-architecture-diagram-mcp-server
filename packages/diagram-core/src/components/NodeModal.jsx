@@ -6,6 +6,7 @@
 // passed in via `strings` so the host owns the i18n chrome table.
 import { AnimatePresence, motion } from "framer-motion";
 import { CardShell, CardHeader, Body, Section, KeyValues } from "./cardKit.jsx";
+import { getRegisteredComponent, normalizeSlotEntries } from "../componentRegistry.js";
 
 const CATEGORY_COLORS = {
   compute: "#ED7100", storage: "#7AA116", database: "#C925D1",
@@ -15,7 +16,11 @@ const CATEGORY_COLORS = {
 
 const rowsOf = (o) => o ? Object.entries(o).map(([k, v]) => [k, String(v)]) : [];
 
-export default function NodeModal({ node, onClose, Icon, strings }) {
+// Modal sections, in their default order (a layout's `nodeModal` slot may pick,
+// reorder or add registered custom sections).
+export const NODE_MODAL_SECTIONS = ["role", "iac", "pricing"];
+
+export default function NodeModal({ node, onClose, Icon, strings, sections = undefined }) {
   const iacLabel = strings?.iac ?? "Configuration (IaC)";
   const pricingLabel = strings?.pricing ?? "Cost / sizing";
   return (
@@ -40,9 +45,13 @@ export default function NodeModal({ node, onClose, Icon, strings }) {
               <CardShell color={color}>
                 <div className="flex flex-col gap-3">
                   <CardHeader icon={node.icon} eyebrow={node.category} title={node.label} color={color} trailing={closeBtn} Icon={Icon} />
-                  {node.role && <Body>{node.role}</Body>}
-                  {iac.length > 0 && <Section title={iacLabel} color={color}><KeyValues rows={iac} /></Section>}
-                  {pricing.length > 0 && <Section title={pricingLabel} color={color}><KeyValues rows={pricing} /></Section>}
+                  {(normalizeSlotEntries(sections, "nodeModal") || NODE_MODAL_SECTIONS.map((key) => ({ component: key, key, props: {} }))).map(({ component, key, props }) => {
+                    if (key === "role") return node.role ? <Body key="role">{node.role}</Body> : null;
+                    if (key === "iac") return iac.length > 0 ? <Section key="iac" title={props.title || iacLabel} color={color}><KeyValues rows={iac} /></Section> : null;
+                    if (key === "pricing") return pricing.length > 0 ? <Section key="pricing" title={props.title || pricingLabel} color={color}><KeyValues rows={pricing} /></Section> : null;
+                    const Custom = getRegisteredComponent(component);
+                    return Custom ? <Custom key={component} {...props} node={node} color={color} /> : null;
+                  })}
                 </div>
               </CardShell>
             </motion.div>

@@ -6,6 +6,7 @@
 import { useReactFlow, getNodesBounds, getViewportForBounds } from "@xyflow/react";
 import { useState, useEffect, useRef } from "react";
 import { AWS_ORANGE } from "../tones.js";
+import { getRegisteredComponent, normalizeSlotEntries } from "../componentRegistry.js";
 
 const noopUi = (k) => k;
 const defLangLabel = (l) => (l || "").toUpperCase();
@@ -170,12 +171,24 @@ function LangMenu({ lang, languages, onLang, langLabel, ui, btn, dark }) {
   );
 }
 
+// Dock items, in their default order. A layout may pick a subset, an order and
+// props (`layout.slots.dock` → data.layout.dock), and mount registered custom
+// components; ids without a renderer are skipped.
+export const DOCK_ITEMS = ["brand", "title", "zoom", "png", "shareCard", "walkthrough", "cost", "language", "theme"];
+// Items drawn as one cluster (no separator between them).
+const TOOL_ITEMS = new Set(["zoom", "png", "shareCard"]);
+// A logo is only ever an inlined image (data:image/...), never a remote URL.
+const safeLogo = (u) => (typeof u === "string" && /^data:image\/(png|jpeg|gif|webp|svg\+xml);base64,[A-Za-z0-9+/=]+$/.test(u) ? u : undefined);
+
 export default function ZoomBar({
   title, subtitle, dark, visible, onToggle, onTheme,
   hasWalk, playing, onPlay, onReset, attention = false,
   lang = "en", languages = [], onLang,
   ui = noopUi, langLabel = defLangLabel,
   costUrl = undefined, costLabel = undefined, showTitle = true,
+  // Layout: dock entries in order ("title" | "dock.title" | { component, props }),
+  // and an optional brand mark (inlined logo + product name). Default: DOCK_ITEMS.
+  items = undefined, branding = undefined,
 }) {
   const { zoomIn, zoomOut, fitView, getNodes } = useReactFlow();
 
@@ -196,7 +209,110 @@ export default function ZoomBar({
     background: "transparent", color: "var(--txt)", fontSize: 13, cursor: "pointer",
     display: "flex", alignItems: "center", justifyContent: "center", transition: "background .15s",
   };
-  const sep = <div style={{ width: 1, height: 20, background: "var(--border)", margin: "0 8px" }} />;
+  const sep = (k) => <div key={k} style={{ width: 1, height: 20, background: "var(--border)", margin: "0 8px" }} />;
+  const logo = safeLogo(branding?.logo);
+  const brandName = branding?.name;
+
+  // Each renderer returns the item's element(s), or null when it has nothing to show.
+  const render = {
+    brand: () => (logo || brandName) ? (
+      <div key="brand" style={{ display: "flex", alignItems: "center", gap: 8, marginRight: 4 }}>
+        {logo && <img src={logo} alt={brandName || ""} style={{ height: 22, width: "auto", display: "block" }} />}
+        {brandName && <span style={{ fontSize: 13, fontWeight: 700, color: "var(--txt)", whiteSpace: "nowrap" }}>{brandName}</span>}
+      </div>
+    ) : null,
+    title: (p) => (showTitle && title) ? (
+      /* Fixed-width text column: it used to get its width from the nowrap
+         subtitle, so once that wraps the flex item would collapse to min-content
+         and squeeze the title into a sliver. */
+      <div key="title" style={p.width ? { marginRight: 12, flex: `0 0 ${p.width}px`, maxWidth: p.width } : { marginRight: 12, flex: "0 0 300px", maxWidth: 300 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: "var(--txt)", lineHeight: 1.2, overflowWrap: "anywhere", display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{title}</div>
+        {/* The subtitle is a sentence, not a tag: it wraps (up to four lines)
+            instead of being clipped mid-word with an ellipsis. */}
+        {subtitle && <div style={{ fontSize: 10, color: "var(--txt-muted)", lineHeight: 1.35, overflowWrap: "anywhere", display: "-webkit-box", WebkitLineClamp: 4, WebkitBoxOrient: "vertical", overflow: "hidden", marginTop: 3 }}>{subtitle}</div>}
+      </div>
+    ) : null,
+    zoom: () => [
+      <button key="zoom-out" style={btn} onClick={() => zoomOut({ duration: 300 })}>
+        <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3M8 11h6"/></svg>
+      </button>,
+      <button key="zoom-fit" style={btn} onClick={() => fitView({ padding: 0.02, duration: 400 })}>
+        <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9m11.25-5.25v4.5m0-4.5h-4.5m4.5 0L15 9m-11.25 11.25v-4.5m0 4.5h4.5m-4.5 0L9 15m11.25 5.25v-4.5m0 4.5h-4.5m4.5 0L15 15"/></svg>
+      </button>,
+      <button key="zoom-in" style={btn} onClick={() => zoomIn({ duration: 300 })}>
+        <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3M11 8v6m-3-3h6"/></svg>
+      </button>,
+    ],
+    png: () => (
+      <button key="png" style={btn} title={ui("exportPng", lang)} onClick={() => exportDiagramPng(getNodes(), dark)}>
+        {/* download / save-as-image glyph */}
+        <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+      </button>
+    ),
+    shareCard: () => (
+      <button key="shareCard" style={btn} title={ui("shareCard", lang) === "shareCard" ? "Share card (1200×630 PNG)" : ui("shareCard", lang)}
+        onClick={() => exportShareCard(getNodes(), dark, title, subtitle)}>
+        {/* share-card glyph: framed image with a title bar */}
+        <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 15l4-4 4 4M14 13l2-2 5 5"/><line x1="7" y1="8" x2="7.01" y2="8"/></svg>
+      </button>
+    ),
+    walkthrough: () => hasWalk ? [
+      <button key="restart" style={btn} onClick={onReset} title={ui("restart", lang)}>
+        <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+      </button>,
+      <button key="play"
+        className={attention ? "ld-play-attention" : undefined}
+        style={playing
+          ? { ...btn, borderColor: AWS_ORANGE, color: AWS_ORANGE, background: "rgba(255,153,0,0.1)" }
+          : attention
+            ? { ...btn, borderColor: AWS_ORANGE, color: AWS_ORANGE, background: "rgba(255,153,0,0.12)" }
+            : btn}
+        onClick={onPlay} title={playing ? ui("pause", lang) : ui("play", lang)}>
+        {playing
+          ? <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/></svg>
+          : <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>}
+      </button>,
+    ] : null,
+    // Cost CTA: only a link to an external estimate (e.g. an AWS Pricing
+    // Calculator URL) — the diagram itself never prices anything.
+    cost: (p) => costUrl ? (
+      <a key="cost" href={costUrl} target="_blank" rel="noopener noreferrer" title={costLabel || p.label || ui("cost", lang)}
+        data-ld-cost="dock"
+        style={{ ...btn, textDecoration: "none", gap: 6, borderColor: "#FF990066", color: AWS_ORANGE, background: "rgba(255,153,0,0.1)", fontWeight: 700 }}>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="8" y1="17" x2="8" y2="12"/><line x1="12" y1="17" x2="12" y2="8"/><line x1="16" y1="17" x2="16" y2="14"/></svg>
+        {costLabel || p.label || ui("cost", lang)}
+      </a>
+    ) : null,
+    language: () => languages.length > 1
+      ? <LangMenu key="language" lang={lang} languages={languages} onLang={onLang} langLabel={langLabel} ui={ui} btn={btn} dark={dark} />
+      : null,
+    theme: () => <button key="theme" style={btn} onClick={onTheme} title={ui("theme", lang)}>{dark ? "☀" : "☾"}</button>,
+  };
+
+  // Lay the visible items out with a separator between clusters; the hide
+  // toggle (▼) always closes the dock so it can be reopened. A layout entry that
+  // is not built in mounts the registered custom component of that id.
+  const entries = normalizeSlotEntries(items, "dock") || DOCK_ITEMS.map((key) => ({ component: key, key, props: {} }));
+  const ctx = { title, subtitle, dark, lang, ui, hasWalk, playing, costUrl, costLabel, languages };
+  const out = [];
+  let prevTool = false;
+  const done = new Set();
+  for (const { component, key, props } of entries) {
+    if (done.has(component)) continue;
+    done.add(component);
+    let el;
+    if (render[key]) el = render[key](props);
+    else {
+      const Custom = getRegisteredComponent(component);
+      el = Custom ? <Custom key={component} {...props} ctx={ctx} /> : null;
+    }
+    if (el == null) continue;
+    const tool = TOOL_ITEMS.has(key);
+    if (out.length && !(tool && prevTool)) out.push(sep(`sep-${component}`));
+    out.push(...(Array.isArray(el) ? el : [el]));
+    prevTool = tool;
+  }
+  if (out.length) out.push(sep("sep-hide"));
 
   return (
     <div style={{
@@ -206,73 +322,7 @@ export default function ZoomBar({
       border: "1px solid var(--border)", borderRadius: 16, backdropFilter: "blur(12px)",
       boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
     }}>
-      {/* Fixed-width text column: it used to get its width from the nowrap
-          subtitle, so once that wraps the flex item would collapse to min-content
-          and squeeze the title into a sliver. */}
-      {showTitle && title && <div style={{ marginRight: 12, flex: "0 0 300px", maxWidth: 300 }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: "var(--txt)", lineHeight: 1.2, overflowWrap: "anywhere", display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{title}</div>
-        {/* The subtitle is a sentence, not a tag: a single nowrap line clipped with
-            an ellipsis cut it mid-word ("…corpora"). It wraps — and gets four
-            lines, because a flow summary ("Self-service no RHDH → AFT + Control
-            Tower → seed → account-customizations") does not fit in two and was
-            still ending in an "…". */}
-        {subtitle && <div style={{ fontSize: 10, color: "var(--txt-muted)", lineHeight: 1.35, overflowWrap: "anywhere", display: "-webkit-box", WebkitLineClamp: 4, WebkitBoxOrient: "vertical", overflow: "hidden", marginTop: 3 }}>{subtitle}</div>}
-      </div>}
-      {showTitle && title && sep}
-      <button style={btn} onClick={() => zoomOut({ duration: 300 })}>
-        <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3M8 11h6"/></svg>
-      </button>
-      <button style={btn} onClick={() => fitView({ padding: 0.02, duration: 400 })}>
-        <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9m11.25-5.25v4.5m0-4.5h-4.5m4.5 0L15 9m-11.25 11.25v-4.5m0 4.5h4.5m-4.5 0L9 15m11.25 5.25v-4.5m0 4.5h-4.5m4.5 0L15 15"/></svg>
-      </button>
-      <button style={btn} onClick={() => zoomIn({ duration: 300 })}>
-        <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3M11 8v6m-3-3h6"/></svg>
-      </button>
-      <button style={btn} title={ui("exportPng", lang)} onClick={() => exportDiagramPng(getNodes(), dark)}>
-        {/* download / save-as-image glyph */}
-        <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-      </button>
-      <button style={btn} title={ui("shareCard", lang) === "shareCard" ? "Share card (1200×630 PNG)" : ui("shareCard", lang)}
-        onClick={() => exportShareCard(getNodes(), dark, title, subtitle)}>
-        {/* share-card glyph: framed image with a title bar */}
-        <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 15l4-4 4 4M14 13l2-2 5 5"/><line x1="7" y1="8" x2="7.01" y2="8"/></svg>
-      </button>
-      {sep}
-      {hasWalk && <>
-        <button style={btn} onClick={onReset} title={ui("restart", lang)}>
-          <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
-        </button>
-        <button
-          className={attention ? "ld-play-attention" : undefined}
-          style={playing
-            ? { ...btn, borderColor: AWS_ORANGE, color: AWS_ORANGE, background: "rgba(255,153,0,0.1)" }
-            : attention
-              ? { ...btn, borderColor: AWS_ORANGE, color: AWS_ORANGE, background: "rgba(255,153,0,0.12)" }
-              : btn}
-          onClick={onPlay} title={playing ? ui("pause", lang) : ui("play", lang)}>
-          {playing
-            ? <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/></svg>
-            : <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>}
-        </button>
-        {sep}
-      </>}
-      {/* Cost CTA: only a link to an external estimate (e.g. an AWS Pricing
-          Calculator URL) — the diagram itself never prices anything. */}
-      {costUrl && <>
-        <a href={costUrl} target="_blank" rel="noopener noreferrer" title={costLabel || ui("cost", lang)}
-          data-ld-cost="dock"
-          style={{ ...btn, textDecoration: "none", gap: 6, borderColor: "#FF990066", color: "#FF9900", background: "rgba(255,153,0,0.1)", fontWeight: 700 }}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="8" y1="17" x2="8" y2="12"/><line x1="12" y1="17" x2="12" y2="8"/><line x1="16" y1="17" x2="16" y2="14"/></svg>
-          {costLabel || ui("cost", lang)}
-        </a>
-        {sep}
-      </>}
-      {languages.length > 1 && <>
-        <LangMenu lang={lang} languages={languages} onLang={onLang} langLabel={langLabel} ui={ui} btn={btn} dark={dark} />
-        {sep}
-      </>}
-      <button style={btn} onClick={onTheme} title={ui("theme", lang)}>{dark ? "☀" : "☾"}</button>
-      {sep}
+      {out}
       <button style={btn} onClick={onToggle}>▼</button>
     </div>
   );

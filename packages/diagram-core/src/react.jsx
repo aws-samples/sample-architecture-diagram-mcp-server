@@ -8,9 +8,10 @@ export { DARK_VARIANT_BASES } from "./darkVariants.js";
 export { default as AwsNode } from "./components/AwsNode.jsx";
 export { default as GroupNode } from "./components/GroupNode.jsx";
 export { default as CustomEdge } from "./components/CustomEdge.jsx";
-export { default as StepCard } from "./components/StepCard.jsx";
-export { default as NodeModal } from "./components/NodeModal.jsx";
-export { default as ZoomBar } from "./components/ZoomBar.jsx";
+export { default as StepCard, STEP_CARD_PARTS } from "./components/StepCard.jsx";
+export { default as NodeModal, NODE_MODAL_SECTIONS } from "./components/NodeModal.jsx";
+export { default as ZoomBar, DOCK_ITEMS } from "./components/ZoomBar.jsx";
+export { registerComponent, getRegisteredComponent, registeredComponentIds, normalizeSlotEntries } from "./componentRegistry.js";
 // Exported on its own too: in a TABBED document the shell renders the caption
 // above the tab rail (not inside the diagram frame), so it needs the component.
 export { DiagramCaption, resolveCaption } from "./components/DiagramCaption.jsx";
