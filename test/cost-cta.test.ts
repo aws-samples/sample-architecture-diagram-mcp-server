@@ -84,4 +84,18 @@ describe('rendered UI (SSR)', () => {
     expect(hidden).not.toContain('Dock sub');
     expect(hidden).not.toContain('data-ld-cost');
   });
+  it('ZoomBar: a long cost label stays on one line (nowrap + ellipsis, full text in the tooltip)', async () => {
+    const { ZoomBar } = await import('../packages/diagram-core/dist/react.js');
+    const { ReactFlowProvider } = await import('@xyflow/react');
+    const label = 'Estimativa Produção (On-Demand)';
+    const html = renderToString(React.createElement(ReactFlowProvider, null,
+      React.createElement(ZoomBar, { title: 'Dock title', visible: true, costUrl: URL_A, costLabel: label })));
+    const a = html.match(/<a[^>]*data-ld-cost="dock"[^>]*>/)![0];
+    expect(a).toMatch(/white-space:\s*nowrap/);
+    expect(a).toMatch(/max-width:\s*240px/);
+    expect(a).toContain(`title="${label}"`);
+    const span = html.match(/<span[^>]*data-ld-cost-label[^>]*>/)![0];
+    expect(span).toMatch(/text-overflow:\s*ellipsis/);
+    expect(span).toMatch(/white-space:\s*nowrap/);
+  });
 });
