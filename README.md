@@ -542,6 +542,15 @@ running version:
   the operation is carried by MCP, and `x-cli` gives the CLI command when one
   exists.
 
+## Running on Amazon Bedrock AgentCore Runtime
+
+`node mcp-server.js --http` serves the tools as a stateless streamable-HTTP MCP
+server on `127.0.0.1:8000` (`POST /mcp`); the `Dockerfile` builds the ARM64
+image AgentCore Runtime expects (`0.0.0.0:8000` inside the container, nothing
+published). The runtime authenticates every caller (IAM SigV4 or a JWT
+authorizer); tool results carry the written self-contained HTML as an embedded
+resource. Icons are not in the image. See [docs/agentcore.md](docs/agentcore.md).
+
 ## Development
 
 ```bash

@@ -1,0 +1,11 @@
+node_modules
+packages/*/node_modules
+test-results
+*.tgz
+.git
+**/.DS_Store
+# Icon sets are never baked into the image (AWS Architecture Icons Terms of Use;
+# third-party logos have their own terms). They are gitignored locally too.
+assets/aws-icons
+assets/icons
+assets/tech-icons

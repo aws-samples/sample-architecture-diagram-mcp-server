@@ -18,6 +18,17 @@ const { TOOLS, PKG, PKG_ROOT } = await import("./lib/tools.js");
 const { registerContracts } = await import("./lib/contracts.js");
 const { iconRoot, hasIcons, SHARED_ICON_ROOT } = await import("./lib/icon-root.js");
 
+// --http / MCP_TRANSPORT=http: stateless streamable HTTP on POST /mcp (Amazon
+// Bedrock AgentCore Runtime). Loopback unless MCP_HTTP_HOST says otherwise —
+// see lib/http-transport.js and docs/agentcore.md (the caller is authenticated
+// by AgentCore; this server has no auth of its own and is never published).
+const HTTP_MODE = process.argv.includes("--http") || process.env.MCP_TRANSPORT === "http";
+if (HTTP_MODE) {
+  const { startHttpServer } = await import("./lib/http-transport.js");
+  const { url } = await startHttpServer({ TOOLS, PKG, registerContracts });
+  console.error(`[aws-architecture-diagram] MCP streamable HTTP (stateless) on ${url}`);
+}
+
 const server = new McpServer({ name: PKG.name, version: PKG.version });
 for (const t of TOOLS) server.tool(t.name, t.description, t.shape, t.handler);
 registerContracts(server);
@@ -37,5 +48,7 @@ try {
   }
 } catch { /* best-effort hint only */ }
 
-const transport = new StdioServerTransport();
-await server.connect(transport);
+if (!HTTP_MODE) {
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+}
