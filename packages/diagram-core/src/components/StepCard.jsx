@@ -10,6 +10,8 @@ import { TONE_META, resolveToneColor } from "../tones.js";
 import { tr } from "../i18n.js";
 import { getRegisteredComponent, normalizeSlotEntries } from "../componentRegistry.js";
 import { CardShell, CardHeader, Body, Bullets, Section, Chips, CodeBlock, NumberedSteps, CostLink } from "./cardKit.jsx";
+import { CodeBlocks } from "./CodeBlocks.jsx";
+import { codeBlocksOf } from "../codeBlocks.js";
 
 function resolveBullets(items, lang) {
   if (!items) return undefined;
@@ -128,7 +130,13 @@ export default function StepCard({ steps, activeStep, lang = "en", Icon, onPick,
               case "body": return step.body ? <Body key="body" big={isFull}>{tr(step.body, lang)}</Body> : null;
               case "bullets": return step.bullets ? <Bullets key="bullets" items={resolveBullets(step.bullets, lang)} color={color} Icon={Icon} /> : null;
               case "process": return step.process ? <NumberedSteps key="process" items={step.process.map(p => typeof p === "string" ? { text: tr(p, lang) } : { ...p, label: tr(p.label, lang), text: tr(p.text, lang) })} color={color} Icon={Icon} /> : null;
-              case "code": return step.code ? <CodeBlock key="code" code={tr(step.code, lang)} label={step.codeLabel != null ? tr(step.codeLabel, lang) : undefined} color={color} /> : null;
+              case "code": {
+                // Several files (codeBlocks, or codeSplit: "markers") → collapsible
+                // blocks; a single `code` keeps the classic block exactly as before.
+                const blocks = codeBlocksOf(step, (v) => tr(v, lang), props);
+                if (blocks) return <CodeBlocks key="code" blocks={blocks} beatKey={step} color={color} lang={lang} showCopy={props.showCopy !== false} showLang={props.showLang !== false} />;
+                return step.code ? <CodeBlock key="code" code={tr(step.code, lang)} label={step.codeLabel != null ? tr(step.codeLabel, lang) : undefined} color={color} /> : null;
+              }
               case "sections": return Array.isArray(step.sections) ? step.sections.map((sec, si) => (
                 <Section key={`sec-${si}`} title={tr(sec.title, lang)} color={color}>
                   {sec.body && <Body>{tr(sec.body, lang)}</Body>}

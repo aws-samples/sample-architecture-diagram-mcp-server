@@ -77,6 +77,18 @@ export const sequenceDocSchema = {
           create: b('«create»: `to` starts at this step'), destroy: b('`to` ends here with an X'),
           found: b('Message from an unknown sender (boundary dot)'), lost: b('Message to an unknown receiver'),
           code: s('Code snippet under the narration'), codeLabel: s('Code header label'),
+          codeBlocks: {
+            type: 'array', maxItems: 20, description: 'Several files, each a collapsible block (header, copy, chevron)',
+            items: {
+              type: 'object', required: ['label', 'code'], additionalProperties: false,
+              properties: {
+                id: s(), label: s('File name or title on the block header'), lang: s('Language tag'), code: s('File content'),
+                collapsed: b('Start collapsed (default: only the first block is open)'),
+                maxLines: { type: 'integer', minimum: 3, maximum: 500, description: "Lines shown before 'Show more' (default 20)" },
+              },
+            },
+          },
+          codeSplit: e(['markers'], "Opt-in: split `code` at '===== name =====' lines into collapsible blocks"),
           ...narration,
         },
       },

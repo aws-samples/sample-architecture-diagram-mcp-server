@@ -382,7 +382,7 @@
     },
     "stepCard.code": {
       "title": "stepCard.code",
-      "description": "Code block (code + codeLabel).",
+      "description": "Code: one block (code + codeLabel) or several collapsible blocks (codeBlocks, or codeSplit: \"markers\") with per-block header, copy and chevron, expand/collapse all and 'Show more'.",
       "x-slot": "stepCard",
       "oneOf": [
         {
@@ -400,7 +400,31 @@
             },
             "props": {
               "type": "object",
-              "properties": {},
+              "properties": {
+                "defaultCollapsed": {
+                  "description": "Which blocks start collapsed when a block does not say: rest (default — first open), all, none.",
+                  "type": "string",
+                  "enum": [
+                    "rest",
+                    "all",
+                    "none"
+                  ]
+                },
+                "maxLines": {
+                  "description": "Lines shown before 'Show more' (default 20).",
+                  "type": "integer",
+                  "minimum": 3,
+                  "maximum": 500
+                },
+                "showCopy": {
+                  "description": "Per-block copy button (default true).",
+                  "type": "boolean"
+                },
+                "showLang": {
+                  "description": "Language tag on each block header (default true).",
+                  "type": "boolean"
+                }
+              },
               "additionalProperties": false
             }
           }

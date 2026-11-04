@@ -40,6 +40,10 @@ import { layoutSequence } from '../sequenceLayout.js';
 import { withServiceIcon } from '../icons.js';
 import { describeSequence, SR_ONLY_STYLE } from '../a11y.js';
 import * as cardKit from './cardKit.jsx';
+import { CodeBlocks } from "./CodeBlocks.jsx";
+import { codeBlocksOf } from "../codeBlocks.js";
+// Several files on one event (codeBlocks, or codeSplit: "markers") → collapsible blocks.
+const seqCodeBlocks = (e, lang) => codeBlocksOf(e, (v) => tr(v, lang));
 
 // Icon resolution is the host's (the MCP inlines data URIs, the deck serves a
 // library); the leaf components read it from here.
@@ -807,7 +811,9 @@ export function SequencePlayer({
         {e?.flow && <div className="flow">{tr(e.flow, lang)}</div>}
         {e?.desc && <div className="desc">{cardKit.mdInline(tr(e.desc, lang) || '')}</div>}
         {e?.proof && <div className="proof"><ProofLine proof={e.proof} /></div>}
-        {e?.code && (
+        {e && seqCodeBlocks(e, lang) ? (
+          <CodeBlocks blocks={seqCodeBlocks(e, lang)} beatKey={e} color="#334155" lang={lang} />
+        ) : e?.code && (
           <div className="codeblk">
             <div className="hd">{tr(e.codeLabel, lang) || 'code'}</div>
             <pre>{e.code}</pre>

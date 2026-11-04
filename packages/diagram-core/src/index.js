@@ -27,6 +27,8 @@ export * from "./schemas/index.js";
 export { describeArchitecture, describeSequence, SR_ONLY_STYLE } from "./a11y.js";
 // Inline mini-markdown grammar (tokens, escaped HTML) and the URL sanitizer. Pure.
 export { parseInline, inlineHtml, hasInlineMarkup, safeHref, safeHttpUrl } from "./inline.js";
+// Code blocks of a beat (codeBlocks / codeSplit: "markers"). Pure.
+export { codeBlocksOf, splitCodeByMarkers, DEFAULT_MAX_LINES as CODE_DEFAULT_MAX_LINES } from "./codeBlocks.js";
 // App-shell values: formulas over spec data + display formatting. Pure.
 export { evalExpr, formatValue, displayValue, textValue, exprRefs, OPS as APP_OPS, APP_GLYPH_NAMES } from "./appData.js";
 // NOTE: layoutEngine (elkLayout/compoundLayout) is NOT re-exported here — it

@@ -37,7 +37,7 @@ export function CodeBlock({ code, label, color }) {
   const c = color || "#475569";
   const [copied, setCopied] = useState(false);
   const copy = () => {
-    try { navigator.clipboard?.writeText(code); } catch { /* clipboard blocked (file://) — no-op */ }
+    try { navigator.clipboard?.writeText(code)?.catch?.(() => {}); } catch { /* clipboard blocked (file://) — no-op */ }
     setCopied(true); setTimeout(() => setCopied(false), 1400);
   };
   return (

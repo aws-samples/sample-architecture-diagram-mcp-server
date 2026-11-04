@@ -156,6 +156,56 @@
           "description": "Uppercase label on the code block header (e.g. 'handler.py', 'asl').",
           "type": "string"
         },
+        "codeBlocks": {
+          "description": "Several files on this event, each a collapsible block with its own header, copy button and chevron (the first open, the rest collapsed unless `collapsed` says otherwise). Use instead of code/codeLabel.",
+          "maxItems": 20,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "maxLength": 60
+              },
+              "label": {
+                "type": "string",
+                "maxLength": 120,
+                "description": "File name or title shown on the block header, e.g. 'eks.tf'."
+              },
+              "lang": {
+                "description": "Language tag on the header (default: from the label's extension).",
+                "type": "string",
+                "maxLength": 30
+              },
+              "code": {
+                "type": "string",
+                "description": "The file content (whitespace preserved)."
+              },
+              "collapsed": {
+                "description": "Start collapsed (default: only the first block starts open).",
+                "type": "boolean"
+              },
+              "maxLines": {
+                "description": "Lines shown before 'Show more' (default 20).",
+                "type": "integer",
+                "minimum": 3,
+                "maximum": 500
+              }
+            },
+            "required": [
+              "label",
+              "code"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "codeSplit": {
+          "description": "Opt-in: split `code` at '===== name =====' lines into collapsible blocks. Without it a single code string is never split.",
+          "type": "string",
+          "enum": [
+            "markers"
+          ]
+        },
         "kind": {
           "type": "string",
           "const": "message"

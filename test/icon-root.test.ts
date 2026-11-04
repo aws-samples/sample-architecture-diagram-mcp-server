@@ -86,7 +86,9 @@ describe('iconRoot', () => {
   });
 });
 
-describe('fetch-icons.sh', () => {
+// The script shells out (find, unzip, cp); under a busy test run it can take
+// well over vitest's 5 s default, so give it room instead of flaking.
+describe('fetch-icons.sh', { timeout: 60000 }, () => {
   it('prints download steps (naming the shared cache) when no zip exists anywhere', () => {
     const out = execFileSync('bash', [SCRIPT, '--dest', join(tmp, 'dest')], {
       encoding: 'utf-8',

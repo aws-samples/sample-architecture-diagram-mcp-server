@@ -225,6 +225,81 @@
               }
             ]
           },
+          "codeBlocks": {
+            "description": "Several files on this beat, each a collapsible block with its own header (label + language), copy button and chevron, plus expand/collapse all; long blocks show the first maxLines with 'Show more'. Default: the first block open, the rest collapsed. Use instead of code/codeLabel.",
+            "maxItems": 20,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "maxLength": 60
+                },
+                "label": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  ],
+                  "description": "File name or title on the block header, e.g. 'eks.tf'."
+                },
+                "lang": {
+                  "description": "Language tag on the header (default: from the label's extension).",
+                  "type": "string",
+                  "maxLength": 30
+                },
+                "code": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  ],
+                  "description": "The file content (whitespace preserved)."
+                },
+                "collapsed": {
+                  "description": "Start collapsed (default: only the first block starts open).",
+                  "type": "boolean"
+                },
+                "maxLines": {
+                  "description": "Lines shown before 'Show more' (default 20, or the layout's stepCard.code maxLines).",
+                  "type": "integer",
+                  "minimum": 3,
+                  "maximum": 500
+                }
+              },
+              "required": [
+                "label",
+                "code"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "codeSplit": {
+            "description": "Opt-in for existing specs: split `code` at '===== name =====' lines into collapsible blocks. Without it a single code string is never split (unchanged behavior).",
+            "type": "string",
+            "enum": [
+              "markers"
+            ]
+          },
           "badge": {
             "description": "Override the tone badge label; false hides it (recommended for architecture walkthroughs — the eyebrow already labels the beat).",
             "anyOf": [
