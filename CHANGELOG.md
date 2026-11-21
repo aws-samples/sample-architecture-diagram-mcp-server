@@ -2,7 +2,7 @@
 
 All notable changes to the AWS Architecture Diagram MCP server are documented here.
 
-## [Unreleased]
+## [2.4.0] — 2026-11-21
 
 - **The server is TypeScript, in a hexagonal layout** (`server/`: domain →
   application use cases → inbound/outbound adapters → composition roots; strict
