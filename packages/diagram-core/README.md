@@ -8,7 +8,7 @@ self-contained HTML and in any app that embeds it.
 Install a pinned build from a GitHub Release (attached by the release workflow):
 
 ```bash
-npm install https://github.com/aws-samples/sample-architecture-diagram-mcp-server/releases/download/v2.3.0/aws-sample-live-diagram-core-1.6.0.tgz
+npm install https://github.com/aws-samples/sample-architecture-diagram-mcp-server/releases/download/v2.4.0/aws-sample-live-diagram-core-1.7.0.tgz
 ```
 
 ## Entry points

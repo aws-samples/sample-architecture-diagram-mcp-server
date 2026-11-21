@@ -3,7 +3,7 @@ openapi: "3.1.0"
 jsonSchemaDialect: "https://json-schema.org/draft/2020-12/schema"
 info:
   title: "AWS architecture diagram MCP server — contracts"
-  version: "2.3.0"
+  version: "2.4.0"
   description: "Contracts of the sample-architecture-diagram-mcp-server: the diagram, sequence, flow, typed-diagram, layout and component schemas, and one operation per MCP tool (operationId = tool name, requestBody = the tool input as announced in tools/list). There is NO HTTP server: the operations are carried by MCP over stdio (x-transport: mcp) and, where x-cli is given, by the CLI of the same package (x-transport: cli). Paths are nominal."
   license:
     name: "MIT-0"
