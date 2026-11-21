@@ -3,9 +3,9 @@
 // ─── Typed diagram: tree ───
 // Hierarchy / org chart. Flat node list where each node points at its parent;
 // exactly one node has no parent (the root). Top-down (TB) or left-right (LR).
-import type { JsonSchema } from '#core/schemas/jsonSchema.ts'
+import type { JsonSchema } from '#core/domain/schemas/jsonSchema.ts'
 import type { TypedDiagramSpec, TypedDocBase } from './validate.ts'
-import type { DiagramTone } from '#core/tones.ts'
+import type { DiagramTone } from '#core/domain/tones.ts'
 const tone: JsonSchema = { type: 'string', enum: ['accent', 'info', 'success', 'warn', 'danger', 'neutral', 'purple', 'teal', 'pink'], description: 'Cor do nó (padrão: cor do ramo)' }
 
 export interface TreeNode {

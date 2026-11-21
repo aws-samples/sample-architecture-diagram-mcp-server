@@ -3,9 +3,9 @@
 // ─── Typed diagram: er (entity-relationship / database schema) ───
 // Tables (entities) with typed columns (PK/FK markers) and relationships drawn
 // with crow's-foot notation at each end. Layout via dagre (LR or TB).
-import type { JsonSchema } from '#core/schemas/jsonSchema.ts'
+import type { JsonSchema } from '#core/domain/schemas/jsonSchema.ts'
 import type { TypedDiagramSpec, TypedDocBase } from './validate.ts'
-import type { DiagramTone } from '#core/tones.ts'
+import type { DiagramTone } from '#core/domain/tones.ts'
 const tone: JsonSchema = { type: 'string', enum: ['accent', 'info', 'success', 'warn', 'danger', 'neutral', 'purple', 'teal', 'pink'] }
 const card: JsonSchema = { type: 'string', enum: ['1', '0..1', '1..*', '0..*'] }
 

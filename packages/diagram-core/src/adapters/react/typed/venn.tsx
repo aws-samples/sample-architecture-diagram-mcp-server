@@ -8,7 +8,7 @@
 // Reveal: sets one by one (circle + exclusive area), then intersections.
 import { DiagramSvg, toneColor, paletteColor, wrapText, textW } from './DiagramSvg.tsx'
 import type { TypedDocBase, TypedViewProps } from './DiagramSvg.tsx'
-import { describeTypedDiagram } from '#core/typed/index.ts'
+import { describeTypedDiagram } from '#core/domain/typed/index.ts'
 
 const FS = 13, LH = 16, LABEL_FS = 17, PAD = 28
 

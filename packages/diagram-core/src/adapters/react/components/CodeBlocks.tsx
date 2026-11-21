@@ -10,8 +10,9 @@
 // Plain CSS with own class names (no utility scan), so the same component works
 // in the architecture page and in the standalone sequence player.
 import { useId, useState } from "react";
+import { useCoreHost } from "#core/adapters/react/host.tsx";
 import type { CSSProperties } from "react";
-import type { CodeBlock } from "#core/codeBlocks.ts";
+import type { CodeBlock } from "#core/domain/codeBlocks.ts";
 
 interface BeatMemory { open: Set<string>; more: Set<string> }
 
@@ -57,6 +58,7 @@ export interface CodeBlocksProps {
 }
 
 export function CodeBlocks({ blocks, beatKey, color = "#475569", lang = "en", showCopy = true, showLang = true }: CodeBlocksProps) {
+  const { clipboard } = useCoreHost();
   const t = uiFor(lang);
   const uid = useId();
   const mem = memoryOf(beatKey, blocks ?? []);
@@ -69,8 +71,8 @@ export function CodeBlocks({ blocks, beatKey, color = "#475569", lang = "en", sh
   const toggleMore = (id: string) => setMore((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); save(open, n); return n; });
   const all = (on: boolean) => { const n = new Set(on ? blocks.map((b) => b.id) : []); save(n, more); setOpen(n); };
   const copy = (b: CodeBlock) => {
-    // Clipboard is often blocked under file:// — swallow both the throw and the rejection.
-    try { navigator.clipboard?.writeText(b.code)?.catch?.(() => {}); } catch { /* no-op */ }
+    // Clipboard is often blocked under file:// — the Clipboard port swallows it.
+    clipboard.writeText(b.code);
     setCopied(b.id); setTimeout(() => setCopied((c) => (c === b.id ? null : c)), 1400);
   };
   const allOpen = blocks.every((b) => open.has(b.id));

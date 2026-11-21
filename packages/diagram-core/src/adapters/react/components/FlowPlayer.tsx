@@ -17,14 +17,15 @@
 // overview, nothing dimmed). Without `activeStep` the component keeps its own
 // step and, with `controls`, shows the prev/next pill. The host (a deck's reveal
 // store, a page) drives it the same way the HTML player's buttons do.
+import { stepBy } from "#core/application/walkthrough.ts";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, PointerEvent as ReactPointerEvent, ReactElement, RefObject } from "react";
-import { layoutFlow, flowActiveSet, flowFrame } from "#core/flowLayout.ts";
-import { withServiceIcon } from "#core/icons.ts";
-import { inlineHtml } from "#core/inline.ts";
-import { PLAYER_TONES, AWS_ORANGE } from "#core/tones.ts";
-import { playerThemeCss } from "#core/playerTheme.ts";
-import type { FlowFrame, FlowLayoutEdge, FlowLayoutNode, FlowNodeBox } from "#core/flowLayout.ts";
+import { layoutFlow, flowActiveSet, flowFrame } from "#core/domain/flowLayout.ts";
+import { withServiceIcon } from "#core/domain/icons.ts";
+import { inlineHtml } from "#core/domain/inline.ts";
+import { PLAYER_TONES, AWS_ORANGE } from "#core/domain/tones.ts";
+import { playerThemeCss } from "#core/domain/playerTheme.ts";
+import type { FlowFrame, FlowLayoutEdge, FlowLayoutNode, FlowNodeBox } from "#core/domain/flowLayout.ts";
 
 // ── Flow document (the input of the MCP's generate_<type>_diagram) ──────────
 export type FlowType = "workflow" | "dataflow" | "lifecycle";
@@ -278,7 +279,7 @@ export function FlowPlayer({
   const activeE = step ? new Set<string | undefined>(step.edges || []) : null;
   const go = (d: number) => {
     if (!HAS_STEPS) return;
-    const next = Math.max(0, Math.min(STEPS.length - 1, (idx ?? -1) + d));
+    const next = stepBy(idx ?? -1, d, 0, STEPS.length - 1);
     if (!controlled) setOwn(next);
     onStepChange?.(next);
   };

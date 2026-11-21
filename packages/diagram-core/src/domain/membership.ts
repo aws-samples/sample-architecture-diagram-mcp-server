@@ -1,6 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
-import type { ArchService, ArchGroup } from "#core/schemas/architecture.ts";
+import type { ArchService, ArchGroup } from "#core/domain/schemas/architecture.ts";
 
 /** A resolved group (container) — explicit groups keep their header-badge fields. */
 export interface ResolvedGroup {

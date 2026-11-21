@@ -6,7 +6,7 @@
 // Reveal: bottom → top (foundation first); rails on the final step.
 import { DiagramSvg, toneColor, paletteColor, wrapText, textW } from './DiagramSvg.tsx'
 import type { TypedDocBase, TypedViewProps } from './DiagramSvg.tsx'
-import { describeTypedDiagram } from '#core/typed/index.ts'
+import { describeTypedDiagram } from '#core/domain/typed/index.ts'
 
 const W0 = 1040, PAD = 20, LABEL_W = 230, BAND_GAP = 10, BAND_PAD = 16
 const CHIP_H = 30, CHIP_GAP = 8, CHIP_FS = 13, RAIL_W = 54, RAIL_GAP = 10

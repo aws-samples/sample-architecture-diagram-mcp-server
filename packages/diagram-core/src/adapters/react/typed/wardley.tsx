@@ -9,7 +9,7 @@
 import type { CSSProperties } from 'react'
 import { DiagramSvg, toneColor, textW, wrapText, useSvgIds } from './DiagramSvg.tsx'
 import type { TypedDocBase, TypedViewProps } from './DiagramSvg.tsx'
-import { describeTypedDiagram } from '#core/typed/index.ts'
+import { describeTypedDiagram } from '#core/domain/typed/index.ts'
 
 const W = 1120, H = 780, M = { l: 86, r: 30, t: 30, b: 84 }
 const STAGES = [0, 0.17, 0.4, 0.7, 1]

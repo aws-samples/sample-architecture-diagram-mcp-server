@@ -3,9 +3,9 @@
 // ─── Typed diagram: quadrant (2×2 matrix) ───
 // Reference implementation of the typed-diagram contract (README.md).
 // Items positioned on two 0–100 axes (e.g. impact × effort, Gartner-style).
-import type { JsonSchema } from '#core/schemas/jsonSchema.ts'
+import type { JsonSchema } from '#core/domain/schemas/jsonSchema.ts'
 import type { TypedDiagramSpec, TypedDocBase } from './validate.ts'
-import type { PlayerTone } from '#core/tones.ts'
+import type { PlayerTone } from '#core/domain/tones.ts'
 const tone: JsonSchema = { type: 'string', enum: ['accent', 'info', 'success', 'warn', 'danger', 'neutral'] }
 
 export interface QuadrantAxis {

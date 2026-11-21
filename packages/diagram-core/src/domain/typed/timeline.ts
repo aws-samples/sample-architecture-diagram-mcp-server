@@ -4,9 +4,9 @@
 // Chronological events on an axis. Horizontal (cards alternate above/below the
 // axis) or vertical (cards alternate left/right). `date` is a free label
 // ('2024', '2024-03', 'T1/2025') — events are drawn in array order.
-import type { JsonSchema } from '#core/schemas/jsonSchema.ts'
+import type { JsonSchema } from '#core/domain/schemas/jsonSchema.ts'
 import type { TypedDiagramSpec, TypedDocBase } from './validate.ts'
-import type { DiagramTone } from '#core/tones.ts'
+import type { DiagramTone } from '#core/domain/tones.ts'
 const tone: JsonSchema = { type: 'string', enum: ['accent', 'info', 'success', 'warn', 'danger', 'neutral', 'purple', 'teal', 'pink'], description: 'Cor semântica do evento' }
 
 export interface TimelineEvent {

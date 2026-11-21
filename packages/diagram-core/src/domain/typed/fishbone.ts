@@ -4,7 +4,7 @@
 // A problem (the fish head, right) and 4–6 cause categories as bones that
 // alternate above/below the spine. Each category lists causes; a cause is a
 // plain string or { label, sub[] } with sub-causes. One category per step.
-import type { JsonSchema } from '#core/schemas/jsonSchema.ts'
+import type { JsonSchema } from '#core/domain/schemas/jsonSchema.ts'
 import type { TypedDiagramSpec, TypedDocBase } from './validate.ts'
 const cause: JsonSchema = {
   anyOf: [

@@ -3,7 +3,7 @@
 // ─── Typed diagram: journey (user journey / story map) ───
 // Stages (columns, left→right) with step cards, an emotion curve across the
 // steps (-2 very negative … +2 very positive) and pain / opportunity chips.
-import type { JsonSchema } from '#core/schemas/jsonSchema.ts'
+import type { JsonSchema } from '#core/domain/schemas/jsonSchema.ts'
 import type { TypedDiagramSpec, TypedDocBase } from './validate.ts'
 const str = (description: string): JsonSchema => ({ type: 'string', description })
 

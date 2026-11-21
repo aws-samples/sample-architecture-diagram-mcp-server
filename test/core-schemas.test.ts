@@ -8,7 +8,7 @@ import { z } from 'zod';
 import * as seqZ from '#domain/schemas/sequence.ts';
 import * as archZ from '#domain/schemas/architecture.ts';
 // @ts-expect-error — plain JS module, no types
-import { sequenceDocSchema, diagramSchema, validateSequence, validateDiagram } from '#core-src/schemas/index.ts';
+import { sequenceDocSchema, diagramSchema, validateSequence, validateDiagram } from '#core-src/domain/schemas/index.ts';
 
 const json = (s: unknown) => z.toJSONSchema(s as z.ZodType, { io: 'input', unrepresentable: 'any' }) as any;
 const keys = (o: any) => Object.keys(o?.properties || {}).sort();

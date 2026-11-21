@@ -10,10 +10,11 @@
 // with the host's resolveAsset/iconBase) passed via the `Icon` prop on the
 // pieces that render one (IconTile / CardHeader / Bullets / Chips).
 import { useState } from "react";
+import { useCoreHost } from "#core/adapters/react/host.tsx";
 import type { ReactNode } from "react";
-import type { IconComponent } from "#core/Icon.tsx";
-import { resolveVariant } from "#core/groupVariants.ts";
-import { parseInline, safeHttpUrl } from "#core/inline.ts";
+import type { IconComponent } from "#core/adapters/react/Icon.tsx";
+import { resolveVariant } from "#core/domain/groupVariants.ts";
+import { parseInline, safeHttpUrl } from "#core/domain/inline.ts";
 
 // Inline mini-markdown for card text — the shared grammar (../inline.js:
 // **bold**, __bold__, `code`, *italic* / _italic_, [label](url) through
@@ -41,11 +42,12 @@ export interface CodeBlockProps {
 }
 
 export function CodeBlock({ code, label, color }: CodeBlockProps) {
+  const { clipboard } = useCoreHost();
   if (!code) return null;
   const c = color || "#475569";
   const [copied, setCopied] = useState(false);
   const copy = () => {
-    try { navigator.clipboard?.writeText(code)?.catch?.(() => {}); } catch { /* clipboard blocked (file://) — no-op */ }
+    clipboard.writeText(code); // a blocked clipboard (file://) is a no-op
     setCopied(true); setTimeout(() => setCopied(false), 1400);
   };
   return (

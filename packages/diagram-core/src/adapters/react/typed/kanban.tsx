@@ -6,7 +6,7 @@
 // owner initials avatar and a "Bloqueado" indicator. Steps reveal columns.
 import { DiagramSvg, toneColor, paletteColor, textW, wrapText } from './DiagramSvg.tsx'
 import type { TypedDocBase, TypedViewProps } from './DiagramSvg.tsx'
-import { describeTypedDiagram, getDiagramType } from '#core/typed/index.ts'
+import { describeTypedDiagram, getDiagramType } from '#core/domain/typed/index.ts'
 
 const COLW = 252, GAP = 16, M = 20, CPAD = 10, CARD_GAP = 10, TL = 17
 

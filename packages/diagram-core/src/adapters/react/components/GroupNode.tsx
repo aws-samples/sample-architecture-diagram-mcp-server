@@ -10,8 +10,8 @@ import { memo } from "react";
 import type { CSSProperties, HTMLAttributes, MouseEvent } from "react";
 import { NodeResizer } from "@xyflow/react";
 import type { Node, NodeProps } from "@xyflow/react";
-import { resolveVariant } from "#core/groupVariants.ts";
-import type { IconComponent } from "#core/Icon.tsx";
+import { resolveVariant } from "#core/domain/groupVariants.ts";
+import type { IconComponent } from "#core/adapters/react/Icon.tsx";
 
 /** `data` of a group/container node (React Flow node type "group"). */
 export interface GroupNodeData extends Record<string, unknown> {

@@ -13,7 +13,7 @@
 import { memo } from "react";
 import { BaseEdge, EdgeLabelRenderer, getSmoothStepPath, getStraightPath } from "@xyflow/react";
 import type { Edge, EdgeProps } from "@xyflow/react";
-import { TONE_COLORS, AWS_ORANGE } from "#core/tones.ts";
+import { TONE_COLORS, AWS_ORANGE } from "#core/domain/tones.ts";
 
 export interface EdgePoint { x: number; y: number }
 

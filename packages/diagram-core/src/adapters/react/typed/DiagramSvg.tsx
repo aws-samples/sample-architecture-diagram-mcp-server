@@ -20,7 +20,7 @@ import type { CSSProperties, ReactNode } from 'react'
 export type TypedFit = 'width' | 'contain'
 
 // One document base for the specs and the views (typed/validate.ts).
-import type { TypedDocBase } from '#core/typed/validate.ts'
+import type { TypedDocBase } from '#core/domain/typed/validate.ts'
 export type { TypedDocBase }
 
 /** Props contract of every typed view (see quadrant.tsx). */
@@ -36,9 +36,9 @@ export type TypedTone = string
 
 // Semantic tones = the core's diagram palette (the same hues the MCP's flow and
 // sequence players draw with).
-export { DIAGRAM_TONES as TONE_HEX } from '#core/tones.ts'
+export { DIAGRAM_TONES as TONE_HEX } from '#core/domain/tones.ts'
 // A tone name (or a raw #hex) → color; falls back to `fallback`.
-export { diagramToneColor as toneColor } from '#core/tones.ts'
+export { diagramToneColor as toneColor } from '#core/domain/tones.ts'
 // Categorical palette for series/lanes/columns (index → color).
 export const PALETTE = ['#2f6fed', '#ff9900', '#1a7f37', '#8c4fff', '#11a5c3', '#dd344c', '#b7791f', '#5f6b7a']
 export const paletteColor = (i: number): string => PALETTE[i % PALETTE.length]

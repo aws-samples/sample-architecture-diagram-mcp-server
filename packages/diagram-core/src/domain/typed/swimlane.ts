@@ -4,9 +4,9 @@
 // Process across lanes (BPMN-lite): horizontal lanes (actors/systems) stacked
 // vertically, steps placed in a lane at a column (order position, left→right),
 // and flows between steps (orthogonal arrows, incl. lane changes and loops).
-import type { JsonSchema } from '#core/schemas/jsonSchema.ts'
+import type { JsonSchema } from '#core/domain/schemas/jsonSchema.ts'
 import type { TypedDiagramSpec, TypedDocBase } from './validate.ts'
-import type { DiagramTone } from '#core/tones.ts'
+import type { DiagramTone } from '#core/domain/tones.ts'
 const tone: JsonSchema = { type: 'string', enum: ['accent', 'info', 'success', 'warn', 'danger', 'neutral', 'purple', 'teal', 'pink'], description: 'Cor da raia (padrão: paleta)' }
 
 export interface SwimlaneLane {

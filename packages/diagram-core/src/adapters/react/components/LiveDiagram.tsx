@@ -55,28 +55,31 @@ html[data-ld-title-restore][data-ld-title-hidden~="dock"] .ld-dock-host > div:ho
   .ld-dock-host [data-ld-cost="dock"] { max-width: 64px !important; }
 }
 `;
-import { safeHttpUrl } from "#core/inline.ts";
-import { resolveCosts, costEnvs, initialCostEnv, dockCost, envFromHash, hashWithEnv } from "#core/costs.ts";
+import { safeHttpUrl } from "#core/domain/inline.ts";
+import { resolveCosts, costEnvs, dockCost } from "#core/domain/costs.ts";
+import { createCostEnvLink } from "#core/application/costEnv.ts";
+import { initialWalkStep, reduceWalkStep, walkKey, autoplayTick, WALK_AUTOPLAY_MS } from "#core/application/walkthrough.ts";
+import type { WalkAction } from "#core/application/walkthrough.ts";
 import DiagramCaption, { resolveCaption } from "./DiagramCaption.tsx";
-import { TONE_COLORS, resolveToneColor, AWS_ORANGE } from "#core/tones.ts";
-import { tr, trAll } from "#core/i18n.ts";
-import { resolveGroupsAndMembership } from "#core/membership.ts";
-import { DEFAULT_GEOMETRY } from "#core/layout.ts";
-import { layoutWithFallback } from "#core/layoutEngine.ts";
-import { buildServiceNode, buildBaseEdge } from "#core/diagramModel.ts";
-import { describeArchitecture, SR_ONLY_STYLE } from "#core/a11y.ts";
+import { TONE_COLORS, resolveToneColor, AWS_ORANGE } from "#core/domain/tones.ts";
+import { tr, trAll } from "#core/domain/i18n.ts";
+import { resolveGroupsAndMembership } from "#core/domain/membership.ts";
+import { DEFAULT_GEOMETRY } from "#core/domain/layout.ts";
+import { useCompoundLayout, useCoreHost } from "#core/adapters/react/host.tsx";
+import { buildServiceNode, buildBaseEdge } from "#core/domain/diagramModel.ts";
+import { describeArchitecture, SR_ONLY_STYLE } from "#core/domain/a11y.ts";
 import type { CSSProperties, MouseEvent as ReactMouseEvent } from "react";
 import type { FitViewOptions, Node } from "@xyflow/react";
-import type { I18nText } from "#core/i18n.ts";
-import type { ArchConnection, ArchGroup, ArchService } from "#core/schemas/architecture.ts";
-import type { GroupLayoutNode, Positioned } from "#core/layoutEngine.ts";
-import type { IconComponent } from "#core/Icon.tsx";
+import type { I18nText } from "#core/domain/i18n.ts";
+import type { ArchConnection, ArchGroup, ArchService } from "#core/domain/schemas/architecture.ts";
+import type { GroupLayoutNode, Positioned } from "#core/domain/compoundLayout.ts";
+import type { IconComponent } from "#core/adapters/react/Icon.tsx";
 import type { AwsNodeData, AwsNodeVars } from "./AwsNode.tsx";
 import type { GroupNodeData } from "./GroupNode.tsx";
 import type { CustomEdgeData, CustomFlowEdge, EdgePoint } from "./CustomEdge.tsx";
 import type { CostList, WalkthroughStep } from "./StepCard.tsx";
 import type { NodeModalNode } from "./NodeModal.tsx";
-import type { SlotEntryInput } from "#core/componentRegistry.ts";
+import type { SlotEntryInput } from "#core/application/componentRegistry.ts";
 import type { DockBranding, DockUiKey } from "./ZoomBar.tsx";
 
 /** The chrome strings the diagram asks for (the dock's plus the step card / node modal ones). */
@@ -223,6 +226,7 @@ function DiagramCanvas({
   deltaView = null, cardTrack = false,
 }: DiagramCanvasProps) {
   const { fitView } = useReactFlow();
+  const { layoutWithFallback } = useCompoundLayout();
   // The attached/below layouts resize the canvas when the step card track opens
   // or closes; refit then, or the framing stays sized for the old box and the
   // focused nodes end up clipped at the edge.
@@ -298,7 +302,7 @@ function DiagramCanvas({
       direction, geometry: geom, spacing, groups, reanchorEdges, groupsInteractive, collapsed,
     }).then(({ nodes, edgePaths }) => { if (alive) { setBaseNodes(decorateBase(nodes)); setEdgePaths(edgePaths || {}); } });
     return () => { alive = false; };
-  }, [serviceNodes, baseEdges, membership, direction, spacing, groups, reanchorEdges, groupsInteractive, decorateBase, collapsed]);
+  }, [serviceNodes, baseEdges, membership, direction, spacing, groups, reanchorEdges, groupsInteractive, decorateBase, collapsed, layoutWithFallback]);
 
   const visibleIds = useMemo(() => {
     if (!stepFocus || !anyActive) return null;
@@ -753,16 +757,13 @@ export function LiveDiagram({
   // once the active beat is known — the entry the dock links to.
   const costList = useMemo(() => resolveCosts(data || {}, { costUrl: costUrlProp, costLabel: costLabelProp }), [data, costUrlProp, costLabelProp]);
   const costEnvList = useMemo(() => costEnvs(costList), [costList]);
-  const [costEnv, setCostEnvState] = useState<string | undefined>(() => {
-    const fromHash = typeof window !== "undefined" ? envFromHash(window.location.hash) : undefined;
-    return fromHash && costEnvList.includes(fromHash) ? fromHash : initialCostEnv(costList);
-  });
+  const host = useCoreHost();
+  const costLink = useMemo(() => createCostEnvLink(host.urlState), [host.urlState]);
+  const [costEnv, setCostEnvState] = useState<string | undefined>(() => costLink.initial(costList));
   const setCostEnv = useCallback((env: string) => {
     setCostEnvState(env);
-    if (typeof window !== "undefined" && window.history?.replaceState) {
-      window.history.replaceState(null, "", hashWithEnv(window.location.hash, env) || window.location.pathname + window.location.search);
-    }
-  }, []);
+    costLink.write(env);
+  }, [costLink]);
   const costsShown = useMemo(() => costList.map(c => ({ ...c, label: c.label != null ? tr(c.label, lang) : undefined })), [costList, lang]);
   const showTitle = showTitleProp ?? (data?.showTitle !== false);
   const layout = layoutProp ?? data?.layout;
@@ -775,8 +776,7 @@ export function LiveDiagram({
   // startStep: which beat to open on. -1 (default) = show the whole-diagram
   // overview first; 0+ opens directly on that beat (so a wide diagram lands
   // already zoomed into a legible region instead of a tiny fit-all view).
-  const [internalStep, setInternalStep] = useState(() =>
-    Number.isInteger(startStep) ? Math.max(-1, Math.min(startStep, (steps?.length ?? 0) - 1)) : -1);
+  const [internalStep, setInternalStep] = useState(() => initialWalkStep(startStep, steps?.length ?? 0));
   const [playing, setPlaying] = useState(false);
   const step = control === "auto" ? internalStep : (activeStep ?? -1);
   const dockEntry = dockCost(costList, steps, step, costEnv);
@@ -795,14 +795,11 @@ export function LiveDiagram({
       // Keys typed into a field, and Space on a focused button/link, belong to
       // that control (press the button, move the caret) — not to the walkthrough.
       const t = e.target as HTMLElement | null;
-      const tag = t?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || t?.isContentEditable) return;
-      if (e.key === " " && (tag === "BUTTON" || tag === "A" || t?.getAttribute?.("role") === "button")) return;
-      if (e.key === "ArrowRight" || e.key === " " || e.key === "PageDown") { e.preventDefault(); setPlaying(false); setInternalStep(s => Math.min(s + 1, steps.length - 1)); }
-      else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); setPlaying(false); setInternalStep(s => Math.max(s - 1, -1)); }
-      else if (e.key === "Home") { setPlaying(false); setInternalStep(0); }
-      else if (e.key === "End") { setPlaying(false); setInternalStep(steps.length - 1); }
-      else if (e.key === "Escape") { setPlaying(false); setInternalStep(-1); }
+      const k = walkKey(e.key, t ? { tagName: t.tagName, isContentEditable: t.isContentEditable, role: t.getAttribute?.("role") } : null);
+      if (!k) return;
+      if (k.preventDefault) e.preventDefault();
+      const action: WalkAction = k.action;
+      setPlaying(false); setInternalStep(s => reduceWalkStep(s, action, steps.length));
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -816,14 +813,14 @@ export function LiveDiagram({
     if (control !== "auto" || !hasWalk || !steps || typeof window === "undefined") return;
     const w = window as Window & DiagramDriverWindow;
     w.__diagramStepCount = steps.length;
-    w.__diagramGoToStep = (i) => { setPlaying(false); setInternalStep(Math.max(-1, Math.min(i, steps.length - 1))); };
+    w.__diagramGoToStep = (i) => { setPlaying(false); setInternalStep(reduceWalkStep(-1, { type: "goto", index: i }, steps.length)); };
     return () => { delete w.__diagramGoToStep; delete w.__diagramStepCount; };
   }, [control, hasWalk, steps]);
 
   useEffect(() => {
     if (control !== "auto" || !playing || !hasWalk || !steps) return;
-    if (internalStep >= steps.length - 1) { const d = setTimeout(() => setPlaying(false), 2600); return () => clearTimeout(d); }
-    const id = setTimeout(() => setInternalStep(s => Math.min(s + 1, steps.length - 1)), 2600);
+    if (autoplayTick(internalStep, steps.length).stop) { const d = setTimeout(() => setPlaying(false), WALK_AUTOPLAY_MS); return () => clearTimeout(d); }
+    const id = setTimeout(() => setInternalStep(s => reduceWalkStep(s, { type: "next" }, steps.length)), WALK_AUTOPLAY_MS);
     return () => clearTimeout(id);
   }, [control, playing, hasWalk, internalStep, steps]);
 
@@ -919,19 +916,14 @@ export function LiveDiagram({
     if (tb?.restoreOnHover) el.setAttribute("data-ld-title-restore", ""); else el.removeAttribute("data-ld-title-restore");
     return () => { el.removeAttribute("data-ld-title-hidden"); el.removeAttribute("data-ld-title-restore"); };
   }, [tbHidden, presenting, tbTargets.join(" "), tb?.restoreOnHover]);
+  const env = host.environment;
   const togglePresent = useCallback(() => {
     const el = frameRef.current;
-    const doc = typeof document !== "undefined" ? document : null;
-    if (!el || !doc) { setPresenting(v => !v); return; }
-    if (doc.fullscreenElement) { doc.exitFullscreen?.(); }
-    else { (el.requestFullscreen?.() ?? Promise.resolve()).then(() => setPresenting(true)).catch(() => setPresenting(v => !v)); }
-  }, []);
-  useEffect(() => {
-    if (typeof document === "undefined") return;
-    const onFs = () => setPresenting(!!document.fullscreenElement);
-    document.addEventListener("fullscreenchange", onFs);
-    return () => document.removeEventListener("fullscreenchange", onFs);
-  }, []);
+    if (!el) { setPresenting(v => !v); return; }
+    if (env.isFullscreen()) { env.exitFullscreen(); }
+    else { env.requestFullscreen(el).then(() => setPresenting(true)).catch(() => setPresenting(v => !v)); }
+  }, [env]);
+  useEffect(() => env.subscribeFullscreen(() => setPresenting(env.isFullscreen())), [env]);
 
   useEffect(() => {
     if (!chrome) return;

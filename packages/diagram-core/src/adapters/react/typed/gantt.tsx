@@ -11,7 +11,7 @@
 import type { ReactNode } from 'react'
 import { DiagramSvg, toneColor, paletteColor, wrapText, textW, useSvgIds } from './DiagramSvg.tsx'
 import type { TypedDocBase, TypedViewProps } from './DiagramSvg.tsx'
-import { describeTypedDiagram } from '#core/typed/index.ts'
+import { describeTypedDiagram } from '#core/domain/typed/index.ts'
 
 const MES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
 const DAY = 86400000

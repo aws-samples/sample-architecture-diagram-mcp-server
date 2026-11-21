@@ -7,7 +7,7 @@
 // pushed down until it clears the previous card on the same side.
 import { DiagramSvg, toneColor, paletteColor, wrapText, textW, useSvgIds } from './DiagramSvg.tsx'
 import type { TypedDocBase, TypedViewProps } from './DiagramSvg.tsx'
-import { describeTypedDiagram } from '#core/typed/index.ts'
+import { describeTypedDiagram } from '#core/domain/typed/index.ts'
 
 const M = 36, PAD = 14
 const DATE_SIZE = 12, LABEL_SIZE = 15, DESC_SIZE = 12.5

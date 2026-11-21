@@ -9,7 +9,7 @@
 //      `from` must exist among the values at `to`.
 // Mirrored in Python by _walk_prop_schema + _check_refs (login.py) so the
 // browser, the studio-deck MCP and the Session Lambda agree.
-import type { JsonSchema, JsonSchemaType, ValidationResult } from '#core/schemas/jsonSchema.ts'
+import type { JsonSchema, JsonSchemaType, ValidationResult } from '#core/domain/schemas/jsonSchema.ts'
 
 /** Fields every typed-diagram document may carry besides its own body. */
 export interface TypedDocBase {

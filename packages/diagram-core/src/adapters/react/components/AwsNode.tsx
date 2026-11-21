@@ -10,8 +10,8 @@ import { memo } from "react";
 import type { CSSProperties } from "react";
 import { Handle, Position, NodeResizer } from "@xyflow/react";
 import type { Node, NodeProps } from "@xyflow/react";
-import { TONE_COLORS } from "#core/tones.ts";
-import type { IconComponent } from "#core/Icon.tsx";
+import { TONE_COLORS } from "#core/domain/tones.ts";
+import type { IconComponent } from "#core/adapters/react/Icon.tsx";
 import type { NodeModalConfig } from "./NodeModal.tsx";
 
 /** CSS custom-property names the node reads its surface/text colours from. */

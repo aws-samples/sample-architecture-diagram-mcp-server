@@ -18,7 +18,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-const CORE = join(ROOT, "packages/diagram-core/src");
+const CORE = join(ROOT, "packages/diagram-core/src/domain");
 const OUT = join(ROOT, "server/assets/generated/inline-scripts.ts");
 const MODULES = { FLOW_LAYOUT_JS: "flowLayout", SEQUENCE_LAYOUT_JS: "sequenceLayout", CODE_BLOCKS_JS: "codeBlocks" };
 

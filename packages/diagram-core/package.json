@@ -11,7 +11,7 @@
       "import": "./dist/index.js"
     },
     "./layout-engine": {
-      "source": "./src/layoutEngine.ts",
+      "source": "./src/layout-engine.ts",
       "types": "./dist/layout-engine.d.ts",
       "import": "./dist/layout-engine.js"
     },

@@ -41,7 +41,7 @@ describe('spec.json $schema', () => {
 
 describe('inline markdown images', () => {
   it('![alt](src) is not loaded: it reads as a notice, not "!" + a link', async () => {
-    const { parseInline, inlineHtml } = await import('#core-src/inline.ts');
+    const { parseInline, inlineHtml } = await import('#core-src/domain/inline.ts');
     expect(parseInline('See ![the chart](https://x.test/a.png) now')).toEqual([
       { type: 'text', text: 'See ' }, { type: 'text', text: '[image not shown: the chart]' }, { type: 'text', text: ' now' },
     ]);

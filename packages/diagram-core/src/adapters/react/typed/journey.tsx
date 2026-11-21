@@ -8,7 +8,7 @@ import { line, curveMonotoneX } from 'd3-shape'
 import type { ReactNode } from 'react'
 import { DiagramSvg, toneColor, paletteColor, wrapText, useSvgIds } from './DiagramSvg.tsx'
 import type { TypedDocBase, TypedViewProps } from './DiagramSvg.tsx'
-import { describeTypedDiagram } from '#core/typed/index.ts'
+import { describeTypedDiagram } from '#core/domain/typed/index.ts'
 
 const COL = 196, GAP = 14, LG = 138, PAD = 20
 

@@ -3,9 +3,9 @@
 // ─── Typed diagram: venn (2 or 3 sets) ───
 // Overlapping circles; `regions` place a label / items in an exclusive area
 // (sets: ['a']) or an intersection (sets: ['a', 'b'] / ['a', 'b', 'c']).
-import type { JsonSchema } from '#core/schemas/jsonSchema.ts'
+import type { JsonSchema } from '#core/domain/schemas/jsonSchema.ts'
 import type { TypedDiagramSpec, TypedDocBase } from './validate.ts'
-import type { DiagramTone } from '#core/tones.ts'
+import type { DiagramTone } from '#core/domain/tones.ts'
 const tone: JsonSchema = { type: 'string', enum: ['accent', 'info', 'success', 'warn', 'danger', 'neutral', 'purple', 'teal', 'pink'], description: 'Cor do conjunto' }
 
 export interface VennSet {

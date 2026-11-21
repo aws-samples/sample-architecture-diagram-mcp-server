@@ -4,12 +4,12 @@
 // Tables laid out with dagre (LR/TB); relationships anchored on the table side
 // facing the next rank, spread along that side, routed through dagre's
 // interior points, with crow's-foot notation drawn at each end.
-import dagre from 'dagre'
-import type { GraphEdge } from 'dagre'
+import { useCoreHost } from '#core/adapters/react/host.tsx'
+import type { LayeredEdge, LayeredEdgeRoute } from '#core/domain/layoutGraph.ts'
 import { line as d3line, curveBasis } from 'd3-shape'
 import { DiagramSvg, toneColor, textW } from './DiagramSvg.tsx'
 import type { TypedDocBase, TypedViewProps } from './DiagramSvg.tsx'
-import { describeTypedDiagram, getDiagramType } from '#core/typed/index.ts'
+import { describeTypedDiagram, getDiagramType } from '#core/domain/typed/index.ts'
 
 const HEAD = 38, ROW = 26, ROWN = 40, PADX = 12, BADGE = 26, STUB = 30
 
@@ -28,7 +28,7 @@ interface EntityMetrics { w: number; h: number; rows: number[]; badgeW: number }
 interface EntityBox { x: number; y: number; w: number; h: number; cx: number; cy: number }
 // p / d (anchor point + outward direction) are set once the side's slots are spread.
 interface EdgeEnd { id: string; side: 'L' | 'R' | 'T' | 'B'; other: number; p: Vec; d: Vec }
-interface ErEdge { r: ErRelation; i: number; ed: GraphEdge; interior: Vec[]; ends: [EdgeEnd, EdgeEnd] }
+interface ErEdge { r: ErRelation; i: number; ed: LayeredEdgeRoute; interior: Vec[]; ends: [EdgeEnd, EdgeEnd] }
 interface EndGlyphProps { p: Vec; d: Vec; cardv?: ErCardinality; color: string }
 
 const monoW = (s: unknown, size: number) => String(s || '').length * size * 0.62
@@ -65,6 +65,7 @@ function EndGlyph({ p, d, cardv, color }: EndGlyphProps) {
 }
 
 export default function ErView({ doc, step = null, fit }: TypedViewProps<ErDoc>) {
+  const { layeredLayout } = useCoreHost()
   const ents = doc.entities || []
   const rels = (doc.relations || []).filter(r => ents.some(e => e.id === r.from) && ents.some(e => e.id === r.to))
   const LR = (doc.direction || 'LR') !== 'TB'
@@ -76,19 +77,23 @@ export default function ErView({ doc, step = null, fit }: TypedViewProps<ErDoc>)
   rels.forEach(r => { if (r.from === r.to) loopExtra[r.from] = Math.max(loopExtra[r.from] || 0, 54 + (r.label ? textW(r.label, 12) + 8 : 0)) })
 
   const m: Record<string, EntityMetrics> = Object.fromEntries(ents.map(e => [e.id, measure(e)]))
-  const g = new dagre.graphlib.Graph({ multigraph: true })
-  g.setGraph({ rankdir: LR ? 'LR' : 'TB', nodesep: LR ? 46 : 60, ranksep: LR ? 120 : 90, edgesep: 24, marginx: 24, marginy: 24 })
-  g.setDefaultEdgeLabel(() => ({}))
-  ents.forEach(e => g.setNode(e.id, { width: m[e.id].w + (loopExtra[e.id] || 0), height: m[e.id].h }))
+  // Layered layout (the LayeredLayoutEngine port: dagre by default). Self-relations
+  // are drawn as loops, not laid out; relation i is graph edge edgeAt[i].
+  const layEdges: LayeredEdge[] = [], edgeAt: Record<number, number> = {}
   rels.forEach((r, i) => {
     if (r.from === r.to) return
-    g.setEdge(r.from, r.to, r.label ? { width: textW(r.label, 12) + 14, height: 20, labelpos: 'c' } : {}, `e${i}`)
+    edgeAt[i] = layEdges.push({ source: r.from, target: r.to, name: `e${i}`, label: r.label ? { width: textW(r.label, 12) + 14, height: 20, labelpos: 'c' } : {} }) - 1
   })
-  dagre.layout(g)
+  const g = layeredLayout.layout({
+    options: { rankdir: LR ? 'LR' : 'TB', nodesep: LR ? 46 : 60, ranksep: LR ? 120 : 90, edgesep: 24, marginx: 24, marginy: 24 },
+    multigraph: true,
+    nodes: ents.map(e => ({ id: e.id, width: m[e.id].w + (loopExtra[e.id] || 0), height: m[e.id].h })),
+    edges: layEdges,
+  })
 
   const box: Record<string, EntityBox> = {}
   ents.forEach(e => {
-    const nd = g.node(e.id), mm = m[e.id]
+    const nd = g.nodes[e.id] as NonNullable<typeof g.nodes[string]>, mm = m[e.id]
     const x = nd.x - nd.width / 2, y = nd.y - mm.h / 2
     box[e.id] = { x, y, w: mm.w, h: mm.h, cx: x + mm.w / 2, cy: nd.y }
   })
@@ -98,7 +103,7 @@ export default function ErView({ doc, step = null, fit }: TypedViewProps<ErDoc>)
   const slots: Record<string, EdgeEnd[]> = {}
   rels.forEach((r, i) => {
     if (r.from === r.to) return
-    const ed = g.edge(r.from, r.to, `e${i}`)
+    const ed = g.edges[edgeAt[i]] as LayeredEdgeRoute
     const pts = ed.points || []
     const a = box[r.from], b = box[r.to]
     const fwd = LR ? b.cx >= a.cx : b.cy >= a.cy
@@ -126,7 +131,7 @@ export default function ErView({ doc, step = null, fit }: TypedViewProps<ErDoc>)
 
   const curve = d3line<Vec>().x(p => p.x).y(p => p.y).curve(curveBasis)
   const color = 'var(--dg-muted)'
-  const gw = Math.ceil(g.graph().width || 400), gh = Math.ceil(g.graph().height || 200)
+  const gw = Math.ceil(g.width || 400), gh = Math.ceil(g.height || 200)
 
   return (
     <DiagramSvg width={gw} height={gh} title={doc.title || getDiagramType('er')?.label} desc={describeTypedDiagram(doc)} fit={fit}>
@@ -137,8 +142,8 @@ export default function ErView({ doc, step = null, fit }: TypedViewProps<ErDoc>)
         const sB = { x: B.p.x + B.d.x * STUB, y: B.p.y + B.d.y * STUB }
         const mid = curve([sA, ...E.interior, sB]) ?? ''
         const vis = shown(idx[E.r.from]) && shown(idx[E.r.to])
-        // dagre's GraphEdge is index-signature `any`: narrow the label centre it adds.
-        const edgeX: unknown = E.ed.x, edgeY: unknown = E.ed.y
+        // The label centre exists only for an edge laid out with a label box.
+        const edgeX = E.ed.x, edgeY = E.ed.y
         return (
           <g key={`r${E.i}`} className="dg-step" style={{ opacity: vis ? 1 : 0 }}>
             <path d={`M${A.p.x},${A.p.y} L${mid.slice(1)} L${B.p.x},${B.p.y}`} fill="none" stroke={color} strokeWidth="1.6" />

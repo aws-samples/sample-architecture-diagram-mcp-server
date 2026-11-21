@@ -4,9 +4,9 @@
 // 3–8 stages around a wheel, connected clockwise by curved arrows, with a
 // center label (the outcome the wheel compounds). Optional inputs are
 // accelerators feeding a given stage from outside. One stage per step.
-import type { JsonSchema } from '#core/schemas/jsonSchema.ts'
+import type { JsonSchema } from '#core/domain/schemas/jsonSchema.ts'
 import type { TypedDiagramSpec, TypedDocBase } from './validate.ts'
-import type { DiagramTone } from '#core/tones.ts'
+import type { DiagramTone } from '#core/domain/tones.ts'
 const tone: JsonSchema = { type: 'string', enum: ['accent', 'info', 'success', 'warn', 'danger', 'neutral', 'purple', 'teal', 'pink'], description: 'Cor do estágio (opcional)' }
 
 export interface FlywheelStage {

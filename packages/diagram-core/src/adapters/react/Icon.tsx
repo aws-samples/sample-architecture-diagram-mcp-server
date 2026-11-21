@@ -17,9 +17,9 @@
 //   "/diagram-icons/Res_Users_48.png"                     → pathed diagram icon (themes like its bare form)
 import { useState } from "react";
 import type { CSSProperties, ComponentType } from "react";
-import { DARK_VARIANT_BASES } from "./darkVariants.ts";
-import { MONO_INVERT_RES } from "./icons.ts";
-import { AWS_ORANGE } from "./tones.ts";
+import { DARK_VARIANT_BASES } from "#core/domain/darkVariants.ts";
+import { MONO_INVERT_RES } from "#core/domain/icons.ts";
+import { AWS_ORANGE } from "#core/domain/tones.ts";
 
 const DEFAULT_ICON_BASE = "/diagram-icons/";
 const identity = (u: string | null): string | null => u;

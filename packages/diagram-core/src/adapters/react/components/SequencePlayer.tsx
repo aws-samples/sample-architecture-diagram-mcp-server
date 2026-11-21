@@ -34,18 +34,21 @@
 //                       the MCP's .ld-frame.dark) decides
 import { createContext, useCallback, useContext, useEffect, useId, useMemo, useRef, useState } from 'react';
 import type { CSSProperties, PointerEvent as ReactPointerEvent, ReactElement, ReactNode, SetStateAction } from 'react';
-import { tr, ui as defaultUi } from '#core/i18n.ts';
-import { PLAYER_TONES, AWS_ORANGE } from '#core/tones.ts';
-import { playerThemeCss } from '#core/playerTheme.ts';
-import { layoutSequence } from '#core/sequenceLayout.ts';
-import type { SeqLayoutEvent, SeqLayoutFragment, SeqLayoutParticipant, SeqLayoutText, SequenceLayoutInput } from '#core/sequenceLayout.ts';
-import type { UiResolver } from '#core/i18n.ts';
-import { withServiceIcon } from '#core/icons.ts';
-import { describeSequence, SR_ONLY_STYLE } from '#core/a11y.ts';
+import { tr, ui as defaultUi } from '#core/domain/i18n.ts';
+import { PLAYER_TONES, AWS_ORANGE } from '#core/domain/tones.ts';
+import { playerThemeCss } from '#core/domain/playerTheme.ts';
+import { layoutSequence } from '#core/domain/sequenceLayout.ts';
+import type { SeqLayoutEvent, SeqLayoutFragment, SeqLayoutParticipant, SeqLayoutText, SequenceLayoutInput } from '#core/domain/sequenceLayout.ts';
+import type { UiResolver } from '#core/domain/i18n.ts';
+import { withServiceIcon } from '#core/domain/icons.ts';
+import { describeSequence, SR_ONLY_STYLE } from '#core/domain/a11y.ts';
 import * as cardKit from './cardKit.tsx';
 import { CodeBlocks } from "./CodeBlocks.tsx";
-import { codeBlocksOf } from "#core/codeBlocks.ts";
-import type { CodeBlockInput } from "#core/codeBlocks.ts";
+import { codeBlocksOf } from "#core/domain/codeBlocks.ts";
+import { useCoreHost } from "#core/adapters/react/host.tsx";
+import { EXPORT_FILES, sequenceSvgStyle, svgFile } from "#core/application/exports.ts";
+import { stepBy } from "#core/application/walkthrough.ts";
+import type { CodeBlockInput } from "#core/domain/codeBlocks.ts";
 // ── Sequence document (server/domain/schemas/sequence.ts shape) ───────────────────────
 /** Per-language text: a string, or { en, pt, … }. */
 export type SeqText = SeqLayoutText;
@@ -410,8 +413,6 @@ const LEGEND: ReactElement = (
   </>
 );
 
-const PREFERS_REDUCED = typeof window !== 'undefined' && !!window.matchMedia
-  && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /**
  * Animated UML sequence panel.
@@ -444,6 +445,10 @@ export function SequencePlayer({
   seq: seqProp, lang = 'en', active = true, ui = undefined, cur: curProp = undefined, onCur = undefined,
   iconUrl = undefined, iconFilter = undefined, controls = true, card = true, theme = undefined, className = '', style = undefined,
 }: SequencePlayerProps) {
+  // prefers-reduced-motion, read once (the Environment port): the pan/zoom
+  // transitions are dropped for viewers who asked for less motion.
+  const { environment, fileSaver } = useCoreHost();
+  const [reducedMotion] = useState(() => environment.prefersReducedMotion());
   // A participant with a `service` and no `icon` gets the catalog icon (as in the MCP).
   const seq = useMemo((): SequenceDoc | null | undefined => (seqProp?.participants ? { ...seqProp, participants: seqProp.participants.map(p => withServiceIcon(p)) } : seqProp), [seqProp]);
   const L = useMemo(() => layoutSequence(seq, { tones: PLAYER_TONES }), [seq]);
@@ -506,19 +511,19 @@ export function SequencePlayer({
     if (!layer) return;
     const { zoom, ty } = viewRef.current;
     const d = Math.max(0, (6 - ty) / zoom - L.HEAD_Y);
-    layer.style.transition = (animate && !PREFERS_REDUCED) ? 'transform .45s cubic-bezier(.4,0,.2,1)' : 'none';
+    layer.style.transition = (animate && !reducedMotion) ? 'transform .45s cubic-bezier(.4,0,.2,1)' : 'none';
     layer.style.transform = d ? `translateY(${d}px)` : '';
     if (headBgRef.current) headBgRef.current.style.opacity = d > 1 ? '1' : '0';
-  }, [L.HEAD_Y]);
+  }, [L.HEAD_Y, reducedMotion]);
 
   const applyView = useCallback((animate: boolean) => {
     const svg = svgRef.current;
     if (!svg) return;
     const { zoom, tx, ty } = viewRef.current;
-    svg.style.transition = (animate && !PREFERS_REDUCED) ? 'transform .45s cubic-bezier(.4,0,.2,1)' : 'none';
+    svg.style.transition = (animate && !reducedMotion) ? 'transform .45s cubic-bezier(.4,0,.2,1)' : 'none';
     svg.style.transform = `translate(${tx}px,${ty}px) scale(${zoom})`;
     pinHeaders(animate);
-  }, [pinHeaders]);
+  }, [pinHeaders, reducedMotion]);
 
   // Frame the active step: horizontally the lifelines it touches, vertically a
   // band of context rows around it. Falls back to a whole-diagram fit.
@@ -619,7 +624,7 @@ export function SequencePlayer({
   const endDrag = () => { if (drag.current) { drag.current = null; stageRef.current?.classList.remove('grabbing'); } };
 
   // ── player ────────────────────────────────────────────────────────────────
-  const step = (d: number) => setCur(c => Math.max(0, Math.min(EV.length - 1, c + d)));
+  const step = (d: number) => setCur(c => stepBy(c, d, 0, EV.length - 1));
   const playToggle = () => {
     if (!playing && cur >= EV.length - 1) setCur(0);
     setPlaying(p => !p);
@@ -664,23 +669,16 @@ export function SequencePlayer({
     // itself (computed style resolves inherited custom properties) and pin them
     // on the clone so the downloaded file renders standalone.
     const cs = getComputedStyle(svg);
-    const vars = ['--navy', '--orange', '--txt', '--txt-muted', '--border', '--bg', '--card-bg', '--chip-bg',
-      '--dot', '--pill-bg', '--msg', '--ret', '--accent', '--info', '--success', '--warn', '--danger', '--neutral', '--active'];
     const style = document.createElementNS('http://www.w3.org/2000/svg', 'style');
-    style.textContent = `svg{${vars.map(v => `${v}:${cs.getPropertyValue(v).trim()};`).join('')}}`
-      // Un-scope `.ld-seqp X` → `X`: in the exported file the SVG is the root, so
-      // the panel ancestor the live rules hang off no longer exists.
-      + [...document.querySelectorAll('style')].map(s => s.textContent || '').join('\n').replace(/\.ld-seqp\s+/g, '');
+    // Un-scope `.ld-seqp X` → `X`: in the exported file the SVG is the root, so
+    // the panel ancestor the live rules hang off no longer exists.
+    style.textContent = sequenceSvgStyle((v) => cs.getPropertyValue(v), [...document.querySelectorAll('style')].map(s => s.textContent || ''));
     clone.insertBefore(style, clone.firstChild);
-    return `<?xml version="1.0" encoding="UTF-8"?>\n${new XMLSerializer().serializeToString(clone)}`;
+    return svgFile(new XMLSerializer().serializeToString(clone));
   }, []);
 
-  const download = (name: string, blob: Blob) => {
-    const u = URL.createObjectURL(blob), a = document.createElement('a');
-    a.href = u; a.download = name; a.click();
-    setTimeout(() => URL.revokeObjectURL(u), 1000);
-  };
-  const dlSvg = () => download('sequence-diagram.svg', new Blob([serializeSvg()], { type: 'image/svg+xml' }));
+  const download = (name: string, blob: Blob) => fileSaver.saveBlob(name, blob);
+  const dlSvg = () => download(EXPORT_FILES.sequenceSvg, new Blob([serializeSvg()], { type: 'image/svg+xml' }));
   const dlPng = () => {
     const scale = 2, img = new Image();
     img.onload = () => {
@@ -692,7 +690,7 @@ export function SequencePlayer({
       ctx.fillRect(0, 0, c.width, c.height);
       ctx.scale(scale, scale);
       ctx.drawImage(img, 0, 0);
-      c.toBlob(b => b && download('sequence-diagram.png', b), 'image/png');
+      c.toBlob(b => b && download(EXPORT_FILES.sequencePng, b), 'image/png');
     };
     img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(serializeSvg())}`;
   };

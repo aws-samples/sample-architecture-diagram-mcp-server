@@ -3,9 +3,9 @@
 // ─── Typed diagram: gantt ───
 // Project schedule: tasks with ISO dates (start + end, or start + durationDays),
 // optional sections, progress, milestones and finish→start dependencies.
-import type { JsonSchema } from '#core/schemas/jsonSchema.ts'
+import type { JsonSchema } from '#core/domain/schemas/jsonSchema.ts'
 import type { TypedDiagramSpec, TypedDocBase } from './validate.ts'
-import type { DiagramTone } from '#core/tones.ts'
+import type { DiagramTone } from '#core/domain/tones.ts'
 const tone: JsonSchema = { type: 'string', enum: ['accent', 'info', 'success', 'warn', 'danger', 'neutral', 'purple', 'teal', 'pink'], description: 'Cor da barra (padrão: cor da seção)' }
 const isoDate: JsonSchema = { type: 'string', description: 'Data ISO AAAA-MM-DD' }
 

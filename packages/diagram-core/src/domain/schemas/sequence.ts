@@ -11,8 +11,8 @@
 // validateSequence(d) → { valid, errors: string[] }.
 
 import type { JsonSchema, ValidationResult } from './jsonSchema.ts'
-import type { PlayerTone } from '#core/tones.ts'
-import type { CodeBlockInput } from '#core/codeBlocks.ts'
+import type { PlayerTone } from '#core/domain/tones.ts'
+import type { CodeBlockInput } from '#core/domain/codeBlocks.ts'
 
 export const SEQUENCE_KIND = 'sequence'
 

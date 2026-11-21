@@ -9,9 +9,9 @@
 // Step contract: `step` = beat index (0-based) while the deck reveals beats;
 // null = overview (nothing dimmed, whole graph fitted).
 import { useContext, useMemo } from 'react'
-import { FlowPlayer } from '#core/components/FlowPlayer.tsx'
-import type { FlowDoc } from '#core/components/FlowPlayer.tsx'
-import { layoutFlow } from '#core/flowLayout.ts'
+import { FlowPlayer } from '#core/adapters/react/components/FlowPlayer.tsx'
+import type { FlowDoc } from '#core/adapters/react/components/FlowPlayer.tsx'
+import { layoutFlow } from '#core/domain/flowLayout.ts'
 import { TypedIconContext } from './iconContext.ts'
 import type { CSSProperties } from 'react'
 import type { TypedDocBase, TypedViewProps } from './DiagramSvg.tsx'

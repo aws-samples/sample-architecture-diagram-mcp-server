@@ -7,7 +7,7 @@
 //   inheritance / realization: from = subclass/implementation → to = parent/interface (hollow triangle at `to`)
 //   aggregation / composition: from = whole → to = part (diamond at `from`)
 //   association / dependency:  from → to (open arrow at `to`; dependency dashed)
-import type { JsonSchema } from '#core/schemas/jsonSchema.ts'
+import type { JsonSchema } from '#core/domain/schemas/jsonSchema.ts'
 import type { TypedDiagramSpec, TypedDocBase } from './validate.ts'
 const relType: JsonSchema = { type: 'string', enum: ['inheritance', 'realization', 'association', 'aggregation', 'composition', 'dependency'] }
 

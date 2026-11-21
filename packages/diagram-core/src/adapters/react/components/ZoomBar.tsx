@@ -5,8 +5,11 @@
 // `ui(key)` and `langLabel(code)` so the host owns the chrome i18n table.
 import { useReactFlow, getNodesBounds, getViewportForBounds } from "@xyflow/react";
 import { useState, useEffect, useRef, useId } from "react";
-import { AWS_ORANGE } from "#core/tones.ts";
-import { getRegisteredComponent, normalizeSlotEntries } from "#core/componentRegistry.ts";
+import { AWS_ORANGE } from "#core/domain/tones.ts";
+import { getRegisteredComponent, normalizeSlotEntries } from "#core/application/componentRegistry.ts";
+import { EXPORT_FILES, SHARE_CARD, TRANSPARENT_PIXEL_PNG, shareCardLayout } from "#core/application/exports.ts";
+import { useCoreHost } from "#core/adapters/react/host.tsx";
+import type { FileSaver } from "#core/ports/host.ts";
 import type { CSSProperties, ComponentType, ReactElement } from "react";
 import type { Node } from "@xyflow/react";
 
@@ -14,8 +17,8 @@ import type { Node } from "@xyflow/react";
 export type DockUiKey = "language" | "exportPng" | "shareCard" | "restart" | "pause" | "play" | "theme" | "cost";
 /** (key, lang) => label; any wider resolver (e.g. i18n's UiResolver / makeUi) fits. */
 export type DockUi = (key: DockUiKey, lang: string) => string;
-import type { SlotEntry, SlotEntryInput } from "#core/componentRegistry.ts";
-import type { CostEntry as CostListEntry } from "#core/costs.ts";
+import type { SlotEntry, SlotEntryInput } from "#core/application/componentRegistry.ts";
+import type { CostEntry as CostListEntry } from "#core/domain/costs.ts";
 
 /** An estimate as the dock shows it: its label already resolved to the page language. */
 export type DockCostEntry = Omit<CostListEntry, "label"> & { label?: string };
@@ -73,7 +76,7 @@ const defLangLabel = (l: string): string => (l || "").toUpperCase();
 // the on-screen zoom/pan), at 2x for crisp output. Icons are inlined in the
 // diagram, so it works under file://. html-to-image is imported lazily so the
 // dock has no cost until the user actually exports.
-async function exportDiagramPng(nodes: Node[], dark: boolean | undefined): Promise<void> {
+async function exportDiagramPng(nodes: Node[], dark: boolean | undefined, saver: FileSaver): Promise<void> {
   const el = document.querySelector<HTMLElement>(".react-flow__viewport");
   if (!el || !nodes.length) return;
   const { toPng } = await import("html-to-image");
@@ -85,12 +88,10 @@ async function exportDiagramPng(nodes: Node[], dark: boolean | undefined): Promi
     // pointing at a served /icons/… path. Under file:// that fetch throws and
     // would abort the whole export; imagePlaceholder swaps in a transparent 1x1
     // so the export succeeds and the initial fallback shows through instead.
-    imagePlaceholder: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+    imagePlaceholder: TRANSPARENT_PIXEL_PNG,
     style: { width: `${W}px`, height: `${H}px`, transform: `translate(${vp.x}px, ${vp.y}px) scale(${vp.zoom})` },
   });
-  const a = document.createElement("a");
-  a.href = dataUrl; a.download = "architecture.png";
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  saver.saveUrl(EXPORT_FILES.diagramPng, dataUrl);
 }
 
 // Export a fixed 1200×630 "share card" PNG (the Open Graph / link-preview size):
@@ -98,16 +99,16 @@ async function exportDiagramPng(nodes: Node[], dark: boolean | undefined): Promi
 // scrim carrying the title + subtitle. Suitable for slides, wikis, and link
 // unfurls. Same file:// safety as exportDiagramPng (icons inlined, placeholder
 // for any un-inlined <img>).
-async function exportShareCard(nodes: Node[], dark: boolean | undefined, title: string | undefined, subtitle: string | undefined): Promise<void> {
+async function exportShareCard(nodes: Node[], dark: boolean | undefined, title: string | undefined, subtitle: string | undefined, saver: FileSaver): Promise<void> {
   const el = document.querySelector<HTMLElement>(".react-flow__viewport");
   if (!el || !nodes.length) return;
   const { toPng } = await import("html-to-image");
-  const W = 1200, H = 630;
+  const W = SHARE_CARD.width, H = SHARE_CARD.height;
   const vp = getViewportForBounds(getNodesBounds(nodes), W, H, 0.2, 2, 0.14);
   const bg = dark ? "#0f1117" : "#f8fafc";
   const diagramUrl = await toPng(el, {
     backgroundColor: bg, width: W, height: H, pixelRatio: 2,
-    imagePlaceholder: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+    imagePlaceholder: TRANSPARENT_PIXEL_PNG,
     style: { width: `${W}px`, height: `${H}px`, transform: `translate(${vp.x}px, ${vp.y}px) scale(${vp.zoom})` },
   });
   const img = new Image();
@@ -120,62 +121,31 @@ async function exportShareCard(nodes: Node[], dark: boolean | undefined, title: 
   ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
   ctx.drawImage(img, 0, 0, W, H);
 
-  const PAD = 56;
   const txt = dark ? "#f8fafc" : "#0f1117";
   const muted = dark ? "rgba(248,250,252,0.72)" : "rgba(15,17,23,0.66)";
-  const wrap = (s: string | undefined, font: string, maxW: number, maxLines: number): string[] => {
-    ctx.font = font;
-    const words = String(s || "").split(/\s+/);
-    const lines: string[] = []; let line = "";
-    for (const w of words) {
-      const test = line ? `${line} ${w}` : w;
-      if (ctx.measureText(test).width > maxW && line) { lines.push(line); line = w; if (lines.length === maxLines) break; }
-      else line = test;
-    }
-    if (line && lines.length < maxLines) lines.push(line);
-    if (lines.length === maxLines && ctx.measureText(line).width > maxW) {
-      while (line && ctx.measureText(line + "…").width > maxW) line = line.slice(0, -1);
-      lines[maxLines - 1] = line + "…";
-    }
-    return lines;
-  };
-  // Measure FIRST, then lay the band out from the bottom edge up: the old code
-  // used fixed offsets, so a 2-line title pushed its second line — and the
-  // subtitle with it — off the 630px canvas. The subtitle also got a single line
-  // (cut mid-word with an "…"); it gets two, like the title.
-  const titleFont = "700 44px 'Amazon Ember', 'Helvetica Neue', Helvetica, Arial, sans-serif";
-  const subFont = "400 24px 'Amazon Ember', 'Helvetica Neue', Helvetica, Arial, sans-serif";
-  const TITLE_LEAD = 50, SUB_LEAD = 30, BOTTOM = 46;
-  const titleLines = wrap(title, titleFont, W - PAD * 2, 2);
-  const subLines = subtitle ? wrap(subtitle, subFont, W - PAD * 2, 2) : [];
-  const blockH = titleLines.length * TITLE_LEAD + subLines.length * SUB_LEAD;
-  const blockTop = H - BOTTOM - blockH;
+  // Measure FIRST, then lay the band out from the bottom edge up (application/
+  // exports.ts): a 2-line title never pushes the subtitle off the 630px canvas.
+  const lay = shareCardLayout(title, subtitle, (font, t) => { ctx.font = font; return ctx.measureText(t).width; });
 
   // Bottom scrim so the title stays legible over the diagram — tall enough to
   // cover the whole text block plus the accent bar.
-  const scrimH = Math.max(200, H - blockTop + 90);
-  const grad = ctx.createLinearGradient(0, H - scrimH, 0, H);
+  const grad = ctx.createLinearGradient(0, lay.scrimTop, 0, H);
   grad.addColorStop(0, dark ? "rgba(15,17,23,0)" : "rgba(248,250,252,0)");
   grad.addColorStop(1, dark ? "rgba(15,17,23,0.96)" : "rgba(248,250,252,0.97)");
-  ctx.fillStyle = grad; ctx.fillRect(0, H - scrimH, W, scrimH);
+  ctx.fillStyle = grad; ctx.fillRect(0, lay.scrimTop, W, lay.scrimHeight);
 
   // AWS-orange accent bar sitting just above the text block.
   ctx.fillStyle = AWS_ORANGE;
-  ctx.fillRect(PAD, blockTop - 26, 48, 6);
+  ctx.fillRect(lay.accent.x, lay.accent.y, lay.accent.width, lay.accent.height);
 
-  ctx.fillStyle = txt; ctx.font = titleFont; ctx.textBaseline = "alphabetic";
-  let y = blockTop + 38;
-  for (const l of titleLines) { ctx.fillText(l, PAD, y); y += TITLE_LEAD; }
-  if (subLines.length) {
-    ctx.fillStyle = muted; ctx.font = subFont;
-    y -= 6;
-    for (const l of subLines) { ctx.fillText(l, PAD, y); y += SUB_LEAD; }
+  ctx.fillStyle = txt; ctx.font = SHARE_CARD.titleFont; ctx.textBaseline = "alphabetic";
+  for (const l of lay.titleLines) ctx.fillText(l.text, l.x, l.y);
+  if (lay.subtitleLines.length) {
+    ctx.fillStyle = muted; ctx.font = SHARE_CARD.subtitleFont;
+    for (const l of lay.subtitleLines) ctx.fillText(l.text, l.x, l.y);
   }
 
-  const url = canvas.toDataURL("image/png");
-  const a = document.createElement("a");
-  a.href = url; a.download = "share-card.png";
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  saver.saveUrl(EXPORT_FILES.shareCardPng, canvas.toDataURL("image/png"));
 }
 
 // Language picker: a single button showing the active language that opens a popup
@@ -307,6 +277,7 @@ export default function ZoomBar({
   items = undefined, branding = undefined,
 }: ZoomBarProps) {
   const { zoomIn, zoomOut, fitView, getNodes } = useReactFlow();
+  const { fileSaver } = useCoreHost();
 
   if (!visible) {
     return (
@@ -360,14 +331,14 @@ export default function ZoomBar({
       </button>,
     ],
     png: () => (
-      <button key="png" style={btn} title={ui("exportPng", lang)} onClick={() => exportDiagramPng(getNodes(), dark)}>
+      <button key="png" style={btn} title={ui("exportPng", lang)} onClick={() => exportDiagramPng(getNodes(), dark, fileSaver)}>
         {/* download / save-as-image glyph */}
         <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
       </button>
     ),
     shareCard: () => (
       <button key="shareCard" style={btn} title={ui("shareCard", lang) === "shareCard" ? "Share card (1200×630 PNG)" : ui("shareCard", lang)}
-        onClick={() => exportShareCard(getNodes(), dark, title, subtitle)}>
+        onClick={() => exportShareCard(getNodes(), dark, title, subtitle, fileSaver)}>
         {/* share-card glyph: framed image with a title bar */}
         <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 15l4-4 4 4M14 13l2-2 5 5"/><line x1="7" y1="8" x2="7.01" y2="8"/></svg>
       </button>

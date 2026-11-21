@@ -9,7 +9,7 @@
 // than ~1150) stacks them vertically, org-chart style. Elbow connectors.
 import { DiagramSvg, toneColor, paletteColor, wrapText, textW } from './DiagramSvg.tsx'
 import type { TypedDocBase, TypedViewProps } from './DiagramSvg.tsx'
-import { describeTypedDiagram } from '#core/typed/index.ts'
+import { describeTypedDiagram } from '#core/domain/typed/index.ts'
 
 const M = 28, SIB = 22, GAP_TB = 54, GAP_LR = 64, STACK_IN = 26, STACK_GAP = 12
 const LS = 14, LS_ROOT = 16, SS = 12, LLH = 18, SLH = 15

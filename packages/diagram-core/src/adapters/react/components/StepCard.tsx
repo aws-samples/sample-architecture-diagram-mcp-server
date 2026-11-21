@@ -6,21 +6,21 @@
 // header (icon+eyebrow+title), body, rich bullets, sections, and chips. Content
 // fields may be plain strings or { <lang>: string } maps (resolved via tr).
 import { AnimatePresence, motion } from "framer-motion";
-import { TONE_META, resolveToneColor } from "#core/tones.ts";
-import { tr } from "#core/i18n.ts";
-import { getRegisteredComponent, normalizeSlotEntries } from "#core/componentRegistry.ts";
+import { TONE_META, resolveToneColor } from "#core/domain/tones.ts";
+import { tr } from "#core/domain/i18n.ts";
+import { getRegisteredComponent, normalizeSlotEntries } from "#core/application/componentRegistry.ts";
 import { CardShell, CardHeader, Body, Bullets, Section, Chips, CodeBlock, NumberedSteps, CostLink } from "./cardKit.tsx";
 import { CodeBlocks } from "./CodeBlocks.tsx";
-import { codeBlocksOf } from "#core/codeBlocks.ts";
-import { stepCost } from "#core/costs.ts";
-import type { CostEntry } from "#core/costs.ts";
-import type { CodeBlocksItem } from "#core/codeBlocks.ts";
+import { codeBlocksOf } from "#core/domain/codeBlocks.ts";
+import { stepCost } from "#core/domain/costs.ts";
+import type { CostEntry } from "#core/domain/costs.ts";
+import type { CodeBlocksItem } from "#core/domain/codeBlocks.ts";
 import type { ComponentType } from "react";
-import type { I18nText } from "#core/i18n.ts";
-import type { IconComponent } from "#core/Icon.tsx";
+import type { I18nText } from "#core/domain/i18n.ts";
+import type { IconComponent } from "#core/adapters/react/Icon.tsx";
 import type { BulletItem, ChipItem } from "./cardKit.tsx";
-import type { SlotEntry, SlotEntryInput } from "#core/componentRegistry.ts";
-import type { CodeBlocksOptions } from "#core/codeBlocks.ts";
+import type { SlotEntry, SlotEntryInput } from "#core/application/componentRegistry.ts";
+import type { CodeBlocksOptions } from "#core/domain/codeBlocks.ts";
 
 /** A bullet as authored: text or { text, strong?, color?, glyph?, icon? } with per-language text. */
 export type StepBullet = I18nText | { text?: I18nText; strong?: I18nText; color?: string; glyph?: string; icon?: string };

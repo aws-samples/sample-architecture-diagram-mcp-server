@@ -8,7 +8,7 @@ import { describe, it, expect } from 'vitest';
 import { generateHtml } from './support/deps';
 import { captionSchema } from '#domain/schemas/architecture.ts';
 // @ts-expect-error — plain JSX module, no types
-import { resolveCaption } from '#core-src/components/DiagramCaption.tsx';
+import { resolveCaption } from '#core-src/adapters/react/components/DiagramCaption.tsx';
 
 const SERVICES = [{ id: 'api', service: 'Amazon API Gateway' }];
 const CONNECTIONS: any[] = [];

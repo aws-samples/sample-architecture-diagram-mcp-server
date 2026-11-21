@@ -14,7 +14,7 @@ import { tr } from "./i18n.ts";
 import { iconForService } from "./icons.ts";
 import type { GroupVariant } from "./groupVariants.ts";
 import type { Geometry, XY } from "./layout.ts";
-import type { ArchService, ArchConnection, ArchGroup, ServiceConfig } from "#core/schemas/architecture.ts";
+import type { ArchService, ArchConnection, ArchGroup, ServiceConfig } from "#core/domain/schemas/architecture.ts";
 
 /** Host-injected bits of a service node (the Icon component is the host's type). */
 export interface ServiceNodeContext {

@@ -14,10 +14,10 @@
 // survives the single-file build. In a tabbed document the SHELL renders it above
 // the rail (see StandaloneApp), so the band always sits at the very top.
 import React from "react";
-import { tr } from "#core/i18n.ts";
-import type { I18nText, LangMap } from "#core/i18n.ts";
+import { tr } from "#core/domain/i18n.ts";
+import type { I18nText, LangMap } from "#core/domain/i18n.ts";
 import { wsTail } from "./cardKit.tsx";
-import { AWS_ORANGE } from "#core/tones.ts";
+import { AWS_ORANGE } from "#core/domain/tones.ts";
 
 const ORANGE = AWS_ORANGE;
 

@@ -4,9 +4,9 @@
 // Full-width bands, listed top → bottom (e.g. architecture layers, OSI-like,
 // capability stack), with optional cross-cutting side rails (security,
 // observability) spanning a range of layers.
-import type { JsonSchema } from '#core/schemas/jsonSchema.ts'
+import type { JsonSchema } from '#core/domain/schemas/jsonSchema.ts'
 import type { TypedDiagramSpec, TypedDocBase } from './validate.ts'
-import type { DiagramTone } from '#core/tones.ts'
+import type { DiagramTone } from '#core/domain/tones.ts'
 const tone: JsonSchema = { type: 'string', enum: ['accent', 'info', 'success', 'warn', 'danger', 'neutral', 'purple', 'teal', 'pink'], description: 'Cor' }
 
 export interface LayersLayer {

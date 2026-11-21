@@ -10,12 +10,12 @@
 // Adding a type: create ./<kind>.ts following README.md and list it here.
 import { validateWithSpec } from './validate.ts'
 import type { TypedDiagramSpec, TypedDocBase } from './validate.ts'
-import type { JsonSchema, ValidationResult } from '#core/schemas/jsonSchema.ts'
+import type { JsonSchema, ValidationResult } from '#core/domain/schemas/jsonSchema.ts'
 
 // The schema / refs / unique checkers, for editors that walk a document.
 export { valuesAt, checkRefs, checkUnique, walkSchema, validateWithSpec } from './validate.ts'
 export type { TypedDiagramSpec, TypedDocBase, TypedRef, TypedCategory, TypedSpecContract } from './validate.ts'
-export type { JsonSchema, JsonSchemaType, ValidationResult } from '#core/schemas/jsonSchema.ts'
+export type { JsonSchema, JsonSchemaType, ValidationResult } from '#core/domain/schemas/jsonSchema.ts'
 import quadrant from './quadrant.ts'
 import swimlane from './swimlane.ts'
 import tree from './tree.ts'

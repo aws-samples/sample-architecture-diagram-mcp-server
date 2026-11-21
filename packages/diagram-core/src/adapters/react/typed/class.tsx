@@ -6,12 +6,12 @@
 // sides, spread along them, routed through dagre's interior points and capped
 // with UML arrowheads (hollow triangle, open arrow, hollow/filled diamond).
 import type { SVGProps } from 'react'
-import dagre from 'dagre'
-import type { GraphEdge } from 'dagre'
+import { useCoreHost } from '#core/adapters/react/host.tsx'
+import type { LayeredEdge, LayeredEdgeRoute } from '#core/domain/layoutGraph.ts'
 import { line as d3line, curveBasis } from 'd3-shape'
 import { DiagramSvg, toneColor, textW } from './DiagramSvg.tsx'
 import type { TypedDocBase, TypedViewProps } from './DiagramSvg.tsx'
-import { describeTypedDiagram, getDiagramType } from '#core/typed/index.ts'
+import { describeTypedDiagram, getDiagramType } from '#core/domain/typed/index.ts'
 
 const MEM = 19, PADX = 12, STUB = 26
 const MONO = 'ui-monospace, SFMono-Regular, Menlo, monospace'
@@ -29,7 +29,7 @@ interface ClassMetrics { w: number; h: number; nameH: number; atH: number; meH: 
 interface ClassBoxGeom { x: number; y: number; w: number; h: number; cx: number; cy: number }
 // p / d (anchor point + outward direction) are set once the side's slots are spread.
 interface EdgeEnd { id: string; side: 'T' | 'B'; other: number; p: Vec; d: Vec }
-interface ClassEdge { r: ClassRelation; i: number; ed: GraphEdge; interior: Vec[]; ends: [EdgeEnd, EdgeEnd] }
+interface ClassEdge { r: ClassRelation; i: number; ed: LayeredEdgeRoute; interior: Vec[]; ends: [EdgeEnd, EdgeEnd] }
 
 const monoW = (s: unknown, size: number) => String(s || '').length * size * 0.62
 const boldW = (s: unknown, size: number) => String(s || '').length * size * 0.62
@@ -69,6 +69,7 @@ function Mult({ p, d, text }: { p: Vec; d: Vec; text?: string }) {
 }
 
 export default function ClassView({ doc, step = null, fit }: TypedViewProps<ClassDoc>) {
+  const { layeredLayout } = useCoreHost()
   const cls = doc.classes || []
   const ids = new Set(cls.map(c => c.id))
   const rels = (doc.relations || []).filter(r => ids.has(r.from) && ids.has(r.to))
@@ -79,21 +80,25 @@ export default function ClassView({ doc, step = null, fit }: TypedViewProps<Clas
   rels.forEach(r => { if (r.from === r.to) loopExtra[r.from] = Math.max(loopExtra[r.from] || 0, 70 + Math.max(r.label ? textW(r.label, 12) : 0, textW(r.toMult, 12), textW(r.fromMult, 12))) })
 
   const m: Record<string, ClassMetrics> = Object.fromEntries(cls.map(c => [c.id, measure(c)]))
-  const g = new dagre.graphlib.Graph({ multigraph: true })
-  g.setGraph({ rankdir: 'TB', nodesep: 56, ranksep: 80, edgesep: 24, marginx: 24, marginy: 24 })
-  g.setDefaultEdgeLabel(() => ({}))
-  cls.forEach(c => g.setNode(c.id, { width: m[c.id].w + (loopExtra[c.id] || 0), height: m[c.id].h }))
   const upward = (t: string | undefined) => t === 'inheritance' || t === 'realization'
+  // Layered layout (the LayeredLayoutEngine port: dagre by default); a parent
+  // class ranks above its children. Relation i is graph edge edgeAt[i].
+  const layEdges: LayeredEdge[] = [], edgeAt: Record<number, number> = {}
   rels.forEach((r, i) => {
     if (r.from === r.to) return
     const [v, w] = upward(r.type) ? [r.to, r.from] : [r.from, r.to]
-    g.setEdge(v, w, r.label ? { width: textW(r.label, 12) + 14, height: 20, labelpos: 'c' } : {}, `e${i}`)
+    edgeAt[i] = layEdges.push({ source: v, target: w, name: `e${i}`, label: r.label ? { width: textW(r.label, 12) + 14, height: 20, labelpos: 'c' } : {} }) - 1
   })
-  dagre.layout(g)
+  const g = layeredLayout.layout({
+    options: { rankdir: 'TB', nodesep: 56, ranksep: 80, edgesep: 24, marginx: 24, marginy: 24 },
+    multigraph: true,
+    nodes: cls.map(c => ({ id: c.id, width: m[c.id].w + (loopExtra[c.id] || 0), height: m[c.id].h })),
+    edges: layEdges,
+  })
 
   const box: Record<string, ClassBoxGeom> = {}
   cls.forEach(c => {
-    const nd = g.node(c.id), mm = m[c.id]
+    const nd = g.nodes[c.id] as NonNullable<typeof g.nodes[string]>, mm = m[c.id]
     const x = nd.x - nd.width / 2, y = nd.y - mm.h / 2
     box[c.id] = { x, y, w: mm.w, h: mm.h, cx: x + mm.w / 2, cy: nd.y }
   })
@@ -102,7 +107,7 @@ export default function ClassView({ doc, step = null, fit }: TypedViewProps<Clas
   rels.forEach((r, i) => {
     if (r.from === r.to) return
     const up = upward(r.type)
-    const ed = g.edge(up ? r.to : r.from, up ? r.from : r.to, `e${i}`)
+    const ed = g.edges[edgeAt[i]] as LayeredEdgeRoute
     let interior: Vec[] = (ed.points || []).slice(1, -1)
     if (up) interior = interior.slice().reverse()
     const a = box[r.from], b = box[r.to]
@@ -125,7 +130,7 @@ export default function ClassView({ doc, step = null, fit }: TypedViewProps<Clas
   })
 
   const curve = d3line<Vec>().x(p => p.x).y(p => p.y).curve(curveBasis)
-  const gw = Math.ceil(g.graph().width || 400), gh = Math.ceil(g.graph().height || 200)
+  const gw = Math.ceil(g.width || 400), gh = Math.ceil(g.height || 200)
   const lineSt = (type: string | undefined): SVGProps<SVGPathElement> => ({ fill: 'none', stroke: 'var(--dg-muted)', strokeWidth: 1.6, strokeDasharray: DASHED[type ?? ''] ? '6 4' : undefined })
 
   return (
@@ -138,8 +143,8 @@ export default function ClassView({ doc, step = null, fit }: TypedViewProps<Clas
         const [hA, hB] = headFor(E.r.type)
         const vis = shown(idx[E.r.from]) && shown(idx[E.r.to])
         const lw = E.r.label ? textW(E.r.label, 12) + 12 : 0
-        // dagre's GraphEdge is index-signature `any`: narrow the label centre it adds.
-        const edgeX: unknown = E.ed.x, edgeY: unknown = E.ed.y
+        // The label centre exists only for an edge laid out with a label box.
+        const edgeX = E.ed.x, edgeY = E.ed.y
         return (
           <g key={`r${E.i}`} className="dg-step" style={{ opacity: vis ? 1 : 0 }}>
             <path d={`M${A.p.x},${A.p.y} L${mid.slice(1)} L${B.p.x},${B.p.y}`} {...lineSt(E.r.type)} />

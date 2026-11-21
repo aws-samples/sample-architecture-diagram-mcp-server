@@ -5,7 +5,7 @@
 // evolution (X: genesis → custom → product → commodity). Links are the value
 // chain (dependency, drawn top → down); evolveTo draws a dashed red arrow to
 // the component's expected future position. One component per step.
-import type { JsonSchema } from '#core/schemas/jsonSchema.ts'
+import type { JsonSchema } from '#core/domain/schemas/jsonSchema.ts'
 import type { TypedDiagramSpec, TypedDocBase } from './validate.ts'
 const unit = (d: string): JsonSchema => ({ type: 'number', description: d })
 

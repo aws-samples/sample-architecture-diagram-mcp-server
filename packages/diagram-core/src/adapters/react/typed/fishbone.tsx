@@ -7,7 +7,7 @@
 // below their cause. Deterministic layout: row heights from wrapText.
 import { DiagramSvg, paletteColor, toneColor, textW, wrapText, useSvgIds } from './DiagramSvg.tsx'
 import type { TypedDocBase, TypedViewProps } from './DiagramSvg.tsx'
-import { describeTypedDiagram } from '#core/typed/index.ts'
+import { describeTypedDiagram } from '#core/domain/typed/index.ts'
 
 const FS = 13, LH = 16, SFS = 11.5, SLH = 14
 const COLW = 290, TXT = COLW - 70, SLOPE = 0.5

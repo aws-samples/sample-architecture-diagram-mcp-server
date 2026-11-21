@@ -18,18 +18,19 @@ import "@xyflow/react/dist/style.css";
 import AwsNode from "./AwsNode.tsx";
 import GroupNode from "./GroupNode.tsx";
 import CustomEdge from "./CustomEdge.tsx";
-import { tr } from "#core/i18n.ts";
-import { resolveGroupsAndMembership } from "#core/membership.ts";
-import { resolveVariant } from "#core/groupVariants.ts";
-import { DEFAULT_GEOMETRY } from "#core/layout.ts";
-import { layoutWithFallback } from "#core/layoutEngine.ts";
+import { tr } from "#core/domain/i18n.ts";
+import { resolveGroupsAndMembership } from "#core/domain/membership.ts";
+import { resolveVariant } from "#core/domain/groupVariants.ts";
+import { DEFAULT_GEOMETRY } from "#core/domain/layout.ts";
+import { useCompoundLayout } from "#core/adapters/react/host.tsx";
+import { alignBounds, alignedPosition, distributeCoordinates, reparentNode, reparentOnDrop, toParentRelative } from "#core/application/editor.ts";
 import {
   buildServiceNode, buildBaseEdge, groupStyle, serializeDiagram, membershipFromNodes,
-} from "#core/diagramModel.ts";
+} from "#core/domain/diagramModel.ts";
 import type { DragEvent as ReactDragEvent, ForwardedRef, MouseEvent as ReactMouseEvent } from "react";
 import type { Connection, OnSelectionChangeParams } from "@xyflow/react";
-import type { IconComponent } from "#core/Icon.tsx";
-import type { ArchService } from "#core/schemas/architecture.ts";
+import type { IconComponent } from "#core/adapters/react/Icon.tsx";
+import type { ArchService } from "#core/domain/schemas/architecture.ts";
 import type { CustomEdgeData, CustomFlowEdge } from "./CustomEdge.tsx";
 import type { DiagramFlowNode, DiagramGeometry, DiagramNodeData, LaidOutNode, LiveDiagramData, LiveDiagramVars } from "./LiveDiagram.tsx";
 
@@ -55,7 +56,8 @@ export interface EditorValue extends LiveDiagramData {
 /** Right-click on a node, an edge or the empty pane. */
 export interface EditorContextMenuEvent { kind: "node" | "edge" | "pane"; id?: string; x: number; y: number }
 
-export type AlignDirection = "left" | "right" | "hcenter" | "top" | "bottom" | "vcenter";
+export type { AlignDirection } from "#core/application/editor.ts";
+import type { AlignDirection } from "#core/application/editor.ts";
 
 /** The imperative API the host toolbar/palette drives (the editor's ref). */
 export interface LiveDiagramEditorHandle {
@@ -142,6 +144,7 @@ function EditorCanvas({
   bg = "dots", snap = false, snapSize = 16,
 }: EditorCanvasProps) {
   const { fitView, screenToFlowPosition, zoomIn, zoomOut, zoomTo, getZoom } = useReactFlow();
+  const { layoutWithFallback } = useCompoundLayout();
   const geom = { ...DEFAULT_GEOMETRY, ...(geometry || {}) };
 
   // Decorate a group node built by the layout engine so GroupNode can render it
@@ -255,16 +258,9 @@ function EditorCanvas({
         // absolute ALREADY includes the whole ancestor chain — subtracting the
         // full chain (as an earlier version did) over-corrects and throws deeply
         // nested children far outside their container.
-        const absPos: Record<string, Point> = {}
-        for (const n of laid) absPos[n.id] = { x: n.position?.x || 0, y: n.position?.y || 0 }
         const groupParent: Record<string, string> = {}
         for (const g of groups) if (g.parent) groupParent[g.id] = g.parent
-        const withParent = laid.map((n): LaidOutNode => {
-          const pid = n.type === "aws" ? membership[n.id] : (n.type === "group" ? groupParent[n.id] : null)
-          if (!pid) return n
-          const p = absPos[pid] || { x: 0, y: 0 }
-          return { ...n, parentId: pid, extent: "parent" as const, position: { x: (n.position?.x || 0) - p.x, y: (n.position?.y || 0) - p.y } }
-        })
+        const withParent: LaidOutNode[] = toParentRelative(laid, (n) => (n.type === "aws" ? membership[n.id] : (n.type === "group" ? groupParent[n.id] : null)))
         setNodes(withParent.map(decorateGroup));
         setEdges(baseEdges);
         loadedRef.current = true;
@@ -308,42 +304,7 @@ function EditorCanvas({
   const onNodeDragStop = useCallback((_evt: ReactMouseEvent | MouseEvent | TouchEvent, node: DiagramFlowNode) => {
     if (!node) return;
     snapshot();
-    setNodes(ns => {
-      const byId = Object.fromEntries(ns.map(n => [n.id, n]));
-      const absPos = (n: DiagramFlowNode): Point => {
-        let x = n.position.x, y = n.position.y, p = n.parentId;
-        const guard = new Set<string>();
-        while (p && byId[p] && !guard.has(p)) { guard.add(p); x += byId[p].position.x; y += byId[p].position.y; p = byId[p].parentId; }
-        return { x, y };
-      };
-      // Group boxes are sized in px numbers (groupStyle / NodeResizer).
-      const sizeOf = (n: DiagramFlowNode): { w: number; h: number } => n.type === "group"
-        ? { w: (n.style?.width || 0) as number, h: (n.style?.height || 0) as number }
-        : { w: n.width || 0, h: n.height || 0 };
-      // Descendants of the dragged node — invalid parents (would form a cycle).
-      const descendants = new Set<string>([node.id]);
-      let grew = true;
-      while (grew) { grew = false; for (const n of ns) if (n.parentId && descendants.has(n.parentId) && !descendants.has(n.id)) { descendants.add(n.id); grew = true; } }
-
-      const a = absPos(node), s = sizeOf(node);
-      const cx = a.x + s.w / 2, cy = a.y + s.h / 2;
-      let inside: DiagramFlowNode | null = null, insideAbs: Point | null = null, insideArea = Infinity;
-      for (const g of ns) {
-        if (g.type !== "group" || descendants.has(g.id)) continue;
-        const gp = absPos(g), gs = sizeOf(g);
-        if (cx >= gp.x && cx <= gp.x + gs.w && cy >= gp.y && cy <= gp.y + gs.h) {
-          const area = gs.w * gs.h;
-          if (area < insideArea) { inside = g; insideAbs = gp; insideArea = area; }
-        }
-      }
-      const parentId = inside ? inside.id : undefined;
-      // Keep the node visually put: convert its absolute pos to relative to the
-      // new parent (or leave absolute when detaching to top level).
-      const rel = inside && insideAbs ? { x: a.x - insideAbs.x, y: a.y - insideAbs.y } : a;
-      return ns.map((n): DiagramFlowNode => n.id === node.id
-        ? { ...n, parentId, extent: parentId ? "parent" as const : undefined, position: rel }
-        : n);
-    });
+    setNodes(ns => reparentOnDrop(ns, node));
   }, [setNodes, snapshot]);
 
   // Double-click a node/edge → quick inline rename via a prompt. (A prompt keeps
@@ -430,31 +391,7 @@ function EditorCanvas({
     // it visually in place.
     setNodeParent(id, parentId) {
       snapshot();
-      setNodes(ns => {
-        const node = ns.find(n => n.id === id);
-        if (!node) return ns;
-        const byId = Object.fromEntries(ns.map(n => [n.id, n]));
-        const absOf = (n: DiagramFlowNode): Point => {
-          let x = n.position.x, y = n.position.y, p = n.parentId;
-          const guard = new Set<string>();
-          while (p && byId[p] && !guard.has(p)) { guard.add(p); x += byId[p].position.x; y += byId[p].position.y; p = byId[p].parentId; }
-          return { x, y };
-        };
-        // Reject a parent that is the node itself or one of its descendants.
-        if (parentId) {
-          const descendants = new Set<string>([id]);
-          let grew = true;
-          while (grew) { grew = false; for (const n of ns) if (n.parentId && descendants.has(n.parentId) && !descendants.has(n.id)) { descendants.add(n.id); grew = true; } }
-          if (descendants.has(parentId)) return ns;
-        }
-        const abs = absOf(node);
-        const newParent = parentId ? byId[parentId] : null;
-        const pAbs = newParent ? absOf(newParent) : { x: 0, y: 0 };
-        const rel = newParent ? { x: abs.x - pAbs.x, y: abs.y - pAbs.y } : abs;
-        return ns.map((n): DiagramFlowNode => n.id === id
-          ? { ...n, parentId: parentId || undefined, extent: parentId ? "parent" as const : undefined, position: rel }
-          : n);
-      });
+      setNodes(ns => [...reparentNode(ns, id, parentId)]);
     },
     // Patch an edge's editable data (label/type/dashed).
     updateEdgeData(id, patch) {
@@ -566,35 +503,16 @@ function EditorCanvas({
 
     // ── Align / distribute the current multi-selection ──
     align(dir) {
-      const sel = nodes.filter(n => n.selected && n.type !== "group");
-      if (sel.length < 2) return;
+      const b = alignBounds(nodes);
+      if (!b) return;
       snapshot();
-      const xs = sel.map(n => n.position.x), ys = sel.map(n => n.position.y);
-      const rx = sel.map(n => n.position.x + (n.width || 0)), by = sel.map(n => n.position.y + (n.height || 0));
-      const minX = Math.min(...xs), maxX = Math.max(...rx), cX = (minX + maxX) / 2;
-      const minY = Math.min(...ys), maxY = Math.max(...by), cY = (minY + maxY) / 2;
-      const ids = new Set(sel.map(n => n.id));
-      setNodes(ns => ns.map(n => {
-        if (!ids.has(n.id)) return n;
-        const w = n.width || 0, h = n.height || 0; const p = { ...n.position };
-        if (dir === "left") p.x = minX;
-        else if (dir === "right") p.x = maxX - w;
-        else if (dir === "hcenter") p.x = cX - w / 2;
-        else if (dir === "top") p.y = minY;
-        else if (dir === "bottom") p.y = maxY - h;
-        else if (dir === "vcenter") p.y = cY - h / 2;
-        return { ...n, position: p };
-      }));
+      setNodes(ns => ns.map(n => (b.ids.has(n.id) ? { ...n, position: alignedPosition(n, dir, b) } : n)));
     },
     distribute(axis) {
-      const sel = nodes.filter(n => n.selected && n.type !== "group");
-      if (sel.length < 3) return;
+      const d = distributeCoordinates(nodes, axis);
+      if (!d) return;
       snapshot();
-      const key = axis === "h" ? "x" : "y";
-      const sorted = [...sel].sort((a, b) => a.position[key] - b.position[key]);
-      const first = sorted[0].position[key], last = sorted[sorted.length - 1].position[key];
-      const step = (last - first) / (sorted.length - 1);
-      const pos: Record<string, number> = {}; sorted.forEach((n, i) => { pos[n.id] = first + i * step; });
+      const { key, pos } = d;
       setNodes(ns => ns.map(n => pos[n.id] != null ? { ...n, position: { ...n.position, [key]: pos[n.id] } } : n));
     },
   };

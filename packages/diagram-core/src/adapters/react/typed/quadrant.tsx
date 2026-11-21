@@ -7,7 +7,7 @@
 //   fit        'width' | 'contain'
 import { DiagramSvg, toneColor, wrapText } from './DiagramSvg.tsx'
 import type { TypedDocBase, TypedViewProps } from './DiagramSvg.tsx'
-import { describeTypedDiagram } from '#core/typed/index.ts'
+import { describeTypedDiagram } from '#core/domain/typed/index.ts'
 
 const W = 960, H = 720, M = { l: 110, r: 40, t: 40, b: 90 }
 

@@ -8,7 +8,7 @@
 // Layout is computed around (0,0), then the viewBox is fitted to the bbox.
 import { DiagramSvg, paletteColor, toneColor, textW, wrapText, useSvgIds } from './DiagramSvg.tsx'
 import type { TypedDocBase, TypedViewProps } from './DiagramSvg.tsx'
-import { describeTypedDiagram } from '#core/typed/index.ts'
+import { describeTypedDiagram } from '#core/domain/typed/index.ts'
 
 const DW = 180, DFS = 12.5, DLH = 16, PAD = 24
 

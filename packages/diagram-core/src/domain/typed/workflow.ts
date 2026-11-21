@@ -8,9 +8,9 @@
 // an MCP-generated HTML (its `flow-data` JSON) renders here exactly as in the
 // attachment. Nodes + directed edges (branches can converge), typed shapes,
 // labelled edges and an optional narrated walkthrough (`steps`).
-import type { JsonSchema } from '#core/schemas/jsonSchema.ts'
+import type { JsonSchema } from '#core/domain/schemas/jsonSchema.ts'
 import type { TypedDiagramSpec, TypedDocBase } from './validate.ts'
-import type { PlayerTone } from '#core/tones.ts'
+import type { PlayerTone } from '#core/domain/tones.ts'
 const tone: JsonSchema = { type: 'string', enum: ['accent', 'info', 'success', 'warn', 'danger', 'neutral'], description: 'Cor de destaque' }
 const ids = (ref: string, description: string): JsonSchema => ({ type: 'array', items: { type: 'string', 'x-ref': ref }, description })
 

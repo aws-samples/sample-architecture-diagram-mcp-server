@@ -6,13 +6,13 @@
 // passed in via `strings` so the host owns the i18n chrome table.
 import { AnimatePresence, motion } from "framer-motion";
 import type { ComponentType, ReactNode } from "react";
-import type { I18nText } from "#core/i18n.ts";
-import type { IconComponent } from "#core/Icon.tsx";
-import type { SlotEntry, SlotEntryInput } from "#core/componentRegistry.ts";
+import type { I18nText } from "#core/domain/i18n.ts";
+import type { IconComponent } from "#core/adapters/react/Icon.tsx";
+import type { SlotEntry, SlotEntryInput } from "#core/application/componentRegistry.ts";
 import { CardShell, CardHeader, Body, Section, KeyValues } from "./cardKit.tsx";
-import { getRegisteredComponent, normalizeSlotEntries } from "#core/componentRegistry.ts";
-import { tr } from "#core/i18n.ts";
-import { modalPricing } from "#core/costs.ts";
+import { getRegisteredComponent, normalizeSlotEntries } from "#core/application/componentRegistry.ts";
+import { tr } from "#core/domain/i18n.ts";
+import { modalPricing } from "#core/domain/costs.ts";
 
 /** Node config the modal reads: IaC rows, pricing rows (flat or per environment). */
 export interface NodeModalConfig {

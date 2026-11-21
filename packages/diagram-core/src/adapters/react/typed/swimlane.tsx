@@ -13,7 +13,7 @@
 import type { ReactNode } from 'react'
 import { DiagramSvg, toneColor, paletteColor, wrapText, textW, useSvgIds } from './DiagramSvg.tsx'
 import type { TypedDocBase, TypedViewProps } from './DiagramSvg.tsx'
-import { describeTypedDiagram } from '#core/typed/index.ts'
+import { describeTypedDiagram } from '#core/domain/typed/index.ts'
 
 const M = 24, LH = 140, CW = 192, NW = 152, SH = 116, R = 18, DW = 146
 const FS = 14, FLH = 17, SS = 12.5, SLH = 15, DS = 12

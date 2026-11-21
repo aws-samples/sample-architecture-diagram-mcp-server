@@ -12,11 +12,13 @@
 // `metrics`): no domain logic lives here. Styles are plain CSS scoped to .ld-app
 // (own class names, zinc neutrals + one accent), injected as a string so the
 // single-file build needs no CSS scan.
+import { useCoreHost } from "#core/adapters/react/host.tsx";
+import { createAppPageLink } from "#core/application/appPages.ts";
 import { useEffect, useMemo, useState } from "react";
 import type { ComponentType, CSSProperties, Dispatch, ReactElement, ReactNode, SetStateAction } from "react";
-import { tr } from "#core/i18n.ts";
-import { displayValue, evalExpr, formatValue, textValue } from "#core/appData.ts";
-import type { AppData, AppDisplayValue, AppExpr, AppFormat, AppMetrics } from "#core/appData.ts";
+import { tr } from "#core/domain/i18n.ts";
+import { displayValue, evalExpr, formatValue, textValue } from "#core/domain/appData.ts";
+import type { AppData, AppDisplayValue, AppExpr, AppFormat, AppMetrics } from "#core/domain/appData.ts";
 
 // ── App document types (mirror the server's app-shell schemas) ──────────────
 /** Per-language text: a string, or { en, pt, … }. */
@@ -445,11 +447,6 @@ function PageComponent({ entry, ctx }: { entry: AppEntry; ctx: AppShellContext }
   return C ? <C props={props} ctx={ctx} /> : null;
 }
 
-const pageFromHash = (pages: AppPage[]): string | undefined => {
-  if (typeof window === "undefined") return undefined;
-  const h = decodeURIComponent((window.location.hash || "").replace(/^#/, ""));
-  return pages.some((p) => p.id === h) ? h : undefined;
-};
 
 /**
  * The app shell.
@@ -483,18 +480,16 @@ export interface AppShellProps {
 
 export function AppShell({ app = {}, data: initialData = {}, metrics = {}, lang = "en", languages = [], onLang = (_lang: string) => {}, langLabel = (l: string) => String(l).toUpperCase(), dark = true, onTheme = () => {}, branding, renderDiagram, Icon, custom }: AppShellProps) {
   const pages = useMemo(() => (Array.isArray(app.pages) ? app.pages.filter((p) => p && p.id) : []), [app.pages]);
-  const [page, setPageState] = useState<string | undefined>(() => pageFromHash(pages) || app.startPage || pages[0]?.id);
+  const { urlState } = useCoreHost();
+  const pageLink = useMemo(() => createAppPageLink(urlState), [urlState]);
+  const [page, setPageState] = useState<string | undefined>(() => pageLink.current(pages) || app.startPage || pages[0]?.id);
   const [data, setData] = useState(initialData);
   const [collapsed, setCollapsed] = useState(false);
   useEffect(() => setData(initialData), [initialData]);
-  useEffect(() => {
-    const onHash = () => { const h = pageFromHash(pages); if (h) setPageState(h); };
-    window.addEventListener("hashchange", onHash);
-    return () => window.removeEventListener("hashchange", onHash);
-  }, [pages]);
+  useEffect(() => pageLink.follow(pages, setPageState), [pages, pageLink]);
   const setPage = (id: string) => {
     setPageState(id);
-    if (typeof window !== "undefined" && window.history?.replaceState) window.history.replaceState(null, "", `#${encodeURIComponent(id)}`);
+    pageLink.write(id);
   };
   const ctx: AppShellContext = { lang, languages, onLang, langLabel, dark, onTheme, branding, Icon, data, setData, metrics, pages, page, setPage, renderDiagram, custom };
   const sidebar = (Array.isArray(app.sidebar) ? app.sidebar : APP_SIDEBAR_DEFAULT).map(entryOf);

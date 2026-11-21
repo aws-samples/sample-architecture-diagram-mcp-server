@@ -15,7 +15,7 @@
 
 import { validateSequence, SEQUENCE_KIND } from './sequence.ts'
 import type { JsonSchema, ValidationResult } from './jsonSchema.ts'
-import type { I18nText } from '#core/i18n.ts'
+import type { I18nText } from '#core/domain/i18n.ts'
 
 /** Layout direction of the architecture canvas. */
 export type Direction = 'TB' | 'LR' | 'BT' | 'RL'
