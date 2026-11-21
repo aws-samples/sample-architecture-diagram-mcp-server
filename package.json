@@ -71,18 +71,21 @@
     "zod": "^4.6.7"
   },
   "overrides": {
-    "esbuild": ">=0.28.1"
+    "esbuild": "$esbuild"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.2",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/dagre": "^0.7.52",
+    "@types/node": "^22.20.5",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
     "@vitejs/plugin-react": "^4.5.2",
     "@xyflow/react": "^12.10.2",
+    "ajv": "^8.20.0",
     "d3-shape": "^3.2.0",
+    "esbuild": "^0.28.1",
     "framer-motion": "^12.42.2",
     "highlight.js": "^11.11.1",
     "html-to-image": "^1.11.13",
