@@ -189,7 +189,7 @@ export const tabSchema = z.object({
   title: langText.optional().describe("Heading shown at the top of this tab's panel (doc/sequence)."),
   subtitle: langText.optional(),
   sequence: sequenceSchema.optional().describe("Required when kind='sequence'."),
-  diagram: z.object({ kind: z.string() }).passthrough().optional().describe("Required when kind='typed': a typed diagram document — { kind, title?, … } with kind one of er, gantt, swimlane, tree, timeline, kanban, journey, quadrant, venn, layers, fishbone, wardley, flywheel, class, workflow. Each kind's fields follow its spec in @aws-sample-live-diagram/core (packages/diagram-core/src/typed/<kind>.js); the body is validated before rendering."),
+  diagram: z.object({ kind: z.string() }).passthrough().optional().describe("Required when kind='typed': a typed diagram document — { kind, title?, … } with kind one of er, gantt, swimlane, tree, timeline, kanban, journey, quadrant, venn, layers, fishbone, wardley, flywheel, class, workflow. Each kind's fields follow its spec in @aws-sample-live-diagram/core (packages/diagram-core/src/domain/typed/<kind>.ts); the body is validated before rendering."),
   sections: z.array(z.object({
     title: langText.optional(),
     badge: langText.optional().describe("Short status chip next to the section title (e.g. 'Aprovada', 'Trade-off', 'Requer revisão')."),

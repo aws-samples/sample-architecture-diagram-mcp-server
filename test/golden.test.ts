@@ -69,6 +69,9 @@ function compatible(base: Json, now: Json | undefined, path: string): string[] {
   if (!isObj(now)) return [`${path}: removed`];
   const out: string[] = [];
   for (const [k, v] of Object.entries(base)) {
+    // A description is documentation, not contract: it may be reworded (e.g. a
+    // moved source path). Types, enums, required, properties and items are compared.
+    if (k === 'description' && typeof v === 'string') { if (typeof now.description !== 'string') out.push(`${path}.description: removed`); continue; }
     if (k === 'properties' && isObj(v)) {
       const np = isObj(now.properties) ? now.properties : {};
       for (const [p, d] of Object.entries(v)) out.push(...compatible(d, np[p], `${path}.${p}`));

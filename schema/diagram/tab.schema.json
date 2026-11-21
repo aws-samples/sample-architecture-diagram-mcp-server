@@ -41,7 +41,7 @@
       "$ref": "./sequence-tab.schema.json"
     },
     "diagram": {
-      "description": "Required when kind='typed': a typed diagram document — { kind, title?, … } with kind one of er, gantt, swimlane, tree, timeline, kanban, journey, quadrant, venn, layers, fishbone, wardley, flywheel, class, workflow. Each kind's fields follow its spec in @aws-sample-live-diagram/core (packages/diagram-core/src/typed/<kind>.js); the body is validated before rendering.",
+      "description": "Required when kind='typed': a typed diagram document — { kind, title?, … } with kind one of er, gantt, swimlane, tree, timeline, kanban, journey, quadrant, venn, layers, fishbone, wardley, flywheel, class, workflow. Each kind's fields follow its spec in @aws-sample-live-diagram/core (packages/diagram-core/src/domain/typed/<kind>.ts); the body is validated before rendering.",
       "$ref": "../typed-diagram.schema.json"
     },
     "sections": {
