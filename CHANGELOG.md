@@ -2,6 +2,35 @@
 
 All notable changes to the AWS Architecture Diagram MCP server are documented here.
 
+## [Unreleased]
+
+- **`diagram-core` 1.8.0: a hexagonal core.** `packages/diagram-core/src` is laid
+  out as `domain/` (the pure vocabulary, schemas, typed specs, layouts — moved
+  unchanged), `ports/` (`LayoutEngine`, `LayeredLayoutEngine`, `UrlState`,
+  `Clipboard`, `FileSaver`, `Environment`), `application/` (layout orchestration
+  over the `LayoutEngine` port with the layered fallback, the walkthrough step
+  machine, the `#env` / `#page` deep links, export payloads, editor ops) and
+  `adapters/` (`layout/` elk + dagre, `browser/`, `react/`), with a dependency
+  rule enforced by `test/core-architecture.test.ts`. Every entry keeps its
+  exports and component props (the API golden only gained names), the "source"
+  export condition stays valid, and the generated pages are unchanged (HTML
+  outside the bundled script, DOM per walkthrough beat, and screenshots in light
+  and dark — `scripts/core-parity.mjs`).
+- **`CoreHostProvider` (`/react`)**: hosts and tests can inject the ports the
+  components use (URL hash, clipboard, downloads, reduced motion / fullscreen,
+  the layout engines); without a provider the components use the browser
+  adapters and ELK/dagre as before. New additive exports: the port types, the
+  use cases (`createCompoundLayout`, `reduceWalkStep`, `createCostEnvLink`,
+  `shareCardLayout`, …) on `.`, the engines (`elkLayoutEngine`,
+  `dagreLayeredEngine`, `dagreLayoutEngine`) on `/layout-engine`, and
+  `CoreHostProvider`, `useCoreHost`, `useCompoundLayout` and the browser adapters
+  on `/react`.
+- **Tests:** unit tests for every domain module and all 15 typed specs, the
+  application with fake ports, one `LayoutEngine` contract suite run against
+  the elk and dagre adapters and an in-memory fake, the browser adapters, and
+  React components with injected ports (server-rendered, and in headless
+  Chromium when Playwright is available).
+
 ## [2.4.0] — 2026-11-21
 
 - **The server is TypeScript, in a hexagonal layout** (`server/`: domain →
