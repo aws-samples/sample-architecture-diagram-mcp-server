@@ -28,8 +28,13 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: npm
       - run: npm ci
-      - run: npm test
       - run: npm run typecheck
+      # The committed bundle (dist/server/), the inlined core scripts and the
+      # published contracts (schema/) must match the TypeScript sources.
+      - run: node scripts/build-server.mjs --check
+      - run: node scripts/build-inline-scripts.mjs --check
+      - run: node scripts/build-schema.mjs --check
+      - run: npm test
       # Note: `npm run build:standalone` is intentionally NOT run here. The built
       # dist/index.html is committed (a versioned artifact), and the Tailwind v4
       # build pulls a native binary (@tailwindcss/oxide) that npm ci doesn't

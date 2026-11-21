@@ -1,4 +1,4 @@
-# Generated from lib/contracts.js — do not edit (npm run build:schema).
+# Generated from server/adapters/inbound/mcp/contracts.ts — do not edit (npm run build:schema).
 openapi: "3.1.0"
 jsonSchemaDialect: "https://json-schema.org/draft/2020-12/schema"
 info:

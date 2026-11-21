@@ -4,7 +4,7 @@
 // Example: an isolated landing zone's account-vend flow (AFT + Control Tower + seed +
 // account-customizations) rendered with the animated sequence-diagram generator.
 // Run: node examples/vend-sequence.mjs [outputPath]
-import { generateSequenceHtml } from "../lib/sequence-generator.js";
+import { generateSequenceHtml } from "../dist/server/render.js";
 import { writeFileSync } from "fs";
 
 const out = process.argv[2] || "/tmp/vend-sequence.html";

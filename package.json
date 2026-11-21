@@ -18,11 +18,11 @@
     "sample-architecture-diagram-mcp-server": "mcp-server.js",
     "fetch-icons": "scripts/fetch-icons.sh"
   },
-  "main": "lib/html-generator.js",
+  "main": "./dist/server/render.js",
   "exports": {
-    ".": "./lib/html-generator.js",
-    "./render": "./lib/html-generator.js",
-    "./service-registry.json": "./lib/service-registry.json",
+    ".": "./dist/server/render.js",
+    "./render": "./dist/server/render.js",
+    "./service-registry.json": "./server/assets/service-registry.json",
     "./package.json": "./package.json"
   },
   "imports": {
@@ -35,11 +35,9 @@
   },
   "files": [
     "mcp-server.js",
-    "lib/",
-    "packages/diagram-core/src/*.js",
-    "packages/diagram-core/src/typed/*.js",
-    "packages/diagram-core/src/schemas/*.js",
+    "dist/server/",
     "dist/index.html",
+    "server/assets/*.json",
     "schema/",
     "scripts/fetch-icons.sh",
     "skills/",
@@ -55,14 +53,16 @@
   "scripts": {
     "build:standalone": "vite build --config vite.config.ts",
     "build:core": "npm run build --workspace @aws-sample-live-diagram/core",
+    "build:server": "node scripts/build-server.mjs",
+    "build:inline": "node scripts/build-inline-scripts.mjs",
+    "build:schema": "node scripts/build-schema.mjs",
     "fetch-icons": "./scripts/fetch-icons.sh",
     "test": "vitest run",
     "test:watch": "vitest",
     "start": "node mcp-server.js",
     "pretest": "npm run build:core",
     "prebuild:standalone": "npm run build:core",
-    "typecheck": "npm run build:core && tsc --noEmit -p tsconfig.json",
-    "build:schema": "node scripts/build-schema.mjs"
+    "typecheck": "npm run build:core && tsc --noEmit -p packages/diagram-core/tsconfig.json && tsc --noEmit -p tsconfig.server.json && tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.2",
