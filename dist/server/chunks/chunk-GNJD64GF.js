@@ -1436,7 +1436,7 @@ __name(readPackageJson, "readPackageJson");
 import { readFileSync as readFileSync5 } from "node:fs";
 import { join as join4 } from "node:path";
 
-// raw:/Users/baufaker/baufaker/aws-live-diagram-mcp/.worktrees/ts-hex/server/assets/flow-template.html
+// raw:server/assets/flow-template.html
 var flow_template_default = `<!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
@@ -1978,7 +1978,7 @@ if(HAS_STEPS && FLOW.autoplay) playToggle();
 </html>
 `;
 
-// raw:/Users/baufaker/baufaker/aws-live-diagram-mcp/.worktrees/ts-hex/server/assets/sequence-template.html
+// raw:server/assets/sequence-template.html
 var sequence_template_default = `<!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>

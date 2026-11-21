@@ -6,7 +6,7 @@
 // (public entries, "source" condition), HTML templates as text (`?raw`).
 // Shared by build-server.mjs (dist/server/) and build-schema.mjs (schema/).
 import { readFileSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
+import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 export const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -19,9 +19,12 @@ const rawText = {
     b.onResolve({ filter: /\?raw$/ }, (args) => {
       const spec = args.path.slice(0, -4);
       const path = spec.startsWith("#assets/") ? join(ROOT, "server/assets", spec.slice("#assets/".length)) : resolve(args.resolveDir, spec);
-      return { path, namespace: "raw" };
+      // Repo-relative ids: esbuild names the module in a `// raw:<path>` comment,
+      // so an absolute path would leak the build machine's directory into the
+      // committed bundle (and make it differ between checkouts).
+      return { path: relative(ROOT, path).split(sep).join("/"), namespace: "raw" };
     });
-    b.onLoad({ filter: /.*/, namespace: "raw" }, (args) => ({ contents: readFileSync(args.path, "utf-8"), loader: "text" }));
+    b.onLoad({ filter: /.*/, namespace: "raw" }, (args) => ({ contents: readFileSync(join(ROOT, args.path), "utf-8"), loader: "text" }));
   },
 };
 
