@@ -49,3 +49,13 @@ export function nodeDomainPorts(options: NodeDomainPortsOptions = {}): NodeDomai
     hash: new NodeHasher(),
   };
 }
+
+// ── Adapters of the APPLICATION ports ──
+export { LocalWorkspace, SandboxedWorkspace, ConfinedFileReader } from "./workspace.ts";
+export { NodePackageInfo } from "./package-info.ts";
+export { StderrLogger, LOG_PREFIX } from "./logger.ts";
+export { MemorySessionStore } from "./sessions.ts";
+export { ChromiumRasterizer, importChromium } from "./rasterizer.ts";
+export { DrawioCliExporter } from "./drawio.ts";
+export { FetchIconsInstaller } from "./icon-installer.ts";
+export { ViteBundleBuilder } from "./bundle-builder.ts";
