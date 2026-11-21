@@ -13,8 +13,7 @@ import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { join, resolve, basename } from 'path';
 // @ts-expect-error — plain JS module, no types
 import { renderExamples, renderComponents } from './golden/golden.mjs';
-// @ts-expect-error — plain JS module, no types
-import { iconRoot, hasIcons } from '../lib/icon-root.js';
+import { iconRoot, hasIcons } from './support/deps';
 
 const ROOT = resolve(__dirname, '..');
 const FIX = join(__dirname, 'golden', 'fixtures');

@@ -8,14 +8,14 @@ server-side validation, exports) is generic and driven by these files.
 
 | File | What |
 |---|---|
-| `src/typed/<kind>.js` | **Spec** — pure JS, no imports except other pure files. Runs in browser, Node (MCP, codegen) and is exported as JSON to the Lambda. |
+| `src/typed/<kind>.ts` | **Spec** — pure TypeScript (`TypedDiagramSpec<KindDoc>` from `./validate`), no runtime imports except other pure files (type imports are fine). Runs in browser, Node (MCP, codegen) and is exported as JSON to the Lambda. |
 | `src/typed/views/<kind>.jsx` | **View** — React SVG renderer. |
 
-Register the spec in `src/typed/index.js` and the view in `src/typed/views/index.jsx`.
+Register the spec (and re-export its doc types) in `src/typed/index.ts` and the view in `src/typed/views/index.jsx`.
 
-Reference implementation: `quadrant.js` + `quadrant.jsx`.
+Reference implementation: `quadrant.ts` + `quadrant.jsx`.
 
-## Spec (`<kind>.js`) — `export default { … }`
+## Spec (`<kind>.ts`) — `const spec: TypedDiagramSpec<KindDoc> = { … }; export default spec`
 
 | Field | Required | Notes |
 |---|---|---|
@@ -42,7 +42,7 @@ The editor is generated from the schema. Hints:
 
 - Render through **`<DiagramSvg width height title desc fit>`** (from `./DiagramSvg.jsx`) — this is the
   accessibility contract (role=img + title/desc, instance-unique ids). Pass
-  `title={doc.title || spec.label}` and `desc={describeTypedDiagram(doc)}` (from `../index.js`).
+  `title={doc.title || spec.label}` and `desc={describeTypedDiagram(doc)}` (from `../index`).
 - Colours: **only tokens** — CSS vars `var(--dg-bg|--dg-panel|--dg-ink|--dg-muted|--dg-line|--dg-grid|--dg-accent)`,
   `toneColor(tone)` for semantic tones, `paletteColor(i)` for categorical series. Never hardcode a light-only or
   dark-only colour: the same SVG must read in light and dark. Text on a strong colour fill: `#fff`.

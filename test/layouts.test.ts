@@ -6,12 +6,9 @@ import { tmpdir } from 'os';
 import { join } from 'path';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-// @ts-expect-error — plain JS module, no types
-import * as L from '../lib/layouts.js';
-// @ts-expect-error — plain JS module, no types
-import { renderSpec } from '../lib/render-spec.js';
-// @ts-expect-error — plain JS module, no types
-import { generateHtml } from '../lib/html-generator.js';
+import * as L from './support/layouts';
+import { renderSpec } from './support/deps';
+import { generateHtml } from './support/deps';
 
 interface Payload { dock: (string | { component: string })[]; stepCard: string[]; nodeModal: string[]; header: string[]; branding?: { logo?: string; name?: string } }
 const archDataOf = (html: string): { layout?: Payload } => JSON.parse(html.match(/id="arch-data"[^>]*>([\s\S]*?)<\/script>/)![1]);

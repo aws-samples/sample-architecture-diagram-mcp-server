@@ -8,8 +8,7 @@ import { join } from 'path';
 import { tmpdir } from 'os';
 // @ts-expect-error — plain JS module, no types
 import { renderSpecFile } from '../lib/cli.js';
-// @ts-expect-error — plain JS module, no types
-import { renderSpec } from '../lib/render-spec.js';
+import { renderSpec } from './support/deps';
 
 const PNG = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
 const base = { title: 'Portable', services: [{ id: 'a', service: 'AWS Lambda', category: 'compute' }], connections: [] };

@@ -13,8 +13,7 @@ import { startHttpServer, HTTP_DEFAULTS } from '../lib/http-transport.js';
 import { TOOLS, PKG } from '../lib/tools.js';
 // @ts-expect-error — plain JS module, no types
 import { registerContracts } from '../lib/contracts.js';
-// @ts-expect-error — plain JS module, no types
-import { remoteLoads } from '../lib/self-contained.js';
+import { remoteLoads } from '#domain/shared/self-contained.ts';
 
 const servers: any[] = [];
 afterAll(() => servers.forEach(s => s.close()));

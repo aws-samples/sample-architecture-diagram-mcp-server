@@ -4,7 +4,8 @@
 //
 // Bundle the TypeScript MCP server (server/main/*.ts) into dist/server/ with
 // esbuild. npm dependencies stay external (installed with the package); the
-// core sources (@core/*), the JSON data and the HTML templates are bundled in.
+// core (through its public entries, "source" condition), the JSON data and the
+// HTML templates are bundled in.
 // The output is committed, so `node mcp-server.js` and `npx github:…` work
 // from a clone or a git install without a build step.
 //
@@ -16,27 +17,20 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-const CORE = join(ROOT, "packages/diagram-core/src");
 const OUT = join(ROOT, "dist/server");
 const ENTRIES = { "mcp-server": "server/main/mcp-server.ts", render: "server/main/render.ts" };
 const check = process.argv.includes("--check");
+const RUNTIME_DEPS = Object.keys(JSON.parse(readFileSync(join(ROOT, "package.json"), "utf-8")).dependencies ?? {});
 
-const EXTS = [".ts", ".tsx", ".js", ".jsx", "/index.ts", "/index.tsx", "/index.js", "/index.jsx"];
-const coreAlias = {
-  name: "core-alias",
-  setup(b) {
-    b.onResolve({ filter: /^@core\// }, (args) => {
-      const base = join(CORE, args.path.slice("@core/".length).replace(/\.(js|jsx|ts|tsx)$/, ""));
-      const hit = EXTS.map((e) => base + e).find(existsSync);
-      if (!hit) return { errors: [{ text: `cannot resolve ${args.path} in packages/diagram-core/src` }] };
-      return { path: hit };
-    });
-  },
-};
 const rawText = {
   name: "raw-text",
   setup(b) {
-    b.onResolve({ filter: /\?raw$/ }, (args) => ({ path: resolve(args.resolveDir, args.path.slice(0, -4)), namespace: "raw" }));
+    // `#assets/x.html?raw` (package.json "imports") or a relative `./x.html?raw`.
+    b.onResolve({ filter: /\?raw$/ }, (args) => {
+      const spec = args.path.slice(0, -4);
+      const path = spec.startsWith("#assets/") ? join(ROOT, "server/assets", spec.slice("#assets/".length)) : resolve(args.resolveDir, spec);
+      return { path, namespace: "raw" };
+    });
     b.onLoad({ filter: /.*/, namespace: "raw" }, (args) => ({ contents: readFileSync(args.path, "utf-8"), loader: "text" }));
   },
 };
@@ -51,8 +45,12 @@ const result = await build({
   format: "esm",
   platform: "node",
   target: "node18",
-  packages: "external",
-  plugins: [coreAlias, rawText],
+  // Runtime dependencies stay external (installed with the package); everything
+  // else — the workspace core included — is bundled.
+  external: RUNTIME_DEPS.flatMap((d) => [d, `${d}/*`]),
+  plugins: [rawText],
+  // The core is bundled from its TypeScript sources through its public entries.
+  conditions: ["source"],
   loader: { ".json": "json" },
   jsx: "automatic",
   legalComments: "inline",

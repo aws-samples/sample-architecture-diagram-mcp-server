@@ -1,13 +1,11 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
-// Covers the SERVER-side .drawio generator (lib/drawio-xml.js) used by the
+// Covers the SERVER-side .drawio generator (server/domain/architecture/drawio-xml.ts) used by the
 // auto_generate_diagram / generate_diagram MCP tools — distinct from the
 // browser exporter tested in drawio.test.ts.
 import { describe, it, expect } from 'vitest';
-// @ts-expect-error — plain JS module, no types
-import { generateDrawio, GROUP_STYLES } from '../lib/drawio-xml.js';
-// @ts-expect-error — plain JS module, no types
-import { computeLayout } from '../lib/layout.js';
+import { generateDrawio, GROUP_STYLES } from '#domain/architecture/drawio-xml.ts';
+import { computeLayout } from '#domain/architecture/layout.ts';
 
 const services = [
   { id: 'api', service: 'Amazon API Gateway', shape: 'api_gateway', category: 'networking', x: 200, y: 200 },

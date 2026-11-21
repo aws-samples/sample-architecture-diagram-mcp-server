@@ -9,7 +9,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   buildServiceNode, buildBaseEdge, serializeDiagram, membershipFromNodes,
-} from '../packages/diagram-core/src/diagramModel.js';
+} from '#core-src/diagramModel.ts';
 
 // A diagram exercising: i18n label map, full multi-field config, tone, a group,
 // and membership via parentId.

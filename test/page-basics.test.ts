@@ -6,10 +6,8 @@ import { describe, it, expect } from 'vitest';
 import { mkdtempSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
-// @ts-expect-error — plain JS module, no types
-import { generateHtml, resolveTabs } from '../lib/html-generator.js';
-// @ts-expect-error — plain JS module, no types
-import { renderSpec, writeSpecJson } from '../lib/render-spec.js';
+import { generateHtml, resolveTabs } from './support/deps';
+import { renderSpec, writeSpecJson } from './support/deps';
 
 const services = [{ id: 'fn', service: 'AWS Lambda', category: 'compute' }];
 const titleOf = (html: string) => html.match(/<title>([^<]*)<\/title>/)![1];
@@ -43,7 +41,7 @@ describe('spec.json $schema', () => {
 
 describe('inline markdown images', () => {
   it('![alt](src) is not loaded: it reads as a notice, not "!" + a link', async () => {
-    const { parseInline, inlineHtml } = await import('../packages/diagram-core/src/inline.js');
+    const { parseInline, inlineHtml } = await import('#core-src/inline.ts');
     expect(parseInline('See ![the chart](https://x.test/a.png) now')).toEqual([
       { type: 'text', text: 'See ' }, { type: 'text', text: '[image not shown: the chart]' }, { type: 'text', text: ' now' },
     ]);

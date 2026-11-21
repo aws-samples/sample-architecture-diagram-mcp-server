@@ -6,25 +6,33 @@
   "type": "module",
   "exports": {
     ".": {
+      "source": "./src/index.ts",
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
     "./layout-engine": {
+      "source": "./src/layoutEngine.ts",
       "types": "./dist/layout-engine.d.ts",
       "import": "./dist/layout-engine.js"
     },
     "./react": {
+      "source": "./src/react.tsx",
       "types": "./dist/react.d.ts",
       "import": "./dist/react.js"
     },
     "./typed": {
+      "source": "./src/typed/index.ts",
       "types": "./dist/typed.d.ts",
       "import": "./dist/typed.js"
     },
     "./typed-react": {
+      "source": "./src/typed/views/index.tsx",
       "types": "./dist/typed-react.d.ts",
       "import": "./dist/typed-react.js"
     }
+  },
+  "imports": {
+    "#core/*": "./src/*"
   },
   "files": [
     "dist",

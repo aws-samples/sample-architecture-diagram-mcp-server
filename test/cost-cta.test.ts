@@ -5,11 +5,9 @@
 import { describe, it, expect } from 'vitest';
 import React from 'react';
 import { renderToString } from 'react-dom/server';
-// @ts-expect-error — plain JS module, no types
-import { generateHtml } from '../lib/html-generator.js';
-// @ts-expect-error — plain JS module, no types
-import { htmlDiagramInputSchema, stepSchema } from '../lib/schemas.js';
-import { safeHttpUrl } from '../packages/diagram-core/src/inline.js';
+import { generateHtml } from './support/deps';
+import { htmlDiagramInputSchema, stepSchema } from '#domain/schemas/architecture.ts';
+import { safeHttpUrl } from '#core-src/inline.ts';
 
 interface ArchData { costUrl?: string; costLabel?: string; showTitle?: boolean; steps: { costUrl?: string }[] }
 const archDataOf = (html: string): ArchData => JSON.parse(html.match(/id="arch-data"[^>]*>([\s\S]*?)<\/script>/)![1]);

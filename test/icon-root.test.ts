@@ -12,8 +12,7 @@ import { mkdtempSync, mkdirSync, writeFileSync, rmSync, existsSync, readdirSync 
 import { tmpdir } from 'os';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
-// @ts-expect-error — plain JS module, no types
-import { iconRoot, resetIconRoot, hasIcons, SHARED_ICON_ROOT, PACKAGE_ICON_ROOT } from '../lib/icon-root.js';
+import { iconRoot, resetIconRoot, hasIcons, SHARED_ICON_ROOT, PACKAGE_ICON_ROOT } from './support/deps';
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SCRIPT = join(REPO, 'scripts', 'fetch-icons.sh');

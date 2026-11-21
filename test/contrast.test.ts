@@ -3,10 +3,8 @@
 // Theme contrast tokens (dock-txt, dock-muted, accent, accent-txt) and the WCAG
 // AA check in validate_layout.
 import { describe, it, expect } from 'vitest';
-// @ts-expect-error — plain JS module, no types
-import { contrastRatio, parseColor, themeContrast } from '../lib/contrast.js';
-// @ts-expect-error — plain JS module, no types
-import { validateLayout, themeCss } from '../lib/layouts.js';
+import { contrastRatio, parseColor, themeContrast } from '#domain/architecture/contrast.ts';
+import { validateLayout, themeCss } from './support/layouts';
 
 describe('contrast', () => {
   it('computes WCAG ratios (black/white 21, #777 on white ≈ 4.48)', () => {

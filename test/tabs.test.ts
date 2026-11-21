@@ -6,12 +6,9 @@
 import { describe, it, expect } from 'vitest';
 import { existsSync } from 'fs';
 import { join } from 'path';
-// @ts-expect-error — plain JS module, no types
-import { generateHtml, resolveTabs } from '../lib/html-generator.js';
-// @ts-expect-error — plain JS module, no types
-import { htmlDiagramInputSchema, sequenceSchema, tabSchema } from '../lib/schemas.js';
-// @ts-expect-error — plain JS module, no types
-import { iconRoot } from '../lib/icon-root.js';
+import { generateHtml, resolveTabs } from './support/deps';
+import { htmlDiagramInputSchema, sequenceSchema, tabSchema } from '#domain/schemas/architecture.ts';
+import { iconRoot } from './support/deps';
 
 function archDataOf(html: string): any {
   const m = html.match(/id="arch-data"[^>]*>([\s\S]*?)<\/script>/);
@@ -160,7 +157,7 @@ describe('typed tabs', () => {
     tasks: [{ id: 'a', label: 'Descoberta', start: '2026-11-02', end: '2026-11-06' }],
   };
   it('accepts a valid typed diagram and labels the tab', async () => {
-    const { getDiagramType } = await import('../packages/diagram-core/src/typed/index.js');
+    const { getDiagramType } = await import('#core-src/typed/index.ts');
     const spec = getDiagramType('gantt');
     const doc = { ...spec.empty('Plano') };
     const tabs = resolveTabs({ tabs: [{ id: 'a', kind: 'architecture' }, { id: 'g', kind: 'typed', diagram: doc }] });

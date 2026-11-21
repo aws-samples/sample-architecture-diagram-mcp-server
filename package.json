@@ -25,6 +25,14 @@
     "./service-registry.json": "./lib/service-registry.json",
     "./package.json": "./package.json"
   },
+  "imports": {
+    "#domain/*": "./server/domain/*",
+    "#application/*": "./server/application/*",
+    "#adapters/*": "./server/adapters/*",
+    "#main/*": "./server/main/*",
+    "#assets/*": "./server/assets/*",
+    "#core-src/*": "./packages/diagram-core/src/*"
+  },
   "files": [
     "mcp-server.js",
     "lib/",

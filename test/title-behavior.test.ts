@@ -6,10 +6,8 @@ import { describe, it, expect } from 'vitest';
 import { writeFileSync, mkdtempSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
-// @ts-expect-error — plain JS module, no types
-import { renderSpec } from '../lib/render-spec.js';
-// @ts-expect-error — plain JS module, no types
-import { htmlDiagramInputSchema } from '../lib/schemas.js';
+import { renderSpec } from './support/deps';
+import { htmlDiagramInputSchema } from '#domain/schemas/architecture.ts';
 // @ts-expect-error — plain JS module, no types
 import { importChromium } from '../lib/rasterize.js';
 

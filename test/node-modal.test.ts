@@ -9,10 +9,8 @@ import { renderToString } from 'react-dom/server';
 import { writeFileSync, mkdtempSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
-// @ts-expect-error — plain JS module, no types
-import { renderSpec } from '../lib/render-spec.js';
-// @ts-expect-error — plain JS module, no types
-import { resolveLayout } from '../lib/layouts.js';
+import { renderSpec } from './support/deps';
+import { resolveLayout } from './support/layouts';
 // @ts-expect-error — plain JS module, no types
 import { importChromium } from '../lib/rasterize.js';
 

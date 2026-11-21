@@ -9,9 +9,8 @@ import { renderToString } from 'react-dom/server';
 import { writeFileSync, mkdtempSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
-import { resolveCosts, costEnvs, costForEnv, stepCost, dockCost, modalPricing, envFromHash, hashWithEnv, costProblems } from '../packages/diagram-core/src/costs.js';
-// @ts-expect-error — plain JS module, no types
-import { renderSpec } from '../lib/render-spec.js';
+import { resolveCosts, costEnvs, costForEnv, stepCost, dockCost, modalPricing, envFromHash, hashWithEnv, costProblems } from '#core-src/costs.ts';
+import { renderSpec } from './support/deps';
 // @ts-expect-error — plain JS module, no types
 import { importChromium } from '../lib/rasterize.js';
 

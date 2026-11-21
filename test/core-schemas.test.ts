@@ -5,12 +5,10 @@
 // its tools accept. These tests keep the two describing the same documents.
 import { describe, it, expect } from 'vitest';
 import { z } from 'zod';
+import * as seqZ from '#domain/schemas/sequence.ts';
+import * as archZ from '#domain/schemas/architecture.ts';
 // @ts-expect-error — plain JS module, no types
-import * as seqZ from '../lib/sequence-schemas.js';
-// @ts-expect-error — plain JS module, no types
-import * as archZ from '../lib/schemas.js';
-// @ts-expect-error — plain JS module, no types
-import { sequenceDocSchema, diagramSchema, validateSequence, validateDiagram } from '../packages/diagram-core/src/schemas/index.js';
+import { sequenceDocSchema, diagramSchema, validateSequence, validateDiagram } from '#core-src/schemas/index.ts';
 
 const json = (s: unknown) => z.toJSONSchema(s as z.ZodType, { io: 'input', unrepresentable: 'any' }) as any;
 const keys = (o: any) => Object.keys(o?.properties || {}).sort();

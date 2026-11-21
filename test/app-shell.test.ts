@@ -5,15 +5,11 @@
 import { describe, it, expect } from 'vitest';
 import React from 'react';
 import { renderToString } from 'react-dom/server';
-import { evalExpr, formatValue, displayValue, textValue, APP_GLYPH_NAMES } from '../packages/diagram-core/src/appData.js';
-// @ts-expect-error — plain JS module, no types
-import { resolveLayout, validateLayout, layoutPayload, listComponents, PREVIEW_SPEC } from '../lib/layouts.js';
-// @ts-expect-error — plain JS module, no types
-import { renderSpec } from '../lib/render-spec.js';
-// @ts-expect-error — plain JS module, no types
-import { htmlDiagramInputSchema } from '../lib/schemas.js';
-// @ts-expect-error — plain JS module, no types
-import { remoteLoads } from '../lib/self-contained.js';
+import { evalExpr, formatValue, displayValue, textValue, APP_GLYPH_NAMES } from '#core-src/appData.ts';
+import { resolveLayout, validateLayout, layoutPayload, listComponents, PREVIEW_SPEC } from './support/layouts';
+import { renderSpec } from './support/deps';
+import { htmlDiagramInputSchema } from '#domain/schemas/architecture.ts';
+import { remoteLoads } from '#domain/shared/self-contained.ts';
 
 const archDataOf = (html: string): any => JSON.parse(html.match(/id="arch-data"[^>]*>([\s\S]*?)<\/script>/)![1]);
 
@@ -93,7 +89,7 @@ describe('rendered app page', () => {
   it('SSR: the shell renders sidebar, nav badges, KPIs and live formulas', async () => {
     const { AppShell } = await import('../packages/diagram-core/dist/react.js');
     const app = layoutPayload(resolveLayout('odb-app')).app;
-    const { ODB_APP_EXAMPLE } = await import('../lib/app-presets.js');
+    const { ODB_APP_EXAMPLE } = await import('#domain/schemas/app-presets.ts');
     const html = renderToString(React.createElement(AppShell, { app, data: ODB_APP_EXAMPLE.data, metrics: ODB_APP_EXAMPLE.metrics, lang: 'en', languages: ['en', 'pt'], dark: true }));
     expect(html).toContain('Cost Calculator');
     expect(html).toContain('Database platform');

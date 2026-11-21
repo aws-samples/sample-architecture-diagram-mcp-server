@@ -37,9 +37,13 @@ export interface Workspace {
 }
 
 export class WorkspaceAccessError extends Error {
-  constructor(readonly path: string, readonly root: string) {
+  readonly path: string;
+  readonly root: string;
+  constructor(path: string, root: string) {
     super(`path ${path} is outside the allowed output directory ${root}`);
     this.name = "WorkspaceAccessError";
+    this.path = path;
+    this.root = root;
   }
 }
 

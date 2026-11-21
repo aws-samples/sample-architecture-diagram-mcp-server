@@ -1,6 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
-// Invariant: every HTML this server writes is SELF-CONTAINED (checker: lib/self-contained.js).
+// Invariant: every HTML this server writes is SELF-CONTAINED (checker: server/domain/shared/self-contained.ts).
 // file:// (email attachment, wiki upload, AgentCore tool result saved to disk)
 // with no network: icons are base64, JS and CSS are inline, and nothing the
 // browser LOADS points at a remote host. Navigation links (<a href>) — e.g. a
@@ -9,16 +9,11 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-// @ts-expect-error — plain JS module, no types
-import { generateHtml } from '../lib/html-generator.js';
-// @ts-expect-error — plain JS module, no types
-import { generateSequenceHtml } from '../lib/sequence-generator.js';
-// @ts-expect-error — plain JS module, no types
-import { generateFlowHtml } from '../lib/flow-generator.js';
-// @ts-expect-error — plain JS module, no types
-import { renderSpec } from '../lib/render-spec.js';
-// @ts-expect-error — plain JS module, no types
-import { remoteLoads } from '../lib/self-contained.js';
+import { generateHtml } from './support/deps';
+import { generateSequenceHtml } from './support/deps';
+import { generateFlowHtml } from './support/deps';
+import { renderSpec } from './support/deps';
+import { remoteLoads } from '#domain/shared/self-contained.ts';
 import { mkdtempSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
 
@@ -110,7 +105,7 @@ describe('every HTML output is self-contained', () => {
     expect(remoteLoads(html)).toEqual([]);
   });
   it('the shipped page templates themselves', () => {
-    for (const f of ['dist/index.html', 'lib/sequence-template.html', 'lib/flow-template.html']) {
+    for (const f of ['dist/index.html', 'server/assets/sequence-template.html', 'server/assets/flow-template.html']) {
       expect(remoteLoads(readFileSync(join(__dirname, '..', f), 'utf-8')), f).toEqual([]);
     }
   });

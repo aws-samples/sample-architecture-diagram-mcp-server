@@ -3,8 +3,11 @@
   // scripts/build-server.mjs (esbuild) into dist/server/.
   "compilerOptions": {
     "target": "ES2022",
-    "module": "ESNext",
-    "moduleResolution": "bundler",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "customConditions": ["source"],
+    "allowImportingTsExtensions": true,
+    "erasableSyntaxOnly": true,
     "lib": ["ES2023"],
     "types": ["node"],
     "strict": true,
@@ -19,9 +22,7 @@
     "verbatimModuleSyntax": true,
     "skipLibCheck": true,
     "jsx": "react-jsx",
-    "noEmit": true,
-    "baseUrl": ".",
-    "paths": { "@core/*": ["packages/diagram-core/src/*"] }
+    "noEmit": true
   },
   "include": ["server/**/*.ts", "server/**/*.d.ts"],
   "exclude": ["node_modules", "dist", "packages/diagram-core/dist"]

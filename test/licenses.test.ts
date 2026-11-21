@@ -6,10 +6,8 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-// @ts-expect-error — plain JS module, no types
-import { generateHtml } from '../lib/html-generator.js';
-// @ts-expect-error — plain JS module, no types
-import { renderSpec } from '../lib/render-spec.js';
+import { generateHtml } from './support/deps';
+import { renderSpec } from './support/deps';
 
 const ROOT = join(__dirname, '..');
 const TAILWIND = JSON.parse(readFileSync(join(ROOT, 'node_modules', 'tailwindcss', 'package.json'), 'utf-8')).version as string;

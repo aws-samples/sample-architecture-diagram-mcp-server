@@ -8,14 +8,10 @@
 //     template text got spliced into the data.
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'fs';
-// @ts-expect-error — plain JS module, no types
-import { generateHtml } from '../lib/html-generator.js';
-// @ts-expect-error — plain JS module, no types
-import { generateFlowHtml } from '../lib/flow-generator.js';
-// @ts-expect-error — plain JS module, no types
-import { generateSequenceHtml } from '../lib/sequence-generator.js';
-// @ts-expect-error — plain JS module, no types
-import { embedJson } from '../lib/embed.js';
+import { generateHtml } from './support/deps';
+import { generateFlowHtml } from './support/deps';
+import { generateSequenceHtml } from './support/deps';
+import { embedJson } from '#domain/shared/embed.ts';
 
 // The hostile string a real diagram can legitimately contain: a snippet that
 // documents a script tag, and shell text with replacement-pattern sigils.
@@ -72,7 +68,7 @@ describe('proof links', () => {
   // http(s)/mailto become links — anything else degrades to plain text.
   it('players only anchor http(s)/mailto URLs', () => {
     for (const tmpl of ['flow-template.html', 'sequence-template.html']) {
-      const src = readFileSync(new URL(`../lib/${tmpl}`, import.meta.url), 'utf-8');
+      const src = readFileSync(new URL(`../server/assets/${tmpl}`, import.meta.url), 'utf-8');
       expect(src).toMatch(/const safeUrl = u => \/\^\(https\?:\|mailto:\)/);
       expect(src).toMatch(/url = safeUrl\(url\);/);
       // esc() guards attribute values, not just text

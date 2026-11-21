@@ -38,9 +38,11 @@ const OWNER = new Map([
 const shareEntries = (own) => ({
   name: "core-shared-entries",
   setup(build) {
-    build.onResolve({ filter: /^\.\.?\// }, (args) => {
-      const base = resolve(args.resolveDir, args.path).replace(/\.(js|jsx|ts|tsx)$/, "");
-      const file = EXTS.map((e) => base + e).find(existsSync) ?? resolve(args.resolveDir, args.path);
+    // Relative imports and the package's own "#core/*" alias (package.json "imports").
+    build.onResolve({ filter: /^(\.\.?\/|#core\/)/ }, (args) => {
+      const abs = args.path.startsWith("#core/") ? resolve(SRC, args.path.slice("#core/".length)) : resolve(args.resolveDir, args.path);
+      const base = abs.replace(/\.(js|jsx|ts|tsx)$/, "");
+      const file = EXTS.map((e) => base + e).find(existsSync) ?? abs;
       const target = OWNER.get(file);
       if (!target || target === own) return undefined;
       return { path: target, external: true };

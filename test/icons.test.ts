@@ -1,10 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
 import { describe, it, expect } from 'vitest';
-// @ts-expect-error — plain JS module, no types
-import { iconForService, SERVICE_ICONS, generateHtml, iconResolutionReport } from '../lib/html-generator.js';
-// @ts-expect-error — plain JS module, no types
-import { iconRoot, hasIcons } from '../lib/icon-root.js';
+import { iconForService, SERVICE_ICONS, generateHtml, iconResolutionReport } from './support/deps';
+import { iconRoot, hasIcons } from './support/deps';
 
 // The AWS Architecture Icons aren't redistributed (their Terms of Use), so a
 // fresh clone / CI has none. Base64-inlining assertions only apply when the icons

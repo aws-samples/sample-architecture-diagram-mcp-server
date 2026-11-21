@@ -8,15 +8,11 @@ import { renderToString } from 'react-dom/server';
 import { writeFileSync, mkdtempSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
-import { codeBlocksOf, splitCodeByMarkers } from '../packages/diagram-core/src/codeBlocks.js';
-// @ts-expect-error — plain JS module, no types
-import { renderSpec } from '../lib/render-spec.js';
-// @ts-expect-error — plain JS module, no types
-import { generateSequenceHtml } from '../lib/sequence-generator.js';
-// @ts-expect-error — plain JS module, no types
-import { stepSchema } from '../lib/schemas.js';
-// @ts-expect-error — plain JS module, no types
-import { sequenceInputSchema } from '../lib/sequence-schemas.js';
+import { codeBlocksOf, splitCodeByMarkers } from '#core-src/codeBlocks.ts';
+import { renderSpec } from './support/deps';
+import { generateSequenceHtml } from './support/deps';
+import { stepSchema } from '#domain/schemas/architecture.ts';
+import { sequenceInputSchema } from '#domain/schemas/sequence.ts';
 // @ts-expect-error — plain JS module, no types
 import { importChromium } from '../lib/rasterize.js';
 
