@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/layout.schema.json",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]*$"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 500
+    },
+    "extends": {
+      "description": "Layout this one starts from (a preset such as 'default' or 'cost', or a saved layout). Default 'default'.",
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]*$"
+    },
+    "slots": {
+      "description": "Full component list per slot, in order (replaces the inherited list for that slot).",
+      "type": "object",
+      "properties": {
+        "dock": {
+          "type": "array",
+          "items": {
+            "$ref": "./layout/slot-entry.schema.json"
+          }
+        },
+        "stepCard": {
+          "type": "array",
+          "items": {
+            "$ref": "./layout/slot-entry.schema.json"
+          }
+        },
+        "nodeModal": {
+          "type": "array",
+          "items": {
+            "$ref": "./layout/slot-entry.schema.json"
+          }
+        },
+        "header": {
+          "type": "array",
+          "items": {
+            "$ref": "./layout/slot-entry.schema.json"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "patch": {
+      "description": "Edits applied after `slots`: add / remove / move / replace a component, or change its props.",
+      "type": "array",
+      "items": {
+        "$ref": "./layout/patch-op.schema.json"
+      }
+    },
+    "theme": {
+      "$ref": "./layout/theme.schema.json"
+    },
+    "branding": {
+      "$ref": "./layout/branding.schema.json"
+    },
+    "shell": {
+      "description": "Page family. 'document' (default): caption + tab rail + canvas + dock, exactly as before. 'app': a sidebar + pages app assembled from the app-shell components (see `app`).",
+      "type": "string",
+      "enum": [
+        "document",
+        "app"
+      ]
+    },
+    "app": {
+      "description": "The app shell (shell: 'app'): sidebar components, pages with their components, start page, and generic example data for previews.",
+      "$ref": "./app/config.schema.json"
+    }
+  },
+  "additionalProperties": false
+}

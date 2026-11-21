@@ -1,0 +1,7 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/spec.schema.json",
+  "title": "<name>.spec.json",
+  "description": "The file written next to every generated architecture HTML: the validated diagram spec, re-renderable with render_from_spec / the `render` CLI.",
+  "$ref": "./diagram.schema.json"
+}

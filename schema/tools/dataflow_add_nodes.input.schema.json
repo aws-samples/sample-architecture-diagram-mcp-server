@@ -1,0 +1,79 @@
+{
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/tools/dataflow_add_nodes.input.schema.json",
+  "title": "dataflow_add_nodes input",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "flowId": {
+      "type": "string"
+    },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Stable id referenced by edges (from/to) and steps."
+          },
+          "label": {
+            "type": "string",
+            "description": "Node label. Empty is allowed for initial/final markers."
+          },
+          "sub": {
+            "description": "Second, smaller line under the label (e.g. a qualifier or actor).",
+            "type": "string"
+          },
+          "kind": {
+            "description": "Shape/role. workflow: start|task|decision|subprocess|wait|end; dataflow: external|process|datastore; lifecycle: initial|state|choice|final. Defaults to 'task' (workflow), 'process' (dataflow), 'state' (lifecycle).",
+            "type": "string",
+            "enum": [
+              "box",
+              "start",
+              "task",
+              "decision",
+              "subprocess",
+              "wait",
+              "end",
+              "external",
+              "process",
+              "datastore",
+              "initial",
+              "state",
+              "choice",
+              "final"
+            ]
+          },
+          "service": {
+            "description": "Canonical AWS/service name to AUTO-RESOLVE a small node icon (e.g. 'AWS Lambda', 'Amazon SQS'). Same resolver as the other diagrams — call resolve_icon to confirm.",
+            "type": "string"
+          },
+          "icon": {
+            "description": "Explicit icon reference — overrides `service`. Bare name resolves under icons/ (e.g. 'Arch_AWS-Lambda_48.png'); a prefixed path is used as-is ('tech-icons/vault.svg', 'aws-icons/user.svg').",
+            "type": "string"
+          },
+          "tone": {
+            "description": "Static accent for the node border/fill (independent of the walkthrough).",
+            "type": "string",
+            "enum": [
+              "accent",
+              "info",
+              "success",
+              "warn",
+              "danger",
+              "neutral"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "label"
+        ]
+      }
+    }
+  },
+  "required": [
+    "flowId",
+    "nodes"
+  ]
+}

@@ -55,11 +55,11 @@ that otherwise show up as silent blanks in the browser.
    nesting and point services at them via `parentId`. Third-party or on-prem
    actors → `external: true`.
 6. **Keep process detail out of the canvas** — it belongs in
-   `connections[].label`, `role`, `adr`, or a walkthrough beat. An AWS diagram
+   `connections[].label`, `role`, or a walkthrough beat. An AWS diagram
    guideline, and the thing that keeps a dense diagram readable.
-7. **Capture the WHY** when the user gave rationale — `adr`
-   (context/decision/consequences) and `wellArchitected` pillar notes. These
-   travel into the IaC handoff, so generated infrastructure honours the intent.
+7. **Capture the WHY** when the user gave rationale — in the walkthrough beats
+   (`steps[].body` / `bullets`) or a `kind: 'doc'` decision tab. The old `adr`
+   and `wellArchitected` fields are dropped by the generator.
 
 ## Say what the diagram IS: `caption`
 

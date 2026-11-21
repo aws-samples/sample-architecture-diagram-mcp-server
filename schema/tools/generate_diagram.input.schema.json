@@ -1,0 +1,235 @@
+{
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/tools/generate_diagram.input.schema.json",
+  "title": "generate_diagram input",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "subtitle": {
+      "type": "string"
+    },
+    "outputPath": {
+      "type": "string"
+    },
+    "services": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "service": {
+            "type": "string"
+          },
+          "shape": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "compute",
+              "storage",
+              "database",
+              "networking",
+              "security",
+              "integration",
+              "analytics",
+              "ai",
+              "management",
+              "general"
+            ]
+          },
+          "label": {
+            "type": "string"
+          },
+          "x": {
+            "type": "number"
+          },
+          "y": {
+            "type": "number"
+          },
+          "parentId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "service",
+          "shape",
+          "category",
+          "x",
+          "y"
+        ]
+      }
+    },
+    "connections": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "target": {
+            "type": "string"
+          },
+          "dashed": {
+            "type": "boolean"
+          },
+          "exitX": {
+            "type": "number"
+          },
+          "exitY": {
+            "type": "number"
+          },
+          "entryX": {
+            "type": "number"
+          },
+          "entryY": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "source",
+          "target"
+        ]
+      }
+    },
+    "groups": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "aws-cloud",
+              "region",
+              "vpc",
+              "public-subnet",
+              "private-subnet"
+            ]
+          },
+          "label": {
+            "type": "string"
+          },
+          "x": {
+            "type": "number"
+          },
+          "y": {
+            "type": "number"
+          },
+          "w": {
+            "type": "number"
+          },
+          "h": {
+            "type": "number"
+          },
+          "parentId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "label",
+          "x",
+          "y",
+          "w",
+          "h"
+        ]
+      }
+    },
+    "options": {
+      "type": "object",
+      "properties": {
+        "users": {
+          "type": "object",
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "x",
+            "y"
+          ]
+        },
+        "externals": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              },
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              },
+              "isApi": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "id",
+              "label",
+              "x",
+              "y"
+            ]
+          }
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "number": {
+                "type": "number"
+              },
+              "description": {
+                "type": "string"
+              },
+              "badgeX": {
+                "type": "number"
+              },
+              "badgeY": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "number",
+              "description",
+              "badgeX",
+              "badgeY"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "title",
+    "outputPath",
+    "services",
+    "connections"
+  ]
+}

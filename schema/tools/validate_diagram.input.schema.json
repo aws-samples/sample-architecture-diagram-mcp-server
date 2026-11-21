@@ -1,0 +1,1010 @@
+{
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/tools/validate_diagram.input.schema.json",
+  "title": "validate_diagram input",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "services": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "service": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            ],
+            "description": "Canonical AWS service name — THIS DRIVES ICON RESOLUTION, so keep it a clean service name, NOT a free-text label. Use the official full name (e.g. 'Amazon Simple Storage Service', 'Amazon SageMaker', 'NAT Gateway'); short forms ('Amazon S3', 'Amazon EC2') are fine. Do NOT bury it in prose or a component nickname ('Frontend Next.js (ECS Fargate)', 'aigov_lexml_v2 runtime') — that fails to resolve and the node renders as a bare initial. Put the human-readable name in `label` and the description in `role`. For non-AWS/self-hosted components with no AWS icon (vLLM, a model, a 3rd-party app), pass an explicit `icon` (e.g. 'tech-icons/x.svg'). Every node must be labeled."
+          },
+          "shape": {
+            "description": "Optional AWS4 shape name (see list_shapes). Only used as an icon fallback when `service` is free text; the .drawio tools are the ones that really key off shapes.",
+            "type": "string"
+          },
+          "icon": {
+            "description": "Explicit icon reference — overrides name-based resolution. Bare name resolves under icons/ (e.g. 'Arch_Amazon-RDS_48.png'), prefixed path used as-is (e.g. 'aws-icons/custom.svg', 'tech-icons/postgresql.svg'). Set this whenever `service` is free-text or non-AWS so the node still gets a real icon instead of an initial. Call resolve_icon to discover valid names/filenames.",
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "compute",
+              "storage",
+              "database",
+              "networking",
+              "security",
+              "integration",
+              "analytics",
+              "ai",
+              "management",
+              "general"
+            ]
+          },
+          "label": {
+            "description": "Short human-readable display name shown under the node icon (e.g. 'Frontend Next.js', 'Runtime LexML'). Use this for the friendly/custom name so `service` can stay a clean, icon-resolvable AWS service name. Falls back to `service` when omitted.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "role": {
+            "description": "What this component DOES (the WHY). Shown as the description when the user CLICKS the node to open its detail modal. E.g. 'Authenticates API consumers via JWT', 'Stores order data with single-digit-ms reads'.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "parentId": {
+            "description": "ID of the group this service belongs to (from the top-level `groups`). Enables arbitrary nesting: multi-VPC, AZs, accounts, on-prem. Takes precedence over `subnet`.",
+            "type": "string"
+          },
+          "subnet": {
+            "description": "Shortcut for single-VPC diagrams: auto-nests under AWS Cloud → VPC → public/private subnet when `groups` is not provided.",
+            "type": "string",
+            "enum": [
+              "public",
+              "private"
+            ]
+          },
+          "external": {
+            "type": "boolean"
+          },
+          "isApi": {
+            "type": "boolean"
+          },
+          "pill": {
+            "description": "Short qualifier badge on the node (e.g. 'On-premises', 'In-Region', 'privado', 'GPU'). By default it renders beside the label; set `pillOverlay:true` to anchor it as a colored tag at the top edge of the node card (con18 style).",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "pillOverlay": {
+            "description": "When true, the node's `pill` is drawn as a colored overlay tag inlaid in the top edge of the node card (like the 'On-premises'/'In-Region' badges), instead of inline next to the label.",
+            "type": "boolean"
+          },
+          "pillSide": {
+            "description": "Which end of the top edge the overlay pill sits on (only with `pillOverlay:true`). Default 'left'. Use 'right' to keep the node's tag clear of the tag on the container it sits in.",
+            "type": "string",
+            "enum": [
+              "left",
+              "right"
+            ]
+          },
+          "config": {
+            "description": "Per-node detail-modal content (clicking the node opens it) + IaC/pricing handoff. Freely editable per service.",
+            "type": "object",
+            "properties": {
+              "iac": {
+                "description": "Configuration rows shown under 'Configuração (IaC)' in the node modal: e.g. { instanceClass: 'db.m7g.xlarge', engine: 'PostgreSQL 15.2', storage: '45 GB gp3' }.",
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": [
+                    "string",
+                    "number",
+                    "boolean"
+                  ]
+                }
+              },
+              "pricing": {
+                "description": "Rows shown under 'Custo / dimensionamento' in the node modal: e.g. { replicas: 2, 'vCPU': 4, 'RAM': '16 GB', 'est. mensal': 'USD 320' }.",
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": [
+                    "string",
+                    "number",
+                    "boolean"
+                  ]
+                }
+              },
+              "pricingByEnv": {
+                "description": "Cost/sizing rows per environment of `costs` ({ prod: {…}, poc: {…} }): the node modal shows the selected environment's rows (falling back to `pricing`).",
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {
+                    "type": [
+                      "string",
+                      "number",
+                      "boolean"
+                    ]
+                  }
+                }
+              },
+              "label": {
+                "description": "Short display label shown under the node icon (in the diagram, not the modal).",
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "required": [
+          "id",
+          "service",
+          "category"
+        ]
+      }
+    },
+    "connections": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "target": {
+            "type": "string"
+          },
+          "label": {
+            "description": "Short label rendered as a pill on the edge (e.g. a port/protocol like '5432' or 'HTTPS 443').",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "type": {
+            "description": "Connection semantics, styled distinctly: network (solid), iam (dashed, auth/permission), event (dotted, async/pub-sub), data (solid, read/write).",
+            "type": "string",
+            "enum": [
+              "network",
+              "iam",
+              "event",
+              "data"
+            ]
+          },
+          "bidirectional": {
+            "description": "Draw an arrowhead at BOTH ends (e.g. sync replication, peering, request/response). Default false = single arrow source→target.",
+            "type": "boolean"
+          },
+          "dashed": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "source",
+          "target"
+        ]
+      }
+    },
+    "groups": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Group id referenced by services' parentId and by child groups' parent."
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            ],
+            "description": "Display label, e.g. 'VPC A', 'us-east-1a', 'Prod Account'."
+          },
+          "parent": {
+            "description": "Parent group id for nesting (arbitrary depth).",
+            "type": "string"
+          },
+          "variant": {
+            "description": "Container type → official AWS group icon + color.",
+            "type": "string",
+            "enum": [
+              "aws-cloud",
+              "region",
+              "vpc",
+              "public-subnet",
+              "private-subnet",
+              "availability-zone",
+              "account",
+              "organization",
+              "auto-scaling-group",
+              "group",
+              "corporate-data-center",
+              "on-premises"
+            ]
+          },
+          "icon": {
+            "description": "Override the container's header glyph with a specific icon reference (e.g. 'Res_Amazon-Elastic-Kubernetes-Service_EKS-on-Outposts_48.png' to badge an 'EKS Cluster' group). Pass 'none' to show the label only (logical sub-groups like a Kubernetes namespace).",
+            "type": "string"
+          },
+          "pill": {
+            "description": "Small secondary label rendered as a pill in the group header, beside the title (e.g. an instance type 'ml.g6.24xlarge', a count '4x L40S', or a status 'privado'). Use for the sidecar/qualifier that shouldn't crowd the main label.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "pillOverlay": {
+            "description": "When true, the group's `pill` is drawn as a solid colored tag inlaid in the container's top border line (con18 style), instead of inline in the header row. Good for an instance type badge on an instance-group container.",
+            "type": "boolean"
+          },
+          "pillSide": {
+            "description": "Which end of the top border the overlay pill sits on (only with `pillOverlay:true`). Default 'right', because the header (icon + label) owns the top-left corner; use 'left' on a wide container with a short label, or to stop two nested containers stacking their tags on the same corner.",
+            "type": "string",
+            "enum": [
+              "left",
+              "right"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "label"
+        ]
+      }
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tone": {
+            "description": "Named accent for this beat's highlight: accent (orange, default), info (blue), success (green), warn (amber), danger (red), neutral (slate). Resilience aliases survive/degrade/severed still work.",
+            "type": "string",
+            "enum": [
+              "accent",
+              "info",
+              "success",
+              "warn",
+              "danger",
+              "neutral",
+              "survive",
+              "degrade",
+              "severed"
+            ]
+          },
+          "color": {
+            "description": "Arbitrary hex accent (e.g. '#8C4FFF') overriding `tone` for this beat's card + highlights.",
+            "type": "string"
+          },
+          "cardSide": {
+            "description": "Where the overlay card sits: right (default), left, top (flows above the canvas), or full (centered full-page modal with a dimmed backdrop — good for an intro/overview beat).",
+            "type": "string",
+            "enum": [
+              "left",
+              "right",
+              "top",
+              "full"
+            ]
+          },
+          "nodes": {
+            "description": "Service ids highlighted (tinted) in this beat.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "edges": {
+            "description": "Connection ids highlighted in this beat.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "groups": {
+            "description": "Group ids tinted (border+glow) in this beat.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "tones": {
+            "description": "Per-node tone override: { nodeId: tone } — use when a beat mixes tones (e.g. one node danger, rest accent).",
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "type": "string",
+              "enum": [
+                "accent",
+                "info",
+                "success",
+                "warn",
+                "danger",
+                "neutral",
+                "survive",
+                "degrade",
+                "severed"
+              ]
+            }
+          },
+          "edgeTones": {
+            "description": "Per-edge tone override: { edgeId: tone }.",
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "type": "string",
+              "enum": [
+                "accent",
+                "info",
+                "success",
+                "warn",
+                "danger",
+                "neutral",
+                "survive",
+                "degrade",
+                "severed"
+              ]
+            }
+          },
+          "groupTones": {
+            "description": "Per-group tone override: { groupId: tone }.",
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "type": "string",
+              "enum": [
+                "accent",
+                "info",
+                "success",
+                "warn",
+                "danger",
+                "neutral",
+                "survive",
+                "degrade",
+                "severed"
+              ]
+            }
+          },
+          "zoom": {
+            "description": "Node/group ids to frame the camera on this beat (requires stepZoom). Empty array = fit the whole diagram.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "maxZoom": {
+            "description": "Max zoom level when framing this beat (default 2.2). Lower it (e.g. 1.4) to keep more context visible.",
+            "type": "number"
+          },
+          "eyebrow": {
+            "description": "Small uppercase label above the card title, e.g. '1 · Ingress'.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "icon": {
+            "description": "Icon reference shown next to the card title (same resolution as service icon).",
+            "type": "string"
+          },
+          "title": {
+            "description": "Card heading for this beat.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "body": {
+            "description": "Card description paragraph. Supports inline markdown: **bold**, `code`, *italic*.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "code": {
+            "description": "A fenced code/snippet block rendered under the body in monospace (e.g. an HTTP request, a CLI command, a YAML fragment). Preserves whitespace/newlines and scrolls horizontally.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "codeLabel": {
+            "description": "Small uppercase label shown on the code block's header bar (e.g. 'REQUEST', 'bash', 'JumpStartModel.yaml').",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "codeBlocks": {
+            "description": "Several files on this beat, each a collapsible block with its own header (label + language), copy button and chevron, plus expand/collapse all; long blocks show the first maxLines with 'Show more'. Default: the first block open, the rest collapsed. Use instead of code/codeLabel.",
+            "maxItems": 20,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "maxLength": 60
+                },
+                "label": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  ],
+                  "description": "File name or title on the block header, e.g. 'eks.tf'."
+                },
+                "lang": {
+                  "description": "Language tag on the header (default: from the label's extension).",
+                  "type": "string",
+                  "maxLength": 30
+                },
+                "code": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  ],
+                  "description": "The file content (whitespace preserved)."
+                },
+                "collapsed": {
+                  "description": "Start collapsed (default: only the first block starts open).",
+                  "type": "boolean"
+                },
+                "maxLines": {
+                  "description": "Lines shown before 'Show more' (default 20, or the layout's stepCard.code maxLines).",
+                  "type": "integer",
+                  "minimum": 3,
+                  "maximum": 500
+                }
+              },
+              "required": [
+                "label",
+                "code"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "codeSplit": {
+            "description": "Opt-in for existing specs: split `code` at '===== name =====' lines into collapsible blocks. Without it a single code string is never split (unchanged behavior).",
+            "type": "string",
+            "enum": [
+              "markers"
+            ]
+          },
+          "badge": {
+            "description": "Override the tone badge label; false hides it (recommended for architecture walkthroughs — the eyebrow already labels the beat).",
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "boolean",
+                "const": false
+              }
+            ]
+          },
+          "bullets": {
+            "description": "Bullet list under the body. Each item is a plain string, or a styled object {text, strong?, color?, icon?, glyph?} for richer bullets.",
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "text": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        }
+                      ],
+                      "description": "Bullet body text."
+                    },
+                    "strong": {
+                      "description": "Bold lead rendered before the text (e.g. a term being defined). If omitted, a 'Lead — rest' / 'Lead: rest' prefix in `text` is auto-bolded.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        }
+                      ]
+                    },
+                    "color": {
+                      "description": "Hex colour for this bullet's marker + lead (overrides the card tone).",
+                      "type": "string"
+                    },
+                    "icon": {
+                      "description": "Icon reference used as the bullet marker (replaces the dot).",
+                      "type": "string"
+                    },
+                    "glyph": {
+                      "description": "Single-char marker instead of the dot: '✓' (green), '✕' (red), '≈'/'△' (amber), '→', etc.",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "text"
+                  ]
+                }
+              ]
+            }
+          },
+          "process": {
+            "description": "A numbered process list rendered as colored numbered bubbles + label + description (like a migration runbook: SCT → DMS → Cutover). Use for an ordered sequence of stages inside one card.",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "label": {
+                  "description": "Bold colored step name (e.g. 'SCT', 'DMS full load').",
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "text": {
+                  "description": "Step description.",
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "color": {
+                  "description": "Hex accent for this step's number bubble + label (e.g. '#8C4FFF'). Defaults to the beat tone.",
+                  "type": "string"
+                },
+                "ok": {
+                  "description": "If true, the numbered bubble shows a ✓ instead of the number (a completed step).",
+                  "type": "boolean"
+                }
+              }
+            }
+          },
+          "chips": {
+            "description": "Status chips row at the bottom of the card.",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "label": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "ok": {
+                  "description": "Status glyph: true=green ✓, false=red ✗, 'warn'=amber ≈, omit=neutral dot.",
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "string",
+                      "const": "warn"
+                    }
+                  ]
+                },
+                "icon": {
+                  "description": "Icon reference shown inside the chip.",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "label"
+              ]
+            }
+          },
+          "cost": {
+            "description": "This beat's estimate: the id of an entry in the spec's `costs`, or \"@env\" for the selected environment's estimate. Shown as the card's cost pill (with its environment tag).",
+            "type": "string",
+            "maxLength": 60
+          },
+          "costUrl": {
+            "description": "Link to an external cost estimate for this beat (e.g. an AWS Pricing Calculator share URL). Renders a clickable pill on the card that opens in a new tab. Only a link — this server does not price anything. Use one estimate per sizing scenario. The first step with a costUrl also feeds the dock button when the top-level `costUrl` is omitted.",
+            "type": "string",
+            "pattern": "^https?:\\/\\/\\S+$"
+          },
+          "costLabel": {
+            "description": "Label for this beat's cost pill (default: the localized 'Cost estimate').",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "sections": {
+            "description": "Rich documentation sections (title + body + bullets each). Mainly for a full-page overview beat (cardSide:'full') that reads like a system README — scrolls if long.",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "description": "Section heading (uppercase accent), e.g. 'Data', 'Integrations'.",
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "body": {
+                  "description": "Section paragraph.",
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "bullets": {
+                  "description": "Section bullet list (same string-or-styled-object format as step bullets).",
+                  "type": "array",
+                  "items": {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "object",
+                            "propertyNames": {
+                              "type": "string"
+                            },
+                            "additionalProperties": {
+                              "type": "string"
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "text": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "object",
+                                "propertyNames": {
+                                  "type": "string"
+                                },
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              }
+                            ],
+                            "description": "Bullet body text."
+                          },
+                          "strong": {
+                            "description": "Bold lead rendered before the text (e.g. a term being defined). If omitted, a 'Lead — rest' / 'Lead: rest' prefix in `text` is auto-bolded.",
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "object",
+                                "propertyNames": {
+                                  "type": "string"
+                                },
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              }
+                            ]
+                          },
+                          "color": {
+                            "description": "Hex colour for this bullet's marker + lead (overrides the card tone).",
+                            "type": "string"
+                          },
+                          "icon": {
+                            "description": "Icon reference used as the bullet marker (replaces the dot).",
+                            "type": "string"
+                          },
+                          "glyph": {
+                            "description": "Single-char marker instead of the dot: '✓' (green), '✕' (red), '≈'/'△' (amber), '→', etc.",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "text"
+                        ]
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "repair": {
+      "description": "Compute the auto-repaired IR + receipts (default true). Set false to only report findings against the IR as-is.",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "services",
+    "connections"
+  ]
+}

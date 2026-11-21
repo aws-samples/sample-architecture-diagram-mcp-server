@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/app/display.schema.json",
+  "anyOf": [
+    {
+      "$ref": "./expr.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "value": {
+          "$ref": "./expr.schema.json"
+        },
+        "format": {
+          "$ref": "./format.schema.json"
+        }
+      },
+      "required": [
+        "value"
+      ],
+      "additionalProperties": false
+    }
+  ]
+}

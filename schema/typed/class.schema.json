@@ -1,0 +1,135 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/typed/class.schema.json",
+  "title": "Classes UML",
+  "description": "Diagrama de classes UML: atributos, métodos, estereótipos e relações (herança, realização, composição…).",
+  "x-category": "software",
+  "x-unique": [
+    "classes[].id"
+  ],
+  "x-refs": [
+    {
+      "from": "relations[].from",
+      "to": "classes[].id"
+    },
+    {
+      "from": "relations[].to",
+      "to": "classes[].id"
+    }
+  ],
+  "type": "object",
+  "required": [
+    "kind",
+    "classes"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "kind": {
+      "const": "class"
+    },
+    "title": {
+      "type": "string"
+    },
+    "subtitle": {
+      "type": "string"
+    },
+    "classes": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 40,
+      "x-label": "Classes",
+      "x-item-title": "name",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Identificador único da classe"
+          },
+          "name": {
+            "type": "string",
+            "description": "Nome da classe"
+          },
+          "stereotype": {
+            "type": "string",
+            "description": "Estereótipo (ex.: interface, abstract, enum, service)"
+          },
+          "attributes": {
+            "type": "array",
+            "maxItems": 30,
+            "items": {
+              "type": "string"
+            },
+            "x-label": "Atributos",
+            "description": "Um por linha, ex.: \"+ id: string\""
+          },
+          "methods": {
+            "type": "array",
+            "maxItems": 30,
+            "items": {
+              "type": "string"
+            },
+            "x-label": "Métodos",
+            "description": "Um por linha, ex.: \"+ executar(entrada): Resultado\""
+          }
+        }
+      }
+    },
+    "relations": {
+      "type": "array",
+      "maxItems": 80,
+      "x-label": "Relações",
+      "x-item-title": "label",
+      "items": {
+        "type": "object",
+        "required": [
+          "from",
+          "to",
+          "type"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "from": {
+            "type": "string",
+            "x-ref": "classes[].id",
+            "description": "Herança/realização: a subclasse. Agregação/composição: o todo. Demais: a origem."
+          },
+          "to": {
+            "type": "string",
+            "x-ref": "classes[].id",
+            "description": "Herança/realização: a superclasse/interface. Agregação/composição: a parte. Demais: o destino."
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "inheritance",
+              "realization",
+              "association",
+              "aggregation",
+              "composition",
+              "dependency"
+            ],
+            "description": "Tipo da relação UML"
+          },
+          "label": {
+            "type": "string",
+            "description": "Rótulo da relação"
+          },
+          "fromMult": {
+            "type": "string",
+            "description": "Multiplicidade na origem (ex.: 1, 0..*)"
+          },
+          "toMult": {
+            "type": "string",
+            "description": "Multiplicidade no destino (ex.: 1..*)"
+          }
+        }
+      }
+    }
+  }
+}

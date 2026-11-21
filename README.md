@@ -25,6 +25,21 @@ containers, and flip the theme, all offline:
 |:---:|:---:|:---:|
 | ![Language switch](docs/lang-switch.gif) | ![Collapsible containers](docs/collapse.gif) | ![Theme toggle](docs/theme.gif) |
 
+One file can also be a small document: a caption band that frames it when
+opened cold, and a tab rail with the architecture, an animated UML sequence, a
+typed diagram (here an ER data model) and a prose tab for decisions:
+
+![Tabbed document with caption](docs/document.png)
+
+| Animated UML sequence tab | Typed diagram tab (ER) |
+|:---:|:---:|
+| ![Sequence tab](docs/sequence.gif) | ![Typed ER tab](docs/typed-tab.png) |
+
+Workflows, data-flow diagrams and state machines get their own player, with
+decisions, converging branches, loop-backs and a narrated walkthrough:
+
+![Workflow player](docs/workflow.png)
+
 > **Disclaimer:** Provided for illustration and documentation purposes, "as is"
 > without warranty. The diagrams and any IaC or pricing it helps produce are
 > starting points — review, test, and harden them (security, cost, and
@@ -56,6 +71,22 @@ containers, and flip the theme, all offline:
   diagrams (Gantt, ER, swimlane, timeline, Kanban, journey, Wardley, decision
   workflow, …). Tabs deep-link via the URL hash. See
   [Multi-tab documents](#multi-tab-documents-sequence--doc-tabs).
+- **Workflow, data-flow and lifecycle diagrams** — `generate_workflow_diagram`,
+  `generate_dataflow_diagram` and `generate_lifecycle_diagram` (or the incremental
+  `<type>_create` → `_add_nodes` / `_add_edges` / `_add_steps` → `_render`) draw a
+  directed graph with typed node shapes (decision diamonds, datastores, states),
+  labeled branches and loop-backs, and an optional narrated walkthrough. Same
+  self-contained HTML, theme and SVG/PNG export as the other players.
+- **Caption band** — `caption` (`eyebrow`, `title`, `text`, `meta[]`) renders a
+  header above the canvas, so a file opened cold (email attachment, wiki link)
+  says what it is, its version and its owner. In a tabbed document it frames every tab.
+- **Validation before render** — `validate_diagram` reports unresolved icons,
+  dangling connection endpoints and orphaned `parentId`/step references;
+  `generate_html_diagram`, `diagram_render` and `diagram_delta` run the same check
+  and list what they found.
+- **Accessible** — the architecture canvas and the sequence player render as a
+  figure with a generated text summary for screen readers (`describe={false}`
+  in React to opt out).
 - **Collapsible containers** — every group header has a fold toggle; collapse a VPC
   or account to a small box and the layout re-flows (start dense diagrams pre-collapsed
   with `defaultCollapsed`).
@@ -75,6 +106,14 @@ containers, and flip the theme, all offline:
   (`title`, `services[]`, `connections[]`, `groups[]`, per-node `config`) from an
   existing file. This is the contract a downstream cost app (e.g. `aws-cost-app-mcp`)
   or inventory/docs tool consumes. This server makes no pricing calls itself.
+- **Cost estimate links** — `costUrl` (+ `costLabel`) adds a toolbar button that
+  opens an existing estimate (e.g. an AWS Pricing Calculator share link) in a new
+  tab; a walkthrough step can carry its own `costUrl` to show a link pill on its
+  card (one estimate per sizing scenario). Only http(s) links are accepted. These
+  are plain links: the server still prices nothing.
+- **`showTitle: false`** — hide the title/subtitle in the toolbar dock (e.g. when a
+  `caption` band already shows it). The HTML `<title>`, the share-card PNG and the
+  sidecar JSON keep the title.
 
 ## AWS diagram guidelines
 
@@ -194,6 +233,12 @@ Icons need no extra step per install — the plugin reads the shared
 | `sequence_add_fragments` | Append combined fragments (`alt` / `opt` / `loop` / …) anchored by event id |
 | `sequence_add_groups` | Append participant groups (bands) to a sequence draft |
 | `sequence_render` | Render a sequence draft to a self-contained HTML file |
+| `generate_workflow_diagram` | Interactive workflow / flowchart (start, task, decision, subprocess, wait, end) in one call |
+| `generate_dataflow_diagram` | Data-flow diagram (external, process, datastore) in one call |
+| `generate_lifecycle_diagram` | Lifecycle / state machine (initial, state, choice, final) in one call |
+| `workflow_create` · `dataflow_create` · `lifecycle_create` | Start an incremental flow draft; returns a `flowId` |
+| `<type>_add_nodes` · `<type>_add_edges` · `<type>_add_steps` | Append nodes, edges and walkthrough beats to a flow draft (`<type>` = `workflow`, `dataflow` or `lifecycle`) |
+| `<type>_render` | Render a flow draft to a self-contained HTML file |
 | `render_diagram_media` | Screenshot/record a generated HTML diagram to PNG, animated GIF or animated SVG |
 | `auto_generate_diagram` | Fully auto-laid-out `.drawio` file |
 | `generate_diagram` | `.drawio` with manual x/y positioning |
@@ -204,6 +249,14 @@ Icons need no extra step per install — the plugin reads the shared
 | `list_service_configs` | IaC config fields per service |
 | `export_iac_json` | Extract an AWS IaC MCP handoff payload (resources + dependencies) from a diagram |
 | `export_diagram_json` | Extract the diagram's elements as neutral JSON (title, services, connections, groups) for downstream apps |
+
+| `render_from_spec` | Re-render a diagram from a spec file (the `<name>.spec.json` written next to every HTML) |
+| `list_components` · `describe_component` | The component catalog a layout can mount, with each component's props schema |
+| `list_layouts` · `create_layout` · `update_layout` · `validate_layout` · `preview_layout` | Presets and saved layouts: create, patch, check, and preview with a generic diagram |
+| `build_bundle` | Build the page for a layout with custom components (clone only) |
+| `get_schema` | Any published contract of the running server (also served as `schema://…` resources) |
+
+That is 57 tools in all: the flow rows above stand for 18 (three types × six tools).
 
 For a diagram built up in stages (e.g. as an agent reasons through an
 architecture), use the **incremental builder**: `diagram_create` →
@@ -347,7 +400,7 @@ already authored as its own file drops in unchanged.
     { "kind": "message", "id": "m2", "from": "hub", "to": "sfn",
       "label": "start execution", "arrow": "async", "tone": "success",
       "title": "Vend starts", "desc": "Writes the `.tf` request and pushes.",
-      "proof": { "repo": "https://github.com/…", "path": "lib/schemas.js", "lines": "40-58" } },
+      "proof": { "repo": "https://github.com/…", "path": "server/domain/schemas/architecture.ts", "lines": "40-58" } },
     { "kind": "message", "id": "m3", "from": "hub", "to": "dev",
       "label": "render HCL only", "arrow": "reply", "deactivate": true },
     { "kind": "note", "id": "n1", "over": ["hub", "sfn"],
@@ -390,12 +443,126 @@ already authored as its own file drops in unchanged.
 With fewer than two tabs nothing changes — the output stays the classic
 single-canvas diagram.
 
+## Layouts and components
+
+The interactive page is assembled from components placed in four slots:
+`dock` (the toolbar), `stepCard` (the walkthrough card), `nodeModal` (the
+node detail window) and `header` (the caption band). A **layout** says which
+components go in each slot, in what order and with what props, plus theme
+tokens, a CSS file and branding. Pass it as `layout` in any spec:
+
+```jsonc
+"layout": {
+  "extends": "cost",                       // a preset or a saved layout (default: "default")
+  "patch": [
+    { "op": "remove", "slot": "dock", "component": "dock.shareCard" },
+    { "op": "props",  "slot": "dock", "component": "dock.title", "props": { "width": 220 } },
+    { "op": "add",    "slot": "nodeModal", "component": "nodeModal.role" }
+  ],
+  "theme": { "light": { "bg": "#f7f8fb", "dock-bg": "#ffffff" }, "fontFamily": "Inter, sans-serif", "css": "brand.css" },
+  "branding": { "name": "Platform team", "logo": "logo.svg", "favicon": "logo.png" }
+}
+```
+
+- **Presets:** `default` is the standard page; `cost` moves the cost button and
+  the step card's cost pill right after the title. A spec without `layout` is
+  rendered exactly as before layouts existed.
+- **Patch ops:** `add`, `remove`, `move` (`before` / `after` / `index`),
+  `replace` (`with`), `props`. `slots` replaces a whole slot list.
+- **Catalog:** `list_components` / `describe_component` (CLI: `components`,
+  `component <id>`). Every slot entry and its props are validated; a spec field
+  that no component of the layout renders (e.g. `costUrl` without `dock.cost`)
+  is reported as a layout note.
+- **Theme and branding** are applied at render time, with no build: tokens are
+  the canvas CSS custom properties (`bg`, `surface`, `node-bg`, `txt`,
+  `txt-muted`, `border`, `card-bg`, `dock-bg`, …). Logo, favicon and CSS are
+  local files, inlined; URLs are rejected, so the HTML stays self-contained.
+- **Saved layouts:** `create_layout` / `update_layout` write
+  `~/.aws-architecture-diagram/layouts/<name>.json` (or `DIAGRAM_LAYOUTS_DIR`).
+  Presets are read-only: extend them instead.
+- **Custom components:** put `<file>.jsx` plus `<file>.component.json`
+  (`{ "id": "my.badge", "slot": "dock", "file": "badge.jsx", "props": <JSON Schema> }`)
+  in `~/.aws-architecture-diagram/components` (or `DIAGRAM_COMPONENTS_DIR`) and
+  use the id in a layout. A dock component receives its props plus `ctx`
+  (title, lang, dark, …); a step-card part receives `step`, `lang`, `color`; a
+  node-modal section receives `node`, `color`. They need a page that bundles
+  them: `build_bundle` (CLI `layout build <name>`) runs Vite on this repo's
+  `standalone/` sources and caches the page by a hash of the components, the
+  base page and the package version; rendering builds it on demand when it is
+  missing. This needs a clone with `npm install`; the npm package does not ship
+  the build toolchain.
+
+## Spec files and the CLI
+
+Every architecture render also writes `<name>.spec.json` (opt out with
+`writeSpec: false`): the validated input, with `"$schema"` pointing at
+`schema/spec.schema.json`. Re-render it with `render_from_spec` or the CLI —
+the same binary, with a command as its first argument (with no arguments it is
+still the stdio MCP server; nothing listens on a port):
+
+```bash
+npx sample-architecture-diagram-mcp-server render diagram.spec.json --layout cost --out diagram.html
+npx sample-architecture-diagram-mcp-server layout list
+npx sample-architecture-diagram-mcp-server layout validate my-layout.json
+npx sample-architecture-diagram-mcp-server layout preview cost --out /tmp/preview.html
+npx sample-architecture-diagram-mcp-server components --slot dock
+```
+
+## Contracts
+
+Every input this server accepts is published as JSON Schema 2020-12 and
+OpenAPI 3.1, generated from the definitions the server itself registers
+(the tool registry in `server/adapters/inbound/mcp/` → `contracts.ts`), so the
+schema can never disagree with the running version:
+
+- **At runtime:** MCP resources `schema://<name>` and the `get_schema` tool
+  (`get_schema({ name: "list" })` lists the names): `diagram`, `sequence`,
+  `flow-workflow` / `flow-dataflow` / `flow-lifecycle`, `typed/<kind>`,
+  `typed-diagram`, `layout`, `layout-ref`, `components`, `spec`, the shared
+  parts (`diagram/*`, `sequence/*`, `flow/*`, `layout/*`, `common/*`),
+  `tools/<tool>` (each tool's input exactly as in `tools/list`) and `openapi`.
+- **In the repository and the package:** `schema/` — the same text, written by
+  `npm run build:schema` (`-- --check` fails when stale; a test does the same).
+  Contracts reference each other with relative `$ref`s and carry a stable `$id`.
+  Typed-diagram schemas are the core's specs as they are, including their
+  `x-*` annotations.
+- **Two dialects, on purpose:** the document contracts (`diagram`, `layout`,
+  `spec`, …) are JSON Schema 2020-12; the per-tool inputs (`tools/<tool>`) are
+  draft-07, because that is what the MCP TypeScript SDK announces in
+  `tools/list` for Zod tool schemas, and these files must equal that byte for
+  byte (a test checks it). Validate a spec file with `diagram.schema.json` /
+  `spec.schema.json`, or offline with `npx sample-architecture-diagram-mcp-server
+  validate <spec.json>`.
+- **`$id` vs. location:** the `$id`s are stable identifiers, not a published URL.
+  Written `<name>.spec.json` files carry a `$schema` only when
+  `DIAGRAM_SCHEMA_URL` says where the schema is actually served.
+- **OpenAPI:** `schema/openapi.yaml` has every contract in
+  `components/schemas` and one operation per tool (`operationId` = tool name,
+  request body = the tool input). There is no HTTP server: `x-transport` says
+  the operation is carried by MCP, and `x-cli` gives the CLI command when one
+  exists.
+
+## Running on Amazon Bedrock AgentCore Runtime
+
+`node mcp-server.js --http` serves the tools as a stateless streamable-HTTP MCP
+server on `127.0.0.1:8000` (`POST /mcp`); the `Dockerfile` builds the ARM64
+image AgentCore Runtime expects (`0.0.0.0:8000` inside the container, nothing
+published). The runtime authenticates every caller (IAM SigV4 or a JWT
+authorizer). Every path a call names is confined to `MCP_OUTPUT_DIR` (absolute
+paths outside it, `..` and escaping symlinks are rejected), and each result
+embeds exactly the files that call wrote (the self-contained HTML, its spec and
+elements JSON). Icons are not in the image. See [docs/agentcore.md](docs/agentcore.md).
+
 ## Development
 
 ```bash
 npm run build:core         # build the shared @aws-sample-live-diagram/core render package
 npm run build:standalone   # rebuild dist/index.html (the HTML template)
 npm test                    # run the vitest unit suite
+npm run typecheck           # strict type-check: the core, the server and the standalone app
+npm run build:server        # rebuild dist/server/ (the committed server bundle) from server/
+npm run build:inline        # rebuild the core scripts the flow/sequence players inline
+npm run build:schema        # regenerate schema/ (JSON Schema + OpenAPI) from the tool registry
 node mcp-server.js          # run the MCP server over stdio
 ```
 
@@ -405,13 +572,25 @@ sequence players, the palette/theme tokens and the UI strings — lives in
 `packages/diagram-core` (`@aws-sample-live-diagram/core`, see its README) and is
 shared by the standalone app in `standalone/` + `src/`, by the self-contained
 flow/sequence HTML players (which inline its layout and tokens) and by apps that
-install it from a release. The MCP server and Node-side generators live in
-`mcp-server.js` + `lib/`; `lib/schemas.js` is the single source of truth for the
-input shape (imported by both the tools and the local example generators).
-`lib/html-generator.js` injects the diagram data and base64-inlined icons into
-the built `dist/index.html`. Tests (`test/`) cover the pure generators — icon
-resolution, draw.io XML, service-config integrity, the core entries — and
-`npm run typecheck` checks the standalone app against the core's types.
+install it from a release. The MCP server is TypeScript under `server/`, in a hexagonal layout (domain →
+application use cases → adapters → composition roots; see
+[docs/architecture.md](docs/architecture.md)). `npm run build:server` bundles it
+with esbuild into `dist/server/` (committed, the core inside it), and the root
+`mcp-server.js` is a two-line shim to that bundle, so `node mcp-server.js`, a git
+install and the npm package all run without a build step. The Zod schemas in
+`server/domain/schemas/` are the single source of truth for every input shape;
+`server/domain/render/` injects the diagram data and base64-inlined icons into
+the built `dist/index.html`. Tests (`test/`) cover the domain, the tool results
+(golden fixtures), the contracts, the transports and the published package
+shape; `npm run typecheck` checks all three TypeScript projects in strict mode.
+
+To test what users actually install (a clone hides a missing `files` entry or
+dependency), pack it and run the tarball:
+
+```bash
+npm pack
+npx --package=file:./sample-architecture-diagram-mcp-server-<version>.tgz sample-architecture-diagram-mcp-server
+```
 
 ## Containers & nesting
 
@@ -443,7 +622,7 @@ consistent.
 ```
 
 Remaining limit: services
-without a mapped icon render as a category-colored initial (300+ services mapped;
+without a mapped icon render as a category-colored initial (350+ services mapped;
 run `resolve_icon` to check coverage).
 
 ## License

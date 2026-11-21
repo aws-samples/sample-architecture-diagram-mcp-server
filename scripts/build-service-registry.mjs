@@ -17,15 +17,15 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import { SERVICE_ICONS } from "../packages/diagram-core/src/serviceIcons.js";
+import { SERVICE_ICONS } from "../packages/diagram-core/src/serviceIcons.ts";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const LIB = join(__dirname, "..", "lib");
+const ASSETS = join(__dirname, "..", "server", "assets");
 
 const icons = SERVICE_ICONS;
 let cfn = {};
 try {
-  cfn = JSON.parse(readFileSync(join(LIB, "cfn-types.json"), "utf8")).services || {};
+  cfn = JSON.parse(readFileSync(join(ASSETS, "cfn-types.json"), "utf8")).services || {};
 } catch {
   console.warn("cfn-types.json not found — registry will have icons only.");
 }
@@ -56,5 +56,5 @@ const out = {
   _withCfn: Object.values(registry).filter(r => r.cfn).length,
   services: registry,
 };
-writeFileSync(join(LIB, "service-registry.json"), JSON.stringify(out, null, 2) + "\n");
-console.log(`Wrote lib/service-registry.json — ${out._count} services (${out._withCfn} with a CFN type).`);
+writeFileSync(join(ASSETS, "service-registry.json"), JSON.stringify(out, null, 2) + "\n");
+console.log(`Wrote server/assets/service-registry.json — ${out._count} services (${out._withCfn} with a CFN type).`);

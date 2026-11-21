@@ -5,12 +5,10 @@
 // payload verbatim in both author shapes, and that omitting it leaves the payload
 // exactly as it was (the classic bare-canvas diagram must not regress).
 import { describe, it, expect } from 'vitest';
-// @ts-expect-error — plain JS module, no types
-import { generateHtml } from '../lib/html-generator.js';
-// @ts-expect-error — plain JS module, no types
-import { captionSchema } from '../lib/schemas.js';
+import { generateHtml } from './support/deps';
+import { captionSchema } from '#domain/schemas/architecture.ts';
 // @ts-expect-error — plain JSX module, no types
-import { resolveCaption } from '../packages/diagram-core/src/components/DiagramCaption.jsx';
+import { resolveCaption } from '#core-src/components/DiagramCaption.tsx';
 
 const SERVICES = [{ id: 'api', service: 'Amazon API Gateway' }];
 const CONNECTIONS: any[] = [];

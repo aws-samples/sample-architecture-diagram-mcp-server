@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/app/page.schema.json",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{0,40}$"
+    },
+    "label": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "icon": {
+      "type": "string",
+      "maxLength": 120,
+      "description": "A glyph (database, architecture, settings, chart, server, cpu, backup, swap, cloud, info, pin, clock, moon, sun, chevronLeft, chevronRight, chevronUp, chevronDown) or an AWS service name for its official icon."
+    },
+    "badge": {
+      "description": "Value shown at the right of the nav item, e.g. a monthly total.",
+      "$ref": "./display.schema.json"
+    },
+    "components": {
+      "maxItems": 40,
+      "type": "array",
+      "items": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "component": {
+                "type": "string"
+              },
+              "props": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {}
+              }
+            },
+            "required": [
+              "component"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      }
+    }
+  },
+  "required": [
+    "id",
+    "label",
+    "components"
+  ],
+  "additionalProperties": false
+}

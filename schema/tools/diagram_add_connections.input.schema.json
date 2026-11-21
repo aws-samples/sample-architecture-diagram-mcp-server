@@ -1,0 +1,71 @@
+{
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/tools/diagram_add_connections.input.schema.json",
+  "title": "diagram_add_connections input",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "draftId": {
+      "type": "string"
+    },
+    "connections": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "target": {
+            "type": "string"
+          },
+          "label": {
+            "description": "Short label rendered as a pill on the edge (e.g. a port/protocol like '5432' or 'HTTPS 443').",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "type": {
+            "description": "Connection semantics, styled distinctly: network (solid), iam (dashed, auth/permission), event (dotted, async/pub-sub), data (solid, read/write).",
+            "type": "string",
+            "enum": [
+              "network",
+              "iam",
+              "event",
+              "data"
+            ]
+          },
+          "bidirectional": {
+            "description": "Draw an arrowhead at BOTH ends (e.g. sync replication, peering, request/response). Default false = single arrow source→target.",
+            "type": "boolean"
+          },
+          "dashed": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "source",
+          "target"
+        ]
+      }
+    }
+  },
+  "required": [
+    "draftId",
+    "connections"
+  ]
+}

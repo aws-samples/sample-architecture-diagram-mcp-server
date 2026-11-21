@@ -1,0 +1,21 @@
+{
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/tools/workflow_render.input.schema.json",
+  "title": "workflow_render input",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "flowId": {
+      "type": "string"
+    },
+    "outputPath": {
+      "type": "string"
+    },
+    "keep": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "flowId",
+    "outputPath"
+  ]
+}

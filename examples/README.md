@@ -10,7 +10,7 @@ The output `.html` is fully self-contained — open it in any browser.
 ## serverless-api.json
 
 API Gateway + Lambda + DynamoDB behind CloudFront, single VPC. Shows `role`,
-typed connections, `subnet` placement, and an ADR + Well-Architected notes.
+typed connections and `subnet` placement.
 
 ## multi-vpc-hybrid.json
 
@@ -26,5 +26,4 @@ hub-and-spoke layout.
 ---
 
 Try the toolbar in any generated diagram: **flow** play/step, **PNG** and
-**.drawio** export, the **ADR** panel (when rationale is present), and the
-**IaC** handoff.
+**.drawio** export, and the **IaC** handoff.

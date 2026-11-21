@@ -1,8 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
 import { describe, it, expect } from 'vitest';
-// @ts-expect-error — plain JS module, no types
-import { validateDiagram, formatValidationReport, RULES } from '../lib/validate.js';
+import { validateDiagram } from './support/deps';
+import { formatValidationReport, RULES } from '#domain/architecture/validate.ts';
 
 const svc = (id: string, extra: any = {}) => ({ id, service: 'AWS Lambda', shape: 'lambda', category: 'compute', ...extra });
 

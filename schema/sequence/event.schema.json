@@ -1,0 +1,335 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/sequence/event.schema.json",
+  "oneOf": [
+    {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Stable id (referenced by fragment start/end/divider anchors)."
+        },
+        "from": {
+          "type": "string",
+          "description": "Source participant id. Ignored when `found` is true (message originates from a boundary dot)."
+        },
+        "to": {
+          "type": "string",
+          "description": "Target participant id (== from for a self-message). Ignored when `lost` is true (message vanishes at a boundary dot)."
+        },
+        "label": {
+          "description": "Arrow label (the call/return, kept short).",
+          "type": "string"
+        },
+        "style": {
+          "description": "Legacy: solid (call) or dashed (return). Prefer `arrow`. A bare `style:'dashed'` is treated as arrow:'reply'.",
+          "type": "string",
+          "enum": [
+            "solid",
+            "dashed"
+          ]
+        },
+        "arrow": {
+          "description": "UML arrowhead: sync = solid line + filled head (synchronous call, default); async = solid line + open head (asynchronous signal); reply = dashed line + open head (return/response).",
+          "type": "string",
+          "enum": [
+            "sync",
+            "async",
+            "reply"
+          ]
+        },
+        "activate": {
+          "description": "Force-start an execution/activation bar on the `to` participant at this step (explicit-activation mode). If any message sets activate/deactivate, auto-activation is disabled and bars are driven only by these flags.",
+          "type": "boolean"
+        },
+        "deactivate": {
+          "description": "Force-close the innermost open activation bar on the `from` participant at this step (typically on a reply).",
+          "type": "boolean"
+        },
+        "create": {
+          "description": "UML create message: the `to` participant is instantiated here — its header drops down to this row and its lifeline starts at this step (nothing drawn above).",
+          "type": "boolean"
+        },
+        "destroy": {
+          "description": "UML destroy message: the `to` participant is destroyed here — its lifeline ends with an X at this step.",
+          "type": "boolean"
+        },
+        "found": {
+          "description": "Found message: origin is a filled boundary dot (unknown/external sender); `from` is ignored for geometry.",
+          "type": "boolean"
+        },
+        "lost": {
+          "description": "Lost message: target is a filled boundary dot (unknown/external receiver); `to` is ignored for geometry.",
+          "type": "boolean"
+        },
+        "tone": {
+          "description": "Accent for the arrow when it is the active step (default accent/orange).",
+          "type": "string",
+          "enum": [
+            "accent",
+            "info",
+            "success",
+            "warn",
+            "danger",
+            "neutral"
+          ]
+        },
+        "badge": {
+          "description": "Semantic badge shown on the step: gate (can abort), keyless, async, sync, phase, fail.",
+          "type": "string",
+          "enum": [
+            "gate",
+            "keyless",
+            "async",
+            "sync",
+            "phase",
+            "fail"
+          ]
+        },
+        "title": {
+          "description": "Narration-panel heading for this step (falls back to `label`).",
+          "type": "string"
+        },
+        "flow": {
+          "description": "Small sub-line under the panel title (e.g. 'SA/Dev → CodeCommit').",
+          "type": "string"
+        },
+        "desc": {
+          "description": "Panel description. Inline markdown: **bold**, `code`, *italic*.",
+          "type": "string"
+        },
+        "proof": {
+          "description": "Panel 'proof' line: either free text (inline `code` supported) OR a structured source ref {repo,path,ref,lines,url,text} rendered as a clickable link to the exact file@ref/lines.",
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "repo": {
+                  "description": "Repository base URL (e.g. 'https://github.com/aws-samples/sample-architecture-diagram-mcp-server'). Combined with path/ref/lines to build a blob link.",
+                  "type": "string"
+                },
+                "path": {
+                  "description": "File path within the repo (e.g. 'lib/sequence-generator.js').",
+                  "type": "string"
+                },
+                "ref": {
+                  "description": "Commit SHA, tag, or branch to pin the link to (default 'main'). Pin to a commit for a truly stable reference.",
+                  "type": "string"
+                },
+                "lines": {
+                  "description": "Line number, 'start-end' string, or [start,end] — appended as #L.. so the link opens on the exact lines.",
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      }
+                    }
+                  ]
+                },
+                "url": {
+                  "description": "Explicit link URL — overrides repo/path/ref/lines construction.",
+                  "type": "string"
+                },
+                "text": {
+                  "description": "Link label (defaults to path:lines or the URL).",
+                  "type": "string"
+                }
+              }
+            }
+          ]
+        },
+        "code": {
+          "description": "Optional fenced snippet under the description (preserves whitespace).",
+          "type": "string"
+        },
+        "codeLabel": {
+          "description": "Uppercase label on the code block header (e.g. 'handler.py', 'asl').",
+          "type": "string"
+        },
+        "codeBlocks": {
+          "description": "Several files on this event, each a collapsible block with its own header, copy button and chevron (the first open, the rest collapsed unless `collapsed` says otherwise). Use instead of code/codeLabel.",
+          "maxItems": 20,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "maxLength": 60
+              },
+              "label": {
+                "type": "string",
+                "maxLength": 120,
+                "description": "File name or title shown on the block header, e.g. 'eks.tf'."
+              },
+              "lang": {
+                "description": "Language tag on the header (default: from the label's extension).",
+                "type": "string",
+                "maxLength": 30
+              },
+              "code": {
+                "type": "string",
+                "description": "The file content (whitespace preserved)."
+              },
+              "collapsed": {
+                "description": "Start collapsed (default: only the first block starts open).",
+                "type": "boolean"
+              },
+              "maxLines": {
+                "description": "Lines shown before 'Show more' (default 20).",
+                "type": "integer",
+                "minimum": 3,
+                "maximum": 500
+              }
+            },
+            "required": [
+              "label",
+              "code"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "codeSplit": {
+          "description": "Opt-in: split `code` at '===== name =====' lines into collapsible blocks. Without it a single code string is never split.",
+          "type": "string",
+          "enum": [
+            "markers"
+          ]
+        },
+        "kind": {
+          "type": "string",
+          "const": "message"
+        }
+      },
+      "required": [
+        "id",
+        "from",
+        "to",
+        "kind"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "over": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Participant id(s) the note spans (1 = single lifeline, 2 = from→to span)."
+        },
+        "label": {
+          "type": "string",
+          "description": "Text inside the note band."
+        },
+        "tone": {
+          "type": "string",
+          "enum": [
+            "accent",
+            "info",
+            "success",
+            "warn",
+            "danger",
+            "neutral"
+          ]
+        },
+        "badge": {
+          "type": "string",
+          "enum": [
+            "gate",
+            "keyless",
+            "async",
+            "sync",
+            "phase",
+            "fail"
+          ]
+        },
+        "title": {
+          "description": "Narration-panel heading (falls back to `label`).",
+          "type": "string"
+        },
+        "flow": {
+          "type": "string"
+        },
+        "desc": {
+          "description": "Panel description (inline markdown).",
+          "type": "string"
+        },
+        "proof": {
+          "description": "Free text (inline markdown) or a structured source ref rendered as a link.",
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "repo": {
+                  "description": "Repository base URL (e.g. 'https://github.com/aws-samples/sample-architecture-diagram-mcp-server'). Combined with path/ref/lines to build a blob link.",
+                  "type": "string"
+                },
+                "path": {
+                  "description": "File path within the repo (e.g. 'lib/sequence-generator.js').",
+                  "type": "string"
+                },
+                "ref": {
+                  "description": "Commit SHA, tag, or branch to pin the link to (default 'main'). Pin to a commit for a truly stable reference.",
+                  "type": "string"
+                },
+                "lines": {
+                  "description": "Line number, 'start-end' string, or [start,end] — appended as #L.. so the link opens on the exact lines.",
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      }
+                    }
+                  ]
+                },
+                "url": {
+                  "description": "Explicit link URL — overrides repo/path/ref/lines construction.",
+                  "type": "string"
+                },
+                "text": {
+                  "description": "Link label (defaults to path:lines or the URL).",
+                  "type": "string"
+                }
+              }
+            }
+          ]
+        },
+        "kind": {
+          "type": "string",
+          "const": "note"
+        }
+      },
+      "required": [
+        "id",
+        "over",
+        "label",
+        "kind"
+      ]
+    }
+  ]
+}

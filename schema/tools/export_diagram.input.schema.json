@@ -1,0 +1,31 @@
+{
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/tools/export_diagram.input.schema.json",
+  "title": "export_diagram input",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "inputPath": {
+      "type": "string"
+    },
+    "outputPath": {
+      "type": "string"
+    },
+    "format": {
+      "default": "png",
+      "type": "string",
+      "enum": [
+        "png",
+        "svg",
+        "pdf"
+      ]
+    },
+    "scale": {
+      "default": 2,
+      "type": "number"
+    }
+  },
+  "required": [
+    "inputPath",
+    "outputPath"
+  ]
+}

@@ -1,0 +1,141 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/typed/kanban.schema.json",
+  "title": "Kanban",
+  "description": "Quadro Kanban: colunas com limite de WIP e cartões com etiquetas, responsável e bloqueios.",
+  "x-category": "planning",
+  "x-unique": [
+    "columns[].id",
+    "cards[].id"
+  ],
+  "x-refs": [
+    {
+      "from": "cards[].column",
+      "to": "columns[].id"
+    }
+  ],
+  "type": "object",
+  "required": [
+    "kind",
+    "columns",
+    "cards"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "kind": {
+      "const": "kanban"
+    },
+    "title": {
+      "type": "string"
+    },
+    "subtitle": {
+      "type": "string"
+    },
+    "columns": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 12,
+      "x-label": "Colunas",
+      "x-item-title": "label",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "label"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Identificador único da coluna"
+          },
+          "label": {
+            "type": "string",
+            "description": "Nome da coluna"
+          },
+          "limit": {
+            "type": "number",
+            "description": "Limite de WIP (cartões simultâneos); destaca quando excedido"
+          },
+          "tone": {
+            "type": "string",
+            "enum": [
+              "accent",
+              "info",
+              "success",
+              "warn",
+              "danger",
+              "neutral",
+              "purple",
+              "teal",
+              "pink"
+            ],
+            "description": "Cor da coluna"
+          }
+        }
+      }
+    },
+    "cards": {
+      "type": "array",
+      "maxItems": 120,
+      "x-label": "Cartões",
+      "x-item-title": "title",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "column",
+          "title"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Identificador único do cartão"
+          },
+          "column": {
+            "type": "string",
+            "x-ref": "columns[].id",
+            "description": "Coluna onde o cartão está"
+          },
+          "title": {
+            "type": "string",
+            "description": "Título do cartão"
+          },
+          "tags": {
+            "type": "array",
+            "maxItems": 6,
+            "items": {
+              "type": "string"
+            },
+            "x-label": "Etiquetas",
+            "description": "Etiquetas curtas"
+          },
+          "owner": {
+            "type": "string",
+            "description": "Responsável (nome; as iniciais aparecem no avatar)"
+          },
+          "tone": {
+            "type": "string",
+            "enum": [
+              "accent",
+              "info",
+              "success",
+              "warn",
+              "danger",
+              "neutral",
+              "purple",
+              "teal",
+              "pink"
+            ],
+            "description": "Cor da faixa lateral do cartão"
+          },
+          "blocked": {
+            "type": "boolean",
+            "description": "Cartão bloqueado"
+          }
+        }
+      }
+    }
+  }
+}

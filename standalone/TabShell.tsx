@@ -1,8 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
 // Multi-tab chrome for the generated HTML — the same sidebar-and-content shell
-// the cost-calculator app uses (Tailwind/Catalyst style: a fixed left rail of
-// views, a collapse toggle, the panel filling the rest), deep-linkable through
+// the cost-calculator app uses (a fixed left rail of views built with Tailwind
+// utilities, a collapse toggle, the panel filling the rest), deep-linkable through
 // the URL hash, so ONE self-contained file can carry the live architecture, its
 // animated UML sequence, typed diagrams (gantt, ER, swimlane, workflow…) and
 // prose sections instead of shipping several files.
@@ -116,7 +116,7 @@ function DocPanel({ tab, lang }: Any) {
 }
 
 /**
- * @param tabs     normalized tab descriptors (lib/html-generator.js → resolveTabs)
+ * @param tabs     normalized tab descriptors (server/domain/render/html.ts → resolveTabs)
  * @param ArchSlot render-prop for the live architecture canvas (kind:'architecture')
  * @param title/subtitle  document identity, shown as the sidebar brand
  */

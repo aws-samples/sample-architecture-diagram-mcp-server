@@ -1,0 +1,178 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/typed/er.schema.json",
+  "title": "Entidade-relacionamento (ER)",
+  "description": "Esquema de banco de dados: tabelas, colunas (PK/FK) e cardinalidades em notação pé-de-galinha.",
+  "x-category": "data",
+  "x-unique": [
+    "entities[].id"
+  ],
+  "x-refs": [
+    {
+      "from": "relations[].from",
+      "to": "entities[].id"
+    },
+    {
+      "from": "relations[].to",
+      "to": "entities[].id"
+    }
+  ],
+  "type": "object",
+  "required": [
+    "kind",
+    "entities"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "kind": {
+      "const": "er"
+    },
+    "title": {
+      "type": "string"
+    },
+    "subtitle": {
+      "type": "string"
+    },
+    "direction": {
+      "type": "string",
+      "enum": [
+        "LR",
+        "TB"
+      ],
+      "x-label": "Direção",
+      "description": "LR = da esquerda para a direita (padrão); TB = de cima para baixo"
+    },
+    "entities": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 40,
+      "x-label": "Entidades",
+      "x-item-title": "label",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "columns"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Identificador único da entidade"
+          },
+          "label": {
+            "type": "string",
+            "description": "Nome da tabela"
+          },
+          "tone": {
+            "type": "string",
+            "enum": [
+              "accent",
+              "info",
+              "success",
+              "warn",
+              "danger",
+              "neutral",
+              "purple",
+              "teal",
+              "pink"
+            ],
+            "description": "Cor do cabeçalho"
+          },
+          "columns": {
+            "type": "array",
+            "maxItems": 40,
+            "x-label": "Colunas",
+            "x-item-title": "name",
+            "items": {
+              "type": "object",
+              "required": [
+                "name"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Nome da coluna"
+                },
+                "type": {
+                  "type": "string",
+                  "description": "Tipo (ex.: uuid, varchar(120), date)"
+                },
+                "pk": {
+                  "type": "boolean",
+                  "description": "Chave primária"
+                },
+                "fk": {
+                  "type": "boolean",
+                  "description": "Chave estrangeira"
+                },
+                "nullable": {
+                  "type": "boolean",
+                  "description": "Aceita nulo (exibe \"?\" após o tipo)"
+                },
+                "note": {
+                  "type": "string",
+                  "description": "Observação curta (aparece abaixo do nome)"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "relations": {
+      "type": "array",
+      "maxItems": 80,
+      "x-label": "Relacionamentos",
+      "x-item-title": "label",
+      "items": {
+        "type": "object",
+        "required": [
+          "from",
+          "to",
+          "fromCard",
+          "toCard"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "from": {
+            "type": "string",
+            "x-ref": "entities[].id",
+            "description": "Entidade de origem"
+          },
+          "to": {
+            "type": "string",
+            "x-ref": "entities[].id",
+            "description": "Entidade de destino"
+          },
+          "fromCard": {
+            "type": "string",
+            "enum": [
+              "1",
+              "0..1",
+              "1..*",
+              "0..*"
+            ],
+            "description": "Cardinalidade no lado da origem"
+          },
+          "toCard": {
+            "type": "string",
+            "enum": [
+              "1",
+              "0..1",
+              "1..*",
+              "0..*"
+            ],
+            "description": "Cardinalidade no lado do destino"
+          },
+          "label": {
+            "type": "string",
+            "description": "Verbo do relacionamento (ex.: \"solicita\")"
+          }
+        }
+      }
+    }
+  }
+}

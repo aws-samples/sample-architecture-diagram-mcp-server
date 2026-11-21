@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/sequence/group.schema.json",
+  "type": "object",
+  "properties": {
+    "label": {
+      "type": "string",
+      "description": "Container title shown on the group's top-left tab (e.g. 'AWS Control Plane')."
+    },
+    "participants": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Participant ids enclosed by the box. Should be contiguous columns; the box spans from the leftmost to the rightmost."
+    },
+    "tone": {
+      "description": "Accent color for the container border/tab (default neutral).",
+      "type": "string",
+      "enum": [
+        "accent",
+        "info",
+        "success",
+        "warn",
+        "danger",
+        "neutral"
+      ]
+    }
+  },
+  "required": [
+    "label",
+    "participants"
+  ]
+}

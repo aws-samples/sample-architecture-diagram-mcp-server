@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/app/expr.schema.json",
+  "anyOf": [
+    {
+      "type": "number"
+    },
+    {
+      "type": "string",
+      "maxLength": 300
+    },
+    {
+      "type": "boolean"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "ref": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_.-]{0,79}$",
+          "description": "A key of spec.data or the name of a spec.metrics formula."
+        }
+      },
+      "required": [
+        "ref"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "op": {
+          "type": "string",
+          "enum": [
+            "sum",
+            "sub",
+            "mul",
+            "div",
+            "min",
+            "max",
+            "round",
+            "pct",
+            "if",
+            "eq",
+            "gt",
+            "lt"
+          ],
+          "description": "sum, sub, mul, div, min, max, round [x, digits], pct [part, whole], if [cond, then, else], eq, gt, lt"
+        },
+        "args": {
+          "maxItems": 32,
+          "type": "array",
+          "items": {
+            "$ref": "./expr.schema.json"
+          }
+        }
+      },
+      "required": [
+        "op",
+        "args"
+      ],
+      "additionalProperties": false
+    }
+  ]
+}

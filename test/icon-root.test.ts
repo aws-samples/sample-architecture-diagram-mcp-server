@@ -12,8 +12,7 @@ import { mkdtempSync, mkdirSync, writeFileSync, rmSync, existsSync, readdirSync 
 import { tmpdir } from 'os';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
-// @ts-expect-error — plain JS module, no types
-import { iconRoot, resetIconRoot, hasIcons, SHARED_ICON_ROOT, PACKAGE_ICON_ROOT } from '../lib/icon-root.js';
+import { iconRoot, resetIconRoot, hasIcons, SHARED_ICON_ROOT, PACKAGE_ICON_ROOT } from './support/deps';
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SCRIPT = join(REPO, 'scripts', 'fetch-icons.sh');
@@ -86,7 +85,9 @@ describe('iconRoot', () => {
   });
 });
 
-describe('fetch-icons.sh', () => {
+// The script shells out (find, unzip, cp); under a busy test run it can take
+// well over vitest's 5 s default, so give it room instead of flaking.
+describe('fetch-icons.sh', { timeout: 60000 }, () => {
   it('prints download steps (naming the shared cache) when no zip exists anywhere', () => {
     const out = execFileSync('bash', [SCRIPT, '--dest', join(tmp, 'dest')], {
       encoding: 'utf-8',

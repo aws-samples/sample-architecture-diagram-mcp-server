@@ -1,0 +1,136 @@
+{
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/tools/lifecycle_add_steps.input.schema.json",
+  "title": "lifecycle_add_steps input",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "flowId": {
+      "type": "string"
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "Optional stable id for the step.",
+            "type": "string"
+          },
+          "nodes": {
+            "description": "Node ids highlighted on this beat.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "edges": {
+            "description": "Edge ids highlighted (drawn/animated) on this beat.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "title": {
+            "description": "Narration-panel heading.",
+            "type": "string"
+          },
+          "flow": {
+            "description": "Small sub-line under the title (e.g. 'Queue → Worker').",
+            "type": "string"
+          },
+          "desc": {
+            "description": "Panel description. Inline markdown: **bold**, `code`, *italic*.",
+            "type": "string"
+          },
+          "proof": {
+            "description": "Panel 'proof' line: free text OR a structured source ref {repo,path,ref,lines,url,text} rendered as a clickable link.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "repo": {
+                    "description": "Repository base URL (e.g. 'https://github.com/aws-samples/sample-architecture-diagram-mcp-server'). Combined with path/ref/lines to build a blob link.",
+                    "type": "string"
+                  },
+                  "path": {
+                    "description": "File path within the repo (e.g. 'lib/sequence-generator.js').",
+                    "type": "string"
+                  },
+                  "ref": {
+                    "description": "Commit SHA, tag, or branch to pin the link to (default 'main'). Pin to a commit for a truly stable reference.",
+                    "type": "string"
+                  },
+                  "lines": {
+                    "description": "Line number, 'start-end' string, or [start,end] — appended as #L.. so the link opens on the exact lines.",
+                    "anyOf": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "number"
+                        }
+                      }
+                    ]
+                  },
+                  "url": {
+                    "description": "Explicit link URL — overrides repo/path/ref/lines construction.",
+                    "type": "string"
+                  },
+                  "text": {
+                    "description": "Link label (defaults to path:lines or the URL).",
+                    "type": "string"
+                  }
+                }
+              }
+            ]
+          },
+          "code": {
+            "description": "Optional fenced snippet under the description (whitespace preserved).",
+            "type": "string"
+          },
+          "codeLabel": {
+            "description": "Uppercase label on the code block header (e.g. 'handler.py').",
+            "type": "string"
+          },
+          "tone": {
+            "description": "Accent for the highlighted nodes/edges on this beat (default accent/orange).",
+            "type": "string",
+            "enum": [
+              "accent",
+              "info",
+              "success",
+              "warn",
+              "danger",
+              "neutral"
+            ]
+          },
+          "badge": {
+            "description": "Semantic badge shown on the step.",
+            "type": "string",
+            "enum": [
+              "gate",
+              "async",
+              "sync",
+              "phase",
+              "fail",
+              "start",
+              "end"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "flowId",
+    "steps"
+  ]
+}

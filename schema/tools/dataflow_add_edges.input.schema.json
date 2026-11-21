@@ -1,0 +1,70 @@
+{
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/tools/dataflow_add_edges.input.schema.json",
+  "title": "dataflow_add_edges input",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "flowId": {
+      "type": "string"
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Stable id referenced by steps."
+          },
+          "from": {
+            "type": "string",
+            "description": "Source node id."
+          },
+          "to": {
+            "type": "string",
+            "description": "Target node id (== from draws a self-loop, e.g. a retry or a self-transition)."
+          },
+          "label": {
+            "description": "Edge label — a guard/branch ('[approved]', '[else]'), a data name ('order.json'), or an event ('onStart').",
+            "type": "string"
+          },
+          "kind": {
+            "description": "flow = solid arrow (default); branch = solid (a labeled decision branch); back = a return/loop-back edge drawn dashed; async = open arrowhead (signal/event).",
+            "type": "string",
+            "enum": [
+              "flow",
+              "branch",
+              "back",
+              "async"
+            ]
+          },
+          "dashed": {
+            "description": "Force a dashed line regardless of kind.",
+            "type": "boolean"
+          },
+          "tone": {
+            "description": "Static accent for the edge (independent of the walkthrough).",
+            "type": "string",
+            "enum": [
+              "accent",
+              "info",
+              "success",
+              "warn",
+              "danger",
+              "neutral"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "from",
+          "to"
+        ]
+      }
+    }
+  },
+  "required": [
+    "flowId",
+    "edges"
+  ]
+}

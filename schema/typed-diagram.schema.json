@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/typed-diagram.schema.json",
+  "title": "Typed diagram",
+  "description": "Body of a kind='typed' tab: one of the typed diagram specs, selected by `kind`.",
+  "type": "object",
+  "required": [
+    "kind"
+  ],
+  "properties": {
+    "kind": {
+      "enum": [
+        "quadrant",
+        "swimlane",
+        "tree",
+        "gantt",
+        "timeline",
+        "er",
+        "class",
+        "kanban",
+        "journey",
+        "venn",
+        "layers",
+        "fishbone",
+        "wardley",
+        "flywheel",
+        "workflow"
+      ]
+    }
+  },
+  "oneOf": [
+    {
+      "$ref": "./typed/quadrant.schema.json"
+    },
+    {
+      "$ref": "./typed/swimlane.schema.json"
+    },
+    {
+      "$ref": "./typed/tree.schema.json"
+    },
+    {
+      "$ref": "./typed/gantt.schema.json"
+    },
+    {
+      "$ref": "./typed/timeline.schema.json"
+    },
+    {
+      "$ref": "./typed/er.schema.json"
+    },
+    {
+      "$ref": "./typed/class.schema.json"
+    },
+    {
+      "$ref": "./typed/kanban.schema.json"
+    },
+    {
+      "$ref": "./typed/journey.schema.json"
+    },
+    {
+      "$ref": "./typed/venn.schema.json"
+    },
+    {
+      "$ref": "./typed/layers.schema.json"
+    },
+    {
+      "$ref": "./typed/fishbone.schema.json"
+    },
+    {
+      "$ref": "./typed/wardley.schema.json"
+    },
+    {
+      "$ref": "./typed/flywheel.schema.json"
+    },
+    {
+      "$ref": "./typed/workflow.schema.json"
+    }
+  ]
+}

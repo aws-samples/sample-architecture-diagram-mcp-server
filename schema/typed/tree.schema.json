@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/typed/tree.schema.json",
+  "title": "Árvore / organograma",
+  "description": "Hierarquia de nós (organograma, decomposição, taxonomia) com um único nó raiz.",
+  "x-category": "structure",
+  "x-unique": [
+    "nodes[].id"
+  ],
+  "x-refs": [
+    {
+      "from": "nodes[].parent",
+      "to": "nodes[].id"
+    }
+  ],
+  "type": "object",
+  "required": [
+    "kind",
+    "nodes"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "kind": {
+      "const": "tree"
+    },
+    "title": {
+      "type": "string"
+    },
+    "subtitle": {
+      "type": "string"
+    },
+    "direction": {
+      "type": "string",
+      "enum": [
+        "TB",
+        "LR"
+      ],
+      "x-label": "Direção",
+      "description": "TB: de cima para baixo (padrão); LR: da esquerda para a direita"
+    },
+    "compactLeaves": {
+      "type": "boolean",
+      "x-label": "Folhas empilhadas",
+      "description": "Em TB, empilha verticalmente as folhas de um mesmo pai (4 ou mais) para economizar largura. Padrão: sim"
+    },
+    "nodes": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 120,
+      "x-label": "Nós",
+      "x-item-title": "label",
+      "description": "Exatamente um nó sem pai (a raiz)",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "label"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string",
+            "description": "Texto principal"
+          },
+          "sub": {
+            "type": "string",
+            "description": "Linha secundária (cargo, responsável, detalhe)"
+          },
+          "parent": {
+            "type": "string",
+            "x-ref": "nodes[].id",
+            "description": "Nó pai (vazio = raiz)"
+          },
+          "tone": {
+            "type": "string",
+            "enum": [
+              "accent",
+              "info",
+              "success",
+              "warn",
+              "danger",
+              "neutral",
+              "purple",
+              "teal",
+              "pink"
+            ],
+            "description": "Cor do nó (padrão: cor do ramo)"
+          }
+        }
+      }
+    }
+  }
+}

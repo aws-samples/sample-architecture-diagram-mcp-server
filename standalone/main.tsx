@@ -4,6 +4,8 @@ import { createRoot } from 'react-dom/client';
 import '@xyflow/react/dist/style.css';
 import './index.css';
 import { StandaloneApp } from './StandaloneApp';
+// Custom layout components (empty in the default page; see customComponents.ts).
+import './customComponents';
 
 const dataEl = document.getElementById('arch-data');
 const archData = dataEl ? JSON.parse(dataEl.textContent || '{}') : {};

@@ -1,0 +1,26 @@
+{
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/tools/render_from_spec.input.schema.json",
+  "title": "render_from_spec input",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "specPath": {
+      "type": "string",
+      "description": "Path to the spec JSON."
+    },
+    "outPath": {
+      "description": "Output .html (default: the spec path with .html).",
+      "type": "string"
+    },
+    "layout": {
+      "description": "Layout name, or a path to a layout .json, overriding the spec's.",
+      "type": "string"
+    },
+    "writeSpec": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "specPath"
+  ]
+}

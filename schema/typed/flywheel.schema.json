@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/typed/flywheel.schema.json",
+  "title": "Flywheel (ciclo virtuoso)",
+  "description": "Estágios que se reforçam em ciclo, com aceleradores alimentando a roda.",
+  "x-category": "business",
+  "x-unique": [
+    "stages[].id"
+  ],
+  "x-refs": [
+    {
+      "from": "inputs[].toStage",
+      "to": "stages[].id"
+    }
+  ],
+  "type": "object",
+  "required": [
+    "kind",
+    "center",
+    "stages"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "kind": {
+      "const": "flywheel"
+    },
+    "title": {
+      "type": "string"
+    },
+    "subtitle": {
+      "type": "string"
+    },
+    "center": {
+      "type": "string",
+      "description": "Resultado no centro da roda (ex.: Crescimento)",
+      "x-label": "Centro"
+    },
+    "stages": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 8,
+      "x-label": "Estágios",
+      "x-item-title": "label",
+      "description": "Estágios em sentido horário, começando no topo",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "label"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string",
+            "description": "Nome curto do estágio (dentro do círculo)"
+          },
+          "desc": {
+            "type": "string",
+            "description": "Descrição curta (fora da roda)",
+            "x-multiline": true
+          },
+          "tone": {
+            "type": "string",
+            "enum": [
+              "accent",
+              "info",
+              "success",
+              "warn",
+              "danger",
+              "neutral",
+              "purple",
+              "teal",
+              "pink"
+            ],
+            "description": "Cor do estágio (opcional)"
+          }
+        }
+      }
+    },
+    "inputs": {
+      "type": "array",
+      "maxItems": 8,
+      "x-label": "Aceleradores",
+      "x-item-title": "label",
+      "description": "Entradas externas que aceleram um estágio",
+      "items": {
+        "type": "object",
+        "required": [
+          "label",
+          "toStage"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "label": {
+            "type": "string",
+            "description": "Texto do acelerador"
+          },
+          "toStage": {
+            "type": "string",
+            "x-ref": "stages[].id",
+            "description": "Estágio alimentado"
+          }
+        }
+      }
+    }
+  }
+}

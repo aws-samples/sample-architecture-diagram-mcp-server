@@ -1,0 +1,205 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/layout/theme.schema.json",
+  "type": "object",
+  "properties": {
+    "light": {
+      "type": "object",
+      "properties": {
+        "bg": {
+          "type": "string",
+          "maxLength": 300,
+          "pattern": "^[^;{}<>\\\\]*$"
+        },
+        "surface": {
+          "type": "string",
+          "maxLength": 300,
+          "pattern": "^[^;{}<>\\\\]*$"
+        },
+        "node-bg": {
+          "type": "string",
+          "maxLength": 300,
+          "pattern": "^[^;{}<>\\\\]*$"
+        },
+        "txt": {
+          "type": "string",
+          "maxLength": 300,
+          "pattern": "^[^;{}<>\\\\]*$"
+        },
+        "txt-muted": {
+          "type": "string",
+          "maxLength": 300,
+          "pattern": "^[^;{}<>\\\\]*$"
+        },
+        "border": {
+          "type": "string",
+          "maxLength": 300,
+          "pattern": "^[^;{}<>\\\\]*$"
+        },
+        "icon-filter": {
+          "type": "string",
+          "maxLength": 300,
+          "pattern": "^[^;{}<>\\\\]*$"
+        },
+        "card-bg": {
+          "type": "string",
+          "maxLength": 300,
+          "pattern": "^[^;{}<>\\\\]*$"
+        },
+        "card-solid": {
+          "type": "string",
+          "maxLength": 300,
+          "pattern": "^[^;{}<>\\\\]*$"
+        },
+        "dot": {
+          "type": "string",
+          "maxLength": 300,
+          "pattern": "^[^;{}<>\\\\]*$"
+        },
+        "chip-bg": {
+          "type": "string",
+          "maxLength": 300,
+          "pattern": "^[^;{}<>\\\\]*$"
+        },
+        "pill-bg": {
+          "type": "string",
+          "maxLength": 300,
+          "pattern": "^[^;{}<>\\\\]*$"
+        },
+        "dock-bg": {
+          "type": "string",
+          "maxLength": 300,
+          "pattern": "^[^;{}<>\\\\]*$"
+        },
+        "dock-txt": {
+          "type": "string",
+          "maxLength": 300,
+          "pattern": "^[^;{}<>\\\\]*$"
+        },
+        "dock-muted": {
+          "type": "string",
+          "maxLength": 300,
+          "pattern": "^[^;{}<>\\\\]*$"
+        },
+        "accent": {
+          "type": "string",
+          "maxLength": 300,
+          "pattern": "^[^;{}<>\\\\]*$"
+        },
+        "accent-txt": {
+          "type": "string",
+          "maxLength": 300,
+          "pattern": "^[^;{}<>\\\\]*$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "dark": {
+      "type": "object",
+      "properties": {
+        "bg": {
+          "type": "string",
+          "maxLength": 300,
+          "pattern": "^[^;{}<>\\\\]*$"
+        },
+        "surface": {
+          "type": "string",
+          "maxLength": 300,
+          "pattern": "^[^;{}<>\\\\]*$"
+        },
+        "node-bg": {
+          "type": "string",
+          "maxLength": 300,
+          "pattern": "^[^;{}<>\\\\]*$"
+        },
+        "txt": {
+          "type": "string",
+          "maxLength": 300,
+          "pattern": "^[^;{}<>\\\\]*$"
+        },
+        "txt-muted": {
+          "type": "string",
+          "maxLength": 300,
+          "pattern": "^[^;{}<>\\\\]*$"
+        },
+        "border": {
+          "type": "string",
+          "maxLength": 300,
+          "pattern": "^[^;{}<>\\\\]*$"
+        },
+        "icon-filter": {
+          "type": "string",
+          "maxLength": 300,
+          "pattern": "^[^;{}<>\\\\]*$"
+        },
+        "card-bg": {
+          "type": "string",
+          "maxLength": 300,
+          "pattern": "^[^;{}<>\\\\]*$"
+        },
+        "card-solid": {
+          "type": "string",
+          "maxLength": 300,
+          "pattern": "^[^;{}<>\\\\]*$"
+        },
+        "dot": {
+          "type": "string",
+          "maxLength": 300,
+          "pattern": "^[^;{}<>\\\\]*$"
+        },
+        "chip-bg": {
+          "type": "string",
+          "maxLength": 300,
+          "pattern": "^[^;{}<>\\\\]*$"
+        },
+        "pill-bg": {
+          "type": "string",
+          "maxLength": 300,
+          "pattern": "^[^;{}<>\\\\]*$"
+        },
+        "dock-bg": {
+          "type": "string",
+          "maxLength": 300,
+          "pattern": "^[^;{}<>\\\\]*$"
+        },
+        "dock-txt": {
+          "type": "string",
+          "maxLength": 300,
+          "pattern": "^[^;{}<>\\\\]*$"
+        },
+        "dock-muted": {
+          "type": "string",
+          "maxLength": 300,
+          "pattern": "^[^;{}<>\\\\]*$"
+        },
+        "accent": {
+          "type": "string",
+          "maxLength": 300,
+          "pattern": "^[^;{}<>\\\\]*$"
+        },
+        "accent-txt": {
+          "type": "string",
+          "maxLength": 300,
+          "pattern": "^[^;{}<>\\\\]*$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "fontFamily": {
+      "type": "string",
+      "maxLength": 300,
+      "pattern": "^[^;{}<>\\\\]*$"
+    },
+    "css": {
+      "description": "A local CSS file injected into the page <head> (after the theme tokens).",
+      "type": "string",
+      "maxLength": 400
+    },
+    "cssText": {
+      "description": "CSS text injected after `css` (a portable spec carries its layout CSS here). Local only: url(https://…) and remote @import are rejected.",
+      "type": "string",
+      "maxLength": 200000
+    }
+  },
+  "additionalProperties": false
+}

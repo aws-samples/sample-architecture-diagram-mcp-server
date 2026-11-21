@@ -1,0 +1,1146 @@
+{
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/tools/update_layout.input.schema.json",
+  "title": "update_layout input",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "patch": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "op": {
+                "type": "string",
+                "const": "add"
+              },
+              "slot": {
+                "type": "string",
+                "enum": [
+                  "dock",
+                  "stepCard",
+                  "nodeModal",
+                  "header"
+                ]
+              },
+              "component": {
+                "type": "string",
+                "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$"
+              },
+              "props": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/definitions/__schema0"
+                }
+              },
+              "before": {
+                "description": "Insert/move before this component.",
+                "type": "string",
+                "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$"
+              },
+              "after": {
+                "description": "Insert/move after this component.",
+                "type": "string",
+                "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$"
+              },
+              "index": {
+                "description": "Insert/move at this index.",
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "op",
+              "slot",
+              "component"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": {
+                "type": "string",
+                "const": "remove"
+              },
+              "slot": {
+                "type": "string",
+                "enum": [
+                  "dock",
+                  "stepCard",
+                  "nodeModal",
+                  "header"
+                ]
+              },
+              "component": {
+                "type": "string",
+                "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$"
+              }
+            },
+            "required": [
+              "op",
+              "slot",
+              "component"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": {
+                "type": "string",
+                "const": "move"
+              },
+              "slot": {
+                "type": "string",
+                "enum": [
+                  "dock",
+                  "stepCard",
+                  "nodeModal",
+                  "header"
+                ]
+              },
+              "component": {
+                "type": "string",
+                "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$"
+              },
+              "before": {
+                "description": "Insert/move before this component.",
+                "type": "string",
+                "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$"
+              },
+              "after": {
+                "description": "Insert/move after this component.",
+                "type": "string",
+                "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$"
+              },
+              "index": {
+                "description": "Insert/move at this index.",
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "op",
+              "slot",
+              "component"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": {
+                "type": "string",
+                "const": "replace"
+              },
+              "slot": {
+                "type": "string",
+                "enum": [
+                  "dock",
+                  "stepCard",
+                  "nodeModal",
+                  "header"
+                ]
+              },
+              "component": {
+                "type": "string",
+                "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$"
+              },
+              "with": {
+                "type": "string",
+                "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$"
+              },
+              "props": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/definitions/__schema0"
+                }
+              }
+            },
+            "required": [
+              "op",
+              "slot",
+              "component",
+              "with"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "op": {
+                "type": "string",
+                "const": "props"
+              },
+              "slot": {
+                "type": "string",
+                "enum": [
+                  "dock",
+                  "stepCard",
+                  "nodeModal",
+                  "header"
+                ]
+              },
+              "component": {
+                "type": "string",
+                "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$"
+              },
+              "props": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/definitions/__schema0"
+                }
+              }
+            },
+            "required": [
+              "op",
+              "slot",
+              "component",
+              "props"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      }
+    },
+    "set": {
+      "description": "Top-level keys to replace (description, extends, slots, theme, branding).",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$"
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "extends": {
+          "description": "Layout this one starts from (a preset such as 'default' or 'cost', or a saved layout). Default 'default'.",
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$"
+        },
+        "slots": {
+          "description": "Full component list per slot, in order (replaces the inherited list for that slot).",
+          "type": "object",
+          "properties": {
+            "dock": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "component": {
+                        "type": "string",
+                        "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$",
+                        "description": "Component id from list_components (built-in like dock.cost, or a registered custom one)."
+                      },
+                      "props": {
+                        "description": "Props for this component; validated against its schema.",
+                        "type": "object",
+                        "propertyNames": {
+                          "type": "string"
+                        },
+                        "additionalProperties": {
+                          "$ref": "#/definitions/__schema0"
+                        }
+                      }
+                    },
+                    "required": [
+                      "component"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              }
+            },
+            "stepCard": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "component": {
+                        "type": "string",
+                        "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$",
+                        "description": "Component id from list_components (built-in like dock.cost, or a registered custom one)."
+                      },
+                      "props": {
+                        "description": "Props for this component; validated against its schema.",
+                        "type": "object",
+                        "propertyNames": {
+                          "type": "string"
+                        },
+                        "additionalProperties": {
+                          "$ref": "#/definitions/__schema0"
+                        }
+                      }
+                    },
+                    "required": [
+                      "component"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              }
+            },
+            "nodeModal": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "component": {
+                        "type": "string",
+                        "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$",
+                        "description": "Component id from list_components (built-in like dock.cost, or a registered custom one)."
+                      },
+                      "props": {
+                        "description": "Props for this component; validated against its schema.",
+                        "type": "object",
+                        "propertyNames": {
+                          "type": "string"
+                        },
+                        "additionalProperties": {
+                          "$ref": "#/definitions/__schema0"
+                        }
+                      }
+                    },
+                    "required": [
+                      "component"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              }
+            },
+            "header": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "component": {
+                        "type": "string",
+                        "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$",
+                        "description": "Component id from list_components (built-in like dock.cost, or a registered custom one)."
+                      },
+                      "props": {
+                        "description": "Props for this component; validated against its schema.",
+                        "type": "object",
+                        "propertyNames": {
+                          "type": "string"
+                        },
+                        "additionalProperties": {
+                          "$ref": "#/definitions/__schema0"
+                        }
+                      }
+                    },
+                    "required": [
+                      "component"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "patch": {
+          "description": "Edits applied after `slots`: add / remove / move / replace a component, or change its props.",
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "op": {
+                    "type": "string",
+                    "const": "add"
+                  },
+                  "slot": {
+                    "type": "string",
+                    "enum": [
+                      "dock",
+                      "stepCard",
+                      "nodeModal",
+                      "header"
+                    ]
+                  },
+                  "component": {
+                    "type": "string",
+                    "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$"
+                  },
+                  "props": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "$ref": "#/definitions/__schema0"
+                    }
+                  },
+                  "before": {
+                    "description": "Insert/move before this component.",
+                    "type": "string",
+                    "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$"
+                  },
+                  "after": {
+                    "description": "Insert/move after this component.",
+                    "type": "string",
+                    "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$"
+                  },
+                  "index": {
+                    "description": "Insert/move at this index.",
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "op",
+                  "slot",
+                  "component"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "op": {
+                    "type": "string",
+                    "const": "remove"
+                  },
+                  "slot": {
+                    "type": "string",
+                    "enum": [
+                      "dock",
+                      "stepCard",
+                      "nodeModal",
+                      "header"
+                    ]
+                  },
+                  "component": {
+                    "type": "string",
+                    "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$"
+                  }
+                },
+                "required": [
+                  "op",
+                  "slot",
+                  "component"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "op": {
+                    "type": "string",
+                    "const": "move"
+                  },
+                  "slot": {
+                    "type": "string",
+                    "enum": [
+                      "dock",
+                      "stepCard",
+                      "nodeModal",
+                      "header"
+                    ]
+                  },
+                  "component": {
+                    "type": "string",
+                    "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$"
+                  },
+                  "before": {
+                    "description": "Insert/move before this component.",
+                    "type": "string",
+                    "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$"
+                  },
+                  "after": {
+                    "description": "Insert/move after this component.",
+                    "type": "string",
+                    "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$"
+                  },
+                  "index": {
+                    "description": "Insert/move at this index.",
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "op",
+                  "slot",
+                  "component"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "op": {
+                    "type": "string",
+                    "const": "replace"
+                  },
+                  "slot": {
+                    "type": "string",
+                    "enum": [
+                      "dock",
+                      "stepCard",
+                      "nodeModal",
+                      "header"
+                    ]
+                  },
+                  "component": {
+                    "type": "string",
+                    "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$"
+                  },
+                  "with": {
+                    "type": "string",
+                    "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$"
+                  },
+                  "props": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "$ref": "#/definitions/__schema0"
+                    }
+                  }
+                },
+                "required": [
+                  "op",
+                  "slot",
+                  "component",
+                  "with"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "op": {
+                    "type": "string",
+                    "const": "props"
+                  },
+                  "slot": {
+                    "type": "string",
+                    "enum": [
+                      "dock",
+                      "stepCard",
+                      "nodeModal",
+                      "header"
+                    ]
+                  },
+                  "component": {
+                    "type": "string",
+                    "pattern": "^[a-z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9-]*)+$"
+                  },
+                  "props": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "$ref": "#/definitions/__schema0"
+                    }
+                  }
+                },
+                "required": [
+                  "op",
+                  "slot",
+                  "component",
+                  "props"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          }
+        },
+        "theme": {
+          "type": "object",
+          "properties": {
+            "light": {
+              "type": "object",
+              "properties": {
+                "bg": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "pattern": "^[^;{}<>\\\\]*$"
+                },
+                "surface": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "pattern": "^[^;{}<>\\\\]*$"
+                },
+                "node-bg": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "pattern": "^[^;{}<>\\\\]*$"
+                },
+                "txt": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "pattern": "^[^;{}<>\\\\]*$"
+                },
+                "txt-muted": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "pattern": "^[^;{}<>\\\\]*$"
+                },
+                "border": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "pattern": "^[^;{}<>\\\\]*$"
+                },
+                "icon-filter": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "pattern": "^[^;{}<>\\\\]*$"
+                },
+                "card-bg": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "pattern": "^[^;{}<>\\\\]*$"
+                },
+                "card-solid": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "pattern": "^[^;{}<>\\\\]*$"
+                },
+                "dot": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "pattern": "^[^;{}<>\\\\]*$"
+                },
+                "chip-bg": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "pattern": "^[^;{}<>\\\\]*$"
+                },
+                "pill-bg": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "pattern": "^[^;{}<>\\\\]*$"
+                },
+                "dock-bg": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "pattern": "^[^;{}<>\\\\]*$"
+                },
+                "dock-txt": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "pattern": "^[^;{}<>\\\\]*$"
+                },
+                "dock-muted": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "pattern": "^[^;{}<>\\\\]*$"
+                },
+                "accent": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "pattern": "^[^;{}<>\\\\]*$"
+                },
+                "accent-txt": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "pattern": "^[^;{}<>\\\\]*$"
+                }
+              },
+              "additionalProperties": false
+            },
+            "dark": {
+              "type": "object",
+              "properties": {
+                "bg": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "pattern": "^[^;{}<>\\\\]*$"
+                },
+                "surface": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "pattern": "^[^;{}<>\\\\]*$"
+                },
+                "node-bg": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "pattern": "^[^;{}<>\\\\]*$"
+                },
+                "txt": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "pattern": "^[^;{}<>\\\\]*$"
+                },
+                "txt-muted": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "pattern": "^[^;{}<>\\\\]*$"
+                },
+                "border": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "pattern": "^[^;{}<>\\\\]*$"
+                },
+                "icon-filter": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "pattern": "^[^;{}<>\\\\]*$"
+                },
+                "card-bg": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "pattern": "^[^;{}<>\\\\]*$"
+                },
+                "card-solid": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "pattern": "^[^;{}<>\\\\]*$"
+                },
+                "dot": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "pattern": "^[^;{}<>\\\\]*$"
+                },
+                "chip-bg": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "pattern": "^[^;{}<>\\\\]*$"
+                },
+                "pill-bg": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "pattern": "^[^;{}<>\\\\]*$"
+                },
+                "dock-bg": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "pattern": "^[^;{}<>\\\\]*$"
+                },
+                "dock-txt": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "pattern": "^[^;{}<>\\\\]*$"
+                },
+                "dock-muted": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "pattern": "^[^;{}<>\\\\]*$"
+                },
+                "accent": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "pattern": "^[^;{}<>\\\\]*$"
+                },
+                "accent-txt": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "pattern": "^[^;{}<>\\\\]*$"
+                }
+              },
+              "additionalProperties": false
+            },
+            "fontFamily": {
+              "type": "string",
+              "maxLength": 300,
+              "pattern": "^[^;{}<>\\\\]*$"
+            },
+            "css": {
+              "description": "A local CSS file injected into the page <head> (after the theme tokens).",
+              "type": "string",
+              "maxLength": 400
+            },
+            "cssText": {
+              "description": "CSS text injected after `css` (a portable spec carries its layout CSS here). Local only: url(https://…) and remote @import are rejected.",
+              "type": "string",
+              "maxLength": 200000
+            }
+          },
+          "additionalProperties": false
+        },
+        "branding": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "description": "Product/brand name: shown by dock.brand and used as the page <title>.",
+              "type": "string",
+              "maxLength": 80
+            },
+            "logo": {
+              "description": "Local image (png, jpg, gif, webp, svg; ≤ 512 KB) inlined for dock.brand — or a data:image/…;base64 URI.",
+              "type": "string",
+              "maxLength": 700000
+            },
+            "favicon": {
+              "description": "Local image inlined as the page icon — or a data:image/…;base64 URI.",
+              "type": "string",
+              "maxLength": 700000
+            }
+          },
+          "additionalProperties": false
+        },
+        "shell": {
+          "description": "Page family. 'document' (default): caption + tab rail + canvas + dock, exactly as before. 'app': a sidebar + pages app assembled from the app-shell components (see `app`).",
+          "type": "string",
+          "enum": [
+            "document",
+            "app"
+          ]
+        },
+        "app": {
+          "description": "The app shell (shell: 'app'): sidebar components, pages with their components, start page, and generic example data for previews.",
+          "type": "object",
+          "properties": {
+            "sidebar": {
+              "description": "Sidebar components in order (default: brand, language, nav, summary). sidebar.summary is pinned to the bottom.",
+              "maxItems": 10,
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "component": {
+                        "type": "string"
+                      },
+                      "props": {
+                        "type": "object",
+                        "propertyNames": {
+                          "type": "string"
+                        },
+                        "additionalProperties": {}
+                      }
+                    },
+                    "required": [
+                      "component"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              }
+            },
+            "pages": {
+              "minItems": 1,
+              "maxItems": 20,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9][a-z0-9-]{0,40}$"
+                  },
+                  "label": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "object",
+                        "propertyNames": {
+                          "type": "string"
+                        },
+                        "additionalProperties": {
+                          "type": "string"
+                        }
+                      }
+                    ]
+                  },
+                  "icon": {
+                    "type": "string",
+                    "maxLength": 120,
+                    "description": "A glyph (database, architecture, settings, chart, server, cpu, backup, swap, cloud, info, pin, clock, moon, sun, chevronLeft, chevronRight, chevronUp, chevronDown) or an AWS service name for its official icon."
+                  },
+                  "badge": {
+                    "description": "Value shown at the right of the nav item, e.g. a monthly total.",
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/__schema1"
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "value": {
+                            "$ref": "#/definitions/__schema1"
+                          },
+                          "format": {
+                            "type": "object",
+                            "properties": {
+                              "style": {
+                                "type": "string",
+                                "enum": [
+                                  "number",
+                                  "currency",
+                                  "percent"
+                                ]
+                              },
+                              "currency": {
+                                "description": "ISO 4217 code, e.g. USD, BRL, EUR (default USD).",
+                                "type": "string",
+                                "pattern": "^[A-Z]{3}$"
+                              },
+                              "compact": {
+                                "description": "Compact notation: 29.7k, 1.2M.",
+                                "type": "boolean"
+                              },
+                              "digits": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 6
+                              },
+                              "prefix": {
+                                "type": "string",
+                                "maxLength": 20
+                              },
+                              "suffix": {
+                                "description": "e.g. '/mo'.",
+                                "type": "string",
+                                "maxLength": 30
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        },
+                        "required": [
+                          "value"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
+                  },
+                  "components": {
+                    "maxItems": 40,
+                    "type": "array",
+                    "items": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "component": {
+                              "type": "string"
+                            },
+                            "props": {
+                              "type": "object",
+                              "propertyNames": {
+                                "type": "string"
+                              },
+                              "additionalProperties": {}
+                            }
+                          },
+                          "required": [
+                            "component"
+                          ],
+                          "additionalProperties": false
+                        }
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "id",
+                  "label",
+                  "components"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "startPage": {
+              "type": "string"
+            },
+            "example": {
+              "description": "Generic example data used by preview_layout when the spec has none.",
+              "type": "object",
+              "properties": {
+                "data": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z_][A-Za-z0-9_.-]{0,79}$"
+                  },
+                  "additionalProperties": {
+                    "anyOf": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "string",
+                        "maxLength": 500
+                      },
+                      {
+                        "type": "boolean"
+                      }
+                    ]
+                  },
+                  "description": "App-shell inputs: initial values a form card edits (bind) and formulas read ({ ref })."
+                },
+                "metrics": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z_][A-Za-z0-9_.-]{0,79}$"
+                  },
+                  "additionalProperties": {
+                    "$ref": "#/definitions/__schema1"
+                  },
+                  "description": "App-shell formulas by name, e.g. { total: { op: 'sum', args: [{ ref: 'a' }, { ref: 'b' }] } }."
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "pages"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "name"
+  ],
+  "definitions": {
+    "__schema0": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/__schema0"
+          }
+        },
+        {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "$ref": "#/definitions/__schema0"
+          }
+        }
+      ]
+    },
+    "__schema1": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "string",
+          "maxLength": 300
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "ref": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_.-]{0,79}$",
+              "description": "A key of spec.data or the name of a spec.metrics formula."
+            }
+          },
+          "required": [
+            "ref"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "type": "string",
+              "enum": [
+                "sum",
+                "sub",
+                "mul",
+                "div",
+                "min",
+                "max",
+                "round",
+                "pct",
+                "if",
+                "eq",
+                "gt",
+                "lt"
+              ],
+              "description": "sum, sub, mul, div, min, max, round [x, digits], pct [part, whole], if [cond, then, else], eq, gt, lt"
+            },
+            "args": {
+              "maxItems": 32,
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/__schema1"
+              }
+            }
+          },
+          "required": [
+            "op",
+            "args"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    }
+  }
+}

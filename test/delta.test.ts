@@ -1,8 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
 import { describe, it, expect } from 'vitest';
-// @ts-expect-error — plain JS module, no types
-import { computeDelta, formatDeltaSummary } from '../lib/delta.js';
+import { computeDelta, formatDeltaSummary } from '#domain/architecture/delta.ts';
 
 const svc = (id: string, extra: any = {}) => ({ id, service: 'AWS Lambda', shape: 'lambda', category: 'compute', ...extra });
 

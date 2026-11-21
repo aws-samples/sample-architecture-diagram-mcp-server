@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/sequence.schema.json",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "subtitle": {
+      "type": "string"
+    },
+    "participants": {
+      "type": "array",
+      "items": {
+        "$ref": "./sequence/participant.schema.json"
+      }
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "$ref": "./sequence/event.schema.json"
+      }
+    },
+    "fragments": {
+      "type": "array",
+      "items": {
+        "$ref": "./sequence/fragment.schema.json"
+      }
+    },
+    "groups": {
+      "description": "Participant grouping boxes (aggregation containers, PlantUML `box`).",
+      "type": "array",
+      "items": {
+        "$ref": "./sequence/group.schema.json"
+      }
+    },
+    "autoActivate": {
+      "description": "Auto-derive execution/activation bars on the lifelines (default true). Ignored when any message sets activate/deactivate (explicit mode). Set false to hide activation bars entirely.",
+      "type": "boolean"
+    },
+    "autoplay": {
+      "description": "Start playing on load. Default false (opens on step 1, user drives).",
+      "type": "boolean"
+    },
+    "stepMs": {
+      "description": "Default ms per step when playing (default 1300; the slider still adjusts).",
+      "type": "integer",
+      "minimum": -9007199254740991,
+      "maximum": 9007199254740991
+    }
+  },
+  "required": [
+    "title",
+    "participants",
+    "events"
+  ]
+}

@@ -1,5 +1,5 @@
 // ─── build-cfn-types.mjs ───
-// Build lib/cfn-types.json — a map from each diagram SERVICE display name to its
+// Build server/assets/cfn-types.json — a map from each diagram SERVICE display name to its
 // PRIMARY CloudFormation resource type (AWS::<Ns>::<Resource>), validated against
 // the LIVE catalog of deployable public resource types.
 //
@@ -20,7 +20,7 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { SERVICE_ICONS } from '../packages/diagram-core/src/serviceIcons.js';
+import { SERVICE_ICONS } from '../packages/diagram-core/src/serviceIcons.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
@@ -226,11 +226,11 @@ function build() {
     services: map,
     nonDeployable,
   };
-  writeFileSync(join(ROOT, 'lib', 'cfn-types.json'), JSON.stringify(out, null, 2) + '\n');
+  writeFileSync(join(ROOT, 'server', 'assets', 'cfn-types.json'), JSON.stringify(out, null, 2) + '\n');
   console.log(`Catalog: ${catalog.length} deployable types across ${Object.keys(byNs).length} namespaces.`);
   console.log(`Mapped ${Object.keys(map).length}/${serviceNames.length} service names to a primary CFN type.`);
   console.log(`Non-deployable (no CFN resource): ${nonDeployable.length}.`);
-  console.log('Wrote lib/cfn-types.json');
+  console.log('Wrote server/assets/cfn-types.json');
 }
 
 build();

@@ -35,6 +35,29 @@ agent that turns a described architecture into a diagram.
   sidecar `.json` (or `export_diagram_json`) — to a cost app such as
   `aws-cost-app-mcp` (a separate MCP), which resolves calculator keys and prices
   via calculator.aws (no AWS credentials).
+  If an estimate already exists, link it: top-level `costUrl` (+ `costLabel`)
+  adds a dock button; a step's `costUrl` adds a link pill on that beat's card —
+  use one estimate per sizing scenario (e.g. PoC on one beat, production on
+  another, production as the top-level link). http(s) URLs only; it is a link,
+  not a price.
+- **`showTitle: false`** hides the title/subtitle in the dock only — use it when
+  a `caption` band already says what the diagram is.
+
+## Layouts, spec files and schemas
+
+- **Layout:** to change what the page shows or how it looks, pass `layout` — a
+  preset (`default`, `cost`), a saved name (`list_layouts`), or inline
+  `{ extends, patch, slots, theme, branding }`. Discover components with
+  `list_components` / `describe_component`; check with `validate_layout`; try
+  with `preview_layout`. Save reusable ones with `create_layout`. Omit `layout`
+  for the standard page. Read the "Layout notes" in the render result: they
+  name spec fields the layout does not show.
+- **Re-render:** every render writes `<name>.spec.json`; to change a diagram
+  later, edit that file and call `render_from_spec` instead of rebuilding the
+  whole input. Pass `writeSpec: false` when the extra file is unwanted.
+- **Schemas:** `get_schema({ name })` (or the `schema://<name>` resources)
+  returns this server's own contract for any input — use it instead of
+  guessing a field.
 
 ## Making a diagram into media (GIF / PNG / SVG)
 
@@ -67,9 +90,10 @@ agent that turns a described architecture into a diagram.
    - Anything else (multi-VPC, multi-account, AZs, on-prem) → declare `groups`
      (with `parent` for nesting) and point each service at one via `parentId`.
    - Third-party / on-prem actors → `external: true`.
-6. **Capture the WHY** — add `adr` (context/decision/consequences) and
-   `wellArchitected` pillar notes when the user gave rationale. These flow into
-   the IaC handoff so generated infra honors the intent.
+6. **Capture the WHY in the walkthrough** — when the user gave rationale, put
+   it in `steps` (the beat's `body`, `bullets`, `chips`) or in a `kind: 'doc'`
+   tab (a decision record). The old `adr` / `wellArchitected` fields are no
+   longer rendered: the generator drops them.
 7. **Do NOT ask this server to generate IaC.** The IaC button emits a spec for
    the official `awslabs.aws-iac-mcp-server`; hand off to that.
 8. **Add a `caption` when the file will be read without you.** The diagram's
@@ -127,7 +151,7 @@ A `kind: 'typed'` tab carries one typed diagram: `{ id, kind: 'typed', label?,
 diagram: { kind, title?, … } }` with `diagram.kind` one of `er`, `gantt`,
 `swimlane`, `tree`, `timeline`, `kanban`, `journey`, `quadrant`, `venn`,
 `layers`, `fishbone`, `wardley`, `flywheel`, `class`, `workflow`. Each kind's
-fields follow its spec in `packages/diagram-core/src/typed/<kind>.js` (the same
+fields follow its spec in `packages/diagram-core/src/typed/<kind>.ts` (the same
 specs a downstream app validates with); an invalid body fails the render with
 the spec's messages, so fix it and render again.
 
@@ -151,7 +175,7 @@ the spec's messages, so fix it and render again.
   `~/.aws-architecture-icons`, so it is needed once per machine, not once per
   install. If it finds no zip it returns the download link: relay that to the
   user, then call it again.
-- Layouts: `TB` (default), `LR`, `RADIAL`. Radial is for flat hub-and-spoke and
-  ignores groups.
-- Keep process/step detail in `connections[].label` and `adr`, not as extra
+- Layouts: `LR` (default) or `TB` for the architecture canvas; flow diagrams
+  default to `TB`.
+- Keep process/step detail in `connections[].label` and walkthrough beats, not as extra
   floating text — the canvas stays clean (AWS diagram guideline).

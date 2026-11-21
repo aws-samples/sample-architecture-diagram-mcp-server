@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/app/format.schema.json",
+  "type": "object",
+  "properties": {
+    "style": {
+      "type": "string",
+      "enum": [
+        "number",
+        "currency",
+        "percent"
+      ]
+    },
+    "currency": {
+      "description": "ISO 4217 code, e.g. USD, BRL, EUR (default USD).",
+      "type": "string",
+      "pattern": "^[A-Z]{3}$"
+    },
+    "compact": {
+      "description": "Compact notation: 29.7k, 1.2M.",
+      "type": "boolean"
+    },
+    "digits": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 6
+    },
+    "prefix": {
+      "type": "string",
+      "maxLength": 20
+    },
+    "suffix": {
+      "description": "e.g. '/mo'.",
+      "type": "string",
+      "maxLength": 30
+    }
+  },
+  "additionalProperties": false
+}

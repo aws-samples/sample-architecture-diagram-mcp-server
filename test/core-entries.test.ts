@@ -9,15 +9,18 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync } from 'fs';
 import { join, relative, resolve, dirname } from 'path';
 import * as core from '@aws-sample-live-diagram/core';
-import { generateFlowHtml } from '../lib/flow-generator.js';
-import { generateSequenceHtml } from '../lib/sequence-generator.js';
+import { generateFlowHtml } from './support/deps';
+import { generateSequenceHtml } from './support/deps';
 
 const DIST = join(__dirname, '../packages/diagram-core/dist');
+
+/** Escape every RegExp metacharacter (backslash included). */
+const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 function importsFrom(file: string, spec: string): string[] {
   const src = readFileSync(join(DIST, file), 'utf-8');
   const names: string[] = [];
-  const re = new RegExp(`import\\s*\\{([^}]*)\\}\\s*from\\s*"${spec.replace(/[.]/g, '\\.')}"`, 'g');
+  const re = new RegExp(`import\\s*\\{([^}]*)\\}\\s*from\\s*"${escapeRegExp(spec)}"`, 'g');
   for (const m of src.matchAll(re)) {
     for (const part of m[1].split(',')) {
       const name = part.trim().split(/\s+as\s+/)[0];
@@ -69,37 +72,58 @@ describe('HTML players take layout + palette from the core', () => {
   });
 });
 
-// The published MCP (npx, release tarball) has no @aws-sample-live-diagram/core
-// install: its runtime code must import the core's sources by path, and every
-// such file must be inside package.json `files`.
+// The published MCP (npx, release tarball, git install) has no
+// @aws-sample-live-diagram/core install and no build step: the entry is the
+// committed esbuild bundle (dist/server/), which carries the core inside it.
+// Every runtime file must be in package.json `files`, import only node
+// built-ins, runtime dependencies or other shipped bundle files, and never the
+// core by package name.
 describe('the published MCP is self-contained', () => {
   const root = join(__dirname, '..');
-  const runtime = ['mcp-server.js', ...readdirSync(join(root, 'lib')).filter(f => f.endsWith('.js')).map(f => `lib/${f}`)];
-  const files: string[] = JSON.parse(readFileSync(join(root, 'package.json'), 'utf-8')).files;
+  const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf-8'));
+  const files: string[] = pkg.files;
   const shipped = (p: string) => files.some(g => g.endsWith('/') ? p.startsWith(g)
-    : g.includes('*') ? new RegExp('^' + g.replace(/[.]/g, '\\.').replace('*', '[^/]+') + '$').test(p) : p === g);
-  it('runtime code never imports the core by package name', () => {
-    const bare = runtime.filter(f => /from ["']@aws-sample-live-diagram\/core/.test(readFileSync(join(root, f), 'utf-8')));
-    expect(bare).toEqual([]);
+    : g.includes('*') ? new RegExp('^' + g.split('*').map(escapeRegExp).join('[^/]+') + '$').test(p) : p === g || p.startsWith(g + '/'));
+  const walk = (d: string): string[] => readdirSync(join(root, d), { withFileTypes: true }).flatMap(e => e.isDirectory() ? walk(`${d}/${e.name}`) : [`${d}/${e.name}`]);
+  const bundle = walk('dist/server').filter(f => f.endsWith('.js'));
+  // import … from 'x' · export … from 'x' · import 'x' · import('x') — statements only (the bundle's strings hold code samples).
+  const SPEC = /(?:^|\n)\s*(?:import|export)\s(?:[^'";]*?\sfrom\s*)?["']([^"']+)["']|\bimport\(\s*["']([^"']+)["']\s*\)/g;
+  const BUILTINS = ['fs', 'path', 'url', 'os', 'child_process', 'crypto', 'zlib', 'util', 'module', 'http'];
+
+  it('the entry points are the shim and the bundle, and package.json points at them', () => {
+    expect(readFileSync(join(root, 'mcp-server.js'), 'utf-8')).toBe('#!/usr/bin/env node\nimport "./dist/server/mcp-server.js";\n');
+    expect(pkg.bin['sample-architecture-diagram-mcp-server']).toBe('mcp-server.js');
+    expect(pkg.exports['./render']).toBe('./dist/server/render.js');
+    expect(pkg.exports['./service-registry.json']).toBe('./server/assets/service-registry.json');
+    expect(bundle).toEqual(expect.arrayContaining(['dist/server/mcp-server.js', 'dist/server/render.js']));
+    expect(readFileSync(join(root, 'dist/server/mcp-server.js'), 'utf-8').startsWith('#!/usr/bin/env node\n')).toBe(true);
   });
-  it('every core source the runtime imports (transitively) is shipped', () => {
-    const seen = new Set<string>(), queue = [...runtime];
-    while (queue.length) {
-      const f = queue.pop()!;
-      if (seen.has(f)) continue; seen.add(f);
-      for (const m of readFileSync(join(root, f), 'utf-8').matchAll(/from ["'](\.{1,2}\/[^"']+\.js)["']/g)) {
-        queue.push(relative(root, resolve(dirname(join(root, f)), m[1])));
+  it('every runtime file is shipped (and the old lib/ is gone)', () => {
+    const runtime = ['mcp-server.js', ...bundle, 'dist/index.html', 'server/assets/service-registry.json', 'scripts/fetch-icons.sh', 'schema/diagram.schema.json'];
+    expect(runtime.filter(f => !shipped(f))).toEqual([]);
+    expect(files.some(f => f.startsWith('lib') || f.startsWith('packages/'))).toBe(false);
+  });
+  it('the bundle never imports the core (or any source file) by name or path', () => {
+    for (const f of bundle) {
+      for (const m of readFileSync(join(root, f), 'utf-8').matchAll(SPEC)) {
+        const spec = m[1] ?? m[2];
+        expect(spec.startsWith('@aws-sample-live-diagram/core'), `${f}: ${spec}`).toBe(false);
+        expect(spec.startsWith('#'), `${f}: ${spec}`).toBe(false);
+        if (spec.startsWith('.')) {
+          const target = relative(root, resolve(dirname(join(root, f)), spec));
+          expect(target.startsWith('dist/server/') && bundle.includes(target), `${f}: ${spec}`).toBe(true);
+        }
       }
     }
-    const missing = [...seen].filter(f => f.startsWith('packages/') && !shipped(f));
-    expect(missing).toEqual([]);
-    // …and every bare package those files import is a runtime dependency.
-    const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf-8'));
+  });
+  it('every bare package the bundle imports is a runtime dependency (or a node built-in)', () => {
     const deps = new Set(Object.keys(pkg.dependencies));
     const bare = new Set<string>();
-    for (const f of seen) for (const m of readFileSync(join(root, f), 'utf-8').matchAll(/from ["']([^."'][^"']*)["']/g)) {
-      const name = m[1].startsWith('@') ? m[1].split('/').slice(0, 2).join('/') : m[1].split('/')[0];
-      if (!name.startsWith('node:') && !['fs', 'path', 'url', 'os', 'child_process', 'crypto', 'zlib', 'util'].includes(name)) bare.add(name);
+    for (const f of bundle) for (const m of readFileSync(join(root, f), 'utf-8').matchAll(SPEC)) {
+      const spec = m[1] ?? m[2];
+      if (spec.startsWith('.')) continue;
+      const name = spec.startsWith('@') ? spec.split('/').slice(0, 2).join('/') : spec.split('/')[0];
+      if (!name.startsWith('node:') && !BUILTINS.includes(name)) bare.add(name);
     }
     expect([...bare].filter(n => !deps.has(n))).toEqual([]);
   });
@@ -115,7 +139,7 @@ describe('the published MCP is self-contained', () => {
 // `service` the same way the MCP does.
 describe('core icons', () => {
   it('resolves exact, prefix-insensitive and i18n service names', async () => {
-    const { iconForService, iconForShape, withServiceIcon, iconFilterKind } = await import('../packages/diagram-core/src/icons.js');
+    const { iconForService, iconForShape, withServiceIcon, iconFilterKind } = await import('#core-src/icons.ts');
     expect(iconForService('AWS Lambda')).toBe('Arch_AWS-Lambda_48.png');
     expect(iconForService('Lambda')).toBe('Arch_AWS-Lambda_48.png');
     expect(iconForService({ en: 'Amazon S3', pt: 'Amazon S3' })).toBe('Arch_Amazon-Simple-Storage-Service_48.png');
@@ -146,7 +170,7 @@ describe('core players fill a missing icon from service', () => {
     expect(pick(renderToString(React.createElement(FlowPlayer, { flow, iconUrl })))).toEqual(['Arch_AWS-Lambda_48.png']);
   });
   it('architecture nodes too, without writing the derived icon back', async () => {
-    const { buildServiceNode, serializeDiagram } = await import('../packages/diagram-core/src/diagramModel.js');
+    const { buildServiceNode, serializeDiagram } = await import('#core-src/diagramModel.ts');
     const node = buildServiceNode({ id: 'f', service: 'AWS Lambda' }, {});
     expect(node.data.icon).toBe('Arch_AWS-Lambda_48.png');
     expect(serializeDiagram([node], []).services[0].icon).toBeUndefined();
@@ -155,7 +179,7 @@ describe('core players fill a missing icon from service', () => {
 
 describe('core inline grammar, describers and canvas theme', () => {
   it('parseInline: one grammar, safe links, snake_case stays text', async () => {
-    const { parseInline, inlineHtml, safeHref } = await import('../packages/diagram-core/src/inline.js');
+    const { parseInline, inlineHtml, safeHref } = await import('#core-src/inline.ts');
     expect(parseInline('**a** __b__ `c_d` *e* _f_ aft_seed_vault').filter(t => t.type !== 'text').map(t => `${t.type}:${t.text}`))
       .toEqual(['strong:a', 'strong2:b', 'code:c_d', 'em:e', 'em:f']);
     expect(parseInline('[x](javascript:alert)')).toEqual([{ type: 'text', text: 'x' }]);
@@ -164,7 +188,7 @@ describe('core inline grammar, describers and canvas theme', () => {
     expect(inlineHtml('<i>**x**</i>')).toBe('&lt;i&gt;<b>x</b>&lt;/i&gt;');
   });
   it('describers handle i18n text in en/pt', async () => {
-    const { describeArchitecture, describeSequence } = await import('../packages/diagram-core/src/a11y.js');
+    const { describeArchitecture, describeSequence } = await import('#core-src/a11y.ts');
     const arch = { title: { en: 'Web', pt: 'Web' }, services: [{ id: 'a', service: 'Amazon S3', parentId: 'g' }, { id: 'b', service: 'AWS Lambda' }], connections: [{ source: 'b', target: 'a', label: { en: 'put', pt: 'grava' } }], groups: [{ id: 'g', label: 'VPC' }] };
     expect(describeArchitecture(arch)).toBe('Architecture diagram "Web" with 2 component(s), 1 connection(s) and 1 group(s). Groups: VPC (Amazon S3). Components: AWS Lambda. Connections: AWS Lambda → Amazon S3 (put).');
     expect(describeArchitecture(arch, { lang: 'pt' })).toContain('Conexões: AWS Lambda → Amazon S3 (grava).');
@@ -172,7 +196,7 @@ describe('core inline grammar, describers and canvas theme', () => {
       .toBe('Sequence diagram with 2 participant(s) and 2 step(s). Participants: User, Fn. Steps: User → Fn: call; [User–Fn] auth.');
   });
   it('diagramThemeCss: overrides, alias, only', async () => {
-    const { diagramThemeCss } = await import('../packages/diagram-core/src/diagramTheme.js');
+    const { diagramThemeCss } = await import('#core-src/diagramTheme.ts');
     expect(diagramThemeCss('.l', '.d', { alias: '--ld-', only: ['dot'], overrides: { light: { dot: 'X' } } }))
       .toBe('.l{--dot:X;--ld-dot:X}\n.d{--dot:rgba(255,255,255,0.12);--ld-dot:rgba(255,255,255,0.12)}');
   });

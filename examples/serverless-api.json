@@ -16,19 +16,5 @@
     { "id": "e3", "source": "cf", "target": "bucket", "type": "data", "label": "Static assets" },
     { "id": "e4", "source": "api", "target": "fn", "type": "event", "label": "Invoke" },
     { "id": "e5", "source": "fn", "target": "db", "type": "data", "label": "Query / Put" }
-  ],
-  "adr": [
-    {
-      "title": "DynamoDB over RDS",
-      "status": "accepted",
-      "context": "Access patterns are key-value and traffic is spiky.",
-      "decision": "Use DynamoDB with on-demand (pay-per-request) billing.",
-      "consequences": "No relational joins, but infinite scale and zero idle cost."
-    }
-  ],
-  "wellArchitected": {
-    "security": "API Gateway request validation, least-privilege IAM execution roles, TLS in transit via CloudFront.",
-    "cost-optimization": "Pay-per-request DynamoDB, Lambda billed per ms, no idle compute — scales to zero.",
-    "performance-efficiency": "DynamoDB single-digit-ms reads, CloudFront edge caching, Lambda co-located with the table."
-  }
+  ]
 }

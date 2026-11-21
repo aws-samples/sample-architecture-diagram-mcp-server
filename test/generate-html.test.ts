@@ -1,10 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
 import { describe, it, expect } from 'vitest';
-// @ts-expect-error — plain JS module, no types
-import { generateHtml, iconForService, iconForShape } from '../lib/html-generator.js';
-// @ts-expect-error — plain JS module, no types
-import { iconRoot, hasIcons } from '../lib/icon-root.js';
+import { generateHtml, iconForService, iconForShape } from './support/deps';
+import { iconRoot, hasIcons } from './support/deps';
 
 function archDataOf(html: string): any {
   const m = html.match(/id="arch-data"[^>]*>([\s\S]*?)<\/script>/);

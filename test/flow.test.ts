@@ -1,8 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
 import { describe, it, expect } from 'vitest';
-// @ts-expect-error — plain JS module, no types
-import { generateFlowHtml, flowIconResolutionReport } from '../lib/flow-generator.js';
+import { generateFlowHtml, flowIconResolutionReport } from './support/deps';
 
 function flowDataOf(html: string): any {
   const m = html.match(/id="flow-data"[^>]*>([\s\S]*?)<\/script>/);

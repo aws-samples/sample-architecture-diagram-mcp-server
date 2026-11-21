@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/typed/layers.schema.json",
+  "title": "Camadas",
+  "description": "Pilha de camadas (arquitetura, capacidades, OSI) com trilhos transversais como segurança e observabilidade.",
+  "x-category": "structure",
+  "x-unique": [
+    "layers[].id"
+  ],
+  "x-refs": [
+    {
+      "from": "sideRails[].span[]",
+      "to": "layers[].id"
+    }
+  ],
+  "type": "object",
+  "required": [
+    "kind",
+    "layers"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "kind": {
+      "const": "layers"
+    },
+    "title": {
+      "type": "string"
+    },
+    "subtitle": {
+      "type": "string"
+    },
+    "layers": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 12,
+      "x-label": "Camadas",
+      "x-item-title": "label",
+      "description": "Camadas de cima para baixo (a última é a fundação)",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "label"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Identificador"
+          },
+          "label": {
+            "type": "string",
+            "description": "Nome da camada"
+          },
+          "desc": {
+            "type": "string",
+            "x-multiline": true,
+            "description": "Descrição curta (abaixo do nome)"
+          },
+          "items": {
+            "type": "array",
+            "maxItems": 16,
+            "items": {
+              "type": "string"
+            },
+            "x-label": "Itens",
+            "description": "Componentes / serviços da camada"
+          },
+          "tone": {
+            "type": "string",
+            "enum": [
+              "accent",
+              "info",
+              "success",
+              "warn",
+              "danger",
+              "neutral",
+              "purple",
+              "teal",
+              "pink"
+            ],
+            "description": "Cor"
+          }
+        }
+      }
+    },
+    "sideRails": {
+      "type": "array",
+      "maxItems": 4,
+      "x-label": "Trilhos transversais",
+      "x-item-title": "label",
+      "description": "Preocupações transversais desenhadas como barras verticais à direita",
+      "items": {
+        "type": "object",
+        "required": [
+          "label"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "label": {
+            "type": "string",
+            "description": "Nome (ex.: Segurança)"
+          },
+          "tone": {
+            "type": "string",
+            "enum": [
+              "accent",
+              "info",
+              "success",
+              "warn",
+              "danger",
+              "neutral",
+              "purple",
+              "teal",
+              "pink"
+            ],
+            "description": "Cor"
+          },
+          "span": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {
+              "type": "string",
+              "x-ref": "layers[].id"
+            },
+            "x-label": "Abrangência",
+            "description": "Primeira e última camada cobertas (vazio = todas)"
+          }
+        }
+      }
+    }
+  }
+}

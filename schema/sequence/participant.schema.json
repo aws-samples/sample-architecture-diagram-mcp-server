@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/sequence/participant.schema.json",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Stable id referenced by messages (from/to) and notes/fragments."
+    },
+    "label": {
+      "type": "string",
+      "description": "Header label shown on the lifeline (e.g. 'Lambda seed', 'RHBK')."
+    },
+    "sub": {
+      "description": "Second header line, smaller (e.g. a package/qualifier like 'aft-seed-vault-rhbk').",
+      "type": "string"
+    },
+    "service": {
+      "description": "Canonical AWS/service name used to AUTO-RESOLVE the header icon (e.g. 'AWS Lambda', 'Amazon DynamoDB', 'AWS Step Functions'). Same resolver as the architecture path — call resolve_icon to confirm.",
+      "type": "string"
+    },
+    "icon": {
+      "description": "Explicit icon reference — overrides `service` resolution. Bare name resolves under icons/ (e.g. 'Arch_AWS-Lambda_48.png'); a prefixed path is used as-is ('tech-icons/vault.svg', 'tech-icons/keycloak.svg', 'aws-icons/user.svg'). Use for non-AWS/self-hosted lifelines (Vault, Keycloak/RHBK, GitLab, Zabbix).",
+      "type": "string"
+    },
+    "actor": {
+      "description": "Render as a UML stick-figure actor instead of a boxed service (for a human role like SA/Dev).",
+      "type": "boolean"
+    },
+    "stereotype": {
+      "description": "UML stereotype shown above a boxed header in guillemets (e.g. 'boundary', 'control', 'entity', 'service'). Ignored for actors.",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "label"
+  ]
+}

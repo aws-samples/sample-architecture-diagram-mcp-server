@@ -1,0 +1,12 @@
+{
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/tools/list_service_configs.input.schema.json",
+  "title": "list_service_configs input",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "service": {
+      "description": "Filter by service name (partial match). Omit to list all.",
+      "type": "string"
+    }
+  }
+}

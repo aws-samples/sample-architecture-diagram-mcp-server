@@ -1,0 +1,12 @@
+{
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/tools/resolve_icon.input.schema.json",
+  "title": "resolve_icon input",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "service": {
+      "description": "Service display name, e.g. 'Amazon RDS', 'AWS Lambda'",
+      "type": "string"
+    }
+  }
+}

@@ -1,0 +1,176 @@
+{
+  "$id": "https://raw.githubusercontent.com/aws-samples/sample-architecture-diagram-mcp-server/main/schema/tools/auto_generate_diagram.input.schema.json",
+  "title": "auto_generate_diagram input",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "subtitle": {
+      "type": "string"
+    },
+    "outputPath": {
+      "type": "string",
+      "description": "Absolute path for .drawio output"
+    },
+    "region": {
+      "default": "us-east-1",
+      "type": "string"
+    },
+    "services": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "service": {
+            "type": "string",
+            "description": "Display name"
+          },
+          "shape": {
+            "type": "string",
+            "description": "AWS4 shape: lambda, fargate, rds, s3, etc."
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "compute",
+              "storage",
+              "database",
+              "networking",
+              "security",
+              "integration",
+              "analytics",
+              "ai",
+              "management",
+              "general"
+            ]
+          },
+          "label": {
+            "description": "Italic sub-label",
+            "type": "string"
+          },
+          "parentId": {
+            "description": "Id of the container (from `groups`) this service sits in. Enables arbitrary nesting; takes precedence over `subnet`.",
+            "type": "string"
+          },
+          "subnet": {
+            "description": "Single-VPC shortcut when `groups`/`parentId` are not used (omit = outside VPC, edge service).",
+            "type": "string",
+            "enum": [
+              "public",
+              "private"
+            ]
+          },
+          "external": {
+            "description": "True for external integrations (Pix, Gov.br, etc.)",
+            "type": "boolean"
+          },
+          "isApi": {
+            "description": "For externals: true=API/internet icon, false=app icon",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "service",
+          "shape",
+          "category"
+        ]
+      }
+    },
+    "connections": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "target": {
+            "type": "string"
+          },
+          "label": {
+            "description": "Step description for legend",
+            "type": "string"
+          },
+          "type": {
+            "description": "Connection semantics, styled distinctly (matches the HTML): network (blue), iam (red dashed), event (pink dotted), data (green).",
+            "type": "string",
+            "enum": [
+              "network",
+              "iam",
+              "event",
+              "data"
+            ]
+          },
+          "dashed": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "source",
+          "target"
+        ]
+      }
+    },
+    "groups": {
+      "description": "Explicit containers for arbitrary topologies. Services join one via `parentId`. Omit to derive the classic AWS Cloud → VPC → subnet tree from each service's `subnet`.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "parent": {
+            "description": "Parent container id, for nesting to any depth.",
+            "type": "string"
+          },
+          "variant": {
+            "description": "Container type → official AWS4 group icon + colour.",
+            "type": "string",
+            "enum": [
+              "aws-cloud",
+              "region",
+              "vpc",
+              "public-subnet",
+              "private-subnet",
+              "availability-zone",
+              "account",
+              "organization",
+              "auto-scaling-group",
+              "group",
+              "corporate-data-center",
+              "on-premises"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "label"
+        ]
+      }
+    },
+    "includeUsers": {
+      "default": true,
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "title",
+    "outputPath",
+    "services",
+    "connections"
+  ]
+}
