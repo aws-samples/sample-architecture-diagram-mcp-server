@@ -11,8 +11,7 @@ import { join } from 'path';
 import { tmpdir } from 'os';
 import { resolveCosts, costEnvs, costForEnv, stepCost, dockCost, modalPricing, envFromHash, hashWithEnv, costProblems } from '#core-src/costs.ts';
 import { renderSpec } from './support/deps';
-// @ts-expect-error — plain JS module, no types
-import { importChromium } from '../lib/rasterize.js';
+import { importChromium } from '#adapters/outbound/rasterizer.ts';
 
 const U = (x: string) => `https://calculator.aws/#/estimate?id=${x}`;
 const costs = [

@@ -9,7 +9,7 @@ import { dirname, join } from 'path';
 // original app's service-configs coverage test (which depended on app internals
 // the MCP doesn't have).
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const CONFIGS = JSON.parse(readFileSync(join(__dirname, '..', 'lib', 'service-configs.json'), 'utf-8'));
+const CONFIGS = JSON.parse(readFileSync(join(__dirname, '..', 'server', 'assets', 'service-configs.json'), 'utf-8'));
 
 describe('service-configs.json integrity', () => {
   it('is a non-empty array of {service, fields}', () => {

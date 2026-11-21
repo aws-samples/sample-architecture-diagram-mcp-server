@@ -8,8 +8,7 @@ import { join } from 'path';
 import { tmpdir } from 'os';
 import { renderSpec } from './support/deps';
 import { htmlDiagramInputSchema } from '#domain/schemas/architecture.ts';
-// @ts-expect-error — plain JS module, no types
-import { importChromium } from '../lib/rasterize.js';
+import { importChromium } from '#adapters/outbound/rasterizer.ts';
 
 const base = {
   title: 'Visible title', caption: { title: 'Caption title', text: 'x' },

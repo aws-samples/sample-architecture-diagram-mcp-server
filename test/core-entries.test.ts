@@ -69,37 +69,58 @@ describe('HTML players take layout + palette from the core', () => {
   });
 });
 
-// The published MCP (npx, release tarball) has no @aws-sample-live-diagram/core
-// install: its runtime code must import the core's sources by path, and every
-// such file must be inside package.json `files`.
+// The published MCP (npx, release tarball, git install) has no
+// @aws-sample-live-diagram/core install and no build step: the entry is the
+// committed esbuild bundle (dist/server/), which carries the core inside it.
+// Every runtime file must be in package.json `files`, import only node
+// built-ins, runtime dependencies or other shipped bundle files, and never the
+// core by package name.
 describe('the published MCP is self-contained', () => {
   const root = join(__dirname, '..');
-  const runtime = ['mcp-server.js', ...readdirSync(join(root, 'lib')).filter(f => f.endsWith('.js')).map(f => `lib/${f}`)];
-  const files: string[] = JSON.parse(readFileSync(join(root, 'package.json'), 'utf-8')).files;
+  const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf-8'));
+  const files: string[] = pkg.files;
   const shipped = (p: string) => files.some(g => g.endsWith('/') ? p.startsWith(g)
-    : g.includes('*') ? new RegExp('^' + g.replace(/[.]/g, '\\.').replace('*', '[^/]+') + '$').test(p) : p === g);
-  it('runtime code never imports the core by package name', () => {
-    const bare = runtime.filter(f => /from ["']@aws-sample-live-diagram\/core/.test(readFileSync(join(root, f), 'utf-8')));
-    expect(bare).toEqual([]);
+    : g.includes('*') ? new RegExp('^' + g.replace(/[.]/g, '\\.').replace('*', '[^/]+') + '$').test(p) : p === g || p.startsWith(g + '/'));
+  const walk = (d: string): string[] => readdirSync(join(root, d), { withFileTypes: true }).flatMap(e => e.isDirectory() ? walk(`${d}/${e.name}`) : [`${d}/${e.name}`]);
+  const bundle = walk('dist/server').filter(f => f.endsWith('.js'));
+  // import … from 'x' · export … from 'x' · import 'x' · import('x') — statements only (the bundle's strings hold code samples).
+  const SPEC = /(?:^|\n)\s*(?:import|export)\s(?:[^'";]*?\sfrom\s*)?["']([^"']+)["']|\bimport\(\s*["']([^"']+)["']\s*\)/g;
+  const BUILTINS = ['fs', 'path', 'url', 'os', 'child_process', 'crypto', 'zlib', 'util', 'module', 'http'];
+
+  it('the entry points are the shim and the bundle, and package.json points at them', () => {
+    expect(readFileSync(join(root, 'mcp-server.js'), 'utf-8')).toBe('#!/usr/bin/env node\nimport "./dist/server/mcp-server.js";\n');
+    expect(pkg.bin['sample-architecture-diagram-mcp-server']).toBe('mcp-server.js');
+    expect(pkg.exports['./render']).toBe('./dist/server/render.js');
+    expect(pkg.exports['./service-registry.json']).toBe('./server/assets/service-registry.json');
+    expect(bundle).toEqual(expect.arrayContaining(['dist/server/mcp-server.js', 'dist/server/render.js']));
+    expect(readFileSync(join(root, 'dist/server/mcp-server.js'), 'utf-8').startsWith('#!/usr/bin/env node\n')).toBe(true);
   });
-  it('every core source the runtime imports (transitively) is shipped', () => {
-    const seen = new Set<string>(), queue = [...runtime];
-    while (queue.length) {
-      const f = queue.pop()!;
-      if (seen.has(f)) continue; seen.add(f);
-      for (const m of readFileSync(join(root, f), 'utf-8').matchAll(/from ["'](\.{1,2}\/[^"']+\.js)["']/g)) {
-        queue.push(relative(root, resolve(dirname(join(root, f)), m[1])));
+  it('every runtime file is shipped (and the old lib/ is gone)', () => {
+    const runtime = ['mcp-server.js', ...bundle, 'dist/index.html', 'server/assets/service-registry.json', 'scripts/fetch-icons.sh', 'schema/diagram.schema.json'];
+    expect(runtime.filter(f => !shipped(f))).toEqual([]);
+    expect(files.some(f => f.startsWith('lib') || f.startsWith('packages/'))).toBe(false);
+  });
+  it('the bundle never imports the core (or any source file) by name or path', () => {
+    for (const f of bundle) {
+      for (const m of readFileSync(join(root, f), 'utf-8').matchAll(SPEC)) {
+        const spec = m[1] ?? m[2];
+        expect(spec.startsWith('@aws-sample-live-diagram/core'), `${f}: ${spec}`).toBe(false);
+        expect(spec.startsWith('#'), `${f}: ${spec}`).toBe(false);
+        if (spec.startsWith('.')) {
+          const target = relative(root, resolve(dirname(join(root, f)), spec));
+          expect(target.startsWith('dist/server/') && bundle.includes(target), `${f}: ${spec}`).toBe(true);
+        }
       }
     }
-    const missing = [...seen].filter(f => f.startsWith('packages/') && !shipped(f));
-    expect(missing).toEqual([]);
-    // …and every bare package those files import is a runtime dependency.
-    const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf-8'));
+  });
+  it('every bare package the bundle imports is a runtime dependency (or a node built-in)', () => {
     const deps = new Set(Object.keys(pkg.dependencies));
     const bare = new Set<string>();
-    for (const f of seen) for (const m of readFileSync(join(root, f), 'utf-8').matchAll(/from ["']([^."'][^"']*)["']/g)) {
-      const name = m[1].startsWith('@') ? m[1].split('/').slice(0, 2).join('/') : m[1].split('/')[0];
-      if (!name.startsWith('node:') && !['fs', 'path', 'url', 'os', 'child_process', 'crypto', 'zlib', 'util'].includes(name)) bare.add(name);
+    for (const f of bundle) for (const m of readFileSync(join(root, f), 'utf-8').matchAll(SPEC)) {
+      const spec = m[1] ?? m[2];
+      if (spec.startsWith('.')) continue;
+      const name = spec.startsWith('@') ? spec.split('/').slice(0, 2).join('/') : spec.split('/')[0];
+      if (!name.startsWith('node:') && !BUILTINS.includes(name)) bare.add(name);
     }
     expect([...bare].filter(n => !deps.has(n))).toEqual([]);
   });

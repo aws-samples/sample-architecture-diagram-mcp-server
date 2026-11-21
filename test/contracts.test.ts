@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
 // The contracts are generated from the same definitions the server registers
-// (lib/tools.js → lib/contracts.js); these tests prove the three copies agree
+// (the tool registry → server/adapters/inbound/mcp/contracts.ts); these tests prove the three copies agree
 // — committed schema/, what the running server announces and serves — and
 // that real specs validate against them.
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
@@ -11,8 +11,11 @@ import { tmpdir } from 'os';
 import Ajv2020 from 'ajv/dist/2020.js';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
-// @ts-expect-error — plain JS module, no types
-import { schemaFiles, schemaNames, documentContracts, SCHEMA_BASE } from '../lib/contracts.js';
+import { SCHEMA_BASE, documentContracts } from '#adapters/inbound/mcp/contracts.ts';
+import { contracts } from './support/app';
+
+const schemaFiles = () => contracts.files();
+const schemaNames = () => contracts.names();
 
 const ROOT = resolve(__dirname, '..');
 const SCHEMA = join(ROOT, 'schema');

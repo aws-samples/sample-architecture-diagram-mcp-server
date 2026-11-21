@@ -7,8 +7,7 @@ import { writeFileSync, mkdtempSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
 import { renderSpec } from './support/deps';
-// @ts-expect-error — plain JS module, no types
-import { importChromium } from '../lib/rasterize.js';
+import { importChromium } from '#adapters/outbound/rasterizer.ts';
 
 describe('responsive dock (headless)', () => {
   it('fits the canvas at 1440, 1024 and 390 px, with a tab rail and a long cost label', async () => {

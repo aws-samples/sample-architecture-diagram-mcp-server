@@ -13,8 +13,7 @@ import { renderSpec } from './support/deps';
 import { generateSequenceHtml } from './support/deps';
 import { stepSchema } from '#domain/schemas/architecture.ts';
 import { sequenceInputSchema } from '#domain/schemas/sequence.ts';
-// @ts-expect-error — plain JS module, no types
-import { importChromium } from '../lib/rasterize.js';
+import { importChromium } from '#adapters/outbound/rasterizer.ts';
 
 const JOINED = [
   '===== eks.tf =====',

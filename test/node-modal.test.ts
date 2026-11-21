@@ -11,8 +11,7 @@ import { join } from 'path';
 import { tmpdir } from 'os';
 import { renderSpec } from './support/deps';
 import { resolveLayout } from './support/layouts';
-// @ts-expect-error — plain JS module, no types
-import { importChromium } from '../lib/rasterize.js';
+import { importChromium } from '#adapters/outbound/rasterizer.ts';
 
 const rfNode = { id: 'db', type: 'aws', position: { x: 0, y: 0 }, data: { label: 'Amazon Aurora', category: 'database', role: { en: 'Primary database', pt: 'Banco principal' }, config: { iac: { engine: 'aurora-postgresql' }, pricing: { instance: 'db.r7g.large' } } } };
 
