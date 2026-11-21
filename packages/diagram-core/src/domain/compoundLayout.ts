@@ -14,6 +14,7 @@
 // This module is pure: it builds the graph an engine lays out and reads the
 // engine's answer back into positioned nodes. The engine call itself is a port
 // (ports/layoutEngine.ts), orchestrated by application/layout.ts.
+import { dict, own } from "./own.ts";
 import {
   DEFAULT_GEOMETRY, elkGraphOptions, elkGroupPadding, elkSpacing,
   groupDepth, lcaContainer, radialLayout,
@@ -126,7 +127,7 @@ export function planCompoundLayout<N extends LayoutNode>(serviceNodes: readonly 
   // The visible representative of a node id: if it (or an ancestor group) is
   // collapsed, the outermost collapsed ancestor; else the id itself.
   const visibleServiceId = (sid: string): string => {
-    const p = membership[sid];
+    const p = own(membership, sid);
     const c = p ? outerCollapsedAncestorOfGroup(p) : null;
     return c || sid;
   };
@@ -140,7 +141,7 @@ export function planCompoundLayout<N extends LayoutNode>(serviceNodes: readonly 
     return true;
   };
   const svcRendered = (sid: string) => {
-    const p = membership[sid];
+    const p = own(membership, sid);
     return !p || !outerCollapsedAncestorOfGroup(p);
   };
 
@@ -154,7 +155,7 @@ export function planCompoundLayout<N extends LayoutNode>(serviceNodes: readonly 
   const svcByGroup = new Map<string, N[]>(groups.map(gp => [gp.id, []]));
   const rootServices: N[] = [];
   for (const n of serviceNodes) {
-    const p = membership[n.id];
+    const p = own(membership, n.id);
     const members = p ? svcByGroup.get(p) : undefined;
     if (p && members) members.push(n);
     else rootServices.push(n);
@@ -241,7 +242,7 @@ export function planCompoundLayout<N extends LayoutNode>(serviceNodes: readonly 
     };
     const d2 = (a: XY, b: XY) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
 
-    const edgePaths: Record<string, XY[]> = {};
+    const edgePaths: Record<string, XY[]> = dict();
     for (const e of (res.edges || [])) {
       const sec = e.sections && e.sections[0];
       if (!sec) continue;
@@ -339,7 +340,7 @@ export function planLayeredLayout<N extends LayoutNode>(serviceNodes: readonly N
   // the services; a parent only when it is a known group other than the node itself.
   const nodes: LayeredGraph["nodes"] = [
     ...groups.map(grp => ({ id: grp.id, width: 1, height: 1, ...(grp.parent && groupById.has(grp.parent) && grp.parent !== grp.id ? { parent: grp.parent } : {}) })),
-    ...serviceNodes.map(n => { const parent = membership[n.id]; return { id: n.id, width: nodeW, height: nodeH, ...(parent && groupById.has(parent) ? { parent } : {}) }; }),
+    ...serviceNodes.map(n => { const parent = own(membership, n.id); return { id: n.id, width: nodeW, height: nodeH, ...(parent && groupById.has(parent) ? { parent } : {}) }; }),
   ];
   const known = new Set(nodes.map(n => n.id));
   const graph: LayeredGraph = {
@@ -359,7 +360,7 @@ export function planLayeredLayout<N extends LayoutNode>(serviceNodes: readonly N
     // s.position like the JS original did.
     const svcByGroup = new Map<string, Positioned<N>[]>(groups.map(gp => [gp.id, []]));
     for (const n of positioned) {
-      const p = membership[n.id];
+      const p = own(membership, n.id);
       const members = p ? svcByGroup.get(p) : undefined;
       if (p && members) members.push(n as Positioned<N>);
     }
@@ -418,7 +419,7 @@ export function planLayeredLayout<N extends LayoutNode>(serviceNodes: readonly N
           else shift.y = (b.y >= a.y ? 1 : -1) * (dy + GAP);
           const ids = new Set([cur.gp.id, ...descendantsOf(cur.gp.id)]);
           for (const gn of groupNodes) if (ids.has(gn.id)) { gn.position.x += shift.x; gn.position.y += shift.y; const gb = boxById.get(gn.id) as Box; gb.x += shift.x; gb.y += shift.y; }
-          for (const n of positioned as Positioned<N>[]) { const p = membership[n.id]; if (p && (ids.has(p) || ids.has(n.id))) { n.position.x += shift.x; n.position.y += shift.y; } }
+          for (const n of positioned as Positioned<N>[]) { const p = own(membership, n.id); if (p && (ids.has(p) || ids.has(n.id))) { n.position.x += shift.x; n.position.y += shift.y; } }
         }
       }
     }

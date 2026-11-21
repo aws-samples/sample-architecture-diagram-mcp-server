@@ -4,6 +4,7 @@
 // Full-width bands (label + description on the left, item chips wrapping on
 // the right) and vertical side rails for cross-cutting concerns.
 // Reveal: bottom → top (foundation first); rails on the final step.
+import { dictOf } from '#core/domain/own.ts'
 import { DiagramSvg, toneColor, paletteColor, wrapText, textW } from './DiagramSvg.tsx'
 import type { TypedDocBase, TypedViewProps } from './DiagramSvg.tsx'
 import { describeTypedDiagram } from '#core/domain/typed/index.ts'
@@ -22,7 +23,7 @@ export default function LayersView({ doc, step = null, fit }: TypedViewProps<Lay
   const layers = doc.layers || []
   const rails = doc.sideRails || []
   const n = layers.length
-  const idx: Record<string, number> = Object.fromEntries(layers.map((l, i) => [l.id, i]))
+  const idx: Record<string, number> = dictOf(layers.map((l, i) => [l.id, i]))
   const railsW = rails.length ? rails.length * (RAIL_W + RAIL_GAP) : 0
   const W = W0 + railsW
   const bandX = PAD, bandW = W0 - 2 * PAD

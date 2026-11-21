@@ -6,6 +6,7 @@
 // description is placed radially outside its disc; inputs (accelerators) are
 // pills further out, pointing at the arc that leads into their stage.
 // Layout is computed around (0,0), then the viewBox is fitted to the bbox.
+import { dictOf } from '#core/domain/own.ts'
 import { DiagramSvg, paletteColor, toneColor, textW, wrapText, useSvgIds } from './DiagramSvg.tsx'
 import type { TypedDocBase, TypedViewProps } from './DiagramSvg.tsx'
 import { describeTypedDiagram } from '#core/domain/typed/index.ts'
@@ -58,7 +59,7 @@ export default function FlywheelView({ doc, step = null, fit }: TypedViewProps<F
   })
 
   // inputs: pill outside the incoming arc of the target stage
-  const idx: Record<string, number> = Object.fromEntries(stages.map((s, i) => [s.id, i]))
+  const idx: Record<string, number> = dictOf(stages.map((s, i) => [s.id, i]))
   const perStage: Record<number, number> = {}
   const inputs = (doc.inputs || []).filter(inp => idx[inp.toStage] != null).map((inp) => {
     const j = idx[inp.toStage]

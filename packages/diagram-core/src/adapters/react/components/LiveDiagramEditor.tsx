@@ -8,6 +8,7 @@
 //
 // The core intentionally ships ONLY this canvas — no toolbar/palette. The host
 // builds that chrome and drives the editor via props + the imperative handle.
+import { dict } from "#core/domain/own.ts";
 import { useEffect, useState, useCallback, useRef, useImperativeHandle, forwardRef } from "react";
 import {
   ReactFlow, ReactFlowProvider, Background, BackgroundVariant,
@@ -194,7 +195,7 @@ function EditorCanvas({
     // diagramModel is React-free (it carries the host Icon as unknown); the node it
     // builds is the "aws" node AwsNode renders.
     const svcNodes = (value?.services || []).map(s => buildServiceNode(s, { lang, vars, Icon, geom, nodeLayout }) as DiagramFlowNode);
-    const seenByTarget: Record<string, number> = {};
+    const seenByTarget: Record<string, number> = dict();
     const baseEdges = (value?.connections || []).map((c) => {
       const seen = seenByTarget[c.target] || 0; seenByTarget[c.target] = seen + 1;
       return buildBaseEdge(c, { direction, lang, animate: true, markerId, edgeIndex: seen }) as CustomFlowEdge;
@@ -258,7 +259,7 @@ function EditorCanvas({
         // absolute ALREADY includes the whole ancestor chain — subtracting the
         // full chain (as an earlier version did) over-corrects and throws deeply
         // nested children far outside their container.
-        const groupParent: Record<string, string> = {}
+        const groupParent: Record<string, string> = dict()
         for (const g of groups) if (g.parent) groupParent[g.id] = g.parent
         const withParent: LaidOutNode[] = toParentRelative(laid, (n) => (n.type === "aws" ? membership[n.id] : (n.type === "group" ? groupParent[n.id] : null)))
         setNodes(withParent.map(decorateGroup));
@@ -483,7 +484,7 @@ function EditorCanvas({
       const clip = clipboard.current;
       if (!clip?.nodes?.length) return;
       snapshot();
-      const idMap: Record<string, string> = {};
+      const idMap: Record<string, string> = dict();
       const dx = 40, dy = 40;
       const pastedNodes = clip.nodes.map((n): DiagramFlowNode => {
         const nid = n.type === "group" ? uid("g") : uid("n");

@@ -17,6 +17,7 @@
 // overview, nothing dimmed). Without `activeStep` the component keeps its own
 // step and, with `controls`, shows the prev/next pill. The host (a deck's reveal
 // store, a page) drives it the same way the HTML player's buttons do.
+import { protoFree } from "#core/domain/own.ts";
 import { stepBy } from "#core/application/walkthrough.ts";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, PointerEvent as ReactPointerEvent, ReactElement, RefObject } from "react";
@@ -71,10 +72,10 @@ export interface FlowDoc {
 }
 
 // The player palette indexed by an author's tone name (unknown names → undefined).
-const TONE: Readonly<Record<string, string | undefined>> = PLAYER_TONES;
+const TONE: Readonly<Record<string, string | undefined>> = protoFree(PLAYER_TONES);
 
-const BADGE_TXT: Record<string, string> = { gate: "◆ GATE", async: "async", sync: "sync", phase: "PHASE", fail: "✕ fail", start: "▶ start", end: "■ end" };
-const DEFAULT_KIND: Record<string, string> = { workflow: "task", dataflow: "process", lifecycle: "state" };
+const BADGE_TXT: Record<string, string> = protoFree({ gate: "◆ GATE", async: "async", sync: "sync", phase: "PHASE", fail: "✕ fail", start: "▶ start", end: "■ end" });
+const DEFAULT_KIND: Record<string, string> = protoFree({ workflow: "task", dataflow: "process", lifecycle: "state" });
 const GUTTER = 396;
 
 // Same escaping + inline markdown as the HTML player (esc() also guards
@@ -108,11 +109,11 @@ const dia = (c: string) => <svg width="14" height="14"><polygon points="7,1 13,7
 const cir = (c: string, fill?: string) => <svg width="14" height="14"><circle cx="7" cy="7" r="5.5" fill={fill || "none"} stroke={c} strokeWidth="2" /></svg>;
 const cyl = (c: string) => <svg width="14" height="14"><path d="M2,4 A5 2 0 0 1 12,4 L12,10 A5 2 0 0 1 2,10 Z" fill="none" stroke={c} strokeWidth="1.6" /></svg>;
 const arrow = (dash: boolean) => <svg width="30" height="10"><line x1="0" y1="5" x2="22" y2="5" stroke="currentColor" strokeWidth="2" strokeDasharray={dash ? "6 4" : undefined} /><path d="M22,1 L30,5 L22,9 z" fill="currentColor" /></svg>;
-const LEGENDS: Record<string, [ReactElement, string][]> = {
+const LEGENDS: Record<string, [ReactElement, string][]> = protoFree({
   workflow: [[cir("var(--success)", "var(--success)"), "start"], [sw("var(--accent)"), "task"], [dia("var(--warn)"), "decision"], [cir("var(--neutral)"), "end"], [arrow(false), "transition"]],
   dataflow: [[sw("var(--neutral)"), "external"], [sw("var(--accent)"), "process"], [cyl("var(--info)"), "data store"], [arrow(false), "data flow"]],
   lifecycle: [[cir("var(--success)", "var(--success)"), "initial"], [sw("var(--accent)"), "state"], [dia("var(--warn)"), "choice"], [cir("var(--neutral)"), "final"], [arrow(true), "return"]],
-};
+});
 
 // Styles: the HTML player's, scoped under .lfd (light by default; dark via
 // theme="dark" or a `.dark` ancestor; a `.light`/`.force-light` island inside

@@ -4,6 +4,7 @@
 // Columns = steps grouped under stage chevrons; rows = step cards, emotion
 // curve (monotone line through faces), pains and opportunities chips.
 // Reveal: one stage per step, left → right (curve clipped to revealed stages).
+import { dictOf, protoFree } from '#core/domain/own.ts'
 import { line, curveMonotoneX } from 'd3-shape'
 import type { ReactNode } from 'react'
 import { DiagramSvg, toneColor, paletteColor, wrapText, useSvgIds } from './DiagramSvg.tsx'
@@ -29,8 +30,8 @@ export interface JourneyDoc extends TypedDocBase {
 interface Chip { t: string; lines: string[]; h: number }
 interface JourneyCol { p: JourneyStep | null; si: number }
 const STAGE_PAL = [0, 3, 4, 2, 5, 6, 7, 1]
-const EMO_TONE: Record<string, string> = { 2: 'success', 1: 'teal', 0: 'neutral', '-1': 'warn', '-2': 'danger' }
-const EMO_LABEL: Record<string, string> = { 2: 'Encantado', 1: 'Satisfeito', 0: 'Neutro', '-1': 'Frustrado', '-2': 'Irritado' }
+const EMO_TONE: Record<string, string> = protoFree({ 2: 'success', 1: 'teal', 0: 'neutral', '-1': 'warn', '-2': 'danger' })
+const EMO_LABEL: Record<string, string> = protoFree({ 2: 'Encantado', 1: 'Satisfeito', 0: 'Neutro', '-1': 'Frustrado', '-2': 'Irritado' })
 const CHIP = 12, CHIP_LH = 15
 
 function Face({ x, y, e, r = 13 }: { x: number; y: number; e: number; r?: number }) {
@@ -57,7 +58,7 @@ export default function JourneyView({ doc, step = null, fit }: TypedViewProps<Jo
   const stages = doc.stages || []
   const steps = doc.steps || []
   const personas = doc.personas || []
-  const pIdx: Record<string, number> = Object.fromEntries(personas.map((p, i) => [p.id, i]))
+  const pIdx: Record<string, number> = dictOf(personas.map((p, i) => [p.id, i]))
   const cw = COL - GAP
 
   // columns: steps in stage order (doc order inside a stage); empty stage = 1 blank column

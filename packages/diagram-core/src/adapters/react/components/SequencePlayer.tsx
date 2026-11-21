@@ -32,6 +32,7 @@
 //   controls, card      show the pill toolbar / the narration card (default on)
 //   theme               'light' | 'dark' to force; else a `.dark` ancestor (or
 //                       the MCP's .ld-frame.dark) decides
+import { protoFree } from "#core/domain/own.ts";
 import { createContext, useCallback, useContext, useEffect, useId, useMemo, useRef, useState } from 'react';
 import type { CSSProperties, PointerEvent as ReactPointerEvent, ReactElement, ReactNode, SetStateAction } from 'react';
 import { tr, ui as defaultUi } from '#core/domain/i18n.ts';
@@ -84,7 +85,7 @@ export interface SequenceDoc extends SequenceLayoutInput<SeqParticipant, SeqEven
 type SeqLayout = ReturnType<typeof layoutSequence<SeqParticipant, SeqEvent, SeqFragment>>;
 
 // The player palette indexed by an author's tone name (unknown names → undefined).
-const TONE: Readonly<Record<string, string | undefined>> = PLAYER_TONES;
+const TONE: Readonly<Record<string, string | undefined>> = protoFree(PLAYER_TONES);
 
 // Several files on one event (codeBlocks, or codeSplit: "markers") → collapsible blocks.
 const seqCodeBlocks = (e: SeqEvent, lang: string) => codeBlocksOf(e, (v) => tr(v, lang));
@@ -280,9 +281,9 @@ const SEQ_CSS = `
 interface SeqIcons { url: (ref: string) => string | null | undefined; filter: (ref: string) => string }
 const IconCtx = createContext<SeqIcons>({ url: () => null, filter: () => 'none' });
 
-const BADGE_TXT: Record<string, string> = {
+const BADGE_TXT: Record<string, string> = protoFree({
   gate: '◆ GATE', keyless: '● keyless', async: 'async', sync: 'sync', phase: 'PHASE', fail: '✕ fail',
-};
+});
 
 // ── proof refs ──────────────────────────────────────────────────────────────
 // A step's `proof` is either free text (inline markdown) or a structured,

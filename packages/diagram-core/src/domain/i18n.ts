@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MIT-0
 // Content language resolver. An author value is a plain string OR a per-language
 // map, e.g. { en: "Overview", pt: "Visão geral" }.
+import { own } from "./own.ts";
 
 /** A per-language text map, e.g. { en: "Overview", pt: "Visão geral" }. */
 export type LangMap = Partial<Record<string, string>>;
@@ -24,7 +25,7 @@ export function tr(val: unknown, lang?: string, fallback: string = "en"): string
   if (val == null) return "";
   if (typeof val === "string") return val;
   // Values of a map are expected to be strings; returned as stored, like the JS original.
-  if (typeof val === "object") { const m = asMap(val); return (m[String(lang)] ?? m[fallback] ?? Object.values(m)[0] ?? "") as string; }
+  if (typeof val === "object") { const m = asMap(val); return (own(m, lang) ?? own(m, fallback) ?? Object.values(m)[0] ?? "") as string; }
   return String(val);
 }
 
@@ -44,7 +45,7 @@ export const i18n = (val: unknown, lang?: string): string => {
   if (val == null) return "";
   if (typeof val === "string") return val;
   const m = asMap(val as object);
-  return (m[String(lang)] || m.en || m.pt || "") as string;
+  return (own(m, lang) || own(m, "en") || own(m, "pt") || "") as string;
 };
 
 // ── UI chrome ─────────────────────────────────────────────────────────────
@@ -87,7 +88,7 @@ export const LANG_LABEL: Record<string, string> = { en: "EN", pt: "PT", es: "ES"
 /** Build a `ui(key, lang)` resolver, layering author overrides over the built-ins. */
 export function makeUi(overrides?: UiOverrides | null): UiResolver {
   return (key, lang) => {
-    const v = overrides?.[key]?.[lang];
+    const v = own(own(overrides, key), lang);
     if (v != null) return v;
     return ui(key, lang);
   };
@@ -97,12 +98,12 @@ export function makeUi(overrides?: UiOverrides | null): UiResolver {
  *  An UNKNOWN key returns "" instead of throwing, so a component that asks for a
  *  key this table does not carry falls back to its own inline literal. */
 export function ui(key: string, lang: string): string {
-  const row: Partial<Record<string, string>> | undefined = (UI_STRINGS as Partial<Record<string, Record<string, string>>>)[key];
+  const row: Partial<Record<string, string>> | undefined = own(UI_STRINGS as Partial<Record<string, Record<string, string>>>, key);
   if (!row) return "";
-  return row[lang] ?? row.en ?? "";
+  return own(row, lang) ?? own(row, "en") ?? "";
 }
 
 /** Build a language-label resolver: author `langLabels` → built-in → UPPERCASE. */
 export function makeLangLabel(labels?: Partial<Record<string, string>> | null): (l: string) => string {
-  return (l) => labels?.[l] ?? LANG_LABEL[l] ?? (l || "").toUpperCase();
+  return (l) => own(labels, l) ?? own(LANG_LABEL, l) ?? (l || "").toUpperCase();
 }

@@ -8,6 +8,7 @@
 // and run in the browser, in Node (the MCP, the studio's codegen) and, exported
 // as JSON (exportTypeContracts), in a server-side validator.
 // Adding a type: create ./<kind>.ts following README.md and list it here.
+import { own } from '#core/domain/own.ts'
 import { validateWithSpec } from './validate.ts'
 import type { TypedDiagramSpec, TypedDocBase } from './validate.ts'
 import type { JsonSchema, ValidationResult } from '#core/domain/schemas/jsonSchema.ts'
@@ -104,7 +105,7 @@ const SPECS: TypedDiagramSpec[] = [quadrant, swimlane, tree, gantt, timeline, er
 export const DIAGRAM_TYPES: Record<string, TypedDiagramSpec> = Object.fromEntries(SPECS.map(s => [s.kind, s]))
 export const TYPED_KINDS = SPECS.map(s => s.kind) as TypedKind[]
 // Lookup by an arbitrary (author-supplied) kind.
-export const getDiagramType = (kind: unknown): TypedDiagramSpec | null => DIAGRAM_TYPES[String(kind)] || null
+export const getDiagramType = (kind: unknown): TypedDiagramSpec | null => own(DIAGRAM_TYPES, kind) || null
 
 // The `kind` of an untyped document, or undefined.
 const kindOf = (doc: unknown): unknown => (doc != null && typeof doc === 'object' ? (doc as { kind?: unknown }).kind : undefined)

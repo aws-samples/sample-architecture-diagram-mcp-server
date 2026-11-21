@@ -17,6 +17,7 @@
 //
 // Display values carry an optional format: { style: "number" | "currency" |
 // "percent", currency?: "USD", compact?: true, digits?: n, prefix?, suffix? }.
+import { own } from "./own.ts";
 
 // Glyph names the app shell draws (AppShell.jsx GLYPHS — kept equal, tested).
 /** A formula operator. */
@@ -137,7 +138,7 @@ export function textValue(v: unknown, data?: AppData, metrics?: AppMetrics, lang
   if (v && typeof v === "object" && !Array.isArray(v) && !("ref" in v) && !("op" in v) && !("value" in v)) {
     const m = v as Loose;
     // A language map's values are strings; returned as stored.
-    return tr ? tr(v, lang) : ((m[String(lang)] ?? m.en ?? Object.values(m)[0] ?? "") as string);
+    return tr ? tr(v, lang) : ((own(m, lang) ?? own(m, "en") ?? Object.values(m)[0] ?? "") as string);
   }
   return displayValue(v, data, metrics, lang);
 }

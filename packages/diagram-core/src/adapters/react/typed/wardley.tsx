@@ -6,6 +6,7 @@
 // bold text), value-chain links as lines, evolveTo as a dashed red arrow to a
 // ghost circle. Labels are placed greedily (right, left, above, below,
 // diagonals) avoiding nodes, annotations and already placed labels.
+import { dictOf } from '#core/domain/own.ts'
 import type { CSSProperties } from 'react'
 import { DiagramSvg, toneColor, textW, wrapText, useSvgIds } from './DiagramSvg.tsx'
 import type { TypedDocBase, TypedViewProps } from './DiagramSvg.tsx'
@@ -52,7 +53,7 @@ export default function WardleyView({ doc, step = null, fit }: TypedViewProps<Wa
   const X = (v: unknown) => M.l + clamp(v) * pw
   const Y = (v: unknown) => M.t + (1 - clamp(v)) * ph
   const comps = doc.components || []
-  const idx: Record<string, number> = Object.fromEntries(comps.map((c, i) => [c.id, i]))
+  const idx: Record<string, number> = dictOf(comps.map((c, i) => [c.id, i]))
   const shown = (i: number) => step == null || i < step
   const allShown = step == null || step >= comps.length
   const red = toneColor('danger')

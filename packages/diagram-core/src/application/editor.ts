@@ -4,6 +4,7 @@
 // nodes: containment (React Flow keeps a child's position RELATIVE to its
 // parent), re-parenting on drop or on request, align and distribute. Generic
 // over the node type so the React adapter keeps its own node shape.
+import { dict, dictOf, own } from "#core/domain/own.ts";
 import type { XY } from "#core/domain/layout.ts";
 
 /** The node fields the editor operations read. A group's box size is its style width/height (px). */
@@ -20,13 +21,14 @@ export interface EditorGraphNode {
 /** A node after (re)parenting. */
 export type Reparented<N> = N & { parentId: string | undefined; extent: "parent" | undefined; position: XY };
 
-const byIdOf = <N extends EditorGraphNode>(ns: readonly N[]): Record<string, N> => Object.fromEntries(ns.map(n => [n.id, n]));
+const byIdOf = <N extends EditorGraphNode>(ns: readonly N[]): Record<string, N> => dictOf(ns.map(n => [n.id, n] as const));
 
 /** A node's absolute position: its own plus every ancestor's (cycle-guarded). */
 export function absolutePosition<N extends EditorGraphNode>(n: N, byId: Readonly<Record<string, N>>): XY {
   let x = n.position.x, y = n.position.y, p = n.parentId;
   const guard = new Set<string>();
-  while (p && byId[p] && !guard.has(p)) { guard.add(p); x += byId[p].position.x; y += byId[p].position.y; p = byId[p].parentId; }
+  let parent: N | undefined;
+  while (p && (parent = own(byId, p)) && !guard.has(p)) { guard.add(p); x += parent.position.x; y += parent.position.y; p = parent.parentId; }
   return { x, y };
 }
 
@@ -82,7 +84,7 @@ export function reparentNode<N extends EditorGraphNode>(ns: readonly N[], id: st
   const byId = byIdOf(ns);
   if (parentId && descendantIds(ns, id).has(parentId)) return ns;
   const abs = absolutePosition(node, byId);
-  const newParent = parentId ? byId[parentId] : null;
+  const newParent = parentId ? own(byId, parentId) ?? null : null;
   const pAbs = newParent ? absolutePosition(newParent, byId) : { x: 0, y: 0 };
   const rel = newParent ? { x: abs.x - pAbs.x, y: abs.y - pAbs.y } : abs;
   return ns.map((n) => n.id === id
@@ -92,12 +94,12 @@ export function reparentNode<N extends EditorGraphNode>(ns: readonly N[], id: st
 
 /** Absolute layout positions → React Flow's parent-relative ones (each node minus its DIRECT parent's absolute). */
 export function toParentRelative<N extends { id: string; position?: XY }>(laid: readonly N[], parentOf: (n: N) => string | null | undefined): (N | (N & { parentId: string; extent: "parent"; position: XY }))[] {
-  const absPos: Record<string, XY> = {};
+  const absPos: Record<string, XY> = dict();
   for (const n of laid) absPos[n.id] = { x: n.position?.x || 0, y: n.position?.y || 0 };
   return laid.map((n) => {
     const pid = parentOf(n);
     if (!pid) return n;
-    const p = absPos[pid] || { x: 0, y: 0 };
+    const p = own(absPos, pid) || { x: 0, y: 0 };
     return { ...n, parentId: pid, extent: "parent" as const, position: { x: (n.position?.x || 0) - p.x, y: (n.position?.y || 0) - p.y } };
   });
 }
@@ -139,6 +141,6 @@ export function distributeCoordinates(ns: readonly EditorGraphNode[], axis: "h" 
   const sorted = [...sel].sort((a, b) => a.position[key] - b.position[key]);
   const first = sorted[0].position[key], last = sorted[sorted.length - 1].position[key];
   const step = (last - first) / (sorted.length - 1);
-  const pos: Record<string, number> = {}; sorted.forEach((n, i) => { pos[n.id] = first + i * step; });
+  const pos: Record<string, number> = dict(); sorted.forEach((n, i) => { pos[n.id] = first + i * step; });
   return { key, pos };
 }

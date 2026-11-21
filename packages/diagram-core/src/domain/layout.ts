@@ -8,6 +8,7 @@
 // (MCP vs slides) keeps its own tuning without the shared code forcing a
 // re-layout on either side.
 
+import { dict, own } from "./own.ts";
 import type { Membership } from "./membership.ts";
 
 /** Node / group geometry a layout uses (each surface tunes its own). */
@@ -134,7 +135,7 @@ export function groupDepth(id: string, groupById: ReadonlyMap<string, LayoutGrou
 /** Ancestor group chain of a service, outermost → innermost. */
 export function ancestorsOf(svcId: string, membership: Readonly<Membership>, groupById: ReadonlyMap<string, LayoutGroup>): string[] {
   const chain: string[] = [];
-  let g: string | undefined = membership[svcId];
+  let g: string | undefined = own(membership, svcId);
   const seen = new Set<string>();
   while (g && groupById.has(g) && !seen.has(g)) { seen.add(g); chain.push(g); g = groupById.get(g)?.parent; }
   return chain.reverse();
@@ -158,7 +159,7 @@ export function lcaContainer(src: string, tgt: string, membership: Readonly<Memb
  */
 export function radialLayout<N extends LayoutNode>(serviceNodes: readonly N[], edges: readonly Pick<LayoutEdge, "source" | "target">[], geom: Pick<Geometry, "nodeW" | "nodeH"> = DEFAULT_GEOMETRY): (N & { position: XY })[] {
   const { nodeW, nodeH } = geom;
-  const degree: Record<string, number> = {};
+  const degree: Record<string, number> = dict();
   for (const n of serviceNodes) degree[n.id] = 0;
   for (const e of edges) {
     if (degree[e.source] !== undefined) degree[e.source]++;

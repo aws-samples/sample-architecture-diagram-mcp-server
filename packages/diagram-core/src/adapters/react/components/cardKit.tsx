@@ -9,6 +9,7 @@
 // Icons are drawn by an injected `Icon` component (the shared core Icon, wired
 // with the host's resolveAsset/iconBase) passed via the `Icon` prop on the
 // pieces that render one (IconTile / CardHeader / Bullets / Chips).
+import { protoFree } from "#core/domain/own.ts";
 import { useState } from "react";
 import { useCoreHost } from "#core/adapters/react/host.tsx";
 import type { ReactNode } from "react";
@@ -233,7 +234,7 @@ export function NumberedSteps({ items, color, Icon }: NumberedStepsProps) {
   );
 }
 
-const GLYPH_COLOR: Record<string, string> = { "✓": "#10B981", "✕": "#EF4444", "≈": "#F59E0B", "△": "#F59E0B" };
+const GLYPH_COLOR: Record<string, string> = protoFree({ "✓": "#10B981", "✕": "#EF4444", "≈": "#F59E0B", "△": "#F59E0B" });
 
 // Line terminators — what `.` refuses to match.
 const LT = /[\n\r\u2028\u2029]/;
@@ -338,8 +339,8 @@ export function KeyValues({ rows }: KeyValuesProps) {
   );
 }
 
-const CHIP_COLOR: Record<string, string> = { true: "#10B981", false: "#EF4444", warn: "#F59E0B" };
-const CHIP_GLYPH: Record<string, string> = { true: "✓", false: "✗", warn: "≈" };
+const CHIP_COLOR: Record<string, string> = protoFree({ true: "#10B981", false: "#EF4444", warn: "#F59E0B" });
+const CHIP_GLYPH: Record<string, string> = protoFree({ true: "✓", false: "✗", warn: "≈" });
 export interface ChipItem {
   label?: ReactNode;
   icon?: string;

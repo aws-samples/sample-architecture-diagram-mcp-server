@@ -6,6 +6,7 @@
 // sampling a grid: centroid of each exact-membership area + the horizontal
 // room available there (used to wrap the region text).
 // Reveal: sets one by one (circle + exclusive area), then intersections.
+import { dictOf } from '#core/domain/own.ts'
 import { DiagramSvg, toneColor, paletteColor, wrapText, textW } from './DiagramSvg.tsx'
 import type { TypedDocBase, TypedViewProps } from './DiagramSvg.tsx'
 import { describeTypedDiagram } from '#core/domain/typed/index.ts'
@@ -63,7 +64,7 @@ export default function VennView({ doc, step = null, fit }: TypedViewProps<VennD
   const sets = (doc.sets || []).slice(0, 3)
   const n = Math.max(2, sets.length)
   const { r, centers } = geometry(n)
-  const idx: Record<string, number> = Object.fromEntries(sets.map((s, i) => [s.id, i]))
+  const idx: Record<string, number> = dictOf(sets.map((s, i) => [s.id, i]))
   const color = (i: number) => toneColor(sets[i]?.tone, paletteColor(i))
   const cents = regionCentroids(centers, r)
 

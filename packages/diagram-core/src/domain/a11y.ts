@@ -4,6 +4,7 @@
 // accessible description of <LiveDiagram> / <SequencePlayer>, an export's
 // <desc>, an image's alt text. Pure; en / pt / es. (Typed diagrams: each spec's
 // describe, via describeTypedDiagram.)
+import { own } from "./own.ts";
 import { tr } from "./i18n.ts";
 
 /** Options of the plain-text summaries. */
@@ -35,7 +36,7 @@ export function describeArchitecture(data: unknown, { lang = "en", max = 40 }: D
   const name = (s: unknown) => (t(opt(opt(s, "config"), "label")) || t(opt(s, "label")) || t(opt(s, "name")) || t(opt(s, "service")) || opt(s, "id")) as string;
   const gname = (g: unknown) => (t(opt(g, "label")) || t(opt(opt(g, "config"), "label")) || opt(g, "variant") || opt(g, "id")) as string;
   const byId: Record<string, unknown> = Object.fromEntries(S.map(s => [field(s, "id"), s]));
-  const at = (k: unknown): unknown => byId[String(k)];
+  const at = (k: unknown): unknown => own(byId, k);
   const title = t(field(data, "title"));
   const parts = [`${w.arch}${title ? ` "${title}"` : ""} ${w.with} ${S.length} ${w.comps}, ${C.length} ${w.conns} ${w.and} ${G.length} ${w.groups}.`];
   if (G.length) parts.push(`${w.G}: ${G.slice(0, max).map(g => {
@@ -54,7 +55,7 @@ export function describeSequence(seq: unknown, { lang = "en", max = 40 }: Descri
   const w = words(lang), t = (v: unknown) => tr(v, lang) || "";
   const P = arr(field(seq, "participants")), E = arr(field(seq, "events"));
   const byId: Record<string, unknown> = Object.fromEntries(P.map(p => [field(p, "id"), t(field(p, "label")) || field(p, "id")]));
-  const at = (k: unknown): unknown => byId[String(k)];
+  const at = (k: unknown): unknown => own(byId, k);
   const title = t(field(seq, "title"));
   const parts = [`${w.seq}${title ? ` "${title}"` : ""} ${w.with} ${P.length} ${w.parts} ${w.and} ${E.length} ${w.steps}.`];
   if (P.length) parts.push(`${w.P}: ${P.slice(0, max).map(p => at(field(p, "id"))).join(", ")}.`);

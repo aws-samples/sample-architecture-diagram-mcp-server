@@ -4,6 +4,7 @@
 // as StepCard (built from cardKit): icon + category + name header, role blurb,
 // and IaC / pricing key-value sections. UI-chrome strings (section headings) are
 // passed in via `strings` so the host owns the i18n chrome table.
+import { protoFree } from "#core/domain/own.ts";
 import { AnimatePresence, motion } from "framer-motion";
 import type { ComponentType, ReactNode } from "react";
 import type { I18nText } from "#core/domain/i18n.ts";
@@ -56,11 +57,11 @@ export interface NodeModalProps {
 
 type CustomSection = ComponentType<Record<string, unknown>>;
 
-const CATEGORY_COLORS: Record<string, string> = {
+const CATEGORY_COLORS: Record<string, string> = protoFree({
   compute: "#ED7100", storage: "#7AA116", database: "#C925D1",
   networking: "#8C4FFF", security: "#DD344C", integration: "#E7157B",
   analytics: "#8C4FFF", ai: "#01A88D", management: "#E7157B", general: "#545B64",
-};
+});
 
 const rowsOf = (o: unknown): [string, string][] => o ? Object.entries(o).map(([k, v]) => [k, String(v)]) : [];
 

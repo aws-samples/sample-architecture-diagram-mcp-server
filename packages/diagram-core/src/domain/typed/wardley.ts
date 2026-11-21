@@ -5,6 +5,7 @@
 // evolution (X: genesis → custom → product → commodity). Links are the value
 // chain (dependency, drawn top → down); evolveTo draws a dashed red arrow to
 // the component's expected future position. One component per step.
+import { own } from '#core/domain/own.ts'
 import type { JsonSchema } from '#core/domain/schemas/jsonSchema.ts'
 import type { TypedDiagramSpec, TypedDocBase } from './validate.ts'
 const unit = (d: string): JsonSchema => ({ type: 'number', description: d })
@@ -148,7 +149,7 @@ const spec: TypedDiagramSpec<WardleyDoc> = {
   describe: (doc) => {
     const byId = Object.fromEntries((doc.components || []).map(c => [c.id, c.label]))
     const comps = (doc.components || []).map(c => `${c.label}${c.type === 'anchor' ? ' (âncora)' : c.type === 'market' ? ' (mercado)' : ''} — visibilidade ${c.visibility}, evolução ${c.evolution}${c.evolveTo != null ? ` → ${c.evolveTo}` : ''}`).join('; ')
-    const links = (doc.links || []).map(l => `${byId[l.from] || l.from} → ${byId[l.to] || l.to}`).join('; ')
+    const links = (doc.links || []).map(l => `${own(byId, l.from) || l.from} → ${own(byId, l.to) || l.to}`).join('; ')
     return `Mapa de Wardley (Y visibilidade, X evolução: gênese, sob medida, produto, commodity). Componentes: ${comps}. Dependências: ${links}.`
   },
 }

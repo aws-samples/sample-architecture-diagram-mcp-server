@@ -12,6 +12,7 @@
 // `metrics`): no domain logic lives here. Styles are plain CSS scoped to .ld-app
 // (own class names, zinc neutrals + one accent), injected as a string so the
 // single-file build needs no CSS scan.
+import { protoFree } from "#core/domain/own.ts";
 import { useCoreHost } from "#core/adapters/react/host.tsx";
 import { createAppPageLink } from "#core/application/appPages.ts";
 import { useEffect, useMemo, useState } from "react";
@@ -104,10 +105,10 @@ export interface AppPartArgs<P> { props: P; ctx: AppShellContext }
  */
 export type AppPartComponent = ComponentType<AppPartArgs<Record<string, unknown>>>;
 
-const TONE: Record<string, string> = {
+const TONE: Record<string, string> = protoFree({
   green: "var(--app-green)", accent: "var(--app-accent-text)", orange: "var(--app-orange)",
   blue: "var(--app-blue)", purple: "var(--app-purple)", muted: "var(--app-muted)", text: "var(--app-text)",
-};
+});
 const toneColor = (t: string | undefined): string | undefined => TONE[String(t)] || undefined;
 
 // Small line glyphs (stroke = currentColor) for nav items, card titles and

@@ -15,6 +15,13 @@
 // full document contract is SequenceDoc in ./schemas/sequence — which satisfies
 // them. They live here because an inlined module cannot import, not even types.
 
+// Maps keyed by author ids are prototype-free, and the caller's tone table is
+// read for own entries only, so an id or tone such as "constructor" or
+// "__proto__" is an ordinary key (copied from own.ts: this module is inlined
+// into the HTML player and cannot import).
+const seqDict = <V>(): Record<string, V> => Object.create(null) as Record<string, V>;
+const seqOwn = <V>(table: Record<string, V>, key: string): V | undefined => (Object.prototype.hasOwnProperty.call(table, key) ? table[key] : undefined);
+
 /** A label as the layout measures it: a string or a per-language map. */
 export type SeqLayoutText = string | { [lang: string]: string | null | undefined };
 export interface SeqLayoutParticipant {
@@ -102,17 +109,17 @@ export function layoutSequence<P extends SeqLayoutParticipant = SeqLayoutPartici
   seq: SequenceLayoutInput<P, E, F> | null | undefined, opts?: SequenceLayoutOptions | null,
 ) {
   const TONE: Record<string, string> = (opts && opts.tones) || {};
-  const toneOf = (t: unknown): string | undefined => TONE[String(t)];
+  const toneOf = (t: unknown): string | undefined => seqOwn(TONE, String(t));
   const P = seq?.participants || [];
   const EV = seq?.events || [];
   const FRAGS = seq?.fragments || [];
   const GROUPS = seq?.groups || [];
 
-  const idx: Record<string, number> = {};
+  const idx: Record<string, number> = seqDict();
   // Column of a participant id (any value: property-key coercion, as in JS).
   const ix = (id: unknown): number | undefined => idx[String(id)];
   P.forEach((p, i) => { if (p?.id != null) idx[p.id] = i; });
-  const evIndexById: Record<string, number> = {};
+  const evIndexById: Record<string, number> = seqDict();
   const evAt = (id: unknown): number | undefined => evIndexById[String(id)];
   EV.forEach((e, i) => { if (e?.id != null) evIndexById[e.id] = i; });
 
@@ -149,7 +156,7 @@ export function layoutSequence<P extends SeqLayoutParticipant = SeqLayoutPartici
   const rowY = (n: number): number => ROW0 + n * ROW;
 
   // UML instance creation / destruction rows, per participant id.
-  const createRow: Record<string, number> = {}, destroyRow: Record<string, number> = {};
+  const createRow: Record<string, number> = seqDict(), destroyRow: Record<string, number> = seqDict();
   EV.forEach((e, n) => {
     if (e?.kind !== 'message') return;
     if (e.create && e.to != null) createRow[e.to] = n;

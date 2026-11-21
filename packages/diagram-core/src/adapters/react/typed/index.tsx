@@ -3,6 +3,7 @@
 // ─── Typed diagram views: registry ───
 // kind → React view (see quadrant.jsx for the props contract). The pure specs
 // live one level up (../); adding a type = spec there + view here.
+import { own } from '#core/domain/own.ts'
 import type { ComponentType } from 'react'
 import { TypedIconContext } from './iconContext.ts'
 import type { TypedDocBase, TypedFit, TypedViewProps } from './DiagramSvg.tsx'
@@ -56,7 +57,7 @@ export interface TypedDiagramViewProps {
 }
 
 export function TypedDiagramView({ doc, step = null, fit = 'width', iconUrl = null }: TypedDiagramViewProps) {
-  const View = doc?.kind ? VIEW_BY_KIND[doc.kind] : undefined
+  const View = doc?.kind ? own(VIEW_BY_KIND, doc.kind) : undefined
   if (!doc || !View) {
     return <div style={{ border: '2px dashed rgba(251,191,36,.6)', borderRadius: 8, padding: 16, fontSize: 14, color: '#b45309' }}>Tipo de diagrama não suportado: {String(doc?.kind)}</div>
   }

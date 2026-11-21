@@ -17,6 +17,7 @@
 //
 // It renders through the shared AwsNode/GroupNode/CustomEdge and drives the
 // shared StepCard for the walkthrough overlay.
+import { dict, protoFree } from "#core/domain/own.ts";
 import { useMemo, useEffect, useState, useCallback, useRef, useId } from "react";
 import {
   ReactFlow, ReactFlowProvider, Background, BackgroundVariant, MiniMap, useReactFlow,
@@ -174,18 +175,18 @@ const EDGE_TYPES = { custom: CustomEdge };
 // Each lens recolors every AWS node by a dimension derived from the node's own
 // `category`/`sub` (the AWS icon-set category). No external catalog needed. The
 // cycle is: off → service category → architecture domain → off.
-const LENS_CATEGORY_COLORS: Record<string, string> = {
+const LENS_CATEGORY_COLORS: Record<string, string> = protoFree({
   compute: "#ED7100", storage: "#7AA116", database: "#C925D1", networking: "#8C4FFF",
   security: "#DD344C", integration: "#E7157B", management: "#E7157B", general: "#545B64",
-};
-const LENS_DOMAIN: Record<string, string> = {
+});
+const LENS_DOMAIN: Record<string, string> = protoFree({
   compute: "Compute", storage: "Data", database: "Data", networking: "Network",
   security: "Security & Identity", integration: "Integration", management: "Management", general: "Management",
-};
-const LENS_DOMAIN_COLORS: Record<string, string> = {
+});
+const LENS_DOMAIN_COLORS: Record<string, string> = protoFree({
   Compute: "#ED7100", Data: "#C925D1", Network: "#8C4FFF",
   "Security & Identity": "#DD344C", Integration: "#E7157B", Management: "#545B64",
-};
+});
 interface LensDef {
   id: string; label: string;
   keyOf: (n: DiagramFlowNode) => string;
@@ -248,7 +249,7 @@ function DiagramCanvas({
 
   const anyActive = Array.isArray(steps) && steps.length > 0 && activeStep >= 0;
   const { nodeTone, edgeTone, groupTone } = useMemo(() => {
-    const nt: Record<string, string> = {}, et: Record<string, string> = {}, gt: Record<string, string> = {};
+    const nt: Record<string, string> = dict(), et: Record<string, string> = dict(), gt: Record<string, string> = dict();
     if (anyActive && steps) {
       const step = steps[Math.min(activeStep, steps.length - 1)];
       const tone = step?.tone || "accent";
@@ -275,7 +276,7 @@ function DiagramCanvas({
   }, [data, direction]);
 
   const baseEdges = useMemo(() => {
-    const targetCount: Record<string, number> = {};
+    const targetCount: Record<string, number> = dict();
     return (data.connections || []).map((c) => {
       const seen = targetCount[c.target] || 0;
       targetCount[c.target] = seen + 1;

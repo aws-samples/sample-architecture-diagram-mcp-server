@@ -15,6 +15,7 @@
 // The dock shows the selected environment's estimate (default entry first). When
 // the spec has no top-level estimate, it follows the active beat's link — and,
 // on the overview, the first beat that has one (the behavior before `costs`).
+import { own } from "./own.ts";
 import { safeHttpUrl } from "./inline.ts";
 
 /** An authored estimate (`costs[]`). */
@@ -91,7 +92,7 @@ export function dockCost(list: readonly CostEntry[] | null | undefined, steps: u
 export function modalPricing(config: PricingConfig | null | undefined, env: string | null | undefined, envs: readonly string[] = []): unknown {
   const byEnv = config?.pricingByEnv;
   if (isObj(byEnv)) {
-    const rows = byEnv[String(env)] || (env ? undefined : byEnv[String(envs[0])]);
+    const rows = own(byEnv, env) || (env ? undefined : own(byEnv, envs[0]));
     if (rows) return rows;
   }
   return pricingForEnv(config?.pricing, env, envs);
@@ -103,7 +104,7 @@ export function pricingForEnv(pricing: unknown, env: string | null | undefined, 
   const values = Object.values(pricing);
   const keyed = values.length > 0 && values.every((v) => v && typeof v === "object" && !Array.isArray(v));
   if (!keyed) return pricing;
-  return pricing[String(env)] || pricing[String(envs[0])] || pricing[Object.keys(pricing)[0]];
+  return own(pricing, env) || own(pricing, envs[0]) || own(pricing, Object.keys(pricing)[0]);
 }
 
 /** Read / write the selected environment in the URL hash ("#env=prod", or "#tab&env=prod"). */

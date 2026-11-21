@@ -5,6 +5,7 @@
 // (parents/wholes on top). Relations are anchored on the facing top/bottom
 // sides, spread along them, routed through dagre's interior points and capped
 // with UML arrowheads (hollow triangle, open arrow, hollow/filled diamond).
+import { dict, dictOf, protoFree } from '#core/domain/own.ts'
 import type { SVGProps } from 'react'
 import { useCoreHost } from '#core/adapters/react/host.tsx'
 import type { LayeredEdge, LayeredEdgeRoute } from '#core/domain/layoutGraph.ts'
@@ -33,8 +34,8 @@ interface ClassEdge { r: ClassRelation; i: number; ed: LayeredEdgeRoute; interio
 
 const monoW = (s: unknown, size: number) => String(s || '').length * size * 0.62
 const boldW = (s: unknown, size: number) => String(s || '').length * size * 0.62
-const STEREO_TONE: Record<string, string> = { interface: 'info', abstract: 'purple', enum: 'success', service: 'teal' }
-const DASHED: Record<string, boolean> = { realization: true, dependency: true }
+const STEREO_TONE: Record<string, string> = protoFree({ interface: 'info', abstract: 'purple', enum: 'success', service: 'teal' })
+const DASHED: Record<string, boolean> = protoFree({ realization: true, dependency: true })
 
 function measure(c: ClassBox): ClassMetrics {
   const at = c.attributes || [], me = c.methods || []
@@ -73,13 +74,13 @@ export default function ClassView({ doc, step = null, fit }: TypedViewProps<Clas
   const cls = doc.classes || []
   const ids = new Set(cls.map(c => c.id))
   const rels = (doc.relations || []).filter(r => ids.has(r.from) && ids.has(r.to))
-  const idx: Record<string, number> = Object.fromEntries(cls.map((c, i) => [c.id, i]))
+  const idx: Record<string, number> = dictOf(cls.map((c, i) => [c.id, i]))
   const shown = (i: number) => step == null || i < step
 
-  const loopExtra: Record<string, number> = {}
+  const loopExtra: Record<string, number> = dict()
   rels.forEach(r => { if (r.from === r.to) loopExtra[r.from] = Math.max(loopExtra[r.from] || 0, 70 + Math.max(r.label ? textW(r.label, 12) : 0, textW(r.toMult, 12), textW(r.fromMult, 12))) })
 
-  const m: Record<string, ClassMetrics> = Object.fromEntries(cls.map(c => [c.id, measure(c)]))
+  const m: Record<string, ClassMetrics> = dictOf(cls.map(c => [c.id, measure(c)]))
   const upward = (t: string | undefined) => t === 'inheritance' || t === 'realization'
   // Layered layout (the LayeredLayoutEngine port: dagre by default); a parent
   // class ranks above its children. Relation i is graph edge edgeAt[i].
@@ -96,14 +97,14 @@ export default function ClassView({ doc, step = null, fit }: TypedViewProps<Clas
     edges: layEdges,
   })
 
-  const box: Record<string, ClassBoxGeom> = {}
+  const box: Record<string, ClassBoxGeom> = dict()
   cls.forEach(c => {
     const nd = g.nodes[c.id] as NonNullable<typeof g.nodes[string]>, mm = m[c.id]
     const x = nd.x - nd.width / 2, y = nd.y - mm.h / 2
     box[c.id] = { x, y, w: mm.w, h: mm.h, cx: x + mm.w / 2, cy: nd.y }
   })
 
-  const edges: ClassEdge[] = [], slots: Record<string, EdgeEnd[]> = {}
+  const edges: ClassEdge[] = [], slots: Record<string, EdgeEnd[]> = dict()
   rels.forEach((r, i) => {
     if (r.from === r.to) return
     const up = upward(r.type)

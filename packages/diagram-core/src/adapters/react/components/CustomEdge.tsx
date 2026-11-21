@@ -10,6 +10,7 @@
 //     controlled by data.labelMode.
 // Tunables on data (with MCP-ish defaults): strokeActive/strokeIdle,
 // dotActive/dotIdle, markerId, surfaceVar, labelFontSize.
+import { protoFree } from "#core/domain/own.ts";
 import { memo } from "react";
 import { BaseEdge, EdgeLabelRenderer, getSmoothStepPath, getStraightPath } from "@xyflow/react";
 import type { Edge, EdgeProps } from "@xyflow/react";
@@ -62,12 +63,12 @@ export type CustomEdgeProps = EdgeProps<CustomFlowEdge>;
 
 interface TypeStyle { stroke: string; dash?: string }
 
-const TYPE_STYLE: Record<string, TypeStyle> = {
+const TYPE_STYLE: Record<string, TypeStyle> = protoFree({
   network: { stroke: "#4a90d9" },
   iam: { stroke: "#DD344C", dash: "6 4" },
   event: { stroke: "#E7157B", dash: "2 4" },
   data: { stroke: "#3F8624" },
-};
+});
 
 function midpointAlong(pts: readonly EdgePoint[] | null | undefined, fallback: EdgePoint): EdgePoint {
   if (!pts || pts.length < 2) return fallback;
@@ -160,7 +161,7 @@ function CustomEdge({ id, sourceX, sourceY, targetX, targetY, sourcePosition, ta
   // Architecture delta ('diagram_delta'): when delta mode is on, tint the edge by
   // change status. added=green, removed=red (dashed), changed=amber. Unchanged
   // edges keep their normal styling (and dim in the combined "delta" view).
-  const DELTA_COL: Record<string, string> = { added: "#2E9E5B", removed: "#DD344C", changed: "#F59E0B" };
+  const DELTA_COL: Record<string, string> = protoFree({ added: "#2E9E5B", removed: "#DD344C", changed: "#F59E0B" });
   const deltaStatus = data?.deltaActive ? data?.delta : undefined;
   const deltaCol = deltaStatus && DELTA_COL[deltaStatus];
   const deltaDim = data?.deltaActive && data?.deltaView === "delta" && (!deltaStatus || deltaStatus === "unchanged");

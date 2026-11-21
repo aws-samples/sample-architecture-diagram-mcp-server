@@ -10,6 +10,7 @@
 //   connections[]: { id, source, target, label?, type?, dashed?, severed?,
 //                    bidirectional?, showLabel? }
 //   groups[]:      { id, label?, parent?, variant?, icon?, pill?, pillOverlay?, pillSide? }
+import { dict } from "./own.ts";
 import { tr } from "./i18n.ts";
 import { iconForService } from "./icons.ts";
 import type { GroupVariant } from "./groupVariants.ts";
@@ -274,7 +275,7 @@ export function serializeDiagram(nodes: readonly EditorNode[], edges: readonly E
 /** Extract just the group node → membership: which service ids sit in which group.
  * Used by the editor's autoLayout so groups keep their members after a tidy. */
 export function membershipFromNodes(nodes: readonly EditorNode[]): Record<string, string> {
-  const m: Record<string, string> = {};
+  const m: Record<string, string> = dict();
   for (const n of nodes) if (n.type === "aws" && n.parentId) m[n.id] = n.parentId;
   return m;
 }

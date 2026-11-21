@@ -6,6 +6,7 @@
 // by the shared core Icon (passed as `data.IconComponent` so the host injects
 // its own resolveAsset/iconBase); when absent, a colored initial is shown.
 // CSS var namespace is host-configurable via `data.vars`.
+import { protoFree } from "#core/domain/own.ts";
 import { memo } from "react";
 import type { CSSProperties } from "react";
 import { Handle, Position, NodeResizer } from "@xyflow/react";
@@ -60,11 +61,11 @@ export interface AwsNodeData extends Record<string, unknown> {
 export type AwsFlowNode = Node<AwsNodeData>;
 export type AwsNodeProps = NodeProps<AwsFlowNode>;
 
-const CATEGORY_COLORS: Record<string, string> = {
+const CATEGORY_COLORS: Record<string, string> = protoFree({
   compute: "#ED7100", storage: "#7AA116", database: "#C925D1",
   networking: "#8C4FFF", security: "#DD344C", integration: "#E7157B",
   management: "#E7157B", general: "#545B64",
-};
+});
 
 const VAR: Required<AwsNodeVars> = { nodeBg: "--node-bg", txt: "--txt", txtMuted: "--txt-muted" };
 
@@ -104,7 +105,7 @@ function AwsNode({ data, selected }: AwsNodeProps) {
   // faded), changed=amber. In the combined "delta" view, unchanged nodes dim so
   // the changes pop; in before/after they render normally.
   const deltaStatus = data.deltaActive ? data.delta : undefined;
-  const DELTA_COL: Record<string, string> = { added: "#2E9E5B", removed: "#DD344C", changed: "#F59E0B" };
+  const DELTA_COL: Record<string, string> = protoFree({ added: "#2E9E5B", removed: "#DD344C", changed: "#F59E0B" });
   const deltaCol = deltaStatus ? DELTA_COL[deltaStatus] : undefined;
   const deltaBadge = deltaStatus ? ({ added: "+", removed: "−", changed: "~" } as Record<string, string>)[deltaStatus] : undefined;
   const deltaDim = data.deltaActive && data.deltaView === "delta" && (!deltaStatus || deltaStatus === "unchanged");

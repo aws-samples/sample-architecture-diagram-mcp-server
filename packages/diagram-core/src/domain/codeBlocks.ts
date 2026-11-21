@@ -80,7 +80,9 @@ const langOfName = (name: unknown): string | undefined => {
   const m = /[\w-]\.([a-z0-9]+)(?![\w.])/i.exec(n);
   if (!m) return undefined;
   const ext = m[1].toLowerCase();
-  return ({ tf: "hcl", hcl: "hcl", yml: "yaml", yaml: "yaml", json: "json", js: "javascript", mjs: "javascript", ts: "typescript", tsx: "tsx", jsx: "jsx", py: "python", sh: "bash", bash: "bash", sql: "sql", go: "go", rs: "rust", java: "java", dockerfile: "dockerfile", md: "markdown", html: "html", css: "css", toml: "toml", xml: "xml" } as Record<string, string>)[ext] || ext;
+  const byExt: Record<string, string> = { tf: "hcl", hcl: "hcl", yml: "yaml", yaml: "yaml", json: "json", js: "javascript", mjs: "javascript", ts: "typescript", tsx: "tsx", jsx: "jsx", py: "python", sh: "bash", bash: "bash", sql: "sql", go: "go", rs: "rust", java: "java", dockerfile: "dockerfile", md: "markdown", html: "html", css: "css", toml: "toml", xml: "xml" };
+  // Own entries only: a file named "x.constructor" is not a language (inlined: no import of own.ts).
+  return (Object.prototype.hasOwnProperty.call(byExt, ext) ? byExt[ext] : "") || ext;
 };
 
 /** Split one code string at "===== name =====" lines. Text before the first marker is a block of its own. */

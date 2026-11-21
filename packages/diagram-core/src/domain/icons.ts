@@ -11,6 +11,7 @@
 //   withServiceIcon(x, key)       { …x, icon } filled from x[key] when x has no icon.
 //   iconFilterKind(ref)           'mono' for line-art that a dark theme recolors
 //                                 with a CSS filter, else 'none'.
+import { own } from "./own.ts";
 import { SERVICE_ICONS, SHAPE_ICONS } from "./serviceIcons.ts";
 import { DARK_VARIANT_BASES } from "./darkVariants.ts";
 
@@ -61,9 +62,10 @@ for (const [svc, file] of Object.entries(SERVICE_ICONS)) if (!BARE.has(bareName(
 /** Service display name → icon file. `files` (the icon file names the host can
  *  serve) enables the fuzzy match; without it only catalog hits resolve. */
 export function iconForService(name: ServiceName | null | undefined, files?: readonly string[] | null): string | null {
-  if (name && typeof name === "object") name = name.en || name.pt || name.es || Object.values(name)[0];
+  if (name && typeof name === "object") name = own(name, "en") || own(name, "pt") || own(name, "es") || Object.values(name)[0];
   if (!name || typeof name !== "string") return null;
-  if (SERVICE_ICONS[name]) return SERVICE_ICONS[name];
+  const exact = own(SERVICE_ICONS, name);
+  if (exact) return exact;
   const hit = BARE.get(bareName(name));
   if (hit) return hit;
   if (!files) return null;
@@ -80,7 +82,7 @@ export function iconForService(name: ServiceName | null | undefined, files?: rea
 
 export function iconForShape(shape: unknown): string | null {
   if (!shape) return null;
-  return SHAPE_ICONS[String(shape).toLowerCase()] || null;
+  return own(SHAPE_ICONS, String(shape).toLowerCase()) || null;
 }
 
 export function withServiceIcon<T extends { icon?: unknown }>(x: T, key = "service", files?: readonly string[] | null): T {

@@ -6,6 +6,7 @@
 // well in any walkthrough. The old resilience names (survive/severed/degrade)
 // are kept as ALIASES for back-compat with existing decks. A beat may also pass
 // an arbitrary `color: "#hex"` which overrides the tone entirely.
+import { own } from "./own.ts";
 
 /** A walkthrough tone name (generic vocabulary + the resilience aliases). */
 export type Tone = "accent" | "info" | "success" | "warn" | "danger" | "neutral" | "survive" | "severed" | "degrade";
@@ -17,8 +18,8 @@ export type PlayerTone = "accent" | "info" | "success" | "warn" | "danger" | "ne
 export type StatusKey = "true" | "false" | "warn";
 export interface ToneMeta { label: string; glyph: string }
 
-// Lookup by an arbitrary (author-supplied) key, same semantics as the JS index.
-const pick = <V>(table: Readonly<Record<string, V>>, key: string): V | undefined => table[key];
+// Lookup by an arbitrary (author-supplied) key: own entries only.
+const pick = <V>(table: Readonly<Record<string, V>>, key: string): V | undefined => own(table, key);
 
 /** AWS orange — the brand accent every renderer defaults to. */
 export const AWS_ORANGE = "#FF9900";

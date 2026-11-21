@@ -4,6 +4,7 @@
 // 3–8 stages around a wheel, connected clockwise by curved arrows, with a
 // center label (the outcome the wheel compounds). Optional inputs are
 // accelerators feeding a given stage from outside. One stage per step.
+import { own } from '#core/domain/own.ts'
 import type { JsonSchema } from '#core/domain/schemas/jsonSchema.ts'
 import type { TypedDiagramSpec, TypedDocBase } from './validate.ts'
 import type { DiagramTone } from '#core/domain/tones.ts'
@@ -106,7 +107,7 @@ const spec: TypedDiagramSpec<FlywheelDoc> = {
   describe: (doc) => {
     const byId = Object.fromEntries((doc.stages || []).map(s => [s.id, s.label]))
     const st = (doc.stages || []).map(s => `${s.label}${s.desc ? ` (${s.desc})` : ''}`).join(' → ')
-    const ins = (doc.inputs || []).map(i => `${i.label} → ${byId[i.toStage] || i.toStage}`).join('; ')
+    const ins = (doc.inputs || []).map(i => `${i.label} → ${own(byId, i.toStage) || i.toStage}`).join('; ')
     return `Flywheel em torno de "${doc.center || ''}". Ciclo em sentido horário: ${st} → volta ao início.${ins ? ` Aceleradores: ${ins}.` : ''}`
   },
 }

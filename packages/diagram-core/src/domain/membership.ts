@@ -1,5 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
+import { dict } from "#core/domain/own.ts";
 import type { ArchService, ArchGroup } from "#core/domain/schemas/architecture.ts";
 
 /** A resolved group (container) — explicit groups keep their header-badge fields. */
@@ -32,7 +33,7 @@ export function resolveGroupsAndMembership(services: readonly ArchService[], dec
   const isExternal = (s: ArchService) =>
     s.external || s.category === "user" || s.category === "external" ||
     s.id === "users" || (typeof s.id === "string" && s.id.startsWith("ext-"));
-  const membership: Membership = {};
+  const membership: Membership = dict();
 
   if (declaredGroups && declaredGroups.length) {
     const groups: ResolvedGroup[] = declaredGroups.map(g => ({ id: g.id, label: g.label || g.id, parent: g.parent, variant: g.variant, icon: g.icon, pill: g.pill, pillOverlay: g.pillOverlay, pillSide: g.pillSide }));

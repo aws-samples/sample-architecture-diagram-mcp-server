@@ -22,6 +22,12 @@
 // WorkflowDoc (./typed/workflow) satisfies them. Defined here because an inlined
 // module cannot import, not even types.
 
+// Maps keyed by author ids are prototype-free, so an id such as "constructor"
+// or "__proto__" is an ordinary key (own.ts's dict, copied: this module is
+// inlined into the HTML player and cannot import).
+const flowDict = <V>(): Record<string, V> => Object.create(null) as Record<string, V>;
+const flowDictOf = <V>(entries: Iterable<readonly [PropertyKey, V]>): Record<string, V> => Object.assign(flowDict<V>(), Object.fromEntries(entries));
+
 export interface Point { x: number; y: number }
 export interface FlowLayoutNode {
   id: string;
@@ -105,13 +111,13 @@ export function layoutFlow<N extends FlowLayoutNode = FlowLayoutNode, E extends 
 ): FlowLayout<N, E> {
   const hasIconOf: (node: N) => unknown = (opts && opts.hasIcon) || (() => false);
   const NODES: N[] = (flow && flow.nodes) || [];
-  const nodeById = Object.fromEntries(NODES.map(n => [n.id, n]));
+  const nodeById = flowDictOf(NODES.map(n => [n.id, n] as const));
   const EDGES = ((flow && flow.edges) || []).filter((e): e is E => !!e && e.from != null && e.to != null);
   const DIR = flow && flow.direction === 'LR' ? 'LR' : 'TB';
 
-  const succEdges: Record<string, E[]> = Object.fromEntries(NODES.map(n => [n.id, []]));
+  const succEdges: Record<string, E[]> = flowDictOf(NODES.map((n): [string, E[]] => [n.id, []]));
   EDGES.forEach(e => { if (succEdges[e.from]) succEdges[e.from].push(e); });
-  const color: Record<string, number> = {};              // 0/undefined = unvisited, 1 = on-stack, 2 = done
+  const color: Record<string, number> = flowDict();              // 0/undefined = unvisited, 1 = on-stack, 2 = done
   const backSet = new Set<E>();     // edges that close a cycle
   (function detectBackEdges() {
     function visit(u: string) {
@@ -125,15 +131,15 @@ export function layoutFlow<N extends FlowLayoutNode = FlowLayoutNode, E extends 
     }
     NODES.forEach(n => { if (!color[n.id]) visit(n.id); });
   })();
-  const fpred: Record<string, string[]> = Object.fromEntries(NODES.map(n => [n.id, []]));
-  const fsucc: Record<string, string[]> = Object.fromEntries(NODES.map(n => [n.id, []]));
+  const fpred: Record<string, string[]> = flowDictOf(NODES.map((n): [string, string[]] => [n.id, []]));
+  const fsucc: Record<string, string[]> = flowDictOf(NODES.map((n): [string, string[]] => [n.id, []]));
   EDGES.forEach(e => {
     if (e.from === e.to || backSet.has(e) || !fsucc[e.from] || !fpred[e.to]) return; // ignore for layering
     fsucc[e.from].push(e.to); fpred[e.to].push(e.from);
   });
-  const layer: Record<string, number> = {};
+  const layer: Record<string, number> = flowDict();
   (function assignLayers() {
-    const seen: Record<string, number> = {};
+    const seen: Record<string, number> = flowDict();
     function lp(u: string): number {
       if (layer[u] != null) return layer[u];
       if (seen[u]) return 0;                     // guard (shouldn't recurse: DAG)
@@ -147,7 +153,7 @@ export function layoutFlow<N extends FlowLayoutNode = FlowLayoutNode, E extends 
   const layers: string[][] = [];
   NODES.forEach(n => { const L = layer[n.id] || 0; (layers[L] = layers[L] || []).push(n.id); });
   for (let i = 0; i < layers.length; i++) layers[i] = layers[i] || [];
-  const pos: Record<string, number> = {};
+  const pos: Record<string, number> = flowDict();
   layers.forEach(arr => arr.forEach((id, i) => pos[id] = i));
   (function reduceCrossings() {
     const bary = (id: string, usePred: boolean): number => {
@@ -168,7 +174,7 @@ export function layoutFlow<N extends FlowLayoutNode = FlowLayoutNode, E extends 
   })();
 
   // node measurements (bounding box + shape) keyed by id
-  const M: Record<string, FlowNodeBox> = {};
+  const M: Record<string, FlowNodeBox> = flowDict();
   NODES.forEach(n => {
     const k = n.kind, label = n.label || '', sub = n.sub || '';
     const textLen = Math.max(label.length, sub.length);
@@ -194,7 +200,7 @@ export function layoutFlow<N extends FlowLayoutNode = FlowLayoutNode, E extends 
   const crossExt = (id: string): number => DIR === 'TB' ? M[id].w : M[id].h;
   const LAYER_GAP = DIR === 'TB' ? 78 : 150;   // clear space between layers along flow axis
   const CROSS_GAP = 44;                         // gap between siblings within a layer
-  const X: Record<string, number> = {}, Y: Record<string, number> = {};
+  const X: Record<string, number> = flowDict(), Y: Record<string, number> = flowDict();
   let acc = 0;
   const layerCenter: number[] = [];
   layers.forEach((arr) => {
@@ -285,7 +291,7 @@ export function layoutFlow<N extends FlowLayoutNode = FlowLayoutNode, E extends 
 // lit nodes).
 export function flowActiveSet(flow: FlowLayoutInput | null | undefined, step: FlowStepRef | null | undefined): Set<string> | null {
   if (!step) return null;
-  const edgeById: Record<string, FlowLayoutEdge> = Object.fromEntries(((flow && flow.edges) || []).filter((e): e is FlowLayoutEdge => !!e && e.id != null).map(e => [e.id, e]));
+  const edgeById: Record<string, FlowLayoutEdge> = flowDictOf(((flow && flow.edges) || []).filter((e): e is FlowLayoutEdge => !!e && e.id != null).map(e => [e.id as string, e] as const));
   const s = new Set<string>(step.nodes || []);
   (step.edges || []).forEach(id => { const e = edgeById[id]; if (e) { s.add(e.from); s.add(e.to); } });
   return s;

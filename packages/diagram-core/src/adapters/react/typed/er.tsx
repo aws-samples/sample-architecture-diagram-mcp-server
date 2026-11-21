@@ -4,6 +4,7 @@
 // Tables laid out with dagre (LR/TB); relationships anchored on the table side
 // facing the next rank, spread along that side, routed through dagre's
 // interior points, with crow's-foot notation drawn at each end.
+import { dict, dictOf } from '#core/domain/own.ts'
 import { useCoreHost } from '#core/adapters/react/host.tsx'
 import type { LayeredEdge, LayeredEdgeRoute } from '#core/domain/layoutGraph.ts'
 import { line as d3line, curveBasis } from 'd3-shape'
@@ -69,14 +70,14 @@ export default function ErView({ doc, step = null, fit }: TypedViewProps<ErDoc>)
   const ents = doc.entities || []
   const rels = (doc.relations || []).filter(r => ents.some(e => e.id === r.from) && ents.some(e => e.id === r.to))
   const LR = (doc.direction || 'LR') !== 'TB'
-  const idx: Record<string, number> = Object.fromEntries(ents.map((e, i) => [e.id, i]))
+  const idx: Record<string, number> = dictOf(ents.map((e, i) => [e.id, i]))
   const shown = (i: number) => step == null || i < step
 
   // Self-relations get extra room on the right side of their table.
-  const loopExtra: Record<string, number> = {}
+  const loopExtra: Record<string, number> = dict()
   rels.forEach(r => { if (r.from === r.to) loopExtra[r.from] = Math.max(loopExtra[r.from] || 0, 54 + (r.label ? textW(r.label, 12) + 8 : 0)) })
 
-  const m: Record<string, EntityMetrics> = Object.fromEntries(ents.map(e => [e.id, measure(e)]))
+  const m: Record<string, EntityMetrics> = dictOf(ents.map(e => [e.id, measure(e)]))
   // Layered layout (the LayeredLayoutEngine port: dagre by default). Self-relations
   // are drawn as loops, not laid out; relation i is graph edge edgeAt[i].
   const layEdges: LayeredEdge[] = [], edgeAt: Record<number, number> = {}
@@ -91,7 +92,7 @@ export default function ErView({ doc, step = null, fit }: TypedViewProps<ErDoc>)
     edges: layEdges,
   })
 
-  const box: Record<string, EntityBox> = {}
+  const box: Record<string, EntityBox> = dict()
   ents.forEach(e => {
     const nd = g.nodes[e.id] as NonNullable<typeof g.nodes[string]>, mm = m[e.id]
     const x = nd.x - nd.width / 2, y = nd.y - mm.h / 2
@@ -100,7 +101,7 @@ export default function ErView({ doc, step = null, fit }: TypedViewProps<ErDoc>)
 
   // Anchors: pick facing sides, then spread multiple edges along each side.
   const edges: ErEdge[] = []
-  const slots: Record<string, EdgeEnd[]> = {}
+  const slots: Record<string, EdgeEnd[]> = dict()
   rels.forEach((r, i) => {
     if (r.from === r.to) return
     const ed = g.edges[edgeAt[i]] as LayeredEdgeRoute

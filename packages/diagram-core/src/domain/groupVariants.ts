@@ -9,6 +9,7 @@
 //  - icon:   the 32px PNG from the AWS Architecture Icons asset package
 //  - grIcon: the drawio mxgraph.aws4 group icon token (for .drawio export; other
 //            renderers may ignore it)
+import { own } from "./own.ts";
 
 /** A container variant's look. */
 export interface GroupVariant {
@@ -47,8 +48,8 @@ export const GROUP_VARIANTS = {
 export const DEFAULT_VARIANT: GroupVariantId = "group";
 
 // Lookups by an arbitrary (author-supplied) id.
-const variantOf = (k: string): GroupVariant | undefined => (GROUP_VARIANTS as Partial<Record<string, GroupVariant>>)[k];
-const aliasOf = (v: string): string | undefined => (VARIANT_ALIASES as Partial<Record<string, string>>)[v];
+const variantOf = (k: string): GroupVariant | undefined => own(GROUP_VARIANTS as Partial<Record<string, GroupVariant>>, k);
+const aliasOf = (v: string): string | undefined => own(VARIANT_ALIASES as Partial<Record<string, string>>, v);
 
 // Legacy short ids accepted as aliases (back-compat with earlier diagrams).
 export const VARIANT_ALIASES = {

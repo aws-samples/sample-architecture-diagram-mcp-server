@@ -13,6 +13,7 @@
 //   • group.parent forms no cycle
 // (This is the diagram analogue of the deck's block-name enum.)
 
+import { dict, own } from "#core/domain/own.ts"
 import { validateSequence, SEQUENCE_KIND } from './sequence.ts'
 import type { JsonSchema, ValidationResult } from './jsonSchema.ts'
 import type { I18nText } from '#core/domain/i18n.ts'
@@ -209,14 +210,14 @@ export function validateDiagram(d: unknown): ValidationResult {
   })
 
   // No cycle in group.parent chains.
-  const parentOf: Record<string, unknown> = {}
+  const parentOf: Record<string, unknown> = dict()
   groups.forEach((g: unknown) => { if (isObj(g) && g.parent) parentOf[String(g.id)] = g.parent })
   for (const start of Object.keys(parentOf)) {
     const seen = new Set<unknown>([start])
-    let cur = parentOf[start]
+    let cur = own(parentOf, start)
     while (cur) {
       if (seen.has(cur)) { errors.push(`groups: parent cycle at "${start}"`); break }
-      seen.add(cur); cur = parentOf[String(cur)]
+      seen.add(cur); cur = own(parentOf, cur)
     }
   }
 
