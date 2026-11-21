@@ -36,16 +36,27 @@ Sources: [MCP protocol contract](https://docs.aws.amazon.com/bedrock-agentcore/l
   a public load balancer.
 - Request bodies are capped at 10 MB.
 
-## Outputs: the HTML comes back in the result
+## Files: one sandboxed folder, and the HTML comes back in the result
 
-Tools write files to the container's disk (`/tmp/diagrams` by default, the
-working directory), which the caller cannot read. In HTTP mode every tool
-result therefore also carries what it wrote as **embedded resources**:
-`text/html` for the diagram, plus `.spec.json` / `.elements.json` / `.drawio`
-when written (each up to 8 MB). The HTML is self-contained — icons inlined,
-no remote script, style, font or image — so the client saves it and opens it
-from `file://` without this server. Pass a plain file name as `outputPath`
-(e.g. `diagram.html`).
+In HTTP mode every path a tool call names — output paths, the diagram or spec
+it reads, a layout's theme CSS and branding images — is confined to ONE folder,
+`MCP_OUTPUT_DIR` (`/tmp/diagrams` in the image; the working directory when
+unset). Relative paths resolve inside it; an absolute path outside it, a `..`
+that climbs out of it and a symlink whose target leaves it are rejected with a
+clean tool error (`path … is outside the allowed output directory …`). Saved
+layouts, custom components and built bundles (the operator's own
+`DIAGRAM_LAYOUTS_DIR` / `DIAGRAM_COMPONENTS_DIR` / `DIAGRAM_BUNDLE_CACHE`) stay
+readable. The stdio server and the CLI are not sandboxed: there the caller is
+the local user.
+
+The caller cannot read the container's disk, so every tool result also carries
+**exactly the files that call wrote**, as embedded resources (each up to 8 MB):
+`text/html` for the diagram, plus `<name>.spec.json` and the elements `.json`
+when written, `.drawio` from the draw.io tools, and PNG / GIF (base64 blobs) /
+SVG from `render_diagram_media`. Nothing else in the folder is attached. The
+HTML is self-contained — icons inlined, no remote script, style, font or
+image — so the client saves it and opens it from `file://` without this
+server. Pass a plain file name as `outputPath` (e.g. `diagram.html`).
 
 ## Icons
 
@@ -74,7 +85,8 @@ image in a private Amazon ECR repository.
      -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | head -c 300
    ```
 
-   Or without a container: `node mcp-server.js --http` (binds `127.0.0.1:8000`).
+   Or without a container: `MCP_OUTPUT_DIR=/tmp/diagrams node mcp-server.js --http`
+   (binds `127.0.0.1:8000`).
 
 3. **Push** to a private Amazon ECR repository (image scanning on, no public
    repository policy).

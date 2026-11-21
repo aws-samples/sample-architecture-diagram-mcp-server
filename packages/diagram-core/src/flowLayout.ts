@@ -4,7 +4,7 @@
 // Flow-diagram layout — workflow, data-flow (DFD) and lifecycle/state graphs.
 // The ONE layered auto-layout behind both renderers: the React <FlowPlayer>
 // (./components/FlowPlayer.jsx) and the MCP's self-contained HTML player
-// (lib/flow-template.html, into which lib/flow-generator.js inlines this file).
+// (server/assets/flow-template.html, into which the flow renderer inlines this file).
 // Same input → same geometry, so a flow embedded in a deck matches the HTML
 // attachment exactly.
 //

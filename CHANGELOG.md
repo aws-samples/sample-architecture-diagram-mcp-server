@@ -4,6 +4,44 @@ All notable changes to the AWS Architecture Diagram MCP server are documented he
 
 ## [Unreleased]
 
+- **The server is TypeScript, in a hexagonal layout** (`server/`: domain →
+  application use cases → inbound/outbound adapters → composition roots; strict
+  mode, `erasableSyntaxOnly`, one import convention — see
+  [docs/architecture.md](docs/architecture.md)). `lib/` is gone: the server ships
+  as an esbuild bundle in `dist/server/` (committed; the core inside it) and the
+  root `mcp-server.js` is a two-line shim to it, so existing client configs, git
+  installs and the npm package keep working without a build step. The 57 tools,
+  their input schemas, their result text (golden-tested), the CLI (commands,
+  flags, output, exit codes) and `exports["./render"]` are unchanged;
+  `./render` also exports `generateSequenceHtml` / `generateFlowHtml`, and
+  `./service-registry.json` now resolves to `server/assets/`.
+- **HTTP mode: a sandboxed output folder.** In streamable-HTTP mode (Amazon
+  Bedrock AgentCore Runtime) every path a call names — outputs, diagrams and
+  specs it reads, layout CSS and images — is confined to `MCP_OUTPUT_DIR`
+  (default: the working directory; `/tmp/diagrams` in the image). Absolute
+  paths outside it, `..` traversal and symlinks that escape it are rejected
+  with a clean tool error. stdio and the CLI are unchanged (any path).
+- **HTTP mode: a result embeds only what the call wrote.** Use cases report
+  the files they wrote, and only those are attached (before, sidecar names were
+  guessed from `outputPath`, so an unrelated `<name>.drawio` next to it could be
+  attached). Media from `render_diagram_media` is now attached too (PNG/GIF as
+  base64 blobs, SVG as text). HTTP mode no longer creates an MCP server that is
+  never connected.
+- **`registerTool` / `registerResource`** replace the deprecated `tool()` /
+  `resource()` registrations; `tools/list` and `resources/list` are unchanged.
+- **Dependencies:** hono 4.13.19 / @hono/node-server 2.1.11 (GHSA-qv5m-9pm6-hqp3,
+  GHSA-jpvv-r467-5p4w; 97d7d42).
+- **`diagram-core` 1.7.0:** the core is strict TypeScript with a typed public
+  surface (`.`, `/typed`, `/layout-engine`, `/react`, `/typed-react`) and a
+  `"source"` export condition that points those entries at the TypeScript
+  sources (used for type-checking, the tests and the server bundle).
+- **Build and CI:** `npm run build:server`, `npm run build:inline`;
+  `npm run typecheck` covers the core, the server and the standalone app; CI
+  also checks that `dist/server/`, the inlined core scripts and `schema/` match
+  their sources.
+- Writing an output file creates its missing parent folders (before, only
+  `render_from_spec` / `render` did; the other tools failed with ENOENT).
+
 ## [2.3.0] — 2026-10-31
 
 - **Icon catalogs and resolver in the core** (`diagram-core` 1.6.0):

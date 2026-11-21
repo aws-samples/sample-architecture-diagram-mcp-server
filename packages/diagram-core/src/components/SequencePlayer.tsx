@@ -7,7 +7,7 @@
 // SequenceDiagram block, its editor and read-only viewer).
 //
 // A React port of the MCP's published standalone sequence player
-// (lib/sequence-template.html), on the same schema (lib/sequence-schemas.js)
+// (server/assets/sequence-template.html), on the same schema (server/domain/schemas/sequence.ts)
 // and the shared player palette/tokens (tones.js, playerTheme.js).
 //
 // The port is FAITHFUL: identical geometry (COL/X0/ROW/HEAD_H…), the same UML
@@ -46,7 +46,7 @@ import * as cardKit from './cardKit.tsx';
 import { CodeBlocks } from "./CodeBlocks.tsx";
 import { codeBlocksOf } from "#core/codeBlocks.ts";
 import type { CodeBlockInput } from "#core/codeBlocks.ts";
-// ── Sequence document (lib/sequence-schemas.js shape) ───────────────────────
+// ── Sequence document (server/domain/schemas/sequence.ts shape) ───────────────────────
 /** Per-language text: a string, or { en, pt, … }. */
 export type SeqText = SeqLayoutText;
 export interface SeqParticipant extends SeqLayoutParticipant {
@@ -91,7 +91,7 @@ const seqCodeBlocks = (e: SeqEvent, lang: string) => codeBlocksOf(e, (v) => tr(v
 // Player styles, scoped to .ld-seqp (lifted from the standalone template).
 const SEQ_CSS = `
   /* ── animated UML sequence panel ──
-     Lifted from the published standalone player (lib/sequence-template.html) and
+     Lifted from the published standalone player (server/assets/sequence-template.html) and
      scoped to .ld-seqp so the class names in SequenceDiagram.tsx stay identical
      to the original renderer's. Tokens: the shared player theme (playerTheme.js);
      inside the MCP's .ld-frame the base chrome tokens come from the frame. */
@@ -415,7 +415,7 @@ const PREFERS_REDUCED = typeof window !== 'undefined' && !!window.matchMedia
 
 /**
  * Animated UML sequence panel.
- * @param seq    sequence payload (lib/sequence-schemas.js shape)
+ * @param seq    sequence payload (server/domain/schemas/sequence.ts shape)
  * @param active whether this tab is the visible one (gates the keyboard map)
  */
 export interface SequencePlayerProps {

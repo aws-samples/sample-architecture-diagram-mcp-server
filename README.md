@@ -400,7 +400,7 @@ already authored as its own file drops in unchanged.
     { "kind": "message", "id": "m2", "from": "hub", "to": "sfn",
       "label": "start execution", "arrow": "async", "tone": "success",
       "title": "Vend starts", "desc": "Writes the `.tf` request and pushes.",
-      "proof": { "repo": "https://github.com/…", "path": "lib/schemas.js", "lines": "40-58" } },
+      "proof": { "repo": "https://github.com/…", "path": "server/domain/schemas/architecture.ts", "lines": "40-58" } },
     { "kind": "message", "id": "m3", "from": "hub", "to": "dev",
       "label": "render HCL only", "arrow": "reply", "deactivate": true },
     { "kind": "note", "id": "n1", "over": ["hub", "sfn"],
@@ -512,8 +512,8 @@ npx sample-architecture-diagram-mcp-server components --slot dock
 
 Every input this server accepts is published as JSON Schema 2020-12 and
 OpenAPI 3.1, generated from the definitions the server itself registers
-(`lib/tools.js` → `lib/contracts.js`), so the schema can never disagree with the
-running version:
+(the tool registry in `server/adapters/inbound/mcp/` → `contracts.ts`), so the
+schema can never disagree with the running version:
 
 - **At runtime:** MCP resources `schema://<name>` and the `get_schema` tool
   (`get_schema({ name: "list" })` lists the names): `diagram`, `sequence`,
@@ -548,8 +548,10 @@ running version:
 server on `127.0.0.1:8000` (`POST /mcp`); the `Dockerfile` builds the ARM64
 image AgentCore Runtime expects (`0.0.0.0:8000` inside the container, nothing
 published). The runtime authenticates every caller (IAM SigV4 or a JWT
-authorizer); tool results carry the written self-contained HTML as an embedded
-resource. Icons are not in the image. See [docs/agentcore.md](docs/agentcore.md).
+authorizer). Every path a call names is confined to `MCP_OUTPUT_DIR` (absolute
+paths outside it, `..` and escaping symlinks are rejected), and each result
+embeds exactly the files that call wrote (the self-contained HTML, its spec and
+elements JSON). Icons are not in the image. See [docs/agentcore.md](docs/agentcore.md).
 
 ## Development
 
@@ -557,8 +559,10 @@ resource. Icons are not in the image. See [docs/agentcore.md](docs/agentcore.md)
 npm run build:core         # build the shared @aws-sample-live-diagram/core render package
 npm run build:standalone   # rebuild dist/index.html (the HTML template)
 npm test                    # run the vitest unit suite
-npm run typecheck           # check the standalone app against the core's types
-npm run build:schema        # regenerate schema/ (JSON Schema + OpenAPI) from lib/contracts.js
+npm run typecheck           # strict type-check: the core, the server and the standalone app
+npm run build:server        # rebuild dist/server/ (the committed server bundle) from server/
+npm run build:inline        # rebuild the core scripts the flow/sequence players inline
+npm run build:schema        # regenerate schema/ (JSON Schema + OpenAPI) from the tool registry
 node mcp-server.js          # run the MCP server over stdio
 ```
 
@@ -568,13 +572,17 @@ sequence players, the palette/theme tokens and the UI strings — lives in
 `packages/diagram-core` (`@aws-sample-live-diagram/core`, see its README) and is
 shared by the standalone app in `standalone/` + `src/`, by the self-contained
 flow/sequence HTML players (which inline its layout and tokens) and by apps that
-install it from a release. The MCP server and Node-side generators live in
-`mcp-server.js` + `lib/`; `lib/schemas.js` is the single source of truth for the
-input shape (imported by both the tools and the local example generators).
-`lib/html-generator.js` injects the diagram data and base64-inlined icons into
-the built `dist/index.html`. Tests (`test/`) cover the pure generators — icon
-resolution, draw.io XML, service-config integrity, the core entries — and
-`npm run typecheck` checks the standalone app against the core's types.
+install it from a release. The MCP server is TypeScript under `server/`, in a hexagonal layout (domain →
+application use cases → adapters → composition roots; see
+[docs/architecture.md](docs/architecture.md)). `npm run build:server` bundles it
+with esbuild into `dist/server/` (committed, the core inside it), and the root
+`mcp-server.js` is a two-line shim to that bundle, so `node mcp-server.js`, a git
+install and the npm package all run without a build step. The Zod schemas in
+`server/domain/schemas/` are the single source of truth for every input shape;
+`server/domain/render/` injects the diagram data and base64-inlined icons into
+the built `dist/index.html`. Tests (`test/`) cover the domain, the tool results
+(golden fixtures), the contracts, the transports and the published package
+shape; `npm run typecheck` checks all three TypeScript projects in strict mode.
 
 To test what users actually install (a clone hides a missing `files` entry or
 dependency), pack it and run the tarball:

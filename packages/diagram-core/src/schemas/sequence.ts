@@ -4,7 +4,7 @@
 // events, fragments, groups, autoActivate, autoplay, stepMs, title, subtitle) as
 // a JSON Schema plus a dependency-free validator (types + referential
 // integrity), so a sequence authored in the MCP round-trips into any renderer
-// unchanged. The MCP's zod schemas (lib/sequence-schemas.js) are kept in step
+// unchanged. The MCP's zod schemas (server/domain/schemas/sequence.ts) are kept in step
 // by a test.
 //
 // Exports: SEQUENCE_KIND, MAX_PARTICIPANTS, MAX_EVENTS, sequenceDocSchema,

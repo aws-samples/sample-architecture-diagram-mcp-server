@@ -1,8 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
 // <FlowPlayer> — the React twin of the MCP's self-contained flow player
-// (lib/flow-template.html): workflow, data-flow and lifecycle/state graphs.
-// Same layout (layoutFlow, from the one shared lib/flow-layout.js), same
+// (server/assets/flow-template.html): workflow, data-flow and lifecycle/state graphs.
+// Same layout (layoutFlow, from the one shared flowLayout.ts), same
 // shapes, colors, edge labels, walkthrough framing (flowFrame) and narration
 // card, so a flow embedded in an app or a deck reads exactly like the HTML
 // the MCP emits for the same input.

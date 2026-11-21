@@ -115,7 +115,7 @@ export interface DiagramStep extends WalkthroughStep {
   maxZoom?: number;
 }
 
-/** Layout slots (lib/layouts.js → data.layout): which components fill each slot, in order. */
+/** Layout slots (server/domain/layouts → data.layout): which components fill each slot, in order. */
 export interface DiagramLayoutSlots {
   dock?: SlotEntryInput[];
   stepCard?: SlotEntryInput[];
@@ -728,7 +728,7 @@ export function LiveDiagram({
   // showTitle=false hides the title/subtitle in the dock only (the share-card
   // PNG still uses them). Falls back to data.showTitle; default true.
   showTitle: showTitleProp = undefined,
-  // Layout (lib/layouts.js → data.layout): which components fill each slot, in
+  // Layout (server/domain/layouts → data.layout): which components fill each slot, in
   // order, with props — { dock?, stepCard?, nodeModal?, header?, branding? }.
   // Omitted slots keep the built-in default.
   layout: layoutProp = undefined,

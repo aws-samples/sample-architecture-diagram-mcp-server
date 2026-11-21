@@ -3,8 +3,8 @@
 //
 // Contract of a LAYOUT: which components fill each slot of the interactive page,
 // in what order and with what props, plus the theme and branding. Kept apart
-// from lib/layouts.js (the resolver) so lib/schemas.js can embed it in the
-// diagram spec without an import cycle.
+// from #domain/layouts (the resolver) so the architecture schema can embed it in
+// the diagram spec without an import cycle.
 import { z } from "zod";
 import { DIAGRAM_THEME } from "@aws-sample-live-diagram/core";
 import { remoteLoads } from "#domain/shared/self-contained.ts";

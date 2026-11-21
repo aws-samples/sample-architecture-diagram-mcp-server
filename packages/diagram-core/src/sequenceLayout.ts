@@ -3,8 +3,8 @@
 //
 // UML sequence layout — the ONE geometry behind both sequence renderers: the
 // React <SequencePlayer> (./components/SequencePlayer.jsx) and the MCP's
-// self-contained HTML player (lib/sequence-template.html, into which
-// lib/sequence-generator.js inlines this file). Same document → same columns,
+// self-contained HTML player (server/assets/sequence-template.html, into which
+// the sequence renderer inlines this file). Same document → same columns,
 // rows, activation bars, fragments and arrows.
 //
 // Kept dependency-free and import-free ON PURPOSE: the generator inlines this

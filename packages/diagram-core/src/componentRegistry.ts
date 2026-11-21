@@ -4,7 +4,7 @@
 // Runtime registry of user components a layout can mount into a slot (dock,
 // stepCard, nodeModal, header). The built-in components are rendered by their
 // hosts directly; this registry only holds the EXTRA ones a custom bundle adds
-// (see lib/layouts.js buildBundle), so the default page carries no extra code.
+// (see the ViteBundleBuilder adapter), so the default page carries no extra code.
 /** A normalized slot entry. */
 export interface SlotEntry { component: string; key: string; props: Record<string, unknown> }
 /** A slot entry as authored: "id" or { component, props?, id? }. */

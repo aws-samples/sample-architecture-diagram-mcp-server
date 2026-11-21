@@ -47,7 +47,7 @@ interface Props {
     costUrl?: string;
     costLabel?: string | Record<string, string>;
     showTitle?: boolean;
-    // Resolved layout (lib/layouts.js): components per slot + branding.
+    // Resolved layout (server/domain/layouts): components per slot + branding.
     layout?: DiagramLayout;
     // App shell (layout.shell === 'app'): inputs and named formulas.
     data?: Record<string, unknown>;

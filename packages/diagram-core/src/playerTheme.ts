@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
 // Light/dark design tokens of the flow and sequence players — the CSS custom
-// properties both the MCP's self-contained HTML players (lib/*-template.html,
+// properties both the MCP's self-contained HTML players (server/assets/*-template.html,
 // injected by their generators) and the React <FlowPlayer> read. Pure data +
 // one CSS serializer, so every player draws from the same palette.
 import { PLAYER_TONES, AWS_ORANGE } from "./tones.ts";

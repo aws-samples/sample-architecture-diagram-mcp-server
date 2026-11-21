@@ -116,7 +116,7 @@ function DocPanel({ tab, lang }: Any) {
 }
 
 /**
- * @param tabs     normalized tab descriptors (lib/html-generator.js → resolveTabs)
+ * @param tabs     normalized tab descriptors (server/domain/render/html.ts → resolveTabs)
  * @param ArchSlot render-prop for the live architecture canvas (kind:'architecture')
  * @param title/subtitle  document identity, shown as the sidebar brand
  */
