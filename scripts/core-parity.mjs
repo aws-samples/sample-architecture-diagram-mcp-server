@@ -11,7 +11,7 @@
 // dark. Per state it stores a screenshot and the DOM; per page the HTML.
 //
 //   node scripts/core-parity.mjs capture <dir>                    render + capture into <dir>
-//   node scripts/core-parity.mjs compare <new> <base> [<base2> …]  diff (exit 1 on any diff)
+//   node scripts/core-parity.mjs compare <new>[,<new2>…] <base> [<base2> …]  diff (exit 1 on any diff)
 //
 // Every capture writes its inputs to <dir>/inputs.json; INPUTS=<that file> makes
 // a later capture render exactly the same documents.
@@ -22,7 +22,9 @@
 // pixel-identical to ANY baseline: Chromium's raster of the animated dashed
 // edges flaps between a couple of sub-pixel phases from one load to the next
 // (two captures of the same build differ on a few screenshots by tens of px),
-// so the baselines sample that noise and a real change still fails.
+// so the baselines sample that noise and a real change still fails. Several
+// comma-separated <new> captures sample the same noise on the other side (the
+// first one is the one whose HTML and DOM are compared).
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { basename, dirname, join } from "node:path";
@@ -179,8 +181,9 @@ async function pixelDiff(page, fa, fb) {
   }, [da, db]);
 }
 
-async function compare(now, bases) {
+async function compare(nows, bases) {
   const [a] = bases;
+  const [now] = nows;
   const files = (d) => readdirSync(join(a, d)).sort();
   const report = { html: [], htmlScriptOnly: 0, dom: [], png: [], missing: [] };
   for (const f of files("html")) {
@@ -201,16 +204,19 @@ async function compare(now, bases) {
   const page = await browser.newPage();
   let viaSecond = 0;
   for (const f of files("png")) {
-    const pn = join(now, "png", f);
-    if (!existsSync(pn)) { report.missing.push(`png/${f}`); continue; }
-    const buf = readFileSync(pn);
+    if (!existsSync(join(now, "png", f))) { report.missing.push(`png/${f}`); continue; }
     let best = null;
-    for (const [k, base] of bases.entries()) {
-      const pb = join(base, "png", f);
-      if (!existsSync(pb)) continue;
-      const n = buf.equals(readFileSync(pb)) ? 0 : await pixelDiff(page, pb, pn);
-      if (n === 0) { best = 0; if (k > 0) viaSecond++; break; }
-      if (best === null || (n >= 0 && (best < 0 || n < best))) best = n;
+    search: for (const [j, nw] of nows.entries()) {
+      const pn = join(nw, "png", f);
+      if (!existsSync(pn)) continue;
+      const buf = readFileSync(pn);
+      for (const [k, base] of bases.entries()) {
+        const pb = join(base, "png", f);
+        if (!existsSync(pb)) continue;
+        const n = buf.equals(readFileSync(pb)) ? 0 : await pixelDiff(page, pb, pn);
+        if (n === 0) { best = 0; if (k > 0 || j > 0) viaSecond++; break search; }
+        if (best === null || (n >= 0 && (best < 0 || n < best))) best = n;
+      }
     }
     if (best !== 0) report.png.push(`${f} (${best === null ? "no baseline" : best < 0 ? "size differs" : `${best} px`})`);
   }
@@ -218,12 +224,12 @@ async function compare(now, bases) {
   const total = { html: files("html").length, dom: files("dom").length, png: files("png").length };
   console.log(`HTML: ${total.html} files, ${report.html.length} differ outside script text (${report.htmlScriptOnly} differ only in script text)`);
   console.log(`DOM:  ${total.dom} states, ${report.dom.length} diffs`);
-  console.log(`PNG:  ${total.png} screenshots, ${report.png.length} pixel diffs (${viaSecond} matched a later baseline)`);
+  console.log(`PNG:  ${total.png} screenshots, ${report.png.length} pixel diffs (${viaSecond} matched only in a later sample)`);
   for (const k of ["missing", "html", "dom", "png"]) for (const x of report[k]) console.log(`  ${k}: ${x}`);
   return report.missing.length + report.html.length + report.dom.length + report.png.length === 0;
 }
 
 const [cmd, x, ...rest] = process.argv.slice(2);
 if (cmd === "capture" && x) await capture(x);
-else if (cmd === "compare" && x && rest.length) process.exit((await compare(x, rest)) ? 0 : 1);
+else if (cmd === "compare" && x && rest.length) process.exit((await compare(x.split(","), rest)) ? 0 : 1);
 else { console.error("usage: core-parity.mjs capture <dir> | compare <new> <base> [<base2> …]"); process.exit(2); }
