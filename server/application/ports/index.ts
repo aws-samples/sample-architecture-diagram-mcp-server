@@ -5,11 +5,13 @@
 // only; server/adapters/outbound implements them and server/main wires them.
 // Nothing here may import Node APIs.
 
+export type WrittenMimeType = "text/html" | "application/json" | "application/xml" | "image/png" | "image/svg+xml" | "image/gif" | "application/pdf";
+
 /** A file a use case wrote on the caller's behalf (reported back to inbound adapters). */
 export interface WrittenFile {
   /** Absolute path, as resolved by the Workspace. */
   readonly path: string;
-  readonly mimeType: "text/html" | "application/json" | "application/xml" | "image/png" | "image/svg+xml" | "image/gif" | "application/pdf";
+  readonly mimeType: WrittenMimeType;
 }
 
 /**
@@ -32,8 +34,6 @@ export interface Workspace {
   remove(path: string): void;
   dirname(path: string): string;
   join(...parts: string[]): string;
-  /** A fresh scratch directory inside the policy (removed with `remove`). */
-  tempDir(prefix: string): string;
 }
 
 export class WorkspaceAccessError extends Error {
@@ -55,7 +55,7 @@ export interface PackageInfo {
   readonly root: string;
 }
 
-/** Diagnostics channel. stderr in the stdio server — never stdout (the MCP protocol stream). */
+/** Diagnostics channel. stderr in the local server — never stdout (the MCP protocol stream). */
 export interface Logger {
   info(message: string): void;
   warn(message: string): void;
@@ -64,49 +64,73 @@ export interface Logger {
 
 /** In-memory drafts of the staged builders (diagram_create → diagram_add_* → diagram_render, sequence_*, flow kinds). */
 export interface SessionStore<T> {
+  /** Store a new draft and return its id (`<prefix><n>`, e.g. d1, d2, …). */
   create(value: T): string;
   get(id: string): T | undefined;
-  set(id: string, value: T): void;
   delete(id: string): void;
 }
 
-/** Rasterizes an interactive HTML diagram (headless Chromium + ffmpeg). */
+/** Rasterizes an interactive HTML diagram into a PNG figure, an animated GIF and/or an animated SVG. */
 export interface Rasterizer {
   render(request: RasterizeRequest): Promise<RasterizeResult>;
 }
 export interface RasterizeRequest {
+  /** Absolute paths (resolved by the Workspace). */
   readonly htmlPath: string;
   readonly pngPath?: string;
   readonly gifPath?: string;
   readonly svgPath?: string;
-  readonly mode?: "flow" | "walkthrough";
-  readonly options: Readonly<Record<string, unknown>>;
+  readonly mode: "flow" | "walkthrough";
+  readonly theme: "light" | "dark";
+  readonly width: number;
+  readonly height: number;
+  readonly scale: number;
+  readonly period: number;
+  readonly frames: number;
+  readonly beatDuration: number;
+  readonly beatFrames: number;
 }
 export interface RasterizeResult {
-  readonly written: readonly WrittenFile[];
-  readonly notes: readonly string[];
+  /** The paths written (as requested). */
+  readonly png?: string;
+  readonly gif?: string;
+  readonly svg?: string;
+  readonly mode: "flow" | "walkthrough";
+  /** walkthrough: the number of beats found in the page. */
+  readonly beats?: number;
+  readonly warnings: readonly string[];
 }
 
-/** Converts a .drawio file with the draw.io desktop CLI. */
+/** Converts a .drawio file to PNG/SVG/PDF with the draw.io desktop application. */
 export interface DrawioExporter {
-  /** Absolute path of the draw.io CLI, or null when it is not installed. */
-  locate(): string | null;
-  export(request: { inputPath: string; outputPath: string; format: "png" | "svg" | "pdf"; scale?: number; border?: number; transparent?: boolean }): void;
+  /** True when the converter is installed on this machine. */
+  available(): boolean;
+  /** Convert (throws on failure). Absolute paths. */
+  export(request: { inputPath: string; outputPath: string; format: "png" | "svg" | "pdf"; scale: number }): void;
 }
 
 /** The AWS Architecture Icons install (shared ~/.aws-architecture-icons or AWS_DIAGRAM_ICON_ROOT). */
 export interface IconInstaller {
+  /** The icon root this process resolves now. */
   root(): string;
   installed(): boolean;
+  /** Icon files (.png/.svg) under <root>/icons. */
   count(): number;
-  /** Run the installer (scripts/fetch-icons.sh) and return its output. */
-  install(options: { zipPath?: string; latest?: boolean; force?: boolean }): string;
-  /** Forget cached lookups after an install. */
+  /** Run the installer and return its output (throws `fetch-icons failed: …`). Absolute paths. */
+  install(options: { source?: string; dest?: string }): string;
+  /** Forget the resolved root and cached file list after an install. */
   refresh(): void;
 }
 
-/** Builds the standalone page bundle with custom layout components (vite). */
+/** Builds the standalone page with custom layout components into the bundle cache. */
 export interface BundleBuilder {
-  build(request: { key: string; registrationModule: string; force: boolean }): Promise<{ built: boolean; cached: boolean; path: string }>;
-  cachedPath(key: string): string | null;
+  /** The default page (no custom components). */
+  defaultPagePath(): string;
+  /** Build `outPath` from a registration module, unless it is cached (and not forced). */
+  build(request: { outPath: string; registrationModule: string; force: boolean }): Promise<BundleBuild>;
+}
+export interface BundleBuild {
+  built: boolean;
+  cached: boolean;
+  path: string;
 }
