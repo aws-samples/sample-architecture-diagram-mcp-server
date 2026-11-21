@@ -51,7 +51,27 @@ export const DEFAULT_MAX_LINES = 20;
 // A marker line: 3+ '=', a name, 3+ '=' — optionally behind a line comment
 // ("# ===== eks.tf =====", "// ===== app.ts =====", "-- ===== q.sql =====",
 // "/* ===== a.css ===== */").
-const MARKER = /^\s*(?:#|\/\/|--|;|\/\*)?\s*={3,}\s*(.+?)\s*={3,}\s*(?:\*\/)?\s*$/;
+// Parsed in linear time: the equivalent regular expression
+//   /^\s*(?:#|\/\/|--|;|\/\*)?\s*={3,}\s*(.+?)\s*={3,}\s*(?:\*\/)?\s*$/
+// backtracks polynomially on long runs of spaces in author text.
+const MARKER_PREFIXES = ["#", "//", "--", ";", "/*"];
+function markerLabel(line: string): string | null {
+  let s = line.trim();
+  for (const p of MARKER_PREFIXES) if (s.startsWith(p)) { s = s.slice(p.length).trimStart(); break; }
+  if (s.endsWith("*/")) s = s.slice(0, -2).trimEnd();
+  let a = 0;
+  while (a < s.length && s[a] === "=") a++;
+  let b = s.length;
+  while (b > a && s[b - 1] === "=") b--;
+  if (a === s.length) return s.length >= 7 ? "=" : null; // only '=': the name is one '=' between two runs
+  if (a < 3 || s.length - b < 3) return null;
+  const mid = s.slice(a, b);
+  const name = mid.trim();
+  if (name) return name;
+  // A whitespace-only name, as the expression resolved it: one '=' borrowed from
+  // a closing run of 4+, else the last whitespace character.
+  return s.length - b >= 4 ? "=" : mid[mid.length - 1];
+}
 
 const langOfName = (name: unknown): string | undefined => {
   // The first "file.ext" in the label ("eks.tf (Terraform) — …" → hcl).
@@ -69,10 +89,10 @@ export function splitCodeByMarkers(code: unknown, fallbackLabel?: string): Split
   const blocks: { label: string | undefined; lines: string[] }[] = [];
   let cur: { label: string | undefined; lines: string[] } = { label: fallbackLabel, lines: [] };
   for (const line of lines) {
-    const m = MARKER.exec(line);
-    if (m) {
+    const label = markerLabel(line);
+    if (label !== null) {
       if (cur.lines.some((l) => l.trim())) blocks.push(cur);
-      cur = { label: m[1], lines: [] };
+      cur = { label, lines: [] };
     } else cur.lines.push(line);
   }
   if (cur.lines.some((l) => l.trim()) || !blocks.length) blocks.push(cur);
@@ -106,7 +126,7 @@ export function codeBlocksOf<T = unknown>(item: CodeBlocksItem<T> | null | undef
     }));
   } else if (item.codeSplit === "markers" && item.code != null) {
     const code = str(item.code);
-    if (!code || !String(code).split("\n").some((l) => MARKER.test(l))) return null;
+    if (!code || !String(code).split("\n").some((l) => markerLabel(l) !== null)) return null;
     raw = splitCodeByMarkers(code, item.codeLabel != null ? str(item.codeLabel) : undefined);
   }
   if (!raw) return null;

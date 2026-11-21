@@ -28,9 +28,20 @@ const strip = (d: ArchData | undefined): ArchData => {
   const out: ArchData = JSON.parse(JSON.stringify(d ?? {}));
   delete out.costUrl; delete out.costLabel;
   for (const s of out.steps || []) { delete s.costUrl; delete s.costLabel; }
-  if (!ICONS_PRESENT) for (const s of out.services || []) delete s.icon;
+  // Without the icon set, icons resolved by fuzzy-matching the installed files
+  // (e.g. a sequence actor "User" → Res_User_48_Light.png) cannot resolve; the
+  // fixtures were captured with the set installed, so drop every `icon` field —
+  // nodes, sequence participants, typed-tab nodes — wherever it appears.
+  if (!ICONS_PRESENT) dropIcons(out);
   return out;
 };
+function dropIcons(v: unknown): void {
+  if (Array.isArray(v)) { v.forEach(dropIcons); return; }
+  if (!v || typeof v !== 'object') return;
+  const o = v as Record<string, unknown>;
+  delete o.icon;
+  Object.values(o).forEach(dropIcons);
+}
 const textOf = (t: string) => t.replace(/\n\n⚠️ The AWS Architecture Icons are not installed[\s\S]*$/, '');
 
 function compareExamples(base: Record<string, Rendered>, now: Record<string, Rendered>, { stripNew = false } = {}) {

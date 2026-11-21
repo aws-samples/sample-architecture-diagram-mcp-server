@@ -40,7 +40,7 @@ import {
   resolveGroupsAndMembership,
   resolveVariant,
   variantKey
-} from "./chunks/chunk-GNJD64GF.js";
+} from "./chunks/chunk-N7V7P4JS.js";
 
 // server/adapters/inbound/cli/cli.ts
 import { basename } from "node:path";
@@ -1275,7 +1275,11 @@ function startHttpServer(deps, { host = HTTP_DEFAULTS.host, port = HTTP_DEFAULTS
     try {
       body = await readBody(req, HTTP_DEFAULTS.maxBodyBytes);
     } catch (e) {
-      jsonRpcError(res, e instanceof HttpError ? e.status : 400, e instanceof Error ? e.message : String(e));
+      if (e instanceof HttpError) jsonRpcError(res, e.status, e.message);
+      else {
+        console.error("[aws-architecture-diagram] http request body failed:", e instanceof Error ? e.message : e);
+        jsonRpcError(res, 400, "bad request");
+      }
       return;
     }
     const server = deps.createServer();

@@ -94,7 +94,12 @@ export function startHttpServer(deps: HttpServerDeps, { host = HTTP_DEFAULTS.hos
     if (url.pathname !== path) { jsonRpcError(res, 404, "not found"); return; }
     if (req.method !== "POST") { res.setHeader("allow", "POST"); jsonRpcError(res, 405, "method not allowed (stateless server: POST /mcp only)"); return; }
     let body: unknown;
-    try { body = await readBody(req, HTTP_DEFAULTS.maxBodyBytes); } catch (e) { jsonRpcError(res, e instanceof HttpError ? e.status : 400, e instanceof Error ? e.message : String(e)); return; }
+    try { body = await readBody(req, HTTP_DEFAULTS.maxBodyBytes); } catch (e) {
+      // Only this adapter's own messages reach the caller; a socket error's text stays in the log.
+      if (e instanceof HttpError) jsonRpcError(res, e.status, e.message);
+      else { console.error("[aws-architecture-diagram] http request body failed:", e instanceof Error ? e.message : e); jsonRpcError(res, 400, "bad request"); }
+      return;
+    }
     const server = deps.createServer();
     const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: true });
     res.on("close", () => { transport.close().catch(() => {}); server.close().catch(() => {}); });

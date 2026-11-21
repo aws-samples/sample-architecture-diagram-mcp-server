@@ -59,7 +59,7 @@ describe('rendered UI (SSR)', () => {
     const { StepCard } = await import('../packages/diagram-core/dist/react.js');
     const html = renderToString(React.createElement(StepCard, { steps: [{ title: 'Beat', costUrl: URL_B }], activeStep: 0, costLabel: 'Estimativa de custo' }));
     expect(html).toContain('data-ld-cost="step"');
-    expect(html).toContain(URL_B.replace('&', '&amp;'));
+    expect(html).toContain(URL_B.replaceAll('&', '&amp;'));
     expect(html).toContain('Estimativa de custo');
   });
   it('StepCard renders no pill for an unsafe URL', async () => {

@@ -14,10 +14,13 @@ import { generateSequenceHtml } from './support/deps';
 
 const DIST = join(__dirname, '../packages/diagram-core/dist');
 
+/** Escape every RegExp metacharacter (backslash included). */
+const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 function importsFrom(file: string, spec: string): string[] {
   const src = readFileSync(join(DIST, file), 'utf-8');
   const names: string[] = [];
-  const re = new RegExp(`import\\s*\\{([^}]*)\\}\\s*from\\s*"${spec.replace(/[.]/g, '\\.')}"`, 'g');
+  const re = new RegExp(`import\\s*\\{([^}]*)\\}\\s*from\\s*"${escapeRegExp(spec)}"`, 'g');
   for (const m of src.matchAll(re)) {
     for (const part of m[1].split(',')) {
       const name = part.trim().split(/\s+as\s+/)[0];
@@ -80,7 +83,7 @@ describe('the published MCP is self-contained', () => {
   const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf-8'));
   const files: string[] = pkg.files;
   const shipped = (p: string) => files.some(g => g.endsWith('/') ? p.startsWith(g)
-    : g.includes('*') ? new RegExp('^' + g.replace(/[.]/g, '\\.').replace('*', '[^/]+') + '$').test(p) : p === g || p.startsWith(g + '/'));
+    : g.includes('*') ? new RegExp('^' + g.split('*').map(escapeRegExp).join('[^/]+') + '$').test(p) : p === g || p.startsWith(g + '/'));
   const walk = (d: string): string[] => readdirSync(join(root, d), { withFileTypes: true }).flatMap(e => e.isDirectory() ? walk(`${d}/${e.name}`) : [`${d}/${e.name}`]);
   const bundle = walk('dist/server').filter(f => f.endsWith('.js'));
   // import … from 'x' · export … from 'x' · import 'x' · import('x') — statements only (the bundle's strings hold code samples).
