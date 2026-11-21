@@ -164,7 +164,8 @@ async function capture(dir) {
 // The page HTML minus the text of its bundled scripts (the core's code moves
 // between modules; the generated document must not otherwise change). JSON data
 // islands (<script type="application/json"> or with an id) are compared in full.
-const stripScripts = (html) => html.replace(/(<script\b[^>]*>)([\s\S]*?)(<\/script>)/g, (m, a, body, b) => (/type="application\/json"|id="/.test(a) ? m : a + b));
+// Case-insensitive, and the closing tag may carry whitespace or junk before `>` (`</script >`, `</SCRIPT foo>`), as browsers accept.
+const stripScripts = (html) => html.replace(/(<script\b[^>]*>)([\s\S]*?)(<\/script\b[^>]*>)/gi, (m, a, body, b) => (/type\s*=\s*["']?application\/json|\bid\s*=/i.test(a) ? m : a + b));
 
 async function pixelDiff(page, fa, fb) {
   const da = "data:image/png;base64," + readFileSync(fa).toString("base64");
