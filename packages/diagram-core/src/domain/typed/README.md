@@ -8,12 +8,12 @@ server-side validation, exports) is generic and driven by these files.
 
 | File | What |
 |---|---|
-| `src/typed/<kind>.ts` | **Spec** — pure TypeScript (`TypedDiagramSpec<KindDoc>` from `./validate`), no runtime imports except other pure files (type imports are fine). Runs in browser, Node (MCP, codegen) and is exported as JSON to the Lambda. |
-| `src/typed/views/<kind>.jsx` | **View** — React SVG renderer. |
+| `src/domain/typed/<kind>.ts` | **Spec** (domain) — pure TypeScript (`TypedDiagramSpec<KindDoc>` from `./validate`), no runtime imports except other pure files (type imports are fine). Runs in browser, Node (MCP, codegen) and is exported as JSON to the Lambda. |
+| `src/adapters/react/typed/<kind>.tsx` | **View** (React adapter) — React SVG renderer. A view that needs a graph layout takes it from the `LayeredLayoutEngine` port (`useCoreHost().layeredLayout`, dagre by default), never from dagre directly. |
 
-Register the spec (and re-export its doc types) in `src/typed/index.ts` and the view in `src/typed/views/index.jsx`.
+Register the spec (and re-export its doc types) in `src/domain/typed/index.ts` and the view in `src/adapters/react/typed/index.tsx` (the `./typed` and `./typed-react` entries, `src/typed/index.ts` and `src/typed/views/index.tsx`, re-export those).
 
-Reference implementation: `quadrant.ts` + `quadrant.jsx`.
+Reference implementation: `quadrant.ts` + `quadrant.tsx`.
 
 ## Spec (`<kind>.ts`) — `const spec: TypedDiagramSpec<KindDoc> = { … }; export default spec`
 

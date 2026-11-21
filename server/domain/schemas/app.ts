@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT-0
 // ─── App shell schemas: spec data/metrics and the app-shell components ───
 // A layout with `shell: "app"` turns the page into a small app — a sidebar and
-// pages assembled from components (packages/diagram-core/src/components/AppShell.jsx).
+// pages assembled from components (packages/diagram-core/src/adapters/react/components/AppShell.tsx).
 // Numbers come from the SPEC: `data` (inputs a form card can edit) and `metrics`
 // (named formulas). A formula is a JSON expression tree, evaluated by the core
 // (appData.js) — never code — so a spec wires a calculator-like page without

@@ -17,7 +17,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import { SERVICE_ICONS } from "../packages/diagram-core/src/serviceIcons.ts";
+import { SERVICE_ICONS } from "../packages/diagram-core/src/domain/serviceIcons.ts";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ASSETS = join(__dirname, "..", "server", "assets");
