@@ -2,7 +2,7 @@
 
 All notable changes to the AWS Architecture Diagram MCP server are documented here.
 
-## [Unreleased]
+## [2.5.0] — 2026-11-21
 
 - **`diagram-core` 1.8.0: a hexagonal core.** `packages/diagram-core/src` is laid
   out as `domain/` (the pure vocabulary, schemas, typed specs, layouts — moved
