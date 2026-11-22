@@ -21,26 +21,20 @@ import {
   assertLocalCss,
   baseName,
   costProblems,
+  createCompoundLayout,
   createFlowRenderer,
   createHtmlRenderer,
   createIconResolver,
   createSequenceRenderer,
-  elkGraphOptions,
-  elkGroupPadding,
-  elkSpacing,
   exportTypeContracts,
   extName,
-  groupDepth,
-  groupStyle,
-  lcaContainer,
   messageOf,
   nodeDomainPorts,
-  radialLayout,
   remoteLoads,
   resolveGroupsAndMembership,
   resolveVariant,
   variantKey
-} from "./chunks/chunk-N7V7P4JS.js";
+} from "./chunks/chunk-Z5YADOGC.js";
 
 // server/adapters/inbound/cli/cli.ts
 import { basename } from "node:path";
@@ -712,7 +706,7 @@ var tabSchema = z4.object({
   title: langText2.optional().describe("Heading shown at the top of this tab's panel (doc/sequence)."),
   subtitle: langText2.optional(),
   sequence: sequenceSchema.optional().describe("Required when kind='sequence'."),
-  diagram: z4.object({ kind: z4.string() }).passthrough().optional().describe("Required when kind='typed': a typed diagram document — { kind, title?, … } with kind one of er, gantt, swimlane, tree, timeline, kanban, journey, quadrant, venn, layers, fishbone, wardley, flywheel, class, workflow. Each kind's fields follow its spec in @aws-sample-live-diagram/core (packages/diagram-core/src/typed/<kind>.js); the body is validated before rendering."),
+  diagram: z4.object({ kind: z4.string() }).passthrough().optional().describe("Required when kind='typed': a typed diagram document — { kind, title?, … } with kind one of er, gantt, swimlane, tree, timeline, kanban, journey, quadrant, venn, layers, fishbone, wardley, flywheel, class, workflow. Each kind's fields follow its spec in @aws-sample-live-diagram/core (packages/diagram-core/src/domain/typed/<kind>.ts); the body is validated before rendering."),
   sections: z4.array(z4.object({
     title: langText2.optional(),
     badge: langText2.optional().describe("Short status chip next to the section title (e.g. 'Aprovada', 'Trade-off', 'Requer revisão')."),
@@ -2168,171 +2162,62 @@ function createSpecRendering(deps) {
 }
 __name(createSpecRendering, "createSpecRendering");
 
-// packages/diagram-core/src/layoutEngine.ts
+// packages/diagram-core/src/adapters/layout/elk.ts
 import ElkImport from "elkjs/lib/elk.bundled.js";
-import dagre from "dagre";
 var ELK = ElkImport.default ?? ElkImport;
 var elk = new ELK();
-var geomOf = /* @__PURE__ */ __name((g) => ({ ...DEFAULT_GEOMETRY, ...g || {} }), "geomOf");
+var elkLayoutEngine = {
+  // Called as-is (no wrapper promise): a synchronous throw stays synchronous, a
+  // rejection stays a rejection — application/layout.ts relies on neither changing.
+  layout: /* @__PURE__ */ __name((graph) => elk.layout(graph), "layout")
+};
+
+// packages/diagram-core/src/adapters/layout/dagre.ts
+import dagre from "dagre";
+function graphLabel(o) {
+  const out = { rankdir: o.rankdir, nodesep: o.nodesep, ranksep: o.ranksep };
+  if (o.edgesep !== void 0) out.edgesep = o.edgesep;
+  out.marginx = o.marginx;
+  out.marginy = o.marginy;
+  return out;
+}
+__name(graphLabel, "graphLabel");
+var dagreLayeredEngine = {
+  layout(input) {
+    const opts = {};
+    if (input.compound) opts.compound = true;
+    if (input.multigraph) opts.multigraph = true;
+    const g = new dagre.graphlib.Graph(opts);
+    g.setGraph(graphLabel(input.options));
+    g.setDefaultEdgeLabel(() => ({}));
+    for (const n of input.nodes) g.setNode(n.id, { width: n.width, height: n.height });
+    for (const n of input.nodes) if (n.parent !== void 0) g.setParent(n.id, n.parent);
+    for (const e of input.edges) {
+      if (e.name !== void 0) g.setEdge(e.source, e.target, e.label ?? {}, e.name);
+      else if (e.label !== void 0) g.setEdge(e.source, e.target, e.label);
+      else g.setEdge(e.source, e.target);
+    }
+    dagre.layout(g);
+    const nodes = {};
+    for (const n of input.nodes) {
+      const p = g.node(n.id);
+      nodes[n.id] = p ? { x: p.x, y: p.y, width: p.width, height: p.height } : void 0;
+    }
+    const edges = input.edges.map((e) => {
+      const ed = e.name !== void 0 ? g.edge(e.source, e.target, e.name) : g.edge(e.source, e.target);
+      if (!ed) return void 0;
+      const x = ed.x, y = ed.y;
+      return { points: ed.points || [], ...typeof x === "number" ? { x } : {}, ...typeof y === "number" ? { y } : {} };
+    });
+    const gl = g.graph();
+    return { width: gl.width, height: gl.height, nodes, edges };
+  }
+};
+
+// packages/diagram-core/src/layout-engine.ts
+var production = createCompoundLayout({ engine: elkLayoutEngine, fallback: dagreLayeredEngine });
 function elkLayout(serviceNodes, edges, membership, opts = {}) {
-  const {
-    direction = "TB",
-    geometry,
-    spacing = 1,
-    reanchorEdges = false,
-    groupsInteractive = false,
-    groups = [],
-    collapsed = /* @__PURE__ */ new Set()
-  } = opts;
-  const geom = geomOf(geometry);
-  const { nodeW, nodeH } = geom;
-  if (direction === "RADIAL" && groups.length === 0 && serviceNodes.length > 1) {
-    return Promise.resolve({ nodes: radialLayout(serviceNodes, edges, geom), edgePaths: {} });
-  }
-  const groupById = new Map(groups.map((g) => [g.id, g]));
-  const isCollapsed = /* @__PURE__ */ __name((id) => collapsed && collapsed.has(id), "isCollapsed");
-  const outerCollapsedAncestorOfGroup = /* @__PURE__ */ __name((gid) => {
-    let found = null, cur = groupById.get(gid);
-    const seen = /* @__PURE__ */ new Set();
-    while (cur && !seen.has(cur.id)) {
-      seen.add(cur.id);
-      if (isCollapsed(cur.id)) found = cur.id;
-      cur = cur.parent ? groupById.get(cur.parent) : void 0;
-    }
-    return found;
-  }, "outerCollapsedAncestorOfGroup");
-  const visibleGroupId = /* @__PURE__ */ __name((gid) => outerCollapsedAncestorOfGroup(gid) || gid, "visibleGroupId");
-  const visibleServiceId = /* @__PURE__ */ __name((sid) => {
-    const p = membership[sid];
-    const c = p ? outerCollapsedAncestorOfGroup(p) : null;
-    return c || sid;
-  }, "visibleServiceId");
-  const groupRendered = /* @__PURE__ */ __name((gid) => {
-    const g0 = groupById.get(gid);
-    let cur = g0 ? g0.parent ? groupById.get(g0.parent) : void 0 : void 0;
-    const seen = /* @__PURE__ */ new Set();
-    while (cur && !seen.has(cur.id)) {
-      seen.add(cur.id);
-      if (isCollapsed(cur.id)) return false;
-      cur = cur.parent ? groupById.get(cur.parent) : void 0;
-    }
-    return true;
-  }, "groupRendered");
-  const svcRendered = /* @__PURE__ */ __name((sid) => {
-    const p = membership[sid];
-    return !p || !outerCollapsedAncestorOfGroup(p);
-  }, "svcRendered");
-  const childrenGroups = new Map(groups.map((g) => [g.id, []]));
-  const rootGroupIds = [];
-  for (const grp of groups) {
-    const siblings = grp.parent ? childrenGroups.get(grp.parent) : void 0;
-    if (grp.parent && siblings && grp.parent !== grp.id) siblings.push(grp.id);
-    else rootGroupIds.push(grp.id);
-  }
-  const svcByGroup = new Map(groups.map((gp) => [gp.id, []]));
-  const rootServices = [];
-  for (const n of serviceNodes) {
-    const p = membership[n.id];
-    const members = p ? svcByGroup.get(p) : void 0;
-    if (p && members) members.push(n);
-    else rootServices.push(n);
-  }
-  const spacingBase = { betweenLayers: geom.elkBetweenLayers, nodeNode: geom.elkNodeNode };
-  const svcElk = /* @__PURE__ */ __name((n) => ({ id: n.id, width: nodeW, height: nodeH }), "svcElk");
-  const COLLAPSED_W = Math.max(230, nodeW), COLLAPSED_H = 56;
-  const groupElk = /* @__PURE__ */ __name((id) => {
-    if (isCollapsed(id)) return { id, width: COLLAPSED_W, height: COLLAPSED_H };
-    return {
-      id,
-      layoutOptions: { "elk.padding": elkGroupPadding(geom), ...elkSpacing(spacing, spacingBase) },
-      children: [...(svcByGroup.get(id) || []).map(svcElk), ...(childrenGroups.get(id) || []).map(groupElk)]
-    };
-  }, "groupElk");
-  const seenEdge = /* @__PURE__ */ new Set();
-  const elkEdges = [];
-  for (const e of edges) {
-    const s = visibleServiceId(e.source), t = visibleServiceId(e.target);
-    if (s === t) continue;
-    const key = `${s}->${t}`;
-    if (seenEdge.has(key)) continue;
-    seenEdge.add(key);
-    elkEdges.push({ id: e.id, sources: [s], targets: [t] });
-  }
-  const graph = {
-    id: "root",
-    layoutOptions: elkGraphOptions(direction, spacing, spacingBase),
-    children: [...rootGroupIds.map(groupElk), ...rootServices.map(svcElk)],
-    edges: elkEdges
-  };
-  return elk.layout(graph).then((res) => {
-    const abs = /* @__PURE__ */ new Map();
-    const walk = /* @__PURE__ */ __name((node, ox, oy) => {
-      for (const c of node.children || []) {
-        const x = ox + (c.x || 0), y = oy + (c.y || 0);
-        abs.set(c.id, { x, y, w: c.width || 0, h: c.height || 0 });
-        if (c.children && c.children.length) walk(c, x, y);
-      }
-    }, "walk");
-    walk(res, 0, 0);
-    const groupNodes = [...groups].filter((gp) => abs.has(gp.id) && groupRendered(gp.id)).sort((a, b) => groupDepth(a.id, groupById) - groupDepth(b.id, groupById)).map((gp) => {
-      const b = abs.get(gp.id);
-      const variant = resolveVariant(gp.variant);
-      const depth = groupDepth(gp.id, groupById);
-      const col = isCollapsed(gp.id);
-      return {
-        id: gp.id,
-        type: "group",
-        position: { x: b.x, y: b.y },
-        data: { label: gp.label, variant: variantKey(gp.variant), icon: gp.icon, pill: gp.pill, pillOverlay: gp.pillOverlay, pillSide: gp.pillSide, collapsed: col, collapsible: true },
-        style: groupStyle(variant, b.w, b.h, depth),
-        selectable: groupsInteractive,
-        draggable: groupsInteractive
-      };
-    });
-    const positioned = serviceNodes.filter((n) => svcRendered(n.id)).map((n) => {
-      const b = abs.get(n.id);
-      return b ? { ...n, position: { x: b.x, y: b.y } } : { ...n, position: { x: 0, y: 0 } };
-    });
-    const isH0 = direction !== "TB";
-    const srcAnchor = /* @__PURE__ */ __name((id) => {
-      if (id == null) return null;
-      const b = abs.get(id);
-      if (!b) return null;
-      return isH0 ? { x: b.x + (b.w || nodeW), y: b.y + (b.h || nodeH) / 2 } : { x: b.x + (b.w || nodeW) / 2, y: b.y + (b.h || nodeH) };
-    }, "srcAnchor");
-    const d2 = /* @__PURE__ */ __name((a, b) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y), "d2");
-    const edgePaths = {};
-    for (const e of res.edges || []) {
-      const sec = e.sections && e.sections[0];
-      if (!sec) continue;
-      let pts = [sec.startPoint, ...sec.bendPoints || [], sec.endPoint];
-      const src = e.sources?.[0], tgt = e.targets?.[0];
-      const lca = src && tgt ? lcaContainer(src, tgt, membership, groupById) : null;
-      const o = lca && abs.get(lca) || { x: 0, y: 0 };
-      if (o.x || o.y) {
-        const anchor = srcAnchor(src);
-        const raw = sec.startPoint;
-        const shifted = { x: raw.x + o.x, y: raw.y + o.y };
-        if (!anchor || d2(shifted, anchor) < d2(raw, anchor)) {
-          pts = pts.map((p) => ({ x: p.x + o.x, y: p.y + o.y }));
-        }
-      }
-      edgePaths[e.id] = pts;
-    }
-    const isH = isH0;
-    for (const e of edges) {
-      const key = `${visibleServiceId(e.source)}->${visibleServiceId(e.target)}`;
-      if (edgePaths[e.id]) continue;
-      const sb = abs.get(visibleServiceId(e.source)) || abs.get(e.source);
-      const tb = abs.get(visibleServiceId(e.target)) || abs.get(e.target);
-      if (!sb || !tb) continue;
-      const start = isH ? { x: sb.x + (sb.w || nodeW), y: sb.y + (sb.h || nodeH) / 2 } : { x: sb.x + (sb.w || nodeW) / 2, y: sb.y + (sb.h || nodeH) };
-      const end = isH ? { x: tb.x, y: tb.y + (tb.h || nodeH) / 2 } : { x: tb.x + (tb.w || nodeW) / 2, y: tb.y };
-      const mid = isH ? (start.x + end.x) / 2 : (start.y + end.y) / 2;
-      edgePaths[e.id] = isH ? [start, { x: mid, y: start.y }, { x: mid, y: end.y }, end] : [start, { x: start.x, y: mid }, { x: end.x, y: mid }, end];
-    }
-    return { nodes: [...groupNodes, ...positioned], edgePaths };
-  });
+  return production.elkLayout(serviceNodes, edges, membership, opts);
 }
 __name(elkLayout, "elkLayout");
 
@@ -2456,14 +2341,14 @@ var GROUP_VARIANTS2 = GROUP_VARIANTS;
 var resolveVariant2 = resolveVariant;
 var variantKey2 = variantKey;
 var GROUP_POINTS = "points=[[0,0],[0.25,0],[0.5,0],[0.75,0],[1,0],[1,0.25],[1,0.5],[1,0.75],[1,1],[0.75,1],[0.5,1],[0.25,1],[0,1],[0,0.75],[0,0.5],[0,0.25]]";
-function groupStyle2(v) {
+function groupStyle(v) {
   const stroke = v.stroke;
   const dashed = v.dashed ? 1 : 0;
   return `${GROUP_POINTS};outlineConnect=0;gradientColor=none;html=1;whiteSpace=wrap;fontSize=12;fontStyle=0;shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.${v.grIcon};strokeColor=${stroke};fillColor=light-dark(${stroke}0D,${stroke}0D);fillStyle=auto;verticalAlign=top;align=left;spacingLeft=30;fontColor=${stroke};dashed=${dashed};container=1;pointerEvents=0;collapsible=0;recursiveResize=0`;
 }
-__name(groupStyle2, "groupStyle");
+__name(groupStyle, "groupStyle");
 var GROUP_STYLES = Object.fromEntries(
-  Object.entries(GROUP_VARIANTS2).map(([key, v]) => [key, groupStyle2(v)])
+  Object.entries(GROUP_VARIANTS2).map(([key, v]) => [key, groupStyle(v)])
 );
 var CATEGORIES = {
   compute: { fill: "#ED7100", tint: "#FFF2E8", stroke: "#ED7100" },
@@ -2516,7 +2401,7 @@ function edgeCell(id, source, target, dashed, exitX, exitY, entryX, entryY, type
 }
 __name(edgeCell, "edgeCell");
 function groupCell(id, type, label, x, y, w, h, _parentId) {
-  const style = GROUP_STYLES[variantKey2(type)] || groupStyle2(resolveVariant2(type));
+  const style = GROUP_STYLES[variantKey2(type)] || groupStyle(resolveVariant2(type));
   return `        <mxCell id="${id}" value="${label}" style="${style}" vertex="1" parent="1">
           <mxGeometry x="${x}" y="${y}" width="${w}" height="${h}" as="geometry" />
         </mxCell>`;

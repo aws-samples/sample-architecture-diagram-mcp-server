@@ -9,7 +9,7 @@ import { renderToString } from 'react-dom/server';
 import { writeFileSync, mkdtempSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
-import { resolveCosts, costEnvs, costForEnv, stepCost, dockCost, modalPricing, envFromHash, hashWithEnv, costProblems } from '#core-src/costs.ts';
+import { resolveCosts, costEnvs, costForEnv, stepCost, dockCost, modalPricing, envFromHash, hashWithEnv, costProblems } from '#core-src/domain/costs.ts';
 import { renderSpec } from './support/deps';
 import { importChromium } from '#adapters/outbound/rasterizer.ts';
 

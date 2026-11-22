@@ -121,6 +121,27 @@ Dependencies point inwards only. `test/architecture.test.ts` enforces it.
 * Each result embeds **only the files the use case reported in `written`** (≤ 8 MiB each; text types as
   text, PNG/GIF/PDF as base64 blobs).
 
+## The core package (`packages/diagram-core`)
+
+The core follows the same style, one level down:
+
+| Layer | What | May import |
+|---|---|---|
+| `src/domain` | vocabulary, schemas, typed specs, diagram model, membership, layout primitives, the compound-layout plan/read, flow + sequence layouts, themes, inline grammar, icons, costs, a11y, i18n | `domain` |
+| `src/ports` | `LayoutEngine`, `LayeredLayoutEngine`, `UrlState`, `Clipboard`, `FileSaver`, `Environment` (types only) | `domain` types |
+| `src/application` | `createCompoundLayout`, the walkthrough step machine, the `#env` / `#page` deep links, export payloads, editor ops, the component registry | `application`, `domain`, `ports` types |
+| `src/adapters/layout` | `elk.ts`, `dagre.ts` (the only importers of elkjs / dagre) | inward + elkjs, dagre |
+| `src/adapters/browser` | the presentation ports over window / document / navigator | `domain`, `ports` |
+| `src/adapters/react` | components, typed views, `<CoreHostProvider ports>` (defaults: the browser adapters and the production engines) | inward + react, @xyflow/react, framer-motion, d3-shape |
+| entries | `index.ts`, `layout-engine.ts` (the use case composed with the elk/dagre adapters), `react.tsx`, `typed/index.ts`, `typed/views/index.tsx` | everything |
+
+Same import convention (`#core/<layer>/…` with real extensions, `./x.ts` within a
+directory, never `../`), enforced by `test/core-architecture.test.ts`. The three
+modules the HTML players inline as classic scripts (`domain/flowLayout.ts`,
+`domain/sequenceLayout.ts`, `domain/codeBlocks.ts`) stay import-free.
+`scripts/core-parity.mjs` renders a fixed document set through the MCP and diffs
+HTML, DOM and screenshots (light/dark, per walkthrough beat) between two builds.
+
 ## Build
 
 * `npm run build:server` bundles `server/main/mcp-server.ts` and `server/main/render.ts` with esbuild into

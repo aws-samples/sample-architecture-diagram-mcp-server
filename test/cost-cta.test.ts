@@ -7,7 +7,7 @@ import React from 'react';
 import { renderToString } from 'react-dom/server';
 import { generateHtml } from './support/deps';
 import { htmlDiagramInputSchema, stepSchema } from '#domain/schemas/architecture.ts';
-import { safeHttpUrl } from '#core-src/inline.ts';
+import { safeHttpUrl } from '#core-src/domain/inline.ts';
 
 interface ArchData { costUrl?: string; costLabel?: string; showTitle?: boolean; steps: { costUrl?: string }[] }
 const archDataOf = (html: string): ArchData => JSON.parse(html.match(/id="arch-data"[^>]*>([\s\S]*?)<\/script>/)![1]);

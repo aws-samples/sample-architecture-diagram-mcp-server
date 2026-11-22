@@ -139,7 +139,7 @@ describe('the published MCP is self-contained', () => {
 // `service` the same way the MCP does.
 describe('core icons', () => {
   it('resolves exact, prefix-insensitive and i18n service names', async () => {
-    const { iconForService, iconForShape, withServiceIcon, iconFilterKind } = await import('#core-src/icons.ts');
+    const { iconForService, iconForShape, withServiceIcon, iconFilterKind } = await import('#core-src/domain/icons.ts');
     expect(iconForService('AWS Lambda')).toBe('Arch_AWS-Lambda_48.png');
     expect(iconForService('Lambda')).toBe('Arch_AWS-Lambda_48.png');
     expect(iconForService({ en: 'Amazon S3', pt: 'Amazon S3' })).toBe('Arch_Amazon-Simple-Storage-Service_48.png');
@@ -170,7 +170,7 @@ describe('core players fill a missing icon from service', () => {
     expect(pick(renderToString(React.createElement(FlowPlayer, { flow, iconUrl })))).toEqual(['Arch_AWS-Lambda_48.png']);
   });
   it('architecture nodes too, without writing the derived icon back', async () => {
-    const { buildServiceNode, serializeDiagram } = await import('#core-src/diagramModel.ts');
+    const { buildServiceNode, serializeDiagram } = await import('#core-src/domain/diagramModel.ts');
     const node = buildServiceNode({ id: 'f', service: 'AWS Lambda' }, {});
     expect(node.data.icon).toBe('Arch_AWS-Lambda_48.png');
     expect(serializeDiagram([node], []).services[0].icon).toBeUndefined();
@@ -179,7 +179,7 @@ describe('core players fill a missing icon from service', () => {
 
 describe('core inline grammar, describers and canvas theme', () => {
   it('parseInline: one grammar, safe links, snake_case stays text', async () => {
-    const { parseInline, inlineHtml, safeHref } = await import('#core-src/inline.ts');
+    const { parseInline, inlineHtml, safeHref } = await import('#core-src/domain/inline.ts');
     expect(parseInline('**a** __b__ `c_d` *e* _f_ aft_seed_vault').filter(t => t.type !== 'text').map(t => `${t.type}:${t.text}`))
       .toEqual(['strong:a', 'strong2:b', 'code:c_d', 'em:e', 'em:f']);
     expect(parseInline('[x](javascript:alert)')).toEqual([{ type: 'text', text: 'x' }]);
@@ -188,7 +188,7 @@ describe('core inline grammar, describers and canvas theme', () => {
     expect(inlineHtml('<i>**x**</i>')).toBe('&lt;i&gt;<b>x</b>&lt;/i&gt;');
   });
   it('describers handle i18n text in en/pt', async () => {
-    const { describeArchitecture, describeSequence } = await import('#core-src/a11y.ts');
+    const { describeArchitecture, describeSequence } = await import('#core-src/domain/a11y.ts');
     const arch = { title: { en: 'Web', pt: 'Web' }, services: [{ id: 'a', service: 'Amazon S3', parentId: 'g' }, { id: 'b', service: 'AWS Lambda' }], connections: [{ source: 'b', target: 'a', label: { en: 'put', pt: 'grava' } }], groups: [{ id: 'g', label: 'VPC' }] };
     expect(describeArchitecture(arch)).toBe('Architecture diagram "Web" with 2 component(s), 1 connection(s) and 1 group(s). Groups: VPC (Amazon S3). Components: AWS Lambda. Connections: AWS Lambda → Amazon S3 (put).');
     expect(describeArchitecture(arch, { lang: 'pt' })).toContain('Conexões: AWS Lambda → Amazon S3 (grava).');
@@ -196,7 +196,7 @@ describe('core inline grammar, describers and canvas theme', () => {
       .toBe('Sequence diagram with 2 participant(s) and 2 step(s). Participants: User, Fn. Steps: User → Fn: call; [User–Fn] auth.');
   });
   it('diagramThemeCss: overrides, alias, only', async () => {
-    const { diagramThemeCss } = await import('#core-src/diagramTheme.ts');
+    const { diagramThemeCss } = await import('#core-src/domain/diagramTheme.ts');
     expect(diagramThemeCss('.l', '.d', { alias: '--ld-', only: ['dot'], overrides: { light: { dot: 'X' } } }))
       .toBe('.l{--dot:X;--ld-dot:X}\n.d{--dot:rgba(255,255,255,0.12);--ld-dot:rgba(255,255,255,0.12)}');
   });

@@ -7,9 +7,9 @@
 import { describe, it, expect } from 'vitest';
 import * as React from 'react';
 // @ts-expect-error — plain JS module, no types
-import { splitLead, mdInline } from '#core-src/components/cardKit.tsx';
+import { splitLead, mdInline } from '#core-src/adapters/react/components/cardKit.tsx';
 // @ts-expect-error — plain JS module, no types
-import { splitStat } from '#core-src/components/DiagramCaption.tsx';
+import { splitStat } from '#core-src/adapters/react/components/DiagramCaption.tsx';
 
 // cardKit.jsx is compiled with the classic JSX runtime (bare `React`).
 (globalThis as any).React = React;

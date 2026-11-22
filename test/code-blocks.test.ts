@@ -8,7 +8,7 @@ import { renderToString } from 'react-dom/server';
 import { writeFileSync, mkdtempSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
-import { codeBlocksOf, splitCodeByMarkers } from '#core-src/codeBlocks.ts';
+import { codeBlocksOf, splitCodeByMarkers } from '#core-src/domain/codeBlocks.ts';
 import { renderSpec } from './support/deps';
 import { generateSequenceHtml } from './support/deps';
 import { stepSchema } from '#domain/schemas/architecture.ts';

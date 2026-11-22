@@ -5,7 +5,7 @@
 import { describe, it, expect } from 'vitest';
 import React from 'react';
 import { renderToString } from 'react-dom/server';
-import { evalExpr, formatValue, displayValue, textValue, APP_GLYPH_NAMES } from '#core-src/appData.ts';
+import { evalExpr, formatValue, displayValue, textValue, APP_GLYPH_NAMES } from '#core-src/domain/appData.ts';
 import { resolveLayout, validateLayout, layoutPayload, listComponents, PREVIEW_SPEC } from './support/layouts';
 import { renderSpec } from './support/deps';
 import { htmlDiagramInputSchema } from '#domain/schemas/architecture.ts';

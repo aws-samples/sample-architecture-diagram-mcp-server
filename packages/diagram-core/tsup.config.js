@@ -19,20 +19,30 @@ const PEERS = ["react", "react/jsx-runtime", "framer-motion", "@xyflow/react", "
 // Each source module lives in exactly ONE built entry. When another entry
 // imports it, the import is rewritten to that entry's file (kept external)
 // instead of bundling a second copy — and without the hashed shared chunks
-// esbuild's code splitting would emit.
-//   index.js          pure vocabulary (tones, i18n, group variants, membership,
-//                     layout, diagram model, flow + sequence layouts, player theme,
-//                     icon catalogs + resolver, document schemas)
-//   layout-engine.js  ELK/dagre compound layout
-//   react.js          shared React components
-//   typed.js          typed-diagram specs + registry (pure)
+// esbuild's code splitting would emit. An owned module's exports must be
+// re-exported, under the same names, by its entry.
+//   index.js          the domain (pure vocabulary, schemas, layouts, icons, costs…)
+//                     and the application use cases (layout orchestration over the
+//                     LayoutEngine port, walkthrough, deep links, export payloads)
+//   layout-engine.js  the composition: compound layout wired to the elk/dagre adapters
+//   react.js          the React presentation adapter (+ the browser adapters it defaults to)
+//   typed.js          typed-diagram specs + registry (domain/typed, pure)
 //   typed-react.js    typed-diagram SVG views
-const PURE = ["tones", "i18n", "groupVariants", "membership", "layout", "diagramModel", "flowLayout", "playerTheme", "diagramTheme", "a11y", "inline", "sequenceLayout", "icons", "serviceIcons", "darkVariants", "schemas/index", "schemas/sequence", "schemas/architecture", "appData", "codeBlocks", "costs"];
+// The ports are types only (erased). Modules not listed are bundled into the
+// entry that imports them (they hold no state shared across entries).
+const PURE = [
+  ...["tones", "i18n", "groupVariants", "membership", "layout", "diagramModel", "flowLayout", "playerTheme", "diagramTheme", "a11y", "inline", "sequenceLayout", "icons", "serviceIcons", "darkVariants", "appData", "codeBlocks", "costs", "compoundLayout", "schemas/index", "schemas/sequence", "schemas/architecture"].map((m) => `domain/${m}`),
+  ...["layout", "walkthrough", "costEnv", "appPages", "exports", "editor"].map((m) => `application/${m}`),
+];
 const OWNER = new Map([
   ...PURE.map((m) => [src(m), "./index.js"]),
   [src("index"), "./index.js"],
-  [src("layoutEngine"), "./layout-engine.js"],
-  [src("components/FlowPlayer"), "./react.js"],
+  [src("layout-engine"), "./layout-engine.js"],
+  [src("adapters/layout/elk"), "./layout-engine.js"],
+  [src("adapters/layout/dagre"), "./layout-engine.js"],
+  [src("adapters/react/components/FlowPlayer"), "./react.js"],
+  [src("adapters/react/host"), "./react.js"],
+  [src("domain/typed/index"), "./typed.js"],
   [src("typed/index"), "./typed.js"],
 ]);
 const shareEntries = (own) => ({
@@ -54,7 +64,7 @@ const common = { format: ["esm"], tsconfig: "tsconfig.json", splitting: false, e
 
 export default defineConfig([
   { ...common, entry: { index: entry("index") }, clean: true },
-  { ...common, entry: { "layout-engine": entry("layoutEngine") }, esbuildPlugins: [shareEntries("./layout-engine.js")] },
+  { ...common, entry: { "layout-engine": entry("layout-engine") }, esbuildPlugins: [shareEntries("./layout-engine.js")] },
   { ...common, entry: { react: entry("react") }, esbuildPlugins: [shareEntries("./react.js")] },
   { ...common, entry: { typed: entry("typed/index") }, esbuildPlugins: [shareEntries("./typed.js")] },
   { ...common, entry: { "typed-react": entry("typed/views/index") }, esbuildPlugins: [shareEntries("./typed-react.js")] },

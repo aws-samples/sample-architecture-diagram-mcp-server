@@ -14,7 +14,10 @@ export default defineConfig({
   },
   build: {
     outDir: resolve(__dirname, 'dist'),
-    emptyOutDir: true,
+    // dist/ also holds the committed server bundle (dist/server/, built by
+    // scripts/build-server.mjs): never empty the folder. The single-file build
+    // writes only dist/index.html, which overwrites the previous one.
+    emptyOutDir: false,
     target: 'es2020',
     // viteSingleFile inlines everything into one HTML, so there are never any
     // `<link rel="modulepreload">` chunks for Vite's polyfill to preload — it ships

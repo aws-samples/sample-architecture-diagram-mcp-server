@@ -151,7 +151,7 @@ A `kind: 'typed'` tab carries one typed diagram: `{ id, kind: 'typed', label?,
 diagram: { kind, title?, … } }` with `diagram.kind` one of `er`, `gantt`,
 `swimlane`, `tree`, `timeline`, `kanban`, `journey`, `quadrant`, `venn`,
 `layers`, `fishbone`, `wardley`, `flywheel`, `class`, `workflow`. Each kind's
-fields follow its spec in `packages/diagram-core/src/typed/<kind>.ts` (the same
+fields follow its spec in `packages/diagram-core/src/domain/typed/<kind>.ts` (the same
 specs a downstream app validates with); an invalid body fails the render with
 the spec's messages, so fix it and render again.
 
